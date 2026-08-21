@@ -1,0 +1,32 @@
+# Fly.io config — alternative to Render, better free allowance and no sleep.
+#
+#   brew install flyctl && fly auth login
+#   fly launch --no-deploy      (accepts this file)
+#   fly deploy
+#
+app = "protrader"            # must be globally unique — change if taken
+primary_region = "fra"       # nearest to your users
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  PORT = "8000"
+
+[http_service]
+  internal_port = 8000
+  force_https = true
+  auto_stop_machines = false   # keep it warm so quotes are instant
+  auto_start_machines = true
+  min_machines_running = 1
+
+  [[http_service.checks]]
+    interval = "30s"
+    timeout = "10s"
+    grace_period = "20s"
+    method = "GET"
+    path = "/api/tickers"
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "512mb"

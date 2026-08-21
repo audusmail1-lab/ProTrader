@@ -1,0 +1,14 @@
+.venv/
+__pycache__/
+*.pyc
+*.log
+.server.pid
+.claude/
+.github/
+Trading Bot.app/
+*.pdf
+make_pdf.py
+start.sh
+stop.sh
+Trading Bot.command
+.DS_Store

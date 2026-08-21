@@ -1,0 +1,17 @@
+# Trading Bot Dashboard — Python dependencies
+# Install with: pip install -r requirements.txt
+#
+# Pinned to the versions verified working, so a cloud build reproduces the
+# same app that runs locally. To upgrade deliberately: bump, test, commit.
+
+fastapi==0.141.1
+uvicorn[standard]==0.52.1
+starlette==1.4.1
+pydantic==2.13.4
+anyio==4.14.2
+websockets==17.0.1
+yfinance==1.5.2
+pandas==3.0.5
+numpy==2.5.1
+requests==2.34.2
+multitasking==0.0.13
