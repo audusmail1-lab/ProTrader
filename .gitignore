@@ -1,0 +1,13 @@
+# runtime
+.venv/
+__pycache__/
+*.pyc
+*.log
+.server.pid
+
+# local tooling
+.claude/
+.DS_Store
+
+# packaged mac launcher (rebuild locally, don't version)
+Trading Bot.app/

@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Lightweight Charts — production reference</title>
+<style>
+  :root{
+    --bg:#0B0E11; --panel:rgba(19,23,34,.92); --line:rgba(148,163,184,.14);
+    --tx:#D1D4DC; --tx-dim:#787B86; --up:#26A69A; --down:#EF5350; --accent:#2962FF;
+    --mono:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%;background:var(--bg);color:var(--tx);
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;overflow:hidden}
+
+  /* The chart fills the viewport; everything else floats over it. */
+  #chart{position:absolute;inset:0}
+
+  .hud{position:absolute;top:10px;left:12px;z-index:10;display:flex;flex-direction:column;gap:6px;
+    pointer-events:none;max-width:calc(100% - 24px)}
+  .row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .sym{font-size:13px;font-weight:700;letter-spacing:.2px}
+  .tag{font-size:10px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;
+    padding:2px 7px;border-radius:999px;border:1px solid var(--line);color:var(--tx-dim);
+    background:var(--panel);white-space:nowrap}
+  .tag.live{color:var(--up);border-color:rgba(38,166,154,.35);background:rgba(38,166,154,.10)}
+  .ohlc{display:flex;gap:10px;font-family:var(--mono);font-size:11px;color:var(--tx-dim)}
+  .ohlc b{font-weight:500;color:var(--tx)}
+  .ohlc .up{color:var(--up)} .ohlc .down{color:var(--down)}
+
+  .stats{position:absolute;bottom:12px;left:12px;z-index:10;display:flex;gap:8px;pointer-events:none}
+  .stat{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:5px 9px;min-width:74px}
+  .stat .k{font-size:8.5px;text-transform:uppercase;letter-spacing:.5px;color:var(--tx-dim);font-weight:700}
+  .stat .v{font-family:var(--mono);font-size:12px;font-weight:600;margin-top:1px}
+  .stat .v.good{color:var(--up)} .stat .v.warn{color:#F0B90B} .stat .v.bad{color:var(--down)}
+
+  .controls{position:absolute;top:10px;right:12px;z-index:10;display:flex;gap:6px}
+  button{background:var(--panel);border:1px solid var(--line);color:var(--tx);
+    font-size:11px;font-weight:600;padding:6px 11px;border-radius:6px;cursor:pointer;
+    transition:border-color .12s,color .12s}
+  button:hover{border-color:rgba(41,98,255,.55);color:#fff}
+  button.on{border-color:var(--accent);color:#fff;background:rgba(41,98,255,.18)}
+  @media(max-width:640px){
+    /* Keep the readout clear of the buttons on a phone. */
+    .hud{max-width:calc(100% - 132px)}
+    .ohlc{font-size:9.5px;gap:6px}
+    .sym{font-size:11px}
+    .tag{font-size:8.5px;padding:2px 5px}
+    .controls{gap:4px;right:8px}
+    button{font-size:9.5px;padding:5px 7px}
+    .stats{gap:4px;left:8px;bottom:26px}
+    .stat{min-width:0;padding:3px 6px}
+    .stat .k{font-size:7px}
+    .stat .v{font-size:10px}
+  }
+</style>
+</head>
+<body>
+
+<div id="chart"></div>
+
+<div class="hud">
+  <div class="row">
+    <span class="sym" id="sym">SIMULATED / USD</span>
+    <span class="tag" id="tf">1m</span>
+    <span class="tag live" id="feed">simulated feed</span>
+  </div>
+  <div class="ohlc" id="ohlc">
+    O <b id="o">—</b> H <b id="h">—</b> L <b id="l">—</b> C <b id="c">—</b>
+    <span id="chg">—</span>
+  </div>
+</div>
+
+<div class="controls">
+  <button id="btnPause">Pause feed</button>
+  <button id="btnFast">Fast bars</button>
+  <button id="btnReset">Reset view</button>
+</div>
+
+<div class="stats">
+  <div class="stat"><div class="k">FPS</div><div class="v" id="fps">—</div></div>
+  <div class="stat"><div class="k">Ticks</div><div class="v" id="ticks">0</div></div>
+  <div class="stat"><div class="k">Bars</div><div class="v" id="bars">0</div></div>
+  <div class="stat"><div class="k">Bar closes in</div><div class="v" id="countdown">—</div></div>
+  <div class="stat"><div class="k">Integrity</div><div class="v" id="integrity">—</div></div>
+</div>
+
+<!-- 1. Standalone CDN build — no bundler, no build step.
+     Pinned to an exact version on purpose: @latest can change the API under you
+     (v5 replaced addCandlestickSeries() with addSeries(CandlestickSeries, ...)).
+     The onerror line falls back to a local copy if the CDN is unreachable. -->
+<script
+  src="https://unpkg.com/lightweight-charts@5.0.9/dist/lightweight-charts.standalone.production.js"
+  onerror="this.onerror=null;this.src='/vendor/lightweight-charts.standalone.production.js';"></script>
+
+<script>
+/* ═══════════════════════════════════════════════════════════════════════
+   PRODUCTION REFERENCE — TradingView Lightweight Charts v5
+
+   The three things that actually make a candle chart feel right, and that
+   naive implementations get wrong:
+
+     1. Every bar timestamp is ALIGNED to the timeframe grid
+        (floor(t / interval) * interval). Unaligned stamps are what produce
+        "misaligned" candles and phantom gaps.
+     2. Timestamps are STRICTLY ASCENDING and UNIQUE. Lightweight Charts
+        throws on out-of-order data and silently misdraws on duplicates.
+     3. Live ticks call series.update() on the CURRENT bar only. update()
+        must never move backwards in time — a stale tick is dropped, not
+        applied.
+
+   Everything below follows from those three rules.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+const LWC = LightweightCharts;
+
+/* ── Configuration ──────────────────────────────────────────────────── */
+const CONFIG = {
+  symbol:      'SIMULATED / USD',
+  interval:    60,        // seconds per bar. 60 = 1m, 300 = 5m, 900 = 15m…
+  history:     600,       // bars of history to seed
+  precision:   2,         // decimals
+  tickMs:      120,       // simulated tick cadence
+  startPrice:  65000,
+  volatility:  0.00045,   // per-tick sigma, as a fraction of price
+};
+
+const alignTime = t => Math.floor(t / CONFIG.interval) * CONFIG.interval;
+const nowSec    = () => Math.floor(Date.now() / 1000);
+const fmt       = v => v.toFixed(CONFIG.precision);
+
+/* ── Chart ──────────────────────────────────────────────────────────── */
+const chart = LWC.createChart(document.getElementById('chart'), {
+  layout: {
+    background: { type: 'solid', color: '#0B0E11' },
+    textColor:  '#787B86',
+    fontFamily: "-apple-system, 'Segoe UI', Roboto, sans-serif",
+    fontSize:   11,
+    attributionLogo: true,        // Apache-2.0 attribution — keep it
+  },
+  grid: {
+    vertLines: { color: 'rgba(148,163,184,.07)' },
+    horzLines: { color: 'rgba(148,163,184,.07)' },
+  },
+  crosshair: {
+    mode: LWC.CrosshairMode.Normal,
+    vertLine: { color: 'rgba(148,163,184,.45)', width: 1, style: LWC.LineStyle.Dashed,
+                labelBackgroundColor: '#2962FF' },
+    horzLine: { color: 'rgba(148,163,184,.45)', width: 1, style: LWC.LineStyle.Dashed,
+                labelBackgroundColor: '#2962FF' },
+  },
+  rightPriceScale: {
+    borderColor: 'rgba(148,163,184,.14)',
+    scaleMargins: { top: 0.08, bottom: 0.26 },   // bottom band reserved for volume
+  },
+  timeScale: {
+    borderColor:    'rgba(148,163,184,.14)',
+    timeVisible:    true,     // 5. show clock time on the axis…
+    secondsVisible: false,    //    …to the minute, never seconds
+    rightOffset:    window.innerWidth < 700 ? 4 : 8,
+    barSpacing:     window.innerWidth < 700 ? 5 : 9,
+    minBarSpacing:  0.5,
+  },
+  // 5. Smooth pan/zoom: let the library own every gesture.
+  handleScroll: { mouseWheel: true, pressedMouseMove: true, horzTouchDrag: true, vertTouchDrag: false },
+  handleScale:  { mouseWheel: true, pinch: true, axisPressedMouseMove: true, axisDoubleClickReset: true },
+  kineticScroll: { touch: true, mouse: false },   // momentum on touch, like TradingView
+});
+
+const candles = chart.addSeries(LWC.CandlestickSeries, {
+  upColor:       '#26A69A',
+  downColor:     '#EF5350',
+  wickUpColor:   '#26A69A',
+  wickDownColor: '#EF5350',
+  borderVisible: false,
+  priceFormat:   { type: 'price', precision: CONFIG.precision, minMove: Math.pow(10, -CONFIG.precision) },
+});
+
+// Volume on its own hidden scale, layered into the bottom of the price pane.
+// (A second pane would split the chart 50/50: setStretchFactor is accepted
+// but not applied in v5.0.9.)
+const volume = chart.addSeries(LWC.HistogramSeries, {
+  priceFormat: { type: 'volume' },
+  priceScaleId: 'vol',
+  priceLineVisible: false,
+  lastValueVisible: false,
+});
+chart.priceScale('vol').applyOptions({ visible: false, scaleMargins: { top: 0.82, bottom: 0 } });
+
+/* ── 3. Historical data ─────────────────────────────────────────────────
+   setData() expects Unix time in SECONDS (not milliseconds) and a strictly
+   ascending series. Because every stamp is produced by stepping the aligned
+   grid, the result cannot contain a gap or a duplicate.
+
+   Swap generateHistory() for your REST call — e.g. Binance /api/v3/klines
+   or Deriv ticks_history{style:'candles'} — and map it into the same shape:
+       { time, open, high, low, close }  and  { time, value, color }
+   ──────────────────────────────────────────────────────────────────────── */
+function generateHistory(count) {
+  const out = [];
+  const firstBar = alignTime(nowSec()) - (count - 1) * CONFIG.interval;
+  let price = CONFIG.startPrice;
+
+  for (let i = 0; i < count; i++) {
+    const time = firstBar + i * CONFIG.interval;      // aligned, ascending, unique
+    const drift = (Math.random() - 0.5) * price * CONFIG.volatility * 12;
+    const open  = price;
+    const close = Math.max(0.01, open + drift);
+    const wick  = price * CONFIG.volatility * (2 + Math.random() * 5);
+    out.push({
+      time,
+      open:  +fmt(open),
+      high:  +fmt(Math.max(open, close) + Math.random() * wick),
+      low:   +fmt(Math.min(open, close) - Math.random() * wick),
+      close: +fmt(close),
+      volume: Math.round(200 + Math.random() * 1800),
+    });
+    price = close;
+  }
+  return out;
+}
+
+let bars = generateHistory(CONFIG.history);
+
+function paintAll() {
+  candles.setData(bars.map(b => ({
+    time: b.time, open: b.open, high: b.high, low: b.low, close: b.close,
+  })));
+  volume.setData(bars.map(b => ({
+    time: b.time, value: b.volume,
+    color: b.close >= b.open ? 'rgba(38,166,154,.32)' : 'rgba(239,83,80,.32)',
+  })));
+}
+paintAll();
+
+/* ── 4. Real-time updates ───────────────────────────────────────────────
+   ONE entry point for every incoming tick. It decides in-place update vs
+   new bar, and refuses to travel backwards in time.
+
+   This is the function your WebSocket handler should call.
+   ──────────────────────────────────────────────────────────────────────── */
+let tickCount = 0;
+const MAX_GAP_FILL = 500;    // beyond this, reseed rather than stitch
+const MAX_BARS     = 5000;   // retained history ceiling
+
+// Rebuild the series around the live price after a gap too large to fill.
+function reseed(price) {
+  bars = generateHistory(CONFIG.history);
+  const last = bars[bars.length - 1];
+  last.close = +fmt(price);
+  last.high  = +fmt(Math.max(last.high, price));
+  last.low   = +fmt(Math.min(last.low, price));
+  paintAll();
+}
+
+function onTick(price, tsSec) {
+  if (!Number.isFinite(price) || price <= 0) return;
+  const t = alignTime(tsSec ?? nowSec());
+  const last = bars[bars.length - 1];
+
+  if (t < last.time) return;          // stale/out-of-order tick — drop it
+
+  if (t > last.time) {
+    // 4b. The bar closed: append a new one.
+    //
+    // First fill any intervals the feed skipped. A quiet market, a dropped
+    // socket or a backgrounded tab all produce a tick that lands several
+    // bars ahead; appending it directly leaves a hole in the time grid and
+    // every later bar sits at the wrong x. Flat filler bars (o=h=l=c, no
+    // volume) keep the axis continuous — this is what TradingView shows for
+    // a session with no trades.
+    const missing = Math.round((t - last.time) / CONFIG.interval) - 1;
+    if (missing > 0 && missing <= MAX_GAP_FILL) {
+      for (let i = 1; i <= missing; i++) {
+        const flat = {
+          time: last.time + i * CONFIG.interval,
+          open: last.close, high: last.close, low: last.close, close: last.close,
+          volume: 0,
+        };
+        bars.push(flat);
+        candles.update({ time: flat.time, open: flat.open, high: flat.high, low: flat.low, close: flat.close });
+        volume.update({ time: flat.time, value: 0, color: 'rgba(148,163,184,.18)' });
+      }
+    } else if (missing > MAX_GAP_FILL) {
+      // Too far behind to stitch (tab asleep for hours). Reseed instead of
+      // pushing thousands of filler bars.
+      reseed(price);
+      tickCount++; paintHud();
+      return;
+    }
+
+    const prevClose = bars[bars.length - 1].close;
+    const bar = {
+      time: t, open: prevClose, high: Math.max(prevClose, price),
+      low: Math.min(prevClose, price), close: price,
+      volume: Math.round(50 + Math.random() * 300),
+    };
+    bars.push(bar);
+    candles.update({ time: bar.time, open: bar.open, high: bar.high, low: bar.low, close: bar.close });
+    volume.update({ time: bar.time, value: bar.volume,
+      color: bar.close >= bar.open ? 'rgba(38,166,154,.32)' : 'rgba(239,83,80,.32)' });
+
+    // Bound memory on a long-running session.
+    if (bars.length > MAX_BARS) { bars = bars.slice(-MAX_BARS); paintAll(); }
+  } else {
+    // 4a. Same bar: mutate it and push the single changed bar to the chart.
+    //     update() redraws one candle — never the whole series.
+    last.high  = +fmt(Math.max(last.high, price));
+    last.low   = +fmt(Math.min(last.low, price));
+    last.close = +fmt(price);
+    last.volume += Math.round(Math.random() * 8);
+    candles.update({ time: last.time, open: last.open, high: last.high, low: last.low, close: last.close });
+    volume.update({ time: last.time, value: last.volume,
+      color: last.close >= last.open ? 'rgba(38,166,154,.32)' : 'rgba(239,83,80,.32)' });
+  }
+
+  tickCount++;
+  paintHud();
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   7. PLUG YOUR OWN FEED IN HERE
+   Delete startSimulatedFeed() below and use one of these. Each one only has
+   to end up calling onTick(price, unixSeconds).
+
+   ── Deriv (no key, no auth; this endpoint is verified working) ──────────
+     const ws = new WebSocket('wss://api.derivws.com/trading/v1/options/ws/public');
+     ws.onopen = () => ws.send(JSON.stringify({ ticks: 'R_50', subscribe: 1 }));
+     ws.onmessage = e => {
+       const d = JSON.parse(e.data);
+       if (d.tick) onTick(+d.tick.quote, +d.tick.epoch);   // epoch is SECONDS
+     };
+     // Seed history first with:
+     //   { ticks_history:'R_50', adjust_start_time:1, count:500,
+     //     end:'latest', granularity:60, style:'candles' }
+     // then map d.candles -> {time:+c.epoch, open:+c.open, ...} and setData().
+
+   ── Binance ────────────────────────────────────────────────────────────
+     const ws = new WebSocket('wss://stream.binance.com:9443/ws/btcusdt@trade');
+     ws.onmessage = e => {
+       const d = JSON.parse(e.data);
+       onTick(parseFloat(d.p), Math.floor(d.T / 1000));    // d.T is MILLISECONDS
+     };
+     // History: GET https://api.binance.com/api/v3/klines?symbol=BTCUSDT&interval=1m&limit=500
+     //   k => ({ time: k[0]/1000, open:+k[1], high:+k[2], low:+k[3], close:+k[4], volume:+k[5] })
+
+   ── Bybit v5 ───────────────────────────────────────────────────────────
+     const ws = new WebSocket('wss://stream.bybit.com/v5/public/linear');
+     ws.onopen = () => ws.send(JSON.stringify({ op:'subscribe', args:['publicTrade.BTCUSDT'] }));
+     ws.onmessage = e => {
+       const d = JSON.parse(e.data);
+       (d.data || []).forEach(t => onTick(parseFloat(t.p), Math.floor(t.T / 1000)));
+     };
+
+   Whichever feed you use, keep two invariants:
+     • convert to SECONDS,
+     • never call onTick with a timestamp older than the current bar.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/* ── 8. Simulated feed, so smoothness is verifiable before wiring real data ── */
+let feedTimer = null, paused = false;
+let simPrice = bars[bars.length - 1].close;
+
+function startSimulatedFeed() {
+  clearInterval(feedTimer);
+  feedTimer = setInterval(() => {
+    if (paused) return;
+    // random walk with a mild mean-reverting pull, so it looks like a market
+    const shock = (Math.random() - 0.5) * simPrice * CONFIG.volatility * 2;
+    const pull  = (CONFIG.startPrice - simPrice) * 0.0002;
+    simPrice = Math.max(0.01, simPrice + shock + pull);
+    onTick(+fmt(simPrice));
+  }, CONFIG.tickMs);
+}
+startSimulatedFeed();
+
+/* ── HUD ────────────────────────────────────────────────────────────── */
+const $ = id => document.getElementById(id);
+
+function paintHud(bar) {
+  const b = bar || bars[bars.length - 1];
+  $('o').textContent = fmt(b.open);
+  $('h').textContent = fmt(b.high);
+  $('l').textContent = fmt(b.low);
+  $('c').textContent = fmt(b.close);
+  const diff = b.close - b.open;
+  const pct  = b.open ? (diff / b.open) * 100 : 0;
+  const el = $('chg');
+  el.textContent = `${diff >= 0 ? '+' : ''}${fmt(diff)} (${diff >= 0 ? '+' : ''}${pct.toFixed(2)}%)`;
+  el.className = diff >= 0 ? 'up' : 'down';
+  $('ticks').textContent = tickCount;
+  $('bars').textContent  = bars.length;
+}
+
+// Crosshair drives the OHLC readout; falling off the chart restores the live bar.
+chart.subscribeCrosshairMove(param => {
+  const hovered = param.seriesData?.get(candles);
+  paintHud(hovered ? { ...hovered, volume: 0 } : undefined);
+});
+
+// Countdown to the next bar close — the detail that makes a chart feel live.
+setInterval(() => {
+  const left = CONFIG.interval - (nowSec() % CONFIG.interval);
+  const m = Math.floor(left / 60), s = left % 60;
+  $('countdown').textContent = m > 0 ? `${m}:${String(s).padStart(2, '0')}` : `${s}s`;
+}, 250);
+
+/* ── Continuous data-integrity check ────────────────────────────────────
+   Verifies the two invariants on every frame's worth of data: bars are
+   strictly ascending, and every gap equals exactly one interval. Any
+   violation is what "gaps or misalignment" looks like in practice. */
+function checkIntegrity() {
+  let ascending = true, aligned = true, uniform = true;
+  for (let i = 1; i < bars.length; i++) {
+    const d = bars[i].time - bars[i - 1].time;
+    if (d <= 0) ascending = false;
+    if (d !== CONFIG.interval) uniform = false;
+    if (bars[i].time % CONFIG.interval !== 0) aligned = false;
+  }
+  const ok = ascending && aligned && uniform;
+  const el = $('integrity');
+  el.textContent = ok ? 'clean' : 'FAULT';
+  el.className = 'v ' + (ok ? 'good' : 'bad');
+  return { ascending, aligned, uniform, bars: bars.length };
+}
+setInterval(checkIntegrity, 1000);
+checkIntegrity();
+
+/* ── FPS meter, so "smooth" is a number rather than an impression ───── */
+let frames = 0, fpsLast = performance.now(), worstFrame = 0, prevFrame = performance.now();
+(function loop(now) {
+  frames++;
+  const dt = now - prevFrame; prevFrame = now;
+  if (dt > worstFrame) worstFrame = dt;
+  if (now - fpsLast >= 1000) {
+    const fps = Math.round((frames * 1000) / (now - fpsLast));
+    const el = $('fps');
+    el.textContent = fps;
+    el.className = 'v ' + (fps >= 50 ? 'good' : fps >= 30 ? 'warn' : 'bad');
+    frames = 0; fpsLast = now; worstFrame = 0;
+  }
+  requestAnimationFrame(loop);
+})(performance.now());
+
+/* ── 6. Resize ──────────────────────────────────────────────────────────
+   ResizeObserver rather than the window resize event, so the chart also
+   follows container changes (split panes, sidebars, rotation, keyboards). */
+const host = document.getElementById('chart');
+new ResizeObserver(entries => {
+  const r = entries[0].contentRect;
+  chart.resize(r.width, r.height);
+}).observe(host);
+window.addEventListener('orientationchange', () => {
+  setTimeout(() => chart.resize(host.clientWidth, host.clientHeight), 120);
+});
+
+/* ── Controls ───────────────────────────────────────────────────────── */
+$('btnPause').addEventListener('click', e => {
+  paused = !paused;
+  e.target.textContent = paused ? 'Resume feed' : 'Pause feed';
+  e.target.classList.toggle('on', paused);
+  $('feed').textContent = paused ? 'paused' : 'simulated feed';
+  $('feed').classList.toggle('live', !paused);
+});
+
+// Compresses the bar interval so you can watch new candles form in seconds
+// instead of waiting a minute.
+$('btnFast').addEventListener('click', e => {
+  const fast = CONFIG.interval !== 5;
+  CONFIG.interval = fast ? 5 : 60;
+  CONFIG.tickMs   = fast ? 60 : 120;
+  $('tf').textContent = fast ? '5s' : '1m';
+  e.target.classList.toggle('on', fast);
+  bars = generateHistory(CONFIG.history);
+  simPrice = bars[bars.length - 1].close;
+  paintAll();
+  startSimulatedFeed();
+  checkIntegrity();
+});
+
+$('btnReset').addEventListener('click', () => {
+  // Programmatic time-scale setters are honoured here (a clean page with a
+  // single chart); the app embeds this differently. fitContent() then a
+  // scroll to the live edge is the standard "reset view".
+  chart.timeScale().applyOptions({ rightOffset: window.innerWidth < 700 ? 4 : 8,
+                                   barSpacing: window.innerWidth < 700 ? 5 : 9 });
+  chart.timeScale().scrollToRealTime();
+});
+
+$('sym').textContent = CONFIG.symbol;
+paintHud();
+
+// Exposed for console poking / automated checks.
+window.LAB = { chart, candles, volume, bars: () => bars, onTick, checkIntegrity, CONFIG };
+</script>
+</body>
+</html>
