@@ -2,8 +2,9 @@
    Caches the app shell (page + chart library + icons) so the terminal opens
    instantly and even offline; market data always goes to the network.
    Bump CACHE_VERSION whenever the shell changes to evict the old copy. */
-const CACHE_VERSION = 'protrader-shell-v1';
+const CACHE_VERSION = 'protrader-shell-v2';
 const SHELL = [
+  '/',
   '/mobile',
   '/vendor/lightweight-charts.standalone.production.js',
   '/static/manifest.webmanifest',

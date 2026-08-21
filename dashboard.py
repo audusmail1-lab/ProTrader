@@ -1176,6 +1176,12 @@ def mobile_terminal() -> str:
 
 
 @app.get("/", response_class=HTMLResponse)
+def home() -> str:
+    """PROTrader is the front door; the legacy desktop dashboard moved to /dashboard."""
+    return mobile_terminal()
+
+
+@app.get("/dashboard", response_class=HTMLResponse)
 def dashboard() -> str:
     return DASHBOARD_HTML
 
