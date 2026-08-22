@@ -1,0 +1,11 @@
+# V50 Retracement Monitor (app.py) — Python dependencies
+# Install with: pip install -r requirements-monitor.txt
+#
+# Kept separate from requirements.txt (the FastAPI dashboard) so the two
+# deployments stay independent.
+
+streamlit
+websockets
+aiohttp
+pandas
+plotly

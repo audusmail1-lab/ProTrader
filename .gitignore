@@ -4,6 +4,7 @@ __pycache__/
 *.pyc
 *.log
 .server.pid
+retracement_data.db
 
 # local tooling
 .claude/
