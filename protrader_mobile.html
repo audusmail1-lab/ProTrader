@@ -767,8 +767,8 @@ kbd{
   .chart-toolbar .draw-btn:nth-of-type(n+10):not(:last-child){display:none}
   .tf-btn,.draw-btn,.ind-btn{
     min-height:32px;padding:6px 11px;font-size:10px;scroll-snap-align:start;
-    border-radius:999px;border-color:rgba(148,163,184,.13);
-    background:rgba(15,23,42,.44);
+    border-radius:999px;border-color:var(--bd-1);
+    background:var(--bg-3);   /* theme token, so light mode inherits a light pill */
   }
   .sep{height:20px;margin:0 1px}
 
@@ -810,8 +810,8 @@ kbd{
   .right-panel::before{top:9px;width:44px;height:5px;border-radius:999px;background:rgba(203,213,225,.46)}
   .rpanel-tabs{height:48px;margin-top:16px;padding:0 10px;gap:6px;border-bottom-color:rgba(148,163,184,.12)}
   .rtab{
-    min-width:70px;height:34px;flex:0 0 auto;border:1px solid rgba(148,163,184,.13);
-    background:rgba(15,23,42,.42);border-radius:999px;font-size:9px;
+    min-width:70px;height:34px;flex:0 0 auto;border:1px solid var(--bd-1);
+    background:var(--bg-3);border-radius:999px;font-size:9px;
   }
   .rtab.active{border-bottom-color:rgba(34,211,238,.34)}
   .rpanel-body{padding:10px 12px 16px;overscroll-behavior:contain}
@@ -1016,6 +1016,38 @@ kbd{
   .ot-metrics{grid-template-columns:repeat(3,1fr)}
   .ot-q-val{font-size:12px}
 }
+
+/* ── Team sweep: mobile layout + theme fixes (appended: source order wins) ── */
+@media(max-width:820px){
+  /* light theme: toolbar pills and panel tabs were hardcoded navy */
+  /* the mobile block above marks its navy backgrounds !important, so match it */
+  [data-theme="light"] .tf-btn,[data-theme="light"] .draw-btn,[data-theme="light"] .ind-btn,[data-theme="light"] .rtab{background:#fff!important;border-color:rgba(148,163,184,.28)!important;color:#475569!important}
+  [data-theme="light"] .tf-btn.active,[data-theme="light"] .ind-btn.active,[data-theme="light"] .rtab.active{background:rgba(59,130,246,.10)!important;color:#1D4ED8!important;border-color:rgba(59,130,246,.35)!important}
+  [data-theme="light"] .ticker-wrap{background:rgba(255,255,255,.92);border-color:rgba(148,163,184,.22)}
+  [data-theme="light"] #installChip{background:#fff;color:#0F172A;border-color:rgba(59,130,246,.45)}
+  /* bottom-strip tabs: never wrap, size to content */
+  .bstab{white-space:nowrap;flex:0 0 auto;min-width:0;padding-inline:12px}
+  /* finger-sized controls in the ticket and position rows */
+  .ot-step{grid-template-columns:44px 1fr 44px}
+  .ot-step-btn,.ot-inp{min-height:44px}
+  .ot-tog input{width:44px;height:24px}
+  .ot-tog input::after{width:18px;height:18px;top:2px;left:2px}
+  .ot-tog input:checked::after{left:22px}
+  .pos-act{min-height:36px;min-width:44px;padding:6px 8px;font-size:10px}
+  #drawChip{width:34px!important;height:34px!important;font-size:14px!important}
+}
+/* short landscape phone: give the chart the height back */
+@media(max-width:820px) and (max-height:480px){
+  .bottom-strip,.ticker-wrap{display:none}
+  .chart-toolbar{height:36px}
+  .right-panel{height:calc(100dvh - 76px - var(--mobile-nav-h) - var(--safe-bottom));max-height:none}
+}
+/* legibility: the lot-limit hint and account labels were ~1.7:1 in dark */
+.ot-hint{color:var(--tx-3);font-size:8.5px}
+[data-theme="dark"]{--tx-4:#5B6B82}
+/* installed iPhone app: keep the topbar below the notch */
+:root{--safe-top:env(safe-area-inset-top,0px)}
+@media(max-width:820px){ .topbar{padding-top:var(--safe-top)} .app{grid-template-rows:calc(76px + var(--safe-top)) 1fr} .workspace{height:calc(100dvh - 76px - var(--safe-top))} }
 </style>
 </head>
 <body>
@@ -1450,7 +1482,7 @@ kbd{
   </div>
 </div>
 
-<script src="/vendor/lightweight-charts.standalone.production.js"></script>
+<script src="/vendor/lightweight-charts.standalone.production.js?v=5.0.9"></script>
 <script>
 /* ════════════════════════════════════════════════════════════════
    PROTrader v4 — Full State
@@ -1526,15 +1558,15 @@ const PAIRS = [
     { id:'frxNAS100', label:'US Tech 100', sym:'US Tech 100', dp:2, flag:'📈', market:'index' },
     { id:'frxSPX500', label:'US 500', sym:'US 500', dp:2, flag:'📊', market:'index' },
     { id:'frxUS30', label:'Wall Street 30', sym:'Wall Street 30', dp:2, flag:'🏛', market:'index' },
-    { id:'OTC_FTSE', label:'UK 100', sym:'UK 100', dp:2, flag:'🇬🇧', market:'index' },
-    { id:'OTC_GDAXI', label:'Germany 40', sym:'Germany 40', dp:2, flag:'🇩🇪', market:'index' },
-    { id:'OTC_FCHI', label:'France 40', sym:'France 40', dp:2, flag:'🇫🇷', market:'index' },
-    { id:'OTC_SX5E', label:'Euro 50', sym:'Euro 50', dp:2, flag:'🇪🇺', market:'index' },
-    { id:'OTC_AEX', label:'Netherlands 25', sym:'Netherlands 25', dp:2, flag:'🇳🇱', market:'index' },
-    { id:'OTC_SSMI', label:'Swiss 20', sym:'Swiss 20', dp:2, flag:'🇨🇭', market:'index' },
-    { id:'OTC_N225', label:'Japan 225', sym:'Japan 225', dp:2, flag:'🇯🇵', market:'index' },
-    { id:'OTC_HSI', label:'Hong Kong 50', sym:'Hong Kong 50', dp:2, flag:'🇭🇰', market:'index' },
-    { id:'OTC_AS51', label:'Australia 200', sym:'Australia 200', dp:2, flag:'🇦🇺', market:'index' },
+    { id:'OTC_FTSE', label:'UK 100', sym:'UK 100', dp:2, flag:'🇬🇧', market:'index', ccy:'GBP' },
+    { id:'OTC_GDAXI', label:'Germany 40', sym:'Germany 40', dp:2, flag:'🇩🇪', market:'index', ccy:'EUR' },
+    { id:'OTC_FCHI', label:'France 40', sym:'France 40', dp:2, flag:'🇫🇷', market:'index', ccy:'EUR' },
+    { id:'OTC_SX5E', label:'Euro 50', sym:'Euro 50', dp:2, flag:'🇪🇺', market:'index', ccy:'EUR' },
+    { id:'OTC_AEX', label:'Netherlands 25', sym:'Netherlands 25', dp:2, flag:'🇳🇱', market:'index', ccy:'EUR' },
+    { id:'OTC_SSMI', label:'Swiss 20', sym:'Swiss 20', dp:2, flag:'🇨🇭', market:'index', ccy:'CHF' },
+    { id:'OTC_N225', label:'Japan 225', sym:'Japan 225', dp:2, flag:'🇯🇵', market:'index', ccy:'JPY' },
+    { id:'OTC_HSI', label:'Hong Kong 50', sym:'Hong Kong 50', dp:2, flag:'🇭🇰', market:'index', ccy:'HKD' },
+    { id:'OTC_AS51', label:'Australia 200', sym:'Australia 200', dp:2, flag:'🇦🇺', market:'index', ccy:'AUD' },
   ]},
   { g: 'Volatility', items: [
     { id:'R_10', label:'Vol 10', sym:'Vol 10', dp:3, flag:'🔵', market:'syn' },
@@ -2153,14 +2185,19 @@ async function botPing() {
 // A monotonic token, not a mutex: switching symbol or timeframe mid-flight
 // must supersede the older request, never be dropped by it.
 let _botLoadSeq = 0;
-async function loadBotCandles(id, tf) {
+// mode 'replace' loads a fresh series (symbol/timeframe change);
+// mode 'merge' refreshes only the newest bars and keeps everything the user
+// has scrolled back through — previously the minute-ly refresh replaced the
+// whole array, throwing away backfilled history and yanking the viewport.
+async function loadBotCandles(id, tf, mode = 'replace', attempt = 0) {
   const t = botTicker(id);
   if (!t || !BOT.online) return false;
   const iv = TF_SEC[tf] ? tf : '15m';
   const seq = ++_botLoadSeq;
   BOT.loading = true;
+  const want = mode === 'merge' ? 6 : 200;
   try {
-    const r = await fetch(`${BOT_BASE}/api/chart/${t}?candles=200&interval=${iv}`,
+    const r = await fetch(`${BOT_BASE}/api/chart/${t}?candles=${want}&interval=${iv}`,
                           { signal: AbortSignal.timeout(25000) });
     if (!r.ok) throw new Error('chart ' + r.status);
     const d = await r.json();
@@ -2192,13 +2229,24 @@ async function loadBotCandles(id, tf) {
         return false;
       }
     }
-    S.candles = cd;
-    const last = cd[cd.length - 1].close;
+    if (mode === 'merge' && S.candles.length && CH.seriesIsReal()) {
+      // Upsert by time into the tail; never drop older bars.
+      const byTime = new Map(cd.map(c => [c.time, c]));
+      const firstNew = cd[0].time;
+      const kept = S.candles.filter(c => c.time < firstNew);
+      const tailOld = S.candles.filter(c => c.time >= firstNew);
+      tailOld.forEach(c => { if (!byTime.has(c.time)) byTime.set(c.time, c); });
+      S.candles = kept.concat([...byTime.values()].sort((a, b) => a.time - b.time));
+    } else {
+      S.candles = cd;
+    }
+    const last = S.candles[S.candles.length - 1].close;
     SEEDS[id] = last;
     pairPrices[id] = { price: last, chg: pairPrices[id]?.chg || 0,
                        live: true, src: 'Bot', ts: Date.now() };
     BOT.sym = id; BOT.lastErr = null;
     clearInterval(simTimer); simTimer = null;   // real bars — stop the simulator
+    if (mode === 'replace' && typeof CH !== 'undefined' && CH.ready) CH.resetHistory();
 
     updateTopbar();
     drawChart();
@@ -2208,9 +2256,10 @@ async function loadBotCandles(id, tf) {
   } catch (e) {
     BOT.lastErr = e.message;
     console.warn('[bot] candles failed:', e.message);
-    // One retry, but only while this request is still the current one.
-    if (seq === _botLoadSeq && id === S.sym && tf === S.tf) {
-      setTimeout(() => { if (seq === _botLoadSeq) loadBotCandles(id, tf); }, 1500);
+    // Exactly one retry (attempt 0 → 1), only while still current. The 60 s
+    // refresh timer is the long-term retry; this must not loop.
+    if (attempt < 1 && seq === _botLoadSeq && id === S.sym && tf === S.tf) {
+      setTimeout(() => { if (seq === _botLoadSeq) loadBotCandles(id, tf, mode, attempt + 1); }, 1500);
     }
     return false;
   } finally {
@@ -2689,7 +2738,11 @@ const CH = {
       });
     }
 
-    this.chart.subscribeCrosshairMove(param => this.onCrosshair(param));
+    this.chart.subscribeCrosshairMove(param => {
+      this.onCrosshair(param);
+      // a held button means the price scale may be moving under the drawings
+      if (param && param.point && param.sourceEvent && param.sourceEvent.buttons) this.syncOverlay();
+    });
     this.chart.timeScale().subscribeVisibleLogicalRangeChange(range => {
       this.syncOverlay();
       this.onRangeChange(range);
@@ -2747,10 +2800,9 @@ const CH = {
     return out;
   },
 
-  signature() {
-    const c = S.candles;
-    return `${S.sym}|${S.tf}|${c.length}|${c.length ? c[0].time : 0}`;
-  },
+  // Identity of the SERIES, not of its length: a new bar arriving must not
+  // look like a new instrument.
+  signature() { return `${S.sym}|${S.tf}`; },
 
   render() {
     if (!this.ready) return;
@@ -2758,8 +2810,26 @@ const CH = {
     if (!cdles.length) return;
 
     const sig = this.signature();
-    if (sig === this.sig) { this.updateLast(cdles); }
-    else { this.setAll(cdles); this.sig = sig; }
+    const first = cdles[0].time, last = cdles[cdles.length - 1].time;
+
+    if (sig !== this.sig) {
+      // Instrument or timeframe changed: repaint and jump to the live edge.
+      this.setAll(cdles);
+      this.sig = sig; this.paintedFirst = first; this.paintedLast = last;
+    } else if (first !== this.paintedFirst || last < this.paintedLast) {
+      // History prepended (or series rebuilt): repaint in place. setData
+      // preserves the visible time window, so the view does not move.
+      this.paintSeries(cdles);
+      this.paintedFirst = first; this.paintedLast = last;
+    } else {
+      // Live path: the forming bar changed and/or new bars closed. Push
+      // each bar from the last painted one forward through update(), which
+      // redraws only those bars and never touches the viewport.
+      let i = cdles.length - 1;
+      while (i > 0 && cdles[i - 1].time >= this.paintedLast) i--;
+      for (; i < cdles.length; i++) this.updateBar(cdles, i);
+      this.paintedLast = last;
+    }
 
     this.refreshLevels();
     this.syncOverlay();
@@ -2812,17 +2882,22 @@ const CH = {
   },
 
   // The fast path: one bar changed, so touch one bar.
-  updateLast(cdles) {
-    const n = cdles.length;
-    const c = cdles[n - 1];
+  updateLast(cdles) { this.updateBar(cdles, cdles.length - 1); },
+
+  updateBar(cdles, i) {
+    const n = i + 1;
+    const c = cdles[i];
     this.candle.update({ time: c.time, open: c.open, high: c.high, low: c.low, close: c.close });
     this.volume.update({
       time: c.time, value: c.vol || 0,
       color: c.close >= c.open ? 'rgba(38,166,154,.35)' : 'rgba(239,83,80,.35)',
     });
 
-    // Recompute only the trailing indicator values (cheap over a 200-bar tail).
-    const closes = cdles.map(x => x.close);
+    // Indicators for bar i from a bounded tail ending at i: O(250), not O(n),
+    // which matters once backfill has grown the series to thousands of bars.
+    const start = Math.max(0, n - 260);
+    const win = cdles.slice(start, n);
+    const closes = win.map(x => x.close);
     const tail = (arr) => { const v = arr[arr.length - 1]; return Number.isFinite(v) ? { time: c.time, value: v } : null; };
     const push = (series, point) => { if (point) series.update(point); };
     push(this.ema20, tail(calcEMA(closes, 20)));
@@ -2831,7 +2906,7 @@ const CH = {
     const bb = calcBB(closes, 20, 2);
     push(this.bbU, tail(bb.map(b => (b ? b.upper : null))));
     push(this.bbL, tail(bb.map(b => (b ? b.lower : null))));
-    push(this.vwap, tail(this.vwapArr(cdles)));
+    push(this.vwap, tail(this.vwapArr(win)));
     if (S.ind.rsi && this.rsi) push(this.rsi, tail(calcRSI(closes)));
   },
 
@@ -2943,7 +3018,7 @@ const CH = {
       el = document.createElement('div');
       el.id = 'histLoading';
       el.textContent = 'loading history…';
-      el.style.cssText = 'position:absolute;top:8px;left:10px;z-index:8;font-size:9px;'
+      el.style.cssText = 'position:absolute;top:44px;left:10px;z-index:21;font-size:9px;'
         + 'font-weight:700;letter-spacing:.4px;color:var(--tx-2);background:var(--bg-glass);'
         + 'border:1px solid var(--bd-1);border-radius:999px;padding:3px 9px;pointer-events:none;'
         + 'opacity:0;transition:opacity .15s';
@@ -3067,8 +3142,9 @@ const CH = {
       set('oi-o', bar.open.toFixed(dp)); set('oi-h', bar.high.toFixed(dp));
       set('oi-l', bar.low.toFixed(dp)); set('oi-c', bar.close.toFixed(dp));
     }
-    const atr = calcATR(S.candles, 14);
-    const a = atr[atr.length - 1];
+    // cached: recomputing ATR over 20k bars on every mouse move was O(n)
+    const atr = getCachedATR();
+    const a = atr ? atr[atr.length - 1] : NaN;
     set('oi-atr', Number.isFinite(a) ? a.toFixed(dp) : '—');
   },
 
@@ -3102,7 +3178,14 @@ const CH = {
     const c = S.candles;
     if (!c.length) return null;
     const iv = TF_SEC[S.tf] || 900;
-    const logical = (c.length - 1) + (t - c[c.length - 1].time) / iv;
+    // Binary-search the last bar at or before t, then interpolate inside that
+    // bar. A uniform grid from the last bar put anchors in weekend gaps (and
+    // any non-bar time) on the wrong x.
+    let lo = 0, hi = c.length - 1;
+    if (t >= c[hi].time) { lo = hi; }
+    else if (t < c[0].time) { lo = 0; }
+    else { while (lo < hi) { const m = (lo + hi + 1) >> 1; if (c[m].time <= t) lo = m; else hi = m - 1; } }
+    const logical = lo + (t - c[lo].time) / iv;
     const ex = ts.logicalToCoordinate(logical);
     return Number.isFinite(ex) ? ex : null;
   },
@@ -3130,12 +3213,13 @@ const CH = {
     if (!dc || !wrap) return;
     const w = wrap.clientWidth, h = wrap.clientHeight;
     const dpr = window.devicePixelRatio || 1;
-    if (dc.width !== w * dpr || dc.height !== h * dpr) {
-      dc.width = w * dpr; dc.height = h * dpr;
+    const pw = Math.round(w * dpr), ph = Math.round(h * dpr);
+    if (dc.width !== pw || dc.height !== ph) {      // fractional DPR no longer thrashes
+      dc.width = pw; dc.height = ph;
       dc.style.width = w + 'px'; dc.style.height = h + 'px';
     }
     const ctx = dc.getContext('2d');
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.setTransform(pw / w, 0, 0, ph / h, 0, 0);
     ctx.clearRect(0, 0, w, h);
     if (typeof DRAW !== 'undefined') DRAW.render(ctx, w, h);
   },
@@ -3512,20 +3596,15 @@ function clearDraw() { DRAW.clearSymbol(); }
 
 // The overlay is transparent to pointer events unless it needs them, so an
 // empty click still pans the chart underneath.
-function updateDrawCursor(x, y) {
-  const il = document.getElementById('interactLayer');
-  if (!il) return;
+function updateDrawCursor() {
+  const wrap = document.getElementById('chartWrap');
+  if (!wrap) return;
   if (DRAW.armed !== 'none' || DRAW.mode !== 'idle') {
-    il.style.pointerEvents = 'auto';
-    il.style.cursor = DRAW.mode === 'moving' ? 'grabbing' : 'crosshair';
-    return;
-  }
-  if (DRAW.hover != null) {
-    il.style.pointerEvents = 'auto';
-    il.style.cursor = DRAW.hoverPt >= 0 ? 'pointer' : 'grab';
+    wrap.style.cursor = DRAW.mode === 'moving' ? 'grabbing' : 'crosshair';
+  } else if (DRAW.hover != null) {
+    wrap.style.cursor = DRAW.hoverPt >= 0 ? 'pointer' : 'grab';
   } else {
-    il.style.pointerEvents = 'none';
-    il.style.cursor = 'default';
+    wrap.style.cursor = '';
   }
 }
 
@@ -3564,13 +3643,17 @@ function updateDrawCursor(x, y) {
     if (changed) CH.syncOverlay();
   });
 
-  il.addEventListener('pointerdown', e => {
+  // Capture phase on the wrapper: we see the pointer before the chart does.
+  // Only when we actually take the gesture do we stop it reaching the chart.
+  const claim = e => { e.preventDefault(); e.stopPropagation(); try { wrap.setPointerCapture(e.pointerId); } catch (_) {} };
+  wrap.addEventListener('pointerdown', e => {
+    if (e.button != null && e.button !== 0) return;
     const p = posFrom(e);
     const W = wrap.clientWidth, H = wrap.clientHeight;
 
     // 1. a tool is armed → begin creating exactly one object
     if (DRAW.armed !== 'none') {
-      e.preventDefault();
+      claim(e);
       const a = anchor(p);
       if (a.p == null) return;
       const n = DRAW_PTS[DRAW.armed] || 2;
@@ -3579,7 +3662,6 @@ function updateDrawCursor(x, y) {
         pts: n === 1 ? [{ t: a.t, p: a.p }] : [{ t: a.t, p: a.p }, { t: a.t, p: a.p }],
       };
       DRAW.mode = 'creating';
-      try { il.setPointerCapture(e.pointerId); } catch (_) {}
       CH.syncOverlay();
       return;
     }
@@ -3589,10 +3671,9 @@ function updateDrawCursor(x, y) {
     if (sel) {
       const h = DRAW.hitHandle(sel, p.x, p.y);
       if (h >= 0) {
-        e.preventDefault();
+        claim(e);
         DRAW.mode = 'resizing'; DRAW.grabPt = h;
         DRAW.dragFrom = { x: p.x, y: p.y, pts: sel.pts.map(q => ({ ...q })) };
-        try { il.setPointerCapture(e.pointerId); } catch (_) {}
         updateDrawCursor();
         return;
       }
@@ -3601,16 +3682,18 @@ function updateDrawCursor(x, y) {
     // 3. click an object → select it, and start moving it
     const target = DRAW.pick(p.x, p.y, W, H);
     if (target) {
-      e.preventDefault();
+      claim(e);
       DRAW.select(target.id);
       DRAW.mode = 'moving';
       DRAW.dragFrom = { x: p.x, y: p.y, pts: target.pts.map(q => ({ ...q })) };
-      try { il.setPointerCapture(e.pointerId); } catch (_) {}
       updateDrawCursor();
+      return;
     }
-  });
+    // empty chart: let the chart pan, and clear any selection
+    if (DRAW.sel != null) DRAW.deselect();
+  }, { capture: true });
 
-  il.addEventListener('pointermove', e => {
+  window.addEventListener('pointermove', e => {
     if (DRAW.mode === 'idle') return;
     e.preventDefault();
     const p = posFrom(e);
@@ -3686,15 +3769,8 @@ function updateDrawCursor(x, y) {
     updateDrawCursor();
     CH.syncOverlay();
   };
-  il.addEventListener('pointerup', finish);
-  il.addEventListener('pointercancel', finish);
-
-  // clicking empty chart clears the selection
-  wrap.addEventListener('pointerdown', e => {
-    if (e.target === il) return;              // handled above
-    if (DRAW.armed !== 'none' || DRAW.mode !== 'idle') return;
-    if (DRAW.sel != null) DRAW.deselect();
-  });
+  window.addEventListener('pointerup', finish);
+  window.addEventListener('pointercancel', finish);
 
   document.addEventListener('keydown', e => {
     const typing = /^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement?.tagName || '');
@@ -3709,8 +3785,9 @@ function updateDrawCursor(x, y) {
     }
   });
 
-  il.addEventListener('touchstart', e => { if (DRAW.armed !== 'none' || DRAW.mode !== 'idle') e.preventDefault(); }, { passive: false });
-  il.addEventListener('touchmove', e => { if (DRAW.mode !== 'idle') e.preventDefault(); }, { passive: false });
+  // While we own a gesture, stop the page from scrolling under a finger.
+  wrap.addEventListener('touchmove', e => { if (DRAW.mode !== 'idle') e.preventDefault(); }, { passive: false });
+  il.style.pointerEvents = 'none';   // permanently click-through
 
   DRAW.load();
 })();
@@ -4487,7 +4564,7 @@ function otSpec(id) {
   const tick = Math.pow(10, -dp);
   // Forex pip: 5dp → 0.0001, 3dp (JPY) → 0.01, 4dp (MXN/PLN) → 0.001; else the tick.
   const pip = p.market === 'forex'
-    ? (dp >= 5 ? 0.0001 : dp === 4 ? 0.001 : dp === 3 ? 0.01 : tick)
+    ? (dp >= 4 ? 0.0001 : dp === 3 ? 0.01 : tick)
     : tick;
   return Object.assign({}, base, SPEC_OVERRIDE[id] || {}, {
     dp, tick, pip,
@@ -4521,7 +4598,10 @@ function otMoneyAuto(v) {
    the spread reads "n/a" rather than inventing one. */
 function otQuote(id) {
   const q = pairPrices[id];
-  if (!q || !Number.isFinite(q.price)) return { ok: false, stale: true };
+  // Seed/simulator entries carry no timestamp; every real writer sets one.
+  // Without this gate, P&L, equity and margin were computed against the
+  // invented seed (1000.0 for most instruments) until the first tick.
+  if (!q || !Number.isFinite(q.price) || !q.ts) return { ok: false, stale: true };
   const book = otBook[id];
   const fresh = book && Date.now() - book.ts < 15000;
   const hasBook = fresh && Number.isFinite(book.bid) && Number.isFinite(book.ask) && book.ask > book.bid;
@@ -4570,10 +4650,16 @@ function otMinDist(id) {
    missing the figure reports "—" instead of a guess. */
 function otConv(id) {
   const p = PAIR_MAP[id] || {};
-  if (p.market !== 'forex') return 1;           // metals, crypto, indices, synthetics quote in USD
-  const quote = String(p.label || '').split('/')[1];
+  // Quote currency: explicit on indices (Japan 225 is yen, DAX is euro), the
+  // pair's second leg for forex, USD for everything else.
+  const quote = p.ccy || (p.market === 'forex' ? String(p.label || '').split('/')[1] : 'USD');
   if (!quote || quote === 'USD') return 1;
-  const px = k => (pairPrices[k] && Number.isFinite(pairPrices[k].price)) ? pairPrices[k].price : null;
+  if (quote === 'HKD') return 1 / 7.80;         // currency-board peg (7.75–7.85), no live feed
+  // Cross rates must come from a real, recent quote — never a seed.
+  const px = k => {
+    const q = pairPrices[k];
+    return (q && q.ts && Number.isFinite(q.price) && Date.now() - q.ts < 6 * 3600 * 1000) ? q.price : null;
+  };
   // USD-quoted crosses invert; xxx/USD pairs are the rate directly.
   if (quote === 'JPY') { const r = px('frxUSDJPY'); return r ? 1 / r : null; }
   if (quote === 'CAD') { const r = px('frxUSDCAD'); return r ? 1 / r : null; }
@@ -4605,18 +4691,19 @@ function otMarginFor(id, volume, price) {
 }
 
 function otAccount() {
-  let used = 0, upl = 0;
+  let used = 0, upl = 0, unpriced = 0;
   TR.positions.forEach(p => {
     used += p.margin || 0;
     const q = otQuote(p.symbol);
-    if (q.ok) {
-      const exit = p.side === 'buy' ? q.bid : q.ask;
-      const v = otPnl(p.side, p.entry, exit, p.volume, p.symbol);
-      if (v != null) upl += v;
-    }
+    let v = null;
+    if (q.ok) v = otPnl(p.side, p.entry, p.side === 'buy' ? q.bid : q.ask, p.volume, p.symbol);
+    if (v == null) unpriced++; else upl += v;
   });
   const equity = S.balance + upl;
-  return { used, upl, equity, free: equity - used, level: used > 0 ? (equity / used) * 100 : null };
+  // `unpriced` > 0 means equity is a partial figure: callers must not make
+  // irreversible decisions (cancel an order, reject a fill) on it.
+  return { used, upl, equity, free: equity - used, unpriced,
+           level: used > 0 ? (equity / used) * 100 : null };
 }
 
 /* ── Broker adapter ──────────────────────────────────────────
@@ -4920,6 +5007,7 @@ const OT = {
       const need = otMarginFor(id, v, entry);
       const acct = otAccount();
       if (need == null) e.general = 'No conversion rate for this pair — margin cannot be checked.';
+      else if (acct.unpriced > 0) e.general = `Equity unknown — ${acct.unpriced} open position${acct.unpriced === 1 ? '' : 's'} without a live price.`;
       else if (need > acct.free) e.general = `Insufficient margin: needs ${otMoney(need)}, free ${otMoney(acct.free)}.`;
     }
     this.errs = e;
@@ -5009,6 +5097,8 @@ const OT = {
       const fill = o.side === 'buy' ? q.ask : q.bid;
       const need = otMarginFor(o.symbol, o.volume, fill);
       const acct = otAccount();
+      // Cancelling is irreversible: never do it on a partial equity figure.
+      if (acct.unpriced > 0) return;
       TR.orders = TR.orders.filter(x => x.id !== o.id);
       if (need != null && need > acct.free) {
         showToast(`✕ ${o.label} ${o.orderType} cancelled — insufficient margin at trigger`, 4000);
@@ -5349,8 +5439,12 @@ const OT = {
     const a = otAccount();
     set('acBal', otMoney(S.balance));
     const eqEl = el('acEq');
-    if (eqEl) { eqEl.textContent = otMoney(a.equity); eqEl.className = 'ot-acct-v' + (a.upl > 0 ? ' pos' : a.upl < 0 ? ' neg' : ''); }
-    set('acFree', otMoney(a.free));
+    if (eqEl) {
+      eqEl.textContent = a.unpriced ? '—' : otMoney(a.equity);
+      eqEl.title = a.unpriced ? `${a.unpriced} position(s) have no live price` : '';
+      eqEl.className = 'ot-acct-v' + (a.unpriced ? '' : a.upl > 0 ? ' pos' : a.upl < 0 ? ' neg' : '');
+    }
+    set('acFree', a.unpriced ? '—' : otMoney(a.free));
     const lvl = el('acLvl');
     if (lvl) {
       lvl.textContent = a.level == null ? '—' : (a.level > 9999 ? '>9999%' : a.level.toFixed(0) + '%');
@@ -5668,28 +5762,59 @@ function togglePairMenu() {
   // On mobile, surface a quick-pick bottom sheet
   if (window.innerWidth > 820) return;
   let sheet = document.getElementById('pairSheet');
-  if (sheet) { sheet.classList.toggle('open'); syncMobileNav(sheet.classList.contains('open') ? 'markets' : 'chart'); return; }
+  if (sheet) {
+    const open = sheet.classList.toggle('open');
+    syncMobileNav(open ? 'markets' : 'chart');
+    if (open) { renderPairSheet(); setTimeout(() => document.getElementById('pairSheetSearch')?.focus(), 50); }
+    return;
+  }
   sheet = document.createElement('div');
   sheet.id = 'pairSheet';
   sheet.className = 'modal-backdrop open';
   sheet.onclick = e => { if (e.target === sheet) { sheet.classList.remove('open'); syncMobileNav('chart'); } };
-  const groups = PAIRS.map(g => `
-    <div class="group-lbl" style="margin-top:8px">${g.g}</div>
-    ${g.items.map(p => `
-      <div class="pair-row" onclick="selectPair('${p.id}');document.getElementById('pairSheet').classList.remove('open');syncMobileNav('chart')">
-        <div style="display:flex;align-items:center;gap:8px">
-          <span style="font-size:14px">${p.flag}</span>
-          <div><div class="pname">${p.label}</div><div class="psym">${p.sym}</div></div>
-        </div>
-      </div>
-    `).join('')}
-  `).join('');
-  sheet.innerHTML = `<div class="modal-card" style="max-width:420px;max-height:75dvh;overflow-y:auto">
+  sheet.innerHTML = `<div class="modal-card" style="max-width:420px;max-height:80dvh;display:flex;flex-direction:column">
     <div class="modal-h"><span>Markets</span><button class="modal-close" onclick="document.getElementById('pairSheet').classList.remove('open');syncMobileNav('chart')" aria-label="Close markets">×</button></div>
-    <div style="padding:6px 10px 14px">${groups}</div>
+    <div style="padding:8px 10px 4px"><input id="pairSheetSearch" class="form-inp" type="search" placeholder="Search 89 instruments — e.g. gold, crash, jpy" autocomplete="off" style="width:100%;min-height:42px;font-size:13px" oninput="renderPairSheet(this.value)"/></div>
+    <div id="pairSheetList" style="padding:0 10px 14px;overflow-y:auto;flex:1"></div>
   </div>`;
   document.body.appendChild(sheet);
+  renderPairSheet();
+  syncMobileNav('markets');
+  setTimeout(() => document.getElementById('pairSheetSearch')?.focus(), 50);
 }
+
+// Rows carry a live price and day change, mark the charted instrument, and
+// filter on label, id or group — the old sheet was 89 bare names.
+function renderPairSheet(filter) {
+  const list = document.getElementById('pairSheetList'); if (!list) return;
+  const f = String(filter ?? document.getElementById('pairSheetSearch')?.value ?? '').trim().toLowerCase();
+  let html = '', shown = 0;
+  PAIRS.forEach(g => {
+    const items = g.items.filter(p => !f || p.label.toLowerCase().includes(f) || p.id.toLowerCase().includes(f) || g.g.toLowerCase().includes(f));
+    if (!items.length) return;
+    html += `<div class="group-lbl" style="margin-top:8px">${g.g}</div>`;
+    items.forEach(p => {
+      shown++;
+      const q = pairPrices[p.id], live = q && q.ts;
+      const px = live && Number.isFinite(q.price) ? q.price.toFixed(p.dp) : '—';
+      const chg = live ? normalizeChg(p.id, Number.isFinite(q.chg) ? q.chg : 0) : null;
+      const cur = p.id === S.sym;
+      html += `<div class="pair-row ${cur ? 'active' : ''}" style="min-height:48px" onclick="selectPair('${p.id}');document.getElementById('pairSheet').classList.remove('open');syncMobileNav('chart')">
+        <div style="display:flex;align-items:center;gap:8px;min-width:0">
+          <span style="font-size:14px">${p.flag}</span>
+          <div style="min-width:0"><div class="pname">${p.label}${cur ? ' <span style="color:var(--blue-lt);font-size:8px;font-weight:800">● ON CHART</span>' : ''}</div><div class="psym">${p.id}</div></div>
+        </div>
+        <div style="text-align:right;flex-shrink:0">
+          <div class="pprice">${px}</div>
+          <div class="pchg ${chg == null ? '' : chg >= 0 ? 'up' : 'dn'}">${chg == null ? '<span style="color:var(--tx-3)">no quote</span>' : (chg >= 0 ? '+' : '') + chg.toFixed(2) + '%'}</div>
+        </div>
+      </div>`;
+    });
+  });
+  list.innerHTML = html || '<div style="padding:16px;color:var(--tx-3);font-size:10px">No instruments match.</div>';
+}
+// keep prices fresh while the sheet is open
+setInterval(() => { const sh = document.getElementById('pairSheet'); if (sh && sh.classList.contains('open')) renderPairSheet(); }, 3000);
 
 /* ════════════════════════════════════════════════════════════
    RESIZE
@@ -5737,7 +5862,7 @@ function init() {
     // booting (or restarting) left the app on simulated candles with no
     // history until a manual reload.
     setInterval(pollBotQuotes, 12000);
-    setInterval(() => { if (botOwns(S.sym)) loadBotCandles(S.sym, S.tf); }, 60000);
+    setInterval(() => { if (botOwns(S.sym)) loadBotCandles(S.sym, S.tf, 'merge'); }, 60000);
     setInterval(async () => {
       const was = BOT.online;
       await botPing();
@@ -5777,19 +5902,9 @@ function init() {
     buildTickerData();
   }, 5000);
 
-  // Sidebar sim updates for non-WS pairs — clamp chg to realistic range
-  setInterval(() => {
-    PAIRS.forEach(g => g.items.forEach(p => {
-      if (pairPrices[p.id] && !pairPrices[p.id].live) {
-        const pr = pairPrices[p.id].price;
-        const d = (Math.random() - 0.499) * pr * 0.0005;
-        const newPrice = pr + d;
-        const basePx = seedPrice(p.id);
-        const newChg = Math.max(-3, Math.min(3, ((newPrice - basePx) / basePx) * 100));
-        pairPrices[p.id] = { price: newPrice, chg: newChg, live: false };
-      }
-    }));
-  }, 2500);
+  // (removed) the sidebar used to random-walk unpriced instruments every 2.5 s;
+  // a price that is not a quote is now shown as '—' instead.
+
 
   // Keyboard shortcuts
   window.addEventListener('keydown', e => {
@@ -5861,20 +5976,22 @@ function safeEl(id){return document.getElementById(id)}
 function putQuote(id,price,chg=null,src='Deriv',live=true){if(!Number.isFinite(price)||price<=0)return;const base=pairPrices[id]?.sessionOpen||SEEDS[id]||price;if(!Number.isFinite(chg))chg=((price-base)/base)*100;chg=normalizeChg(id,chg);pairPrices[id]={price,chg,live,src,ts:Date.now(),sessionOpen:base};SEEDS[id]=price;if(id===S.sym)updateLiveTickSafe(price,chg,src);scheduleQuoteUI()}
 function scheduleQuoteUI(){if(NEXUS.renderQueued)return;NEXUS.renderQueued=true;requestAnimationFrame(()=>{NEXUS.renderQueued=false;buildPairList(safeEl('pairSearch')?.value||'');buildTickerData();updateTimestamp();updateFeedBadge()})}
 function updateFeedBadge(){const q=pairPrices[S.sym],badge=safeEl('wsBadge'),dot=safeEl('mktDot');if(!badge||!dot)return;const age=q?.ts?Date.now()-q.ts:Infinity,ok=q?.live&&age<NEXUS.staleMs,stale=q?.live&&age>=NEXUS.staleMs;dot.className=ok?'mkt-dot':'mkt-dot offline';badge.className='ws-badge'+(ok?'':' disconnected');badge.textContent=ok?'LIVE':stale?'STALE':'CONNECTING';badge.title=q?`${q.src||'feed'} · ${age===Infinity?'no tick yet':Math.round(age/1000)+'s ago'}`:'Waiting for first quote'}
-function updateLiveTickSafe(price,chg,src){const dp=S.dp,el=safeEl('livePrice');if(!el)return;chg=normalizeChg(S.sym,chg||0);const prev=S.candles.length?S.candles[S.candles.length-1].close:price,up=price>=prev;el.textContent=Number(price).toFixed(dp);el.className='live-price '+(up?'flash-up':'flash-dn');clearTimeout(el._flashTimer);el._flashTimer=setTimeout(()=>{el.className='live-price'},220);const c=safeEl('liveChg');if(c){c.textContent=formatPct(S.sym,chg,3);c.className='live-chg '+(chg>=0?'up':'dn')}const tag=safeEl('priceTag');if(tag)tag.textContent=Number(price).toFixed(dp);if(S.candles.length){const lc=S.candles[S.candles.length-1];lc.close=+price.toFixed(dp);lc.high=+Math.max(lc.high,price).toFixed(dp);lc.low=+Math.min(lc.low,price).toFixed(dp);const now=performance.now();if(now-NEXUS.lastRender>180){NEXUS.lastRender=now;drawChart();renderARIA();updateTopbar()}}}
-let quoteCacheMemory=null;
-function saveQuoteCache(){try{quoteCacheMemory={t:Date.now(),prices:JSON.parse(JSON.stringify(pairPrices))}}catch(e){}}
-function loadQuoteCache(){try{if(!quoteCacheMemory||Date.now()-quoteCacheMemory.t>3600000)return;Object.assign(pairPrices,quoteCacheMemory.prices||{})}catch(e){}}
+function updateLiveTickSafe(price,chg,src){const dp=S.dp,el=safeEl('livePrice');if(!el)return;chg=normalizeChg(S.sym,chg||0);const prev=S.candles.length?S.candles[S.candles.length-1].close:price,up=price>=prev;el.textContent=Number(price).toFixed(dp);el.className='live-price '+(up?'flash-up':'flash-dn');clearTimeout(el._flashTimer);el._flashTimer=setTimeout(()=>{el.className='live-price'},220);const c=safeEl('liveChg');if(c){c.textContent=formatPct(S.sym,chg,3);c.className='live-chg '+(chg>=0?'up':'dn')}const tag=safeEl('priceTag');if(tag)tag.textContent=Number(price).toFixed(dp);if(S.candles.length){const _tf=TF_SEC[S.tf]||900,_now=Math.floor(Date.now()/1000),_l=S.candles[S.candles.length-1];if(_now-_l.time>=_tf&&_l.time%_tf===0){const _t=_l.time+_tf*Math.floor((_now-_l.time)/_tf);S.candles.push({time:_t,open:_l.close,high:Math.max(_l.close,price),low:Math.min(_l.close,price),close:price,vol:0});if(S.candles.length>MAX_HISTORY_BARS)S.candles.shift();}const lc=S.candles[S.candles.length-1];lc.close=+price.toFixed(dp);lc.high=+Math.max(lc.high,price).toFixed(dp);lc.low=+Math.min(lc.low,price).toFixed(dp);const now=performance.now();if(now-NEXUS.lastRender>180){NEXUS.lastRender=now;drawChart();renderARIA();updateTopbar()}}}
+// Last real quote per instrument survives a reload, so open positions show
+// their last-known value (flagged stale) instead of '—' or a seed. Only
+// stamped entries are stored; the stale gate keeps them unfillable.
+function saveQuoteCache(){try{const out={};for(const [k,v] of Object.entries(pairPrices)){if(v&&v.ts&&Number.isFinite(v.price))out[k]={price:v.price,chg:v.chg,src:v.src,ts:v.ts,live:false};}localStorage.setItem(NEXUS.cacheKey,JSON.stringify({t:Date.now(),prices:out}));}catch(e){}}
+function loadQuoteCache(){try{const raw=localStorage.getItem(NEXUS.cacheKey);if(!raw)return;const c=JSON.parse(raw);if(!c||Date.now()-c.t>3*86400000)return;for(const [k,v] of Object.entries(c.prices||{})){if(!pairPrices[k]||!pairPrices[k].ts)pairPrices[k]=v;}}catch(e){}}
 setInterval(saveQuoteCache,7000);
 function clearDerivSubs(){if(!ws||ws.readyState!==WebSocket.OPEN)return;for(const id of NEXUS.activeSubs.values()){try{ws.send(JSON.stringify({forget:id}))}catch(e){}}NEXUS.activeSubs.clear()}
 function sendWS(payload){if(!ws||ws.readyState!==WebSocket.OPEN)return false;try{ws.send(JSON.stringify(payload));return true}catch(e){return false}}
 function subscribeTick(id){if(!isDerivStreamSymbol(id))return;sendWS({ticks:id,subscribe:1})}
 function subscribeHistory(id){if(!isDerivStreamSymbol(id))return;const tfSec={'1m':60,'5m':300,'15m':900,'1h':3600,'4h':14400,'1d':86400}[S.tf]||900;sendWS({ticks_history:id,adjust_start_time:1,count:300,end:'latest',granularity:tfSec,style:'candles',subscribe:1})}
-connectWS=function(){try{if(ws&&(ws.readyState===WebSocket.OPEN||ws.readyState===WebSocket.CONNECTING))return;ws=new WebSocket(DERIV_WS_URL);ws.onopen=()=>{S.wsConnected=true;wsRetry=0;setWsBadge(true);updateFeedBadge();DERIV_STREAM_SYMBOLS.forEach((id,i)=>setTimeout(()=>subscribeTick(id),i*80));subscribeHistory(S.sym);clearInterval(NEXUS.wsHeartbeat);NEXUS.wsHeartbeat=setInterval(()=>sendWS({ping:1}),25000)};ws.onmessage=e=>{let d;try{d=JSON.parse(e.data)}catch(_){return}if(d.subscription?.id&&d.echo_req){const key=d.echo_req.ticks||d.echo_req.ticks_history;if(key)NEXUS.activeSubs.set(`${key}:${d.msg_type}:${d.echo_req.granularity||'tick'}`,d.subscription.id)}if(d.error){const key=d.echo_req?.ticks||d.echo_req?.ticks_history||'feed';NEXUS.errors.set(key,d.error.message||'Feed error');updateFeedBadge();return}if(d.msg_type==='tick'&&d.tick){putQuote(d.tick.symbol,+d.tick.quote,null,'Deriv',true)}if(d.msg_type==='ohlc'&&d.ohlc&&d.echo_req?.ticks_history===S.sym){const o=d.ohlc;mergeLiveCandle({time:+o.open_time,open:+o.open,high:+o.high,low:+o.low,close:+o.close,vol:0})}if(d.msg_type==='candles'&&d.candles&&d.echo_req?.ticks_history===S.sym){S.candles=d.candles.map(c=>({time:+c.epoch,open:+c.open,high:+c.high,low:+c.low,close:+c.close,vol:0}));const last=S.candles[S.candles.length-1];if(last)putQuote(S.sym,last.close,null,'Deriv',true);drawChart();renderARIA();renderMTF();runPatternScanner()}};ws.onclose=()=>{S.wsConnected=false;setWsBadge(false);updateFeedBadge();clearInterval(NEXUS.wsHeartbeat);wsRetry++;setTimeout(connectWS,Math.min(30000,1200*Math.pow(1.7,wsRetry)))};ws.onerror=()=>{try{ws.close()}catch(e){}}}catch(e){S.wsConnected=false;setWsBadge(false);setTimeout(connectWS,5000)}};
+connectWS=function(){try{if(ws&&(ws.readyState===WebSocket.OPEN||ws.readyState===WebSocket.CONNECTING))return;ws=new WebSocket(DERIV_WS_URL);ws.onopen=()=>{S.wsConnected=true;wsRetry=0;setWsBadge(true);updateFeedBadge();DERIV_STREAM_SYMBOLS.forEach((id,i)=>setTimeout(()=>subscribeTick(id),i*80));subscribeHistory(S.sym);clearInterval(NEXUS.wsHeartbeat);NEXUS.wsHeartbeat=setInterval(()=>sendWS({ping:1}),25000)};ws.onmessage=e=>{let d;try{d=JSON.parse(e.data)}catch(_){return}if(d.subscription?.id&&d.echo_req){const key=d.echo_req.ticks||d.echo_req.ticks_history;if(key)NEXUS.activeSubs.set(`${key}:${d.msg_type}:${d.echo_req.granularity||'tick'}`,d.subscription.id)}if(d.error){const key=d.echo_req?.ticks||d.echo_req?.ticks_history||'feed';NEXUS.errors.set(key,d.error.message||'Feed error');updateFeedBadge();return}if(d.msg_type==='tick'&&d.tick){putQuote(d.tick.symbol,+d.tick.quote,null,'Deriv',true)}const _hs=d.echo_req&&d.echo_req.ticks_history,_hOk=_hs&&appSym(_hs)===S.sym&&(!d.echo_req.granularity||d.echo_req.granularity===_histGran);if(d.msg_type==='ohlc'&&d.ohlc&&_hOk){const o=d.ohlc;mergeLiveCandle({time:+o.open_time,open:+o.open,high:+o.high,low:+o.low,close:+o.close,vol:0})}if(d.msg_type==='candles'&&d.candles&&_hOk){S.candles=d.candles.map(c=>({time:+c.epoch,open:+c.open,high:+c.high,low:+c.low,close:+c.close,vol:0}));const last=S.candles[S.candles.length-1];if(last)putQuote(S.sym,last.close,null,'Deriv',true);drawChart();renderARIA();renderMTF();runPatternScanner()}};ws.onclose=()=>{S.wsConnected=false;setWsBadge(false);updateFeedBadge();clearInterval(NEXUS.wsHeartbeat);wsRetry++;setTimeout(connectWS,Math.min(30000,1200*Math.pow(1.7,wsRetry)))};ws.onerror=()=>{try{ws.close()}catch(e){}}}catch(e){S.wsConnected=false;setWsBadge(false);setTimeout(connectWS,5000)}};
 subscribeWS=function(sym){if(!isDerivStreamSymbol(sym))return;clearDerivSubs();subscribeTick(sym);subscribeHistory(sym)};
 selectPair=function(id){const p=PAIR_MAP[id];if(!p)return;S.sym=id;S.symLabel=p.label;S.dp=p.dp;chartOffset=0;S.candles=[];S.activePatterns=[];const chip=safeEl('symChip');if(chip){chip.innerHTML=`<span class="sym-flag">${p.flag}</span><span id="symLabel">${p.label}</span>`;const accent=document.documentElement.getAttribute('data-theme')==='light'?'#3B82F6':'var(--neon-cyan)';chip.style.borderColor=accent;setTimeout(()=>chip.style.borderColor='',700)}if(pairPrices[id]?.price)SEEDS[id]=pairPrices[id].price;seedCandles(200);buildPairList(safeEl('pairSearch')?.value||'');updateFeedBadge();if(isDerivStreamSymbol(id))subscribeWS(id);setTimeout(()=>{renderARIA();renderMTF();runPatternScanner();requestChartRedraw()},80)};
-buildPairList=function(filter=''){const el=safeEl('pairList');if(!el)return;const f=String(filter).toLowerCase();let h='';PAIRS.forEach(g=>{const items=g.items.filter(p=>!f||p.label.toLowerCase().includes(f)||p.sym.toLowerCase().includes(f)||p.id.toLowerCase().includes(f)||g.g.toLowerCase().includes(f));if(!items.length)return;h+=`<div class="group-lbl">${g.g}</div>`;items.forEach(p=>{const pp=pairPrices[p.id]||{},age=pp.ts?Date.now()-pp.ts:Infinity,stale=age>NEXUS.staleMs,px=Number.isFinite(pp.price)?pp.price.toFixed(p.dp):'—',chg=normalizeChg(p.id,Number.isFinite(pp.chg)?pp.chg:0),chgStr=pp.ts?formatPct(p.id,chg,2):'',srcCls=stale?'sim':(pp.src==='Deriv'?'deriv':pp.live?'live':'sim');h+=`<div class="pair-row ${p.id===S.sym?'active':''}" onclick="selectPair('${p.id}')" title="${pp.src||'Waiting'} ${pp.ts?('· '+Math.round(age/1000)+'s ago'):''}"><div><div class="pname">${p.flag} ${p.label}</div><div class="psym">${p.sym} ${stale&&pp.ts?'<span class="feed-status stale">STALE</span>':''}</div></div><div style="text-align:right"><div class="pprice">${px}</div><div class="pchg ${chg>=0?'up':'dn'}">${chgStr} <span class="ws-indicator ${srcCls}" style="display:inline-block"></span></div></div></div>`})});el.innerHTML=h||'<div style="padding:16px;color:var(--tx-3);font-size:10px">No instruments found.</div>'};
-buildTickerData=function(){tickerItems=[];['frxEURUSD','frxGBPUSD','frxUSDJPY','frxXAUUSD','cryBTCUSD','cryETHUSD','frxNAS100','R_50','1HZ50V','CRASH500','BOOM500'].forEach(id=>{const p=PAIR_MAP[id],pp=pairPrices[id];if(!p||!pp||!Number.isFinite(pp.price))return;tickerItems.push({id,name:p.label,price:pp.price.toFixed(p.dp),chg:normalizeChg(id,pp.chg||0)})});renderTicker()};
+buildPairList=function(filter=''){const el=safeEl('pairList');if(!el)return;const f=String(filter).toLowerCase();let h='';PAIRS.forEach(g=>{const items=g.items.filter(p=>!f||p.label.toLowerCase().includes(f)||p.sym.toLowerCase().includes(f)||p.id.toLowerCase().includes(f)||g.g.toLowerCase().includes(f));if(!items.length)return;h+=`<div class="group-lbl">${g.g}</div>`;items.forEach(p=>{const pp=pairPrices[p.id]||{},age=pp.ts?Date.now()-pp.ts:Infinity,stale=age>NEXUS.staleMs,px=(pp.ts&&Number.isFinite(pp.price))?pp.price.toFixed(p.dp):'—',chg=normalizeChg(p.id,Number.isFinite(pp.chg)?pp.chg:0),chgStr=pp.ts?formatPct(p.id,chg,2):'<span style="color:var(--tx-3)">no quote</span>',srcCls=stale?'sim':(pp.src==='Deriv'?'deriv':pp.live?'live':'sim');h+=`<div class="pair-row ${p.id===S.sym?'active':''}" onclick="selectPair('${p.id}')" title="${pp.src||'Waiting'} ${pp.ts?('· '+Math.round(age/1000)+'s ago'):''}"><div><div class="pname">${p.flag} ${p.label}</div><div class="psym">${p.sym} ${stale&&pp.ts?'<span class="feed-status stale">STALE</span>':''}</div></div><div style="text-align:right"><div class="pprice">${px}</div><div class="pchg ${chg>=0?'up':'dn'}">${chgStr} <span class="ws-indicator ${srcCls}" style="display:inline-block"></span></div></div></div>`})});el.innerHTML=h||'<div style="padding:16px;color:var(--tx-3);font-size:10px">No instruments found.</div>'};
+buildTickerData=function(){tickerItems=[];['frxEURUSD','frxGBPUSD','frxUSDJPY','frxXAUUSD','cryBTCUSD','cryETHUSD','frxNAS100','R_50','1HZ50V','CRASH500','BOOM500'].forEach(id=>{const p=PAIR_MAP[id],pp=pairPrices[id];if(!p||!pp||!pp.ts||!Number.isFinite(pp.price))return;tickerItems.push({id,name:p.label,price:pp.price.toFixed(p.dp),chg:normalizeChg(id,pp.chg||0)})});renderTicker()};
 const _seedCandlesOriginal=seedCandles;seedCandles=function(count){_seedCandlesOriginal(count);updateFeedBadge()};
 const _simTickOriginal=simTick;simTick=function(){const q=pairPrices[S.sym];if(q?.live&&Date.now()-q.ts<NEXUS.staleMs)return;_simTickOriginal();updateFeedBadge()};
 const _updateBalDisplayOriginal=updateBalDisplay;updateBalDisplay=function(){_updateBalDisplayOriginal();const b=safeEl('balDisplay');if(b&&!b.textContent.trim().startsWith('$'))b.textContent='$'+b.textContent.trim()};
@@ -5911,11 +6028,18 @@ subscribeWS = function (sym) {
   subscribeHistory(sym);
 };
 
+let _histGran = 0;
 subscribeHistory = function (id) {
   if (botOwnsChart(id)) return;          // bot supplies these candles
   const d = derivSym(id);
   if (!d) return;
   const tfSec = { '1m':60,'5m':300,'15m':900,'1h':3600,'4h':14400,'1d':86400 }[S.tf] || 900;
+  // Drop the previous candle stream *before* asking for the next one. The old
+  // code forgot it only when the replacement's first message arrived, so two
+  // quick switches could forget the live stream and merge a foreign
+  // granularity's ohlc as a bogus bar.
+  if (_histSubId) { sendWS({ forget: _histSubId }); _histSubId = null; }
+  _histGran = tfSec;
   sendWS({ ticks_history: d, adjust_start_time: 1, count: 300, end: 'latest',
            granularity: tfSec, style: 'candles', subscribe: 1 });
 };
@@ -5939,7 +6063,7 @@ function fetchDerivDayOpen(id) {
     const s = new WebSocket(DERIV_WS_URL);
     const close = () => { try { s.close(); } catch (_) {} };
     s.onopen = () => s.send(JSON.stringify({
-      ticks_history: id, count: 1, end: 'latest', granularity: 86400, style: 'candles',
+      ticks_history: derivSym(id) || id, count: 1, end: 'latest', granularity: 86400, style: 'candles',
     }));
     s.onmessage = ev => {
       let d; try { d = JSON.parse(ev.data); } catch (_) { derivDayOpen[id] = null; return close(); }
@@ -6026,333 +6150,5 @@ window.addEventListener('beforeinstallprompt', e => {
 });
 window.addEventListener('appinstalled', () => document.getElementById('installChip')?.remove());
 </script>
-<script data-pplx-inline-edit>
-(function () {
-  if (window === window.top) return;
-
-  const allowedParentOrigins = ["https://www.perplexity.ai","https://perplexity.ai","https://testing.perplexity.ai","https://staging.perplexity.ai","https://*.preview.i.perplexity.ai","http://localhost:3000","http://127.0.0.1:3000","http://localhost:5173","http://127.0.0.1:5173"];
-  const MAX_FONT_BYTES = 500 * 1024;
-  const MAX_TOTAL_FONT_BYTES = 2 * 1024 * 1024;
-  let scrollForwarding = false;
-  let scrollRaf = 0;
-  let trustedTopOrigin = null;
-
-  // Allow entries like "https://*.preview.i.perplexity.ai" — the wildcard
-  // matches a single DNS label (no dots), so "https://*.foo" cannot stretch
-  // across multiple labels.
-  function matchesAllowedOrigin(origin) {
-    if (!origin) return false;
-    for (const entry of allowedParentOrigins) {
-      if (!entry.includes("*")) {
-        if (entry === origin) return true;
-        continue;
-      }
-      const pattern = new RegExp(
-        "^" +
-          entry.replace(/[.+?^${}()|[\]\\]/g, "\\$&").replace(/\*/g, "[^.]+") +
-          "$",
-      );
-      if (pattern.test(origin)) return true;
-    }
-    return false;
-  }
-
-  // Trust decision: when the sender is same-origin-visible (event.origin is a
-  // real origin like https://www.perplexity.ai) we trust event.origin directly.
-  // When event.origin is "null" (opaque broker srcdoc), we fall back to the
-  // broker's stamped `parentOrigin` to identify the top window. The fallback
-  // is claim-only — we rely on the browser's native `targetOrigin` enforcement
-  // on the response path (see postToTrustedTop) to ensure replies can't be
-  // delivered to anyone but the actual top window of that claimed origin.
-  function getTrustedParentOrigin(event) {
-    const forwardedParentOrigin =
-      typeof event.data.parentOrigin === "string" ? event.data.parentOrigin : null;
-    const parentOrigin = event.origin === "null" ? forwardedParentOrigin : event.origin;
-    return matchesAllowedOrigin(parentOrigin) ? parentOrigin : null;
-  }
-
-  // All responses go to window.top with targetOrigin = the allowlisted origin.
-  // An attacker that iframes us inside their own null-origin broker can claim
-  // any parentOrigin they like, but the browser will drop the reply whenever
-  // the real top's origin doesn't match — so the screenshot never leaves.
-  function postToTrustedTop(message) {
-    if (!trustedTopOrigin) return;
-    try {
-      window.top.postMessage(message, trustedTopOrigin);
-    } catch (_error) {}
-  }
-
-  function inlineAll(original, clone) {
-    if (original.nodeType !== 1 || clone.nodeType !== 1) return;
-
-    try {
-      const computedStyle = getComputedStyle(original);
-      // cssText on a computed style is the serialized declaration in modern
-      // Chromium/Safari — a single read beats enumerating ~400 longhand
-      // properties. Firefox returns "" here, so we fall back on empty.
-      const serialized = computedStyle.cssText;
-      if (serialized) {
-        clone.style.cssText = serialized;
-      } else {
-        const parts = new Array(computedStyle.length);
-        for (let index = 0; index < computedStyle.length; index += 1) {
-          const property = computedStyle[index];
-          parts[index] = `${property}:${computedStyle.getPropertyValue(property)};`;
-        }
-        clone.style.cssText = parts.join("");
-      }
-    } catch (_error) {}
-
-    const originalChildren = original.children;
-    const clonedChildren = clone.children;
-    for (
-      let index = 0;
-      index < originalChildren.length && index < clonedChildren.length;
-      index += 1
-    ) {
-      inlineAll(originalChildren[index], clonedChildren[index]);
-    }
-  }
-
-  function extractFontUrl(srcValue) {
-    const matches = [
-      ...srcValue.matchAll(
-        /url\(["']?([^"')]+)["']?\)(?:\s*format\(["']?([^"')]+)["']?\))?/gi,
-      ),
-    ];
-    if (matches.length === 0) return null;
-    const woff2 = matches.find((m) => m[2] && m[2].toLowerCase().includes("woff2"));
-    if (woff2) return woff2[1];
-    const woff = matches.find((m) => m[2] && m[2].toLowerCase().includes("woff"));
-    if (woff) return woff[1];
-    return matches[0][1];
-  }
-
-  // Cache resolved font URL -> data URI across captures. Fonts on a page
-  // essentially never change, and a batch run emits multiple captures back to
-  // back — without this we'd refetch + re-base64 every time.
-  const fontDataUriCache = new Map();
-  const SRC_DECLARATION_RE = /src\s*:\s*[^;}]+/i;
-
-  async function fetchAsDataUri(url) {
-    if (fontDataUriCache.has(url)) return fontDataUriCache.get(url);
-    let dataUri = null;
-    try {
-      const response = await fetch(url, { mode: "cors", credentials: "omit" });
-      if (response.ok) {
-        const blob = await response.blob();
-        if (blob.size <= MAX_FONT_BYTES) {
-          dataUri = await new Promise((resolve) => {
-            const reader = new FileReader();
-            reader.onloadend = () =>
-              resolve(typeof reader.result === "string" ? reader.result : null);
-            reader.onerror = () => resolve(null);
-            reader.readAsDataURL(blob);
-          });
-        }
-      }
-    } catch (_error) {
-      dataUri = null;
-    }
-    fontDataUriCache.set(url, dataUri);
-    return dataUri;
-  }
-
-  function collectFontFaceRuleTexts() {
-    const rules = [];
-    for (const sheet of document.styleSheets) {
-      let cssRules;
-      try {
-        cssRules = sheet.cssRules;
-      } catch (_error) {
-        continue;
-      }
-      if (!cssRules) continue;
-      for (const rule of cssRules) {
-        const cssText = rule.cssText || "";
-        if (cssText.startsWith("@font-face")) rules.push(cssText);
-      }
-    }
-    return rules;
-  }
-
-  async function buildInlinedFontCss() {
-    const ruleTexts = collectFontFaceRuleTexts();
-    if (ruleTexts.length === 0) return null;
-
-    const resolved = ruleTexts.map((cssText) => {
-      if (!SRC_DECLARATION_RE.test(cssText)) return null;
-      const srcMatch = cssText.match(/src\s*:\s*([^;}]+)[;}]/i);
-      if (!srcMatch) return null;
-      const url = extractFontUrl(srcMatch[1]);
-      if (!url) return null;
-      try {
-        return { cssText, url: new URL(url, document.baseURI).href };
-      } catch (_error) {
-        return null;
-      }
-    });
-
-    const dataUris = await Promise.all(
-      resolved.map((entry) => (entry ? fetchAsDataUri(entry.url) : Promise.resolve(null))),
-    );
-
-    const inlined = [];
-    let totalBytes = 0;
-    for (let index = 0; index < resolved.length; index += 1) {
-      const entry = resolved[index];
-      const dataUri = dataUris[index];
-      if (!entry || !dataUri) continue;
-      const approxBytes = dataUri.length * 0.75;
-      if (totalBytes + approxBytes > MAX_TOTAL_FONT_BYTES) break;
-      totalBytes += approxBytes;
-      inlined.push(entry.cssText.replace(SRC_DECLARATION_RE, `src: url("${dataUri}")`));
-    }
-    return inlined.length > 0 ? inlined.join("\n") : null;
-  }
-
-  function stripExternal(clone) {
-    const images = clone.querySelectorAll("img");
-    for (let index = 0; index < images.length; index += 1) {
-      const src = images[index].getAttribute("src");
-      if (src && !src.startsWith("data:")) images[index].removeAttribute("src");
-    }
-
-    const elements = clone.querySelectorAll("*");
-    for (let index = 0; index < elements.length; index += 1) {
-      const style = elements[index].style.cssText;
-      if (style && style.includes("url(")) {
-        elements[index].style.cssText = style.replace(
-          /url\(["']?(?!data:)[^)"']*["']?\)/gi,
-          "none",
-        );
-      }
-    }
-  }
-
-  function emitScroll() {
-    scrollRaf = 0;
-    if (!scrollForwarding) return;
-    postToTrustedTop({
-      type: "INLINE_EDIT_SCROLL",
-      scrollX: window.scrollX,
-      scrollY: window.scrollY,
-    });
-  }
-
-  window.addEventListener(
-    "scroll",
-    function () {
-      if (!scrollForwarding || scrollRaf) return;
-      scrollRaf = requestAnimationFrame(emitScroll);
-    },
-    { passive: true, capture: true },
-  );
-
-  async function handleCaptureRequest(event) {
-    const requestId = event.data.requestId;
-    const scrollX = window.scrollX;
-    const scrollY = window.scrollY;
-    const width = window.innerWidth;
-    const height = window.innerHeight;
-
-    function postResult(dataUrl) {
-      postToTrustedTop({
-        type: "INLINE_EDIT_SCREENSHOT_RESULT",
-        requestId,
-        dataUrl,
-        scrollX,
-        scrollY,
-      });
-    }
-
-    try {
-      // Wait for any pending web fonts to resolve so both inline metrics and
-      // the @font-face inlining below see the same loaded faces.
-      if (document.fonts && document.fonts.ready) {
-        try {
-          await document.fonts.ready;
-        } catch (_error) {}
-      }
-
-      const clone = document.documentElement.cloneNode(true);
-      inlineAll(document.documentElement, clone);
-
-      const removedNodes = clone.querySelectorAll("script,link[rel=\"stylesheet\"],style");
-      for (let index = 0; index < removedNodes.length; index += 1) {
-        removedNodes[index].remove();
-      }
-
-      stripExternal(clone);
-
-      // Re-embed web fonts as data-URI @font-face rules so the SVG rasterizer
-      // can resolve them — external font URLs aren't fetched during
-      // foreignObject rendering, which would otherwise force a fallback face
-      // and change text metrics.
-      const inlinedFontCss = await buildInlinedFontCss();
-      if (inlinedFontCss) {
-        const styleEl = document.createElement("style");
-        styleEl.textContent = inlinedFontCss;
-        const head = clone.querySelector("head");
-        if (head) head.appendChild(styleEl);
-        else clone.insertBefore(styleEl, clone.firstChild);
-      }
-
-      const html = new XMLSerializer().serializeToString(clone);
-      const svg =
-        `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}">` +
-        '<foreignObject width="100%" height="100%">' +
-        `<div xmlns="http://www.w3.org/1999/xhtml" style="width:${width}px;height:${height}px;overflow:hidden">` +
-        `<div style="transform:translate(-${scrollX}px,-${scrollY}px);transform-origin:top left">` +
-        html +
-        "</div></div></foreignObject></svg>";
-      const svgUrl = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
-      const image = new Image();
-      image.onload = function () {
-        const canvas = document.createElement("canvas");
-        canvas.width = width;
-        canvas.height = height;
-        canvas.getContext("2d").drawImage(image, 0, 0);
-        postResult(canvas.toDataURL("image/png"));
-      };
-      image.onerror = function () {
-        postResult(null);
-      };
-      image.src = svgUrl;
-    } catch (_error) {
-      postResult(null);
-    }
-  }
-
-  window.addEventListener("message", function (event) {
-    if (!event.data) return;
-    // Only accept messages from the direct parent frame. Blocks sibling /
-    // unrelated-window postMessage senders that could otherwise reach us.
-    if (event.source !== window.parent) return;
-
-    const trustedParentOrigin = getTrustedParentOrigin(event);
-    if (!trustedParentOrigin) return;
-    trustedTopOrigin = trustedParentOrigin;
-
-    if (event.data.type === "INLINE_EDIT_SCROLL_START") {
-      scrollForwarding = true;
-      emitScroll();
-      return;
-    }
-
-    if (event.data.type === "INLINE_EDIT_SCROLL_STOP") {
-      scrollForwarding = false;
-      if (scrollRaf) cancelAnimationFrame(scrollRaf);
-      scrollRaf = 0;
-      return;
-    }
-
-    if (event.data.type !== "INLINE_EDIT_CAPTURE_REQUEST") return;
-
-    handleCaptureRequest(event);
-  });
-})();
-
-
-</script></body>
+</body>
 </html>

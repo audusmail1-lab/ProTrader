@@ -36,7 +36,7 @@ health() { curl -fsS --max-time 10 "http://127.0.0.1:$PORT/api/tickers" >/dev/nu
 start() {
   local pid; pid="$(running_pid)"
   if [ -n "$pid" ]; then
-    echo "already running (pid $pid) → http://localhost:$PORT/mobile"
+    echo "already running (pid $pid) → http://localhost:$PORT/"
     return 0
   fi
 
@@ -57,11 +57,11 @@ start() {
     sleep 1
     if health; then
       echo "✔ up (pid $(cat "$PIDFILE"))"
-      echo "   trading app : http://localhost:$PORT/mobile"
-      echo "   dashboard   : http://localhost:$PORT/"
+      echo "   trading app : http://localhost:$PORT/"
+      echo "   dashboard   : http://localhost:$PORT/dashboard"
       if [ "$HOST" = "0.0.0.0" ]; then
         local ip; ip="$(ipconfig getifaddr en0 2>/dev/null || ipconfig getifaddr en1 2>/dev/null || true)"
-        [ -n "$ip" ] && echo "   from phone  : http://$ip:$PORT/mobile   (same Wi-Fi)"
+        [ -n "$ip" ] && echo "   from phone  : http://$ip:$PORT/   (same Wi-Fi)"
       fi
       return 0
     fi
@@ -105,7 +105,7 @@ status() {
   else
     echo "  API       NOT RESPONDING"
   fi
-  echo "  app       http://localhost:$PORT/mobile"
+  echo "  app       http://localhost:$PORT/"
 }
 
 case "${1:-start}" in
