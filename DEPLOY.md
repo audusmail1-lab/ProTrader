@@ -22,7 +22,7 @@ Everyone who opens it can also **install it as an app** (section D).
 The start banner prints a `from phone` line, e.g.
 
 ```
-from phone  : http://192.168.100.8:8000/mobile   (same Wi-Fi)
+from phone  : http://192.168.100.8:8000/   (same Wi-Fi)
 ```
 
 Open that address in Safari or Chrome on the phone. `server.sh` already
@@ -48,7 +48,7 @@ cloudflared tunnel --url http://localhost:8000
 ```
 
 It prints something like `https://random-words.trycloudflare.com` — send
-`https://random-words.trycloudflare.com/mobile` to whoever you like. Ctrl+C
+`https://random-words.trycloudflare.com` to whoever you like. Ctrl+C
 ends it.
 
 **ngrok** works the same way (`brew install ngrok && ngrok http 8000`),

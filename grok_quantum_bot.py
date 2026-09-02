@@ -264,7 +264,12 @@ class TradingBot:
 
     @staticmethod
     def _resample(df: pd.DataFrame, rule: str) -> pd.DataFrame:
-        out = df.resample(rule).agg({
+        # Resample on UTC, anchored to the epoch: 4h bars then land on
+        # 00/04/08/12/16/20 UTC like every venue's, instead of on the
+        # exchange's local midnight (which also moved with DST).
+        if getattr(df.index, "tz", None) is not None:
+            df = df.tz_convert("UTC")
+        out = df.resample(rule, origin="epoch").agg({
             "Open": "first", "High": "max", "Low": "min",
             "Close": "last", "Volume": "sum",
         })
