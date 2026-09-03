@@ -11,7 +11,7 @@ import asyncio
 import threading
 import uuid
 from collections import deque
-from concurrent.futures import ThreadPoolExecutor, as_completed
+from concurrent.futures import ThreadPoolExecutor, as_completed, TimeoutError as FuturesTimeoutError
 from datetime import datetime
 from typing import Any, Optional
 
@@ -723,9 +723,14 @@ def multi_timeframe(ticker: str) -> dict:
     results = {}
     with ThreadPoolExecutor(max_workers=4) as ex:
         futs = {ex.submit(_analyze_tf, tf): tf for tf in timeframes}
-        for fut in as_completed(futs, timeout=120):
-            r = fut.result()
-            results[r["interval"]] = r
+        try:
+            for fut in as_completed(futs, timeout=120):
+                r = fut.result()
+                results[r["interval"]] = r
+        except FuturesTimeoutError:
+            # A slow timeframe shouldn't blank out the ones that already
+            # finished — fall through to the per-timeframe default below.
+            pass
 
     ordered    = [results.get(tf, {"interval": tf, "label": _tf_labels[tf], "signal": "—", "ok": False})
                   for tf in timeframes]
@@ -1056,11 +1061,16 @@ def watchlist() -> list:
     """Return quick snapshots for all watchlist tickers in parallel."""
     futures = {_executor.submit(_quick_snapshot, t): t for t in WATCHLIST_DEFAULT}
     results = {}
-    for fut in as_completed(futures, timeout=90):
-        data = fut.result()
-        results[data["ticker"]] = data
-    # Return in original order
-    return [results[t] for t in WATCHLIST_DEFAULT if t in results]
+    try:
+        for fut in as_completed(futures, timeout=90):
+            data = fut.result()
+            results[data["ticker"]] = data
+    except FuturesTimeoutError:
+        # A slow ticker shouldn't blank out the ones that already answered.
+        pass
+    return [results.get(t, {"ticker": t, "price": None, "change": None,
+                             "signal": "—", "ok": False, "error": "timed out"})
+            for t in WATCHLIST_DEFAULT]
 
 
 @app.get("/api/history")
@@ -1117,11 +1127,17 @@ def quotes(tickers: str = "") -> list:
 
     futures = {_executor.submit(_one, t): t for t in labels}
     results = {}
-    for fut in as_completed(futures, timeout=30):
-        row = fut.result()
-        results[row["ticker"]] = row
+    try:
+        for fut in as_completed(futures, timeout=30):
+            row = fut.result()
+            results[row["ticker"]] = row
+    except FuturesTimeoutError:
+        # A hung Yahoo lookup for one symbol shouldn't blank the whole strip.
+        pass
     return [{k: v for k, v in results[t].items() if k != "_ts"}
-            for t in labels if t in results]
+            if t in results else
+            {"ticker": t, "price": None, "change_pct": None, "ok": False, "error": "timed out"}
+            for t in labels]
 
 
 _STATIC_TYPES = {
