@@ -1812,9 +1812,17 @@ async function fetchMetalsAPI() {
         if (S.sym === 'frxXAUUSD') updateTopbarFromAPI(xauUsd, chg);
       }
     }
-    if (d.rates && d.rates.XAG) {
-      const xagUsd = +(d.rates.USD / d.rates.XAG * d.rates.USD).toFixed(3);
-      // fallback
+    if (d.rates && d.rates.USD && d.rates.XAG) {
+      // Base is XAU, so d.rates.USD is USD/XAU and d.rates.XAG is XAG/XAU
+      // (the gold/silver ratio) — dividing gives USD/XAG.
+      const xagUsd = +(d.rates.USD / d.rates.XAG).toFixed(3);
+      if (xagUsd > 5 && xagUsd < 500) { // sanity
+        const prevAg = pairPrices['frxXAGUSD']?.price || SEEDS.frxXAGUSD;
+        const chgAg = ((xagUsd - prevAg) / prevAg) * 100;
+        SEEDS.frxXAGUSD = xagUsd;
+        pairPrices['frxXAGUSD'] = { price: xagUsd, chg: +chgAg.toFixed(3), live: true, src: 'ExchangeRate', ts: Date.now() };
+        if (S.sym === 'frxXAGUSD') updateTopbarFromAPI(xagUsd, chgAg);
+      }
     }
     buildPairList(document.getElementById('pairSearch').value);
     buildTickerData();
