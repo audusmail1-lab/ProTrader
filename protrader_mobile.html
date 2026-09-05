@@ -2004,73 +2004,14 @@ let ws = null, wsRetry = 0;
 // ticks / ticks_history / active_symbols.
 const DERIV_WS_URL = 'wss://api.derivws.com/trading/v1/options/ws/public';
 
-function connectWS() {
-  try {
-    ws = new WebSocket(DERIV_WS_URL);
-    ws.onopen = () => {
-      S.wsConnected = true; wsRetry = 0;
-      setWsBadge(true);
-      subscribeWS(S.sym);
-      ['R_10','R_25','R_50','R_75','R_100','1HZ25V','1HZ50V','1HZ75V','1HZ100V',
-       'CRASH300N','CRASH500','CRASH1000','BOOM300N','BOOM500','BOOM1000']
-        .forEach(id => { ws.send(JSON.stringify({ ticks: id, subscribe: 1 })); });
-    };
-    ws.onmessage = e => {
-      try {
-        const d = JSON.parse(e.data);
-        if (d.msg_type === 'tick') {
-          const tick = d.tick;
-          const id = tick.symbol;
-          const price = parseFloat(tick.quote);
-          const prev = pairPrices[id]?.price || seedPrice(id);
-          const rawChg = ((price - seedPrice(id)) / seedPrice(id)) * 100;
-          const chg = Math.max(-5, Math.min(5, rawChg)); // clamp to ±5%
-          pairPrices[id] = { price, chg, live: true, src: 'Deriv', ts: Date.now() };
-          if (id === S.sym) updateLiveTick(price);
-        }
-        if (d.msg_type === 'ohlc' && d.ohlc) {
-          const o = d.ohlc;
-          mergeLiveCandle({
-            time: parseInt(o.open_time),
-            open: parseFloat(o.open), high: parseFloat(o.high),
-            low: parseFloat(o.low), close: parseFloat(o.close),
-            vol: 0,   // Deriv sends no volume — don't invent it
-          });
-        }
-        if (d.msg_type === 'candles' && d.candles) {
-          const cdles = d.candles.map(c => ({
-            time: parseInt(c.epoch), open: parseFloat(c.open),
-            high: parseFloat(c.high), low: parseFloat(c.low),
-            close: parseFloat(c.close), vol: 0,   // Deriv sends no volume — don't invent it
-          }));
-          if (cdles.length > 0) {
-            S.candles = cdles;
-            drawChart(); renderARIA(); runPatternScanner();
-          }
-        }
-      } catch(_) {}
-    };
-    ws.onclose = () => {
-      S.wsConnected = false; setWsBadge(false);
-      wsRetry++;
-      const delay = Math.min(30000, 2000 * wsRetry);
-      setTimeout(connectWS, delay);
-    };
-    ws.onerror = () => { ws.close(); };
-  } catch(e) {
-    S.wsConnected = false; setWsBadge(false);
-    setTimeout(connectWS, 5000);
-  }
-}
-
-function subscribeWS(sym) {
-  if (!ws || ws.readyState !== WebSocket.OPEN) return;
-  const tfSec = { '1m':60,'5m':300,'15m':900,'1h':3600,'4h':14400,'1d':86400 }[S.tf] || 900;
-  ws.send(JSON.stringify({
-    ticks_history: sym, adjust_start_time: 1, count: 300,
-    end: 'latest', granularity: tfSec, style: 'candles', subscribe: 1,
-  }));
-}
+// connectWS()/subscribeWS() used to be defined here, but this codebase
+// later grew a second, NEXUS-prefixed feed implementation (search for
+// "connectWS=function" near subscribeTick/subscribeHistory) that reassigns
+// both names before init() ever calls them — so the versions that used to
+// live in this spot were 100% dead: every call site resolves the
+// reassigned function, not this one. Removed to avoid the same trap that
+// caused the silver (XAG/USD) live-price bug: an edit landing in an
+// unreachable copy instead of the code that actually runs.
 
 function setWsBadge(connected) {
   S.wsConnected = connected;
