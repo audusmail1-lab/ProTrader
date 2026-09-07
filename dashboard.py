@@ -924,12 +924,16 @@ def backtest(ticker: str, interval: str = "1h", period: str = "90d") -> dict:
 
         final_return = round((equity[-1] - 1.0) * 100, 2) if equity else 0.0
 
-        # Thin equity curve for chart (max 300 points)
-        # equity has N+1 elements (initial 1.0 + N exits); equity_dates has N elements (exits only)
-        step     = max(1, len(equity) // 300)
-        thin_eq  = equity[::step]
-        # Align dates to equity exits (equity[1:] corresponds to equity_dates)
-        thin_dates = equity_dates[::step] if equity_dates else []
+        # Thin equity curve for chart (max 300 points).
+        # equity has N+1 elements (initial 1.0 baseline + N exits); equity_dates has
+        # N elements (exit dates only), so equity[i] lines up with equity_dates[i-1]
+        # for i >= 1, and equity[0] (the baseline) has no date. Pair them up first so
+        # thinning the two together can't shift equity values onto the wrong dates.
+        dated_equity = list(zip([None] + equity_dates, equity))
+        step         = max(1, len(dated_equity) // 300)
+        thin_series  = dated_equity[::step]
+        thin_eq      = [e for _, e in thin_series]
+        thin_dates   = [str(d) if d is not None else None for d, _ in thin_series]
 
         return {
             "ticker":         label,
@@ -945,7 +949,7 @@ def backtest(ticker: str, interval: str = "1h", period: str = "90d") -> dict:
             "max_drawdown_pct": max_dd,
             "total_return_pct": final_return,
             "equity_curve":   thin_eq,
-            "equity_dates":   [str(d) for d in thin_dates],
+            "equity_dates":   thin_dates,
             "trade_log":      trades[-20:],   # last 20 trades for table
         }
     except Exception as e:
