@@ -2435,6 +2435,10 @@ DASHBOARD_HTML = """<!DOCTYPE html>
     return Number(n).toLocaleString('en-US', { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
   }
 
+  function esc(s) {
+    return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+
   function signalClass(signal) {
     if (signal.includes('BUY'))  return 'buy';
     if (signal.includes('SELL')) return 'sell';
@@ -3574,7 +3578,7 @@ DASHBOARD_HTML = """<!DOCTYPE html>
     if (a.condition === 'price_below') return `Price ≤ $${fmt(a.value)}`;
     if (a.condition === 'rsi_above')   return `RSI ≥ ${fmt(a.value, 1)}`;
     if (a.condition === 'rsi_below')   return `RSI ≤ ${fmt(a.value, 1)}`;
-    if (a.condition === 'signal_is')   return `Signal = ${a.signal_val}`;
+    if (a.condition === 'signal_is')   return `Signal = ${esc(a.signal_val)}`;
     return a.condition;
   }
 
@@ -3606,8 +3610,8 @@ DASHBOARD_HTML = """<!DOCTYPE html>
       <div class="alert-item">
         <span class="alert-item-icon">🎯</span>
         <div class="alert-item-body">
-          <div class="alert-item-title">${a.ticker} — ${condLabel(a)}</div>
-          <div class="alert-item-sub">${a.note ? a.note + ' · ' : ''}Added ${a.created_at} · ID: ${a.id}</div>
+          <div class="alert-item-title">${esc(a.ticker)} — ${condLabel(a)}</div>
+          <div class="alert-item-sub">${a.note ? esc(a.note) + ' · ' : ''}Added ${a.created_at} · ID: ${a.id}</div>
         </div>
         <button class="alert-item-del" onclick="deleteAlert('${a.id}')" title="Delete alert">✕</button>
       </div>`).join('');
@@ -3622,8 +3626,8 @@ DASHBOARD_HTML = """<!DOCTYPE html>
       <div class="alert-item fired">
         <span class="alert-item-icon">🔥</span>
         <div class="alert-item-body">
-          <div class="alert-item-title">${a.ticker} — ${condLabel(a)}</div>
-          <div class="alert-item-sub">Fired ${a.fired_at} @ $${fmt(a.fired_price)} · Signal: ${a.signal || '—'} · RSI: ${a.rsi || '—'}</div>
+          <div class="alert-item-title">${esc(a.ticker)} — ${condLabel(a)}</div>
+          <div class="alert-item-sub">Fired ${a.fired_at} @ $${fmt(a.fired_price)} · Signal: ${esc(a.signal) || '—'} · RSI: ${a.rsi || '—'}</div>
         </div>
       </div>`).join('');
   }
