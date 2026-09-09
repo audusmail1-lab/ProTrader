@@ -313,7 +313,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg-1);color:var(--tx-1);f
 .bstrip-body{height:78px;overflow:hidden}
 .bpane{display:none;height:100%;overflow-y:hidden;overflow-x:auto;padding:5px 8px}
 .bpane.active{display:flex;gap:5px;flex-wrap:nowrap;align-items:flex-start;align-content:flex-start}
-#journalPane.active{display:flex;flex-direction:column;gap:3px}
+#journalPane.active{display:flex;flex-direction:column;gap:3px;overflow-y:auto}
 #signalsPane.active{display:flex;flex-direction:column;gap:3px}
 
 .pattern-card{
@@ -599,18 +599,18 @@ kbd{
 /* ── HISTORY LIST ── */
 #historyList{display:flex;flex-direction:column;gap:3px}
 .hist-row{
-  display:grid;grid-template-columns:36px 1fr 80px 60px 60px;align-items:center;
+  display:grid;grid-template-columns:36px minmax(0,1fr) auto auto auto;align-items:center;
   padding:4px 6px;background:var(--bg-3);border:1px solid var(--bd-1);
   border-radius:var(--r-xs);font-size:9px;gap:4px;
 }
 .hist-type{padding:1px 4px;border-radius:2px;font-size:8px;font-weight:800;text-align:center}
 .hist-type.buy{background:rgba(16,185,129,.15);color:var(--green-lt)}
 .hist-type.sell{background:rgba(239,68,68,.15);color:var(--red-lt)}
-.hist-pair{font-weight:700;color:var(--tx-1)}
-.hist-entry{font-family:var(--font-mono);font-size:8px;color:var(--tx-3)}
-.hist-pnl{font-family:var(--font-mono);font-weight:800;font-size:9px}
+.hist-pair{font-weight:700;color:var(--tx-1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hist-entry{font-family:var(--font-mono);font-size:8px;color:var(--tx-3);white-space:nowrap}
+.hist-pnl{font-family:var(--font-mono);font-weight:800;font-size:9px;text-align:right;white-space:nowrap}
 .hist-pnl.win{color:var(--green-lt)}.hist-pnl.loss{color:var(--red-lt)}
-.hist-time{font-size:8px;color:var(--tx-3)}
+.hist-time{font-size:8px;color:var(--tx-3);white-space:nowrap;text-align:right}
 /* open positions */
 .op-type{padding:1px 5px;border-radius:2px;font-size:8px;font-weight:800}
 .op-type.buy{background:rgba(16,185,129,.15);color:var(--green-lt)}
@@ -4526,6 +4526,7 @@ function processVoice(cmd) {
 ════════════════════════════════════════════════════════════ */
 
 const TRADE_STORE_KEY = 'protrader.trade.v2';
+const TRADE_HISTORY_MAX = 200;
 
 /* Contract size, lot limits and leverage are broker terms. With no broker
    connected these are documented retail-CFD defaults — edit CLASS_SPECS to
@@ -5147,7 +5148,8 @@ const OT = {
 
     S.trades.push({ id: p.id, sym: p.symbol, pair: p.label, type: p.side, volume: vol,
                     entry: p.entry, exit, pnl, closeTime: Date.now(), won, reason: reason || 'Manual' });
-    this.logClose(p, vol, exit, pnl, reason);
+    if (S.trades.length > TRADE_HISTORY_MAX) S.trades = S.trades.slice(-TRADE_HISTORY_MAX);
+    this.renderHistory();
     updateBalDisplay(); renderPortfolio(); updateGarden(won, pnl);
     this.renderBook(); this.render(); this.save();
     showToast(`${won ? '✓' : '✕'} Closed ${vol} ${p.label} @ ${otFmtPx(p.symbol, exit)} · ${otMoney(pnl)}${reason ? ' · ' + reason : ''}`, 4000);
@@ -5231,29 +5233,38 @@ const OT = {
   },
 
   /* -- journal / history -- */
-  logClose(p, vol, exit, pnl, reason) {
+  // Both lists are rebuilt from S.trades so they survive a reload and never
+  // drift from the persisted record.
+  renderHistory() {
+    const trades = S.trades.slice(-TRADE_HISTORY_MAX).reverse();
+    const fmtWhen = ts => {
+      if (!Number.isFinite(ts)) return '';
+      const d = new Date(ts), now = new Date();
+      const time = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      return d.toDateString() === now.toDateString()
+        ? time
+        : d.toLocaleDateString([], { month: 'short', day: 'numeric' }) + ' ' + time;
+    };
+    const side = t => (t.type === 'sell' ? 'sell' : 'buy');
+
     const j = document.getElementById('journalPane');
     if (j) {
-      if (j.textContent.includes('No trades')) j.innerHTML = '';
-      const row = document.createElement('div');
-      row.className = 'jnl-row';
-      row.innerHTML = `<span class="jnl-pair">${p.side.toUpperCase()} ${vol} ${p.label}</span>
-        <span style="color:${pnl >= 0 ? 'var(--green-lt)' : 'var(--red-lt)'}">${otMoney(pnl)}</span>`;
-      j.insertAdjacentElement('afterbegin', row);
+      j.innerHTML = trades.length
+        ? trades.map(t => `<div class="jnl-row">
+            <span class="jnl-pair">${side(t).toUpperCase()} ${t.volume} ${t.pair}</span>
+            <span style="color:${t.pnl >= 0 ? 'var(--green-lt)' : 'var(--red-lt)'}">${otMoney(t.pnl)}</span></div>`).join('')
+        : '<div style="font-size:9px;color:var(--tx-3);padding:8px">No trades yet. Execute a trade to log it here.</div>';
     }
     const h = document.getElementById('historyList');
     if (h) {
-      if (h.textContent.includes('No trades')) h.innerHTML = '';
-      const row = document.createElement('div');
-      row.className = 'hist-row';
-      row.innerHTML = `
-        <div class="hist-type ${p.side}">${p.side.toUpperCase()}</div>
-        <div class="hist-pair">${p.label}</div>
-        <div class="hist-entry">${otFmtPx(p.symbol, p.entry)}→${otFmtPx(p.symbol, exit)}</div>
-        <div class="hist-pnl ${pnl >= 0 ? 'win' : 'loss'}">${otMoney(pnl)}</div>
-        <div class="hist-time">${new Date().toLocaleTimeString()}</div>`;
-      h.insertAdjacentElement('afterbegin', row);
-      if (h.children.length > 30) h.removeChild(h.lastChild);
+      h.innerHTML = trades.length
+        ? trades.map(t => `<div class="hist-row">
+            <div class="hist-type ${side(t)}">${side(t).toUpperCase()}</div>
+            <div class="hist-pair">${t.pair}</div>
+            <div class="hist-entry">${otFmtPx(t.sym, t.entry)}→${otFmtPx(t.sym, t.exit)}</div>
+            <div class="hist-pnl ${t.pnl >= 0 ? 'win' : 'loss'}">${otMoney(t.pnl)}</div>
+            <div class="hist-time">${fmtWhen(t.closeTime)}</div></div>`).join('')
+        : '<div style="font-size:9px;color:var(--tx-3)">No trades yet.</div>';
     }
   },
 
@@ -5262,7 +5273,7 @@ const OT = {
     try {
       localStorage.setItem(TRADE_STORE_KEY, JSON.stringify({
         balance: S.balance, pnlToday: S.pnlToday, wins: S.wins, losses: S.losses,
-        bestTrade: S.bestTrade, trades: S.trades.slice(-50),
+        bestTrade: S.bestTrade, trades: S.trades.slice(-TRADE_HISTORY_MAX),
         positions: TR.positions, orders: TR.orders, seq: TR.seq,
         ticket: { volume: TK.volume, type: TK.type, side: TK.side },
       }));
@@ -5278,7 +5289,7 @@ const OT = {
       if (Number.isFinite(d.wins)) S.wins = d.wins;
       if (Number.isFinite(d.losses)) S.losses = d.losses;
       if (Number.isFinite(d.bestTrade)) S.bestTrade = d.bestTrade;
-      if (Array.isArray(d.trades)) S.trades = d.trades;
+      if (Array.isArray(d.trades)) S.trades = d.trades.filter(t => t && typeof t === 'object');
       if (Array.isArray(d.positions)) TR.positions = d.positions;
       if (Array.isArray(d.orders)) TR.orders = d.orders;
       if (Number.isFinite(d.seq)) TR.seq = d.seq;
@@ -5287,7 +5298,7 @@ const OT = {
         if (['market', 'limit', 'stop'].includes(d.ticket.type)) TK.type = d.ticket.type;
         if (['buy', 'sell'].includes(d.ticket.side)) TK.side = d.ticket.side;
       }
-      updateBalDisplay(); renderPortfolio();
+      updateBalDisplay(); renderPortfolio(); this.renderHistory();
     } catch (_) {}
   },
 
