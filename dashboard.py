@@ -598,7 +598,8 @@ def chart_data(ticker: str,
 
 
 @app.get("/api/sr/{ticker}")
-def support_resistance(ticker: str, interval: str = "1h", candles: int = 120) -> dict:
+def support_resistance(ticker: str, interval: str = "1h",
+                        candles: int = Query(120, ge=1, le=5000)) -> dict:
     """
     Auto-detect key Support/Resistance levels from recent swing highs and lows.
     Returns up to 5 resistance levels and 5 support levels, sorted by proximity
@@ -614,6 +615,14 @@ def support_resistance(ticker: str, interval: str = "1h", candles: int = 120) ->
         df = bot.fetch_data(sym, period=period, interval=interval)
         df = bot.calculate_indicators(df)
         df = df.tail(candles).copy()
+
+        if df.empty:
+            return {
+                "ticker": label, "price": None,
+                "resistances": [], "supports": [],
+                "nearest_resistance": None, "nearest_support": None,
+                "nearest_res_pct": None, "nearest_sup_pct": None,
+            }
 
         price = float(df["Close"].iloc[-1])
 
