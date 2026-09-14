@@ -5231,6 +5231,32 @@ const OT = {
   },
 
   /* -- journal / history -- */
+  // Rebuilds the journal/history panes from persisted S.trades. logClose()
+  // only appends a DOM row live as trades close, so without this, trades
+  // closed in an earlier session vanish from the UI on reload even though
+  // S.trades/localStorage still has them (renderPortfolio only updates the
+  // win-rate/total-trades stats, not these two panes).
+  renderHistory() {
+    const trades = S.trades.slice(-30).slice().reverse();
+    const j = document.getElementById('journalPane');
+    if (j) {
+      j.innerHTML = trades.length ? trades.map(t => `<div class="jnl-row">
+        <span class="jnl-pair">${t.type.toUpperCase()} ${t.volume} ${t.pair}</span>
+        <span style="color:${t.pnl >= 0 ? 'var(--green-lt)' : 'var(--red-lt)'}">${otMoney(t.pnl)}</span>
+      </div>`).join('') : '<div style="font-size:9px;color:var(--tx-3);padding:8px">No trades yet. Execute a trade to log it here.</div>';
+    }
+    const h = document.getElementById('historyList');
+    if (h) {
+      h.innerHTML = trades.length ? trades.map(t => `<div class="hist-row">
+        <div class="hist-type ${t.type}">${t.type.toUpperCase()}</div>
+        <div class="hist-pair">${t.pair}</div>
+        <div class="hist-entry">${otFmtPx(t.sym, t.entry)}→${otFmtPx(t.sym, t.exit)}</div>
+        <div class="hist-pnl ${t.pnl >= 0 ? 'win' : 'loss'}">${otMoney(t.pnl)}</div>
+        <div class="hist-time">${new Date(t.closeTime).toLocaleTimeString()}</div>
+      </div>`).join('') : '<div style="font-size:9px;color:var(--tx-3)">No trades yet.</div>';
+    }
+  },
+
   logClose(p, vol, exit, pnl, reason) {
     const j = document.getElementById('journalPane');
     if (j) {
@@ -5287,7 +5313,7 @@ const OT = {
         if (['market', 'limit', 'stop'].includes(d.ticket.type)) TK.type = d.ticket.type;
         if (['buy', 'sell'].includes(d.ticket.side)) TK.side = d.ticket.side;
       }
-      updateBalDisplay(); renderPortfolio();
+      updateBalDisplay(); renderPortfolio(); this.renderHistory();
     } catch (_) {}
   },
 
