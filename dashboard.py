@@ -19,7 +19,11 @@ import numpy as np
 import pandas as pd
 import yfinance as yf
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Query, Request
+from fastapi.responses import Response
+import hashlib
+from starlette.middleware.gzip import GZipMiddleware
+from collections import OrderedDict
 from fastapi.responses import HTMLResponse, JSONResponse, StreamingResponse, FileResponse
 from pydantic import BaseModel
 
@@ -27,6 +31,18 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from grok_quantum_bot import TradingBot
 
 app = FastAPI(title="Trading Bot Dashboard")
+app.add_middleware(GZipMiddleware, minimum_size=1024)
+
+
+@app.middleware("http")
+async def _security_headers(request, call_next):
+    """The app must not be framed by other sites; nothing here needs to be."""
+    resp = await call_next(request)
+    resp.headers.setdefault("X-Frame-Options", "DENY")
+    resp.headers.setdefault("Content-Security-Policy", "frame-ancestors 'none'")
+    resp.headers.setdefault("X-Content-Type-Options", "nosniff")
+    resp.headers.setdefault("Referrer-Policy", "strict-origin-when-cross-origin")
+    return resp
 bot = TradingBot()
 
 # In-memory store
@@ -79,9 +95,9 @@ TICKER_MAP: dict[str, str] = {
 PERIOD_MAP: dict[str, str] = {
     "1m":  "7d",
     "5m":  "30d",
-    "15m": "5d",
+    "15m": "30d",   # 5d gave index charts ~80 bars; indices trade 6.5h/day
     "1h":  "60d",
-    "4h":  "90d",
+    "4h":  "180d",
     "1d":  "2y",
 }
 
@@ -98,8 +114,10 @@ MAX_PERIOD_MAP: dict[str, str] = {
     "1d":  "10y",
 }
 
-_hist_cache: dict[tuple, tuple] = {}   # (symbol, interval) -> (fetched_at, DataFrame)
+_hist_cache: "OrderedDict[tuple, tuple]" = OrderedDict()   # (symbol, interval) -> (fetched_at, DataFrame)
+_hist_lock = threading.Lock()
 HISTORY_TTL_S = 180.0
+HISTORY_CACHE_MAX = 40   # ~3 MB each for a deep 1h frame; bounded so strangers cannot fill RAM
 
 
 def _load_history(sym: str, interval: str) -> pd.DataFrame:
@@ -109,16 +127,22 @@ def _load_history(sym: str, interval: str) -> pd.DataFrame:
     on every scroll.
     """
     key = (sym, interval)
-    hit = _hist_cache.get(key)
-    if hit and time.time() - hit[0] < HISTORY_TTL_S:
-        return hit[1]
+    with _hist_lock:
+        hit = _hist_cache.get(key)
+        if hit and time.time() - hit[0] < HISTORY_TTL_S:
+            _hist_cache.move_to_end(key)
+            return hit[1]
 
     period = MAX_PERIOD_MAP.get(interval, "60d")
     full = bot.fetch_data(sym, period=period, interval=interval)
     full = bot.calculate_indicators(full)
     full["EMA_200"] = full["Close"].ewm(span=200, adjust=False).mean()
     full["VWAP"] = _vwap_series(full)
-    _hist_cache[key] = (time.time(), full)
+    with _hist_lock:
+        _hist_cache[key] = (time.time(), full)
+        _hist_cache.move_to_end(key)
+        while len(_hist_cache) > HISTORY_CACHE_MAX:
+            _hist_cache.popitem(last=False)
     return full
 
 
@@ -439,7 +463,10 @@ def analyze(ticker: str, interval: str = "1h") -> dict:
 
 
 @app.get("/api/chart/{ticker}")
-def chart_data(ticker: str, candles: int = 120, interval: str = "1h", before: int = 0) -> dict:
+def chart_data(ticker: str,
+               candles: int = Query(120, ge=1, le=5000),
+               interval: str = Query("1h", pattern="^(1m|5m|15m|1h|4h|1d)$"),
+               before: int = Query(0, ge=0)) -> dict:
     """
     OHLCV + indicator series for charting.
 
@@ -927,6 +954,7 @@ def backtest(ticker: str, interval: str = "1h", period: str = "90d") -> dict:
 
 @app.get("/api/stream/{ticker}")
 async def stream_ticker(ticker: str, interval_s: int = 15):
+    interval_s = max(5, min(int(interval_s or 15), 120))   # the app asks for 10; never let a client spin the pool
     """
     Server-Sent Events: pushes latest price + day stats every interval_s seconds.
     Tries fast_info first; falls back to history() if the price looks wrong
@@ -1102,8 +1130,20 @@ _STATIC_TYPES = {
 }
 
 
+def _file_or_304(request: Request, path: str, media_type: str, cache_control: str) -> Response:
+    """FileResponse sets ETag/Last-Modified but never answers a conditional
+    request, so every reopen re-downloaded ~500 KB. Compare the client's
+    validator ourselves and return 304 when nothing changed."""
+    st = os.stat(path)
+    etag = '"' + hashlib.md5(f"{st.st_mtime_ns}-{st.st_size}".encode()).hexdigest() + '"'
+    inm = request.headers.get("if-none-match", "")
+    if etag in [t.strip() for t in inm.split(",")]:
+        return Response(status_code=304, headers={"ETag": etag, "Cache-Control": cache_control})
+    return FileResponse(path, media_type=media_type, headers={"Cache-Control": cache_control, "ETag": etag})
+
+
 @app.get("/static/{filename}")
-def static_asset(filename: str):
+def static_asset(filename: str, request: Request):
     """PWA assets: manifest, service worker, icons."""
     if "/" in filename or ".." in filename:
         raise HTTPException(status_code=400, detail="Invalid asset name")
@@ -1112,11 +1152,12 @@ def static_asset(filename: str):
         raise HTTPException(status_code=404, detail=f"{filename} not found")
     ext = os.path.splitext(filename)[1].lower()
     headers = {"Cache-Control": "public, max-age=86400"}
+    if filename.endswith(".webmanifest"):
+        headers = {"Cache-Control": "no-cache"}
     # The service worker itself must never be cached, or updates can't roll out.
     if filename == "sw.js":
         headers = {"Cache-Control": "no-cache", "Service-Worker-Allowed": "/"}
-    return FileResponse(path, media_type=_STATIC_TYPES.get(ext, "application/octet-stream"),
-                        headers=headers)
+    return _file_or_304(request, path, _STATIC_TYPES.get(ext, "application/octet-stream"), headers["Cache-Control"])
 
 
 @app.get("/sw.js")
@@ -1144,7 +1185,7 @@ def chart_lab() -> str:
 
 
 @app.get("/vendor/{filename}")
-def vendor_asset(filename: str):
+def vendor_asset(filename: str, request: Request):
     """
     Serve vendored third-party assets (TradingView Lightweight Charts).
     Kept local rather than on a CDN so the terminal still loads when the
@@ -1156,29 +1197,30 @@ def vendor_asset(filename: str):
     if not os.path.isfile(path):
         raise HTTPException(status_code=404, detail=f"{filename} not found")
     media = "application/javascript" if filename.endswith(".js") else "text/plain"
-    return FileResponse(path, media_type=media,
-                        headers={"Cache-Control": "public, max-age=86400"})
+    # The HTML references this with ?v=<version>, so a long max-age is safe:
+    # a new library version is a new URL.
+    return _file_or_304(request, path, media, "public, max-age=604800, immutable")
 
 
-@app.get("/mobile", response_class=HTMLResponse)
-def mobile_terminal() -> str:
+@app.get("/mobile")
+def mobile_terminal(request: Request):
     """
     Serve the PROTrader Nexus mobile terminal from the same origin as the API,
     so its fetch/EventSource calls to /api/* need no CORS handling.
     Read from disk per request so edits show up on refresh.
     """
     path = os.path.join(os.path.dirname(os.path.abspath(__file__)), MOBILE_HTML_FILE)
-    try:
-        with open(path, encoding="utf-8") as fh:
-            return fh.read()
-    except FileNotFoundError:
+    if not os.path.isfile(path):
         raise HTTPException(status_code=404, detail=f"{MOBILE_HTML_FILE} not found next to dashboard.py")
+    # FileResponse emits ETag/Last-Modified, so a reopen is a 304 unless the
+    # file changed; no-cache means "revalidate", not "don't cache".
+    return _file_or_304(request, path, "text/html; charset=utf-8", "no-cache")
 
 
-@app.get("/", response_class=HTMLResponse)
-def home() -> str:
+@app.get("/")
+def home(request: Request):
     """PROTrader is the front door; the legacy desktop dashboard moved to /dashboard."""
-    return mobile_terminal()
+    return mobile_terminal(request)
 
 
 @app.get("/dashboard", response_class=HTMLResponse)
