@@ -1016,6 +1016,55 @@ kbd{
   .ot-metrics{grid-template-columns:repeat(3,1fr)}
   .ot-q-val{font-size:12px}
 }
+/* ── TRADE HISTORY / ORDER LOG DOCK ──
+   Broker-terminal style tables: sticky header, tabular numerals,
+   colour only where it means something (side, P&L, order status). */
+.bstrip-body.tall{height:210px}
+.bottom-strip.tall{max-height:none}
+#historyPane.active,#orderLogPane.active{display:flex;flex-direction:column;gap:0;padding:0;overflow:hidden}
+.hsum{
+  display:flex;align-items:center;gap:12px;flex-wrap:wrap;flex-shrink:0;
+  padding:5px 10px;border-bottom:1px solid var(--bd-1);font-size:9px;color:var(--tx-3);
+}
+.hsum-lbl{text-transform:uppercase;letter-spacing:.5px;font-weight:700}
+.hsum-val{font-family:var(--font-mono);font-weight:800;color:var(--tx-1)}
+.hsum-val.pos{color:var(--green-lt)}.hsum-val.neg{color:var(--red-lt)}
+.hsum select{
+  background:var(--bg-3);color:var(--tx-1);border:1px solid var(--bd-1);
+  border-radius:var(--r-xs);font-size:9px;padding:2px 4px;font-weight:700;
+}
+.hsum .hsum-btn{
+  margin-left:auto;background:var(--bg-3);border:1px solid var(--bd-1);color:var(--tx-2);
+  border-radius:var(--r-xs);font-size:8px;font-weight:800;padding:2px 8px;cursor:pointer;
+  text-transform:uppercase;letter-spacing:.5px;
+}
+.hsum .hsum-btn:hover{color:var(--tx-1);border-color:var(--bd-2)}
+.tt-wrap{flex:1;overflow:auto;min-height:0}
+table.tt{border-collapse:collapse;width:100%;font-size:9px;white-space:nowrap}
+.tt thead th{
+  position:sticky;top:0;z-index:2;background:var(--bg-2);color:var(--tx-3);
+  text-align:right;font-weight:700;padding:4px 9px;border-bottom:1px solid var(--bd-1);
+  text-transform:uppercase;letter-spacing:.4px;font-size:8px;
+}
+.tt thead th.l{text-align:left}
+.tt td{padding:3px 9px;border-bottom:1px solid rgba(148,163,184,.06);color:var(--tx-2);text-align:right;font-family:var(--font-mono)}
+.tt td.l{text-align:left;font-family:var(--font-sans,inherit)}
+.tt tbody tr:hover td{background:rgba(148,163,184,.05)}
+.tt .t-sym{font-weight:800;color:var(--tx-1)}
+.tt .t-side{font-weight:800}
+.tt .t-side.buy{color:var(--green-lt)}.tt .t-side.sell{color:var(--red-lt)}
+.tt .t-pnl{font-weight:800}
+.tt .t-pnl.pos{color:var(--green-lt)}.tt .t-pnl.neg{color:var(--red-lt)}
+.tt .t-dim{color:var(--tx-3)}
+.tt .t-st{font-weight:700}
+.tt .t-st.filled{color:var(--green-lt)}
+.tt .t-st.placed,.tt .t-st.submitted{color:var(--amber-lt,#fbbf24)}
+.tt .t-st.cancelled,.tt .t-st.rejected{color:var(--red-lt)}
+.tt-empty{padding:14px;font-size:9px;color:var(--tx-3);text-align:center}
+.pane-tools{display:flex;justify-content:flex-end;width:100%;flex:0 0 auto;position:sticky;left:0}
+.pane-tools .hsum-btn{margin-left:auto}
+@media(max-width:820px){.bstrip-body.tall{height:185px}}
+@media(max-width:420px){.bottom-strip.tall{max-height:230px}.bstrip-body.tall{height:170px}}
 </style>
 </head>
 <body>
@@ -1162,6 +1211,8 @@ kbd{
         <button class="bstab active" onclick="setBTab('scanner',this)">📊 Scanner</button>
         <button class="bstab" onclick="setBTab('positions',this)" id="bsPositions">📈 Positions</button>
         <button class="bstab" onclick="setBTab('orders',this)" id="bsOrders">⏳ Orders</button>
+        <button class="bstab" onclick="setBTab('history',this)" id="bsHistory">🧾 History</button>
+        <button class="bstab" onclick="setBTab('orderlog',this)" id="bsOrderLog">📜 Order Log</button>
         <button class="bstab" onclick="setBTab('signals',this)">⚡ Signals</button>
         <button class="bstab" onclick="setBTab('journal',this)">📓 Journal</button>
       </div>
@@ -1169,6 +1220,8 @@ kbd{
         <div class="bpane active" id="scannerPane"></div>
         <div class="bpane" id="positionsPane"></div>
         <div class="bpane" id="ordersPane"></div>
+        <div class="bpane" id="historyPane"></div>
+        <div class="bpane" id="orderLogPane"></div>
         <div class="bpane" id="signalsPane"></div>
         <div class="bpane" id="journalPane">
           <div style="font-size:9px;color:var(--tx-3);padding:8px">No trades yet. Execute a trade to log it here.</div>
@@ -4469,6 +4522,8 @@ const SPEC_OVERRIDE = {
 const TR = {
   acct: { id: 'PAPER-001', currency: 'USD' },   // balance lives on S.balance
   positions: [], orders: [], seq: 1, busy: false, lastSubmit: 0,
+  closed: [],      // closed-position records — the History tab
+  orderLog: [],    // every order lifecycle event — the Order Log tab
 };
 
 // Ticket state. Symbol and volume survive order-type switches.
@@ -4661,6 +4716,7 @@ const OT = {
   /* -- lifecycle -- */
   init() {
     this.load();
+    TH.renderAll();
     this.attachBook();
     this.onSymbolChange(true);
     setInterval(() => this.tick(), 500);
@@ -4951,13 +5007,23 @@ const OT = {
       timeInForce: 'GTC',
       accountId: TR.acct.id,
     };
+    order._oid = TR.seq++;
+    TH.logOrder({ status: 'Submitted', symbol: order.symbol, side: order.side,
+      orderType: order.orderType, action: 'Entry', intent: 'Open', volume: order.volume,
+      target: order.price, orderId: order._oid });
 
     try {
       const res = await Broker.submit(order);
       if (res.status === 'rejected') {
+        TH.logOrder({ status: 'Rejected', symbol: order.symbol, side: order.side,
+          orderType: order.orderType, action: res.reason || 'Entry', intent: 'Open',
+          volume: order.volume, target: order.price, orderId: order._oid });
         this.status(`Rejected — ${res.reason}`, 'bad');
         showToast(`✕ Order rejected — ${res.reason}`, 3600);
       } else if (res.status === 'filled') {
+        TH.logOrder({ status: 'Placed', symbol: order.symbol, side: order.side,
+          orderType: order.orderType, action: 'Entry', intent: 'Open',
+          volume: order.volume, target: order.price, orderId: order._oid });
         this.openPosition(order, res.fillPrice);
         this.status(`Filled at ${otFmtPx(order.symbol, res.fillPrice)}`, 'ok');
       } else {
@@ -4978,9 +5044,13 @@ const OT = {
       id: TR.seq++, symbol: order.symbol, label: otSpec(order.symbol).label,
       side: order.side, volume: order.volume, entry: fill,
       sl: order.stopLoss, tp: order.takeProfit,
+      type: order.orderType || 'market', entryOrderId: order._oid ?? null,
       margin, openTime: Date.now(), accountId: order.accountId,
     };
     TR.positions.push(pos);
+    TH.logOrder({ status: 'Filled', symbol: pos.symbol, side: pos.side,
+      orderType: pos.type, action: 'Entry', intent: 'Open', volume: pos.volume,
+      target: order.price ?? null, fill, orderId: pos.entryOrderId, positionId: pos.id });
     showToast(`${order.side === 'buy' ? '▲' : '▼'} ${order.side.toUpperCase()} ${order.volume} ${pos.label} @ ${otFmtPx(pos.symbol, fill)}`, 3200);
     speak(`${order.side} ${order.volume} lots ${pos.label} filled at ${fill.toFixed(otSpec(pos.symbol).dp)}.`);
     updateBalDisplay(); renderPortfolio();
@@ -4988,11 +5058,14 @@ const OT = {
 
   placePending(order) {
     TR.orders.push({
-      id: TR.seq++, symbol: order.symbol, label: otSpec(order.symbol).label,
+      id: order._oid ?? TR.seq++, symbol: order.symbol, label: otSpec(order.symbol).label,
       side: order.side, orderType: order.orderType, volume: order.volume,
       price: order.price, sl: order.stopLoss, tp: order.takeProfit,
       state: 'working', placed: Date.now(), accountId: order.accountId,
     });
+    TH.logOrder({ status: 'Placed', symbol: order.symbol, side: order.side,
+      orderType: order.orderType, action: 'Entry', intent: 'Open',
+      volume: order.volume, target: order.price, orderId: order._oid });
     showToast(`⏳ ${order.side.toUpperCase()} ${order.orderType.toUpperCase()} ${order.volume} ${otSpec(order.symbol).label} @ ${otFmtPx(order.symbol, order.price)}`, 3200);
   },
 
@@ -5011,11 +5084,15 @@ const OT = {
       const acct = otAccount();
       TR.orders = TR.orders.filter(x => x.id !== o.id);
       if (need != null && need > acct.free) {
+        TH.logOrder({ status: 'Cancelled', symbol: o.symbol, side: o.side,
+          orderType: o.orderType, action: 'Insufficient margin', intent: 'Open',
+          volume: o.volume, target: o.price, orderId: o.id });
         showToast(`✕ ${o.label} ${o.orderType} cancelled — insufficient margin at trigger`, 4000);
         this.save(); return;
       }
       this.openPosition({
-        symbol: o.symbol, side: o.side, volume: o.volume,
+        symbol: o.symbol, side: o.side, volume: o.volume, orderType: o.orderType,
+        price: o.price, _oid: o.id,
         stopLoss: o.sl, takeProfit: o.tp, accountId: o.accountId,
       }, fill);
       this.save();
@@ -5057,6 +5134,14 @@ const OT = {
 
     S.trades.push({ id: p.id, sym: p.symbol, pair: p.label, type: p.side, volume: vol,
                     entry: p.entry, exit, pnl, closeTime: Date.now(), won, reason: reason || 'Manual' });
+    const closeOid = TR.seq++;
+    const closeAction = reason === 'Stop loss' ? 'Stop Loss'
+                      : reason === 'Take profit' ? 'Take Profit'
+                      : reason || 'Manual';
+    TH.logOrder({ status: 'Filled', symbol: p.symbol, side: p.side === 'buy' ? 'sell' : 'buy',
+      orderType: 'market', action: closeAction, intent: 'Close',
+      volume: vol, fill: exit, orderId: closeOid, positionId: p.id });
+    TH.recordClose(p, vol, exit, pnl, reason, closeOid);
     this.logClose(p, vol, exit, pnl, reason);
     updateBalDisplay(); renderPortfolio(); updateGarden(won, pnl);
     this.renderBook(); this.render(); this.save();
@@ -5084,6 +5169,9 @@ const OT = {
     const res = await Broker.cancel(id);
     if (res.status !== 'cancelled') { showToast('✕ Cancel rejected', 3000); return; }
     TR.orders = TR.orders.filter(x => x.id !== id);
+    TH.logOrder({ status: 'Cancelled', symbol: o.symbol, side: o.side,
+      orderType: o.orderType, action: 'User cancel', intent: 'Open',
+      volume: o.volume, target: o.price, orderId: o.id });
     showToast(`Cancelled ${o.side.toUpperCase()} ${o.orderType.toUpperCase()} ${o.label}`, 3000);
     this.renderBook(); this.save();
   },
@@ -5174,6 +5262,7 @@ const OT = {
         balance: S.balance, pnlToday: S.pnlToday, wins: S.wins, losses: S.losses,
         bestTrade: S.bestTrade, trades: S.trades.slice(-50),
         positions: TR.positions, orders: TR.orders, seq: TR.seq,
+        closed: TR.closed.slice(0, 300), orderLog: TR.orderLog.slice(0, 500),
         ticket: { volume: TK.volume, type: TK.type, side: TK.side },
       }));
     } catch (_) {}
@@ -5192,6 +5281,18 @@ const OT = {
       if (Array.isArray(d.positions)) TR.positions = d.positions;
       if (Array.isArray(d.orders)) TR.orders = d.orders;
       if (Number.isFinite(d.seq)) TR.seq = d.seq;
+      if (Array.isArray(d.closed)) TR.closed = d.closed;
+      if (Array.isArray(d.orderLog)) TR.orderLog = d.orderLog;
+      // Older saves kept closes only in S.trades — surface them in the History tab.
+      if (!TR.closed.length && Array.isArray(d.trades) && d.trades.length) {
+        TR.closed = d.trades.slice().reverse().map(t => ({
+          positionId: t.id ?? null, orderId: null, closeOrderId: null,
+          symbol: t.sym, label: t.pair || t.sym, side: t.type, type: 'market',
+          volume: t.volume, entry: t.entry, exit: t.exit,
+          sl: null, tp: null, openTime: null, closeTime: t.closeTime || null,
+          pnl: t.pnl, reason: t.reason || 'Manual',
+        }));
+      }
       if (d.ticket) {
         if (Number.isFinite(d.ticket.volume)) TK.volume = d.ticket.volume;
         if (['market', 'limit', 'stop'].includes(d.ticket.type)) TK.type = d.ticket.type;
@@ -5411,7 +5512,8 @@ const OT = {
     const put = (id, html) => { const n = document.getElementById(id); if (n) n.innerHTML = html; };
     put('openPos', posHtml);
     put('pendingOrders', ordHtml);
-    put('positionsPane', posHtml);
+    put('positionsPane', (TR.positions.length > 1
+      ? '<div class="pane-tools"><button class="hsum-btn" onclick="OT.closeAll()">Close All</button></div>' : '') + posHtml);
     put('ordersPane', ordHtml);
     const pTab = document.getElementById('bsPositions'), oTab = document.getElementById('bsOrders');
     if (pTab) pTab.textContent = `📈 Positions${TR.positions.length ? ' (' + TR.positions.length + ')' : ''}`;
@@ -5421,6 +5523,160 @@ const OT = {
 
 // Kept for callers elsewhere in the app.
 function updateOpenPos() { OT.renderBook(); }
+
+/* ════════════════════════════════════════════════════════════
+   TRADE HISTORY & ORDER LOG — broker-terminal style dock tables.
+   History = closed positions with entry/exit detail and a period
+   summary. Order Log = every order lifecycle event (Submitted →
+   Placed → Filled / Cancelled / Rejected), newest first.
+════════════════════════════════════════════════════════════ */
+const TH = {
+  period: 'today',
+
+  fmtTime(ts) {
+    if (!Number.isFinite(ts)) return '—';
+    const d = new Date(ts);
+    const t = d.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    return `${String(d.getMonth() + 1).padStart(2, '0')}/${String(d.getDate()).padStart(2, '0')} ${t}`;
+  },
+
+  logOrder(ev) {
+    TR.orderLog.unshift(Object.assign({ ts: Date.now() }, ev));
+    if (TR.orderLog.length > 500) TR.orderLog.length = 500;
+    this.renderOrders();
+  },
+
+  recordClose(p, vol, exit, pnl, reason, closeOrderId) {
+    TR.closed.unshift({
+      positionId: p.id, orderId: p.entryOrderId ?? null, closeOrderId: closeOrderId ?? null,
+      symbol: p.symbol, label: p.label, side: p.side, type: p.type || 'market',
+      volume: vol, entry: p.entry, exit,
+      sl: p.sl ?? null, tp: p.tp ?? null,
+      openTime: p.openTime ?? null, closeTime: Date.now(),
+      pnl, reason: reason || 'Manual',
+    });
+    if (TR.closed.length > 300) TR.closed.length = 300;
+    this.renderClosed();
+  },
+
+  setPeriod(v) { this.period = v; this.renderClosed(); },
+
+  filtered() {
+    if (this.period === 'all') return TR.closed;
+    const now = new Date();
+    const from = this.period === 'today'
+      ? new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime()
+      : Date.now() - 7 * 86400000;
+    // Rows without a close time (migrated from old saves) only show under "All".
+    return TR.closed.filter(c => Number.isFinite(c.closeTime) && c.closeTime >= from);
+  },
+
+  renderClosed() {
+    const pane = document.getElementById('historyPane');
+    if (!pane) return;
+    const rows = this.filtered();
+    const total = rows.reduce((s, c) => s + (Number.isFinite(c.pnl) ? c.pnl : 0), 0);
+    const wins = rows.filter(c => (c.pnl || 0) >= 0).length;
+    const wr = rows.length ? ((wins / rows.length) * 100).toFixed(0) + '%' : '—';
+    const lots = rows.reduce((s, c) => s + (Number.isFinite(c.volume) ? c.volume : 0), 0);
+
+    const sum = `<div class="hsum">
+      <span class="hsum-lbl">Summary</span>
+      <select onchange="TH.setPeriod(this.value)" aria-label="History period">
+        <option value="today"${this.period === 'today' ? ' selected' : ''}>Today</option>
+        <option value="7d"${this.period === '7d' ? ' selected' : ''}>Last 7 Days</option>
+        <option value="all"${this.period === 'all' ? ' selected' : ''}>All Time</option>
+      </select>
+      <span>Total P&amp;L <span class="hsum-val ${total >= 0 ? 'pos' : 'neg'}">${otMoney(total)}</span></span>
+      <span>Trades <span class="hsum-val">${rows.length}</span></span>
+      <span>Win Rate <span class="hsum-val">${wr}</span></span>
+      <span>Lots <span class="hsum-val">${+lots.toFixed(2)}</span></span>
+      <button class="hsum-btn" onclick="TH.exportCsv()">Export CSV</button>
+    </div>`;
+
+    const body = rows.length ? `<div class="tt-wrap"><table class="tt">
+      <thead><tr>
+        <th class="l">Side</th><th class="l">Instrument</th><th class="l">Type</th><th>Lots</th>
+        <th class="l">Entry Time</th><th>Entry Price</th><th>S/L</th><th>T/P</th>
+        <th class="l">Exit Time</th><th>Exit Price</th><th>P&amp;L</th><th class="l">Reason</th><th>Pos ID</th>
+      </tr></thead><tbody>` +
+      rows.map(c => `<tr>
+        <td class="l t-side ${c.side}">${c.side.toUpperCase()}</td>
+        <td class="l t-sym">${c.label}</td>
+        <td class="l t-dim">${(c.type || 'market').charAt(0).toUpperCase() + (c.type || 'market').slice(1)}</td>
+        <td>${c.volume}</td>
+        <td class="l t-dim">${this.fmtTime(c.openTime)}</td>
+        <td>${otFmtPx(c.symbol, c.entry)}</td>
+        <td class="t-dim">${c.sl != null ? otFmtPx(c.symbol, c.sl) : '—'}</td>
+        <td class="t-dim">${c.tp != null ? otFmtPx(c.symbol, c.tp) : '—'}</td>
+        <td class="l t-dim">${this.fmtTime(c.closeTime)}</td>
+        <td>${otFmtPx(c.symbol, c.exit)}</td>
+        <td class="t-pnl ${(c.pnl || 0) >= 0 ? 'pos' : 'neg'}">${otMoney(c.pnl)}</td>
+        <td class="l t-dim">${c.reason || 'Manual'}</td>
+        <td class="t-dim">${c.positionId != null ? '#' + c.positionId : '—'}</td>
+      </tr>`).join('') + '</tbody></table></div>'
+      : `<div class="tt-empty">No closed trades ${this.period === 'all' ? 'yet' : 'in this period'}. Close a position and it lands here.</div>`;
+
+    pane.innerHTML = sum + body;
+    const tab = document.getElementById('bsHistory');
+    if (tab) tab.textContent = `🧾 History${TR.closed.length ? ' (' + TR.closed.length + ')' : ''}`;
+  },
+
+  renderOrders() {
+    const pane = document.getElementById('orderLogPane');
+    if (!pane) return;
+    const rows = TR.orderLog;
+    const body = rows.length ? `<div class="tt-wrap"><table class="tt">
+      <thead><tr>
+        <th class="l">Time</th><th class="l">Instrument</th><th class="l">Status</th><th class="l">Type</th>
+        <th class="l">Action</th><th class="l">Intent</th><th class="l">Side</th><th>Lots</th>
+        <th>Target Price</th><th>Fill Price</th><th>Order ID</th><th>Pos ID</th>
+      </tr></thead><tbody>` +
+      rows.map(o => {
+        const sp = otSpec(o.symbol);
+        return `<tr>
+        <td class="l t-dim">${this.fmtTime(o.ts)}</td>
+        <td class="l t-sym">${sp.label}</td>
+        <td class="l t-st ${String(o.status || '').toLowerCase()}">${o.status || '—'}</td>
+        <td class="l t-dim">${(o.orderType || 'market').charAt(0).toUpperCase() + (o.orderType || 'market').slice(1)}</td>
+        <td class="l t-dim">${o.action || '—'}</td>
+        <td class="l t-dim">${o.intent || '—'}</td>
+        <td class="l t-side ${o.side}">${(o.side || '').toUpperCase()}</td>
+        <td>${o.volume ?? '—'}</td>
+        <td class="t-dim">${o.target != null ? otFmtPx(o.symbol, o.target) : '—'}</td>
+        <td>${o.fill != null ? otFmtPx(o.symbol, o.fill) : '—'}</td>
+        <td class="t-dim">${o.orderId != null ? '#' + o.orderId : '—'}</td>
+        <td class="t-dim">${o.positionId != null ? '#' + o.positionId : '—'}</td>
+      </tr>`; }).join('') + '</tbody></table></div>'
+      : '<div class="tt-empty">No order activity yet. Every submit, fill and cancel is logged here.</div>';
+
+    pane.innerHTML = body;
+    const tab = document.getElementById('bsOrderLog');
+    if (tab) tab.textContent = `📜 Order Log${TR.orderLog.length ? ' (' + TR.orderLog.length + ')' : ''}`;
+  },
+
+  renderAll() { this.renderClosed(); this.renderOrders(); },
+
+  exportCsv() {
+    const rows = this.filtered();
+    if (!rows.length) { showToast('Nothing to export for this period', 2600); return; }
+    const esc = v => { const s = v == null ? '' : String(v); return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; };
+    const head = ['side','instrument','type','lots','entry_time','entry_price','stop_loss','take_profit','exit_time','exit_price','pnl_usd','reason','position_id'];
+    const csv = [head.join(',')].concat(rows.map(c => [
+      c.side, c.label, c.type || 'market', c.volume,
+      Number.isFinite(c.openTime) ? new Date(c.openTime).toISOString() : '',
+      c.entry, c.sl ?? '', c.tp ?? '',
+      Number.isFinite(c.closeTime) ? new Date(c.closeTime).toISOString() : '',
+      c.exit, Number.isFinite(c.pnl) ? c.pnl.toFixed(2) : '', c.reason || '', c.positionId ?? '',
+    ].map(esc).join(','))).join('\n');
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
+    a.download = `protrader_history_${new Date().toISOString().slice(0, 10)}.csv`;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+    showToast(`Exported ${rows.length} trades`, 2600);
+  },
+};
 
 function updateBalDisplay() {
   const fmt = v => v.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
@@ -5520,11 +5776,19 @@ function setBTab(tab, btn) {
   document.querySelectorAll('.bpane').forEach(p => { p.classList.remove('active'); });
   if (btn) btn.classList.add('active');
   const paneMap = { scanner:'scannerPane', positions:'positionsPane', orders:'ordersPane',
+                    history:'historyPane', orderlog:'orderLogPane',
                     signals:'signalsPane', journal:'journalPane' };
   const pane = document.getElementById(paneMap[tab]);
   if (pane) pane.classList.add('active');
+  // History tables need more height than the scanner strip — grow the dock for them.
+  const tall = tab === 'history' || tab === 'orderlog';
+  document.querySelector('.bstrip-body')?.classList.toggle('tall', tall);
+  document.querySelector('.bottom-strip')?.classList.toggle('tall', tall);
+  if (typeof requestChartRedraw === 'function') setTimeout(() => requestChartRedraw(), 80);
   if (tab === 'scanner') runPatternScanner();
   if (tab === 'positions' || tab === 'orders') OT.renderBook();
+  if (tab === 'history') TH.renderClosed();
+  if (tab === 'orderlog') TH.renderOrders();
 }
 
 /* ════════════════════════════════════════════════════════════
