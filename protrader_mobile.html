@@ -4548,6 +4548,11 @@ const TR = {
   positions: [], orders: [], seq: 1, busy: false, lastSubmit: 0,
 };
 
+// Margin level (equity/used-margin * 100) at or below which the worst
+// floating loser gets force-closed, mirroring a real broker's stop-out —
+// without it a paper account has no floor and can run arbitrarily negative.
+const STOP_OUT_LEVEL = 50;
+
 // Ticket state. Symbol and volume survive order-type switches.
 const TK = { side: 'buy', type: 'market', volume: 0.10, price: null, sl: null, tp: null, slOn: false, tpOn: false };
 
@@ -5121,6 +5126,30 @@ const OT = {
       if (p.sl != null && (p.side === 'buy' ? px <= p.sl : px >= p.sl)) this.closePosition(p.id, null, 'Stop loss');
       else if (p.tp != null && (p.side === 'buy' ? px >= p.tp : px <= p.tp)) this.closePosition(p.id, null, 'Take profit');
     });
+    this.checkStopOut();
+  },
+
+  // Force-closes the single worst floating loser when margin level drops to
+  // or below STOP_OUT_LEVEL. Closes one position per tick (called every
+  // 500ms) rather than looping here: closePosition() is async and marks the
+  // position `_closing` before its fill comes back, so a synchronous loop
+  // would just stall on that same position. One-per-tick still converges in
+  // well under a second and never risks a double-close race.
+  checkStopOut() {
+    if (!TR.positions.length) return;
+    const acct = otAccount();
+    // A partial equity figure (a position with no live/fresh quote) must
+    // never drive an irreversible force-close.
+    if (acct.unpriced > 0 || acct.level == null || acct.level > STOP_OUT_LEVEL) return;
+    let worst = null, worstPnl = Infinity;
+    TR.positions.forEach(p => {
+      if (p._closing) return;
+      const q = otQuote(p.symbol);
+      if (!q.ok || q.stale) return;
+      const v = otPnl(p.side, p.entry, p.side === 'buy' ? q.bid : q.ask, p.volume, p.symbol);
+      if (v != null && v < worstPnl) { worstPnl = v; worst = p; }
+    });
+    if (worst) this.closePosition(worst.id, null, 'Stop out');
   },
 
   /* -- position management -- */
