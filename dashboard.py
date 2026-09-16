@@ -53,6 +53,8 @@ QUOTE_TTL_S = 5.0                    # batch-quote cache lifetime
 MOBILE_HTML_FILE = "protrader_mobile.html"
 alerts:  dict[str, dict] = {}   # id → alert dict
 fired_alerts: list[dict]  = []  # triggered alerts log (newest first, max 50)
+ALERT_CONDITIONS = {"price_above", "price_below", "rsi_above", "rsi_below", "signal_is"}
+MAX_ACTIVE_ALERTS = 200   # single in-memory worker runs indefinitely; bound its growth
 
 
 class AlertCreate(BaseModel):
@@ -756,6 +758,12 @@ def multi_timeframe(ticker: str) -> dict:
 
 @app.post("/api/alerts")
 def create_alert(body: AlertCreate) -> dict:
+    if body.condition not in ALERT_CONDITIONS:
+        raise HTTPException(status_code=400, detail=f"Invalid condition: {body.condition!r}")
+    active_count = sum(1 for a in alerts.values() if a["active"])
+    if active_count >= MAX_ACTIVE_ALERTS:
+        raise HTTPException(status_code=400,
+                             detail=f"Too many active alerts (max {MAX_ACTIVE_ALERTS}); delete some first")
     aid = str(uuid.uuid4())[:8]
     a = {
         "id":         aid,
@@ -814,6 +822,7 @@ def _check_alerts(ticker: str, price: float, rsi: float, signal: str) -> list[di
             if len(fired_alerts) > 50:
                 fired_alerts.pop()
             triggered.append(record)
+            alerts.pop(aid, None)   # archived in fired_alerts; don't keep it here forever
     return triggered
 
 
