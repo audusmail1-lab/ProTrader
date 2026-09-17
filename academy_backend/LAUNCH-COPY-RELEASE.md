@@ -1,5 +1,9 @@
 # Free intake launch update — 17 September 2026
 
+**Live:** commit `88d8c35a3b80d8a5d69eedc8f82584b7094f6d37`, Render deployment `dep-dam4ustbedkc73amthlg` (41 seconds, succeeded), blueprint sync `exe-dam4usjncjis73cki5mg`.
+
+Post-release checks: certificate-validated HTTPS health passed; served HTML, JavaScript and CSS match the tested release; the public session reports published policy, support address, adult-only eligibility and open applications. Anonymous private lesson/admin requests remain denied. The instructor session still works. All four live information pages and Teaching rendered without browser errors.
+
 ## Owner-approved details
 
 - Operator: Joel Idoga Audu; public correspondence address: 391 Katampe, FCT Abuja, Nigeria.

@@ -1,5 +1,7 @@
 # Academy verification — September 17, 2026
 
+This is the earlier, pre-intake verification record. The subsequent approved free-intake launch and current application status are recorded in [LAUNCH-COPY-RELEASE.md](LAUNCH-COPY-RELEASE.md).
+
 ## Release
 
 The repairs below are live as commit `7234f595617b42cfc571047d9cb97ec3e96b5b7d`. Render deployment `dep-dam2t5m5vjqs73bi3nl0` succeeded. Post-deployment HTTPS checks passed; the served HTML and both changed JavaScript files match the tested files exactly. The instructor session and sent notification are still present. The beginner enrollment URL opens the signed-in account correctly.

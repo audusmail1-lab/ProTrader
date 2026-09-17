@@ -2,7 +2,7 @@
 
 ## Deployment status — September 17, 2026
 
-The academy is deployed and responding at **https://protraderacademy.company**. HTTPS health checks pass; `www.protraderacademy.company` redirects to the canonical address. The public introduction and video guides are available. The hosted instructor account and email delivery are working. The owner received the live test notification in Gmail. Applications remain closed while the academy’s public intake details are finalized.
+The academy is deployed and responding at **https://protraderacademy.company**. HTTPS health checks pass; `www.protraderacademy.company` redirects to the canonical address. The public introduction and video guides are available. The hosted instructor account and email delivery are working. The owner received the live test notification in Gmail. The owner approved a free intake for adults 18+, public contact and policy pages, and the retention schedule. The launch release opens applications; class dates and joining links will be confirmed separately. See [the launch-copy release](LAUNCH-COPY-RELEASE.md).
 
 - Repository: **audusmail1-lab/ProTrader**, branch **codex/academy-launch**.
 - Blueprint: **academy_backend/render.yaml**. The root blueprint belongs to the existing trading app; leave it unchanged.
@@ -16,7 +16,7 @@ The academy is deployed and responding at **https://protraderacademy.company**. 
 
 ## DNS and email
 
-Cloudflare now has DNS-only CNAME records for the root and `www`, both pointing to `protrader-academy.onrender.com`. Both passed Render verification; public HTTPS succeeds. The root certificate initially reported an error while provisioning, but a later certificate-validated HTTPS request succeeded.
+Cloudflare has CNAME records for the root and `www`, both pointing to `protrader-academy.onrender.com`. At the launch-copy update, both were already proxied; this setting was preserved. Both passed Render verification; public HTTPS succeeds. The root certificate initially reported an error while provisioning, but a later certificate-validated HTTPS request succeeded.
 
 Resend's dashboard originally showed a sending-region mismatch. The `rsend` CNAME was corrected from `rsend.forge.rmta.net` to the dashboard-required **rsend-euw1.forge.rmta.net**. The other sending CNAME remains `send.forge.rmta.net`; DKIM was already verified. After restarting verification, all three sending records showed Verified and the sending error banner disappeared. The overall domain later showed Partially Failed because of a separate receiving-MX failure. Receiving is not required for outbound academy notifications, and no root receiving MX was added. Outbound delivery has since passed the live test.
 
@@ -31,9 +31,11 @@ The owner saved the Resend key directly as **ACADEMY_SMTP_PASSWORD** in the acad
 - The instructor account, signed-in session and sent notification remained available after the Render service restart.
 - A private backup was created at `/var/data/academy/launch-backup-20260917.sqlite3`. A copy restored into an isolated temporary directory passed SQLite integrity checks and contained the instructor account; the live database was not replaced. This is an on-host backup, not off-host disaster recovery.
 
-Before opening applications, finish the public contact/privacy/retention wording and intake details with the owner. Class dates, timezone, joining links and any fees have not been supplied; do not invent them. The privacy page describes stored data but still identifies unfinished final terms. Agree on secure off-host backup storage/frequency. Applications currently show an opening-soon page because `ACADEMY_ENROLLMENT_OPEN=false`.
+The approved public contact is **support@protraderacademy.company**, forwarded through Cloudflare Email Routing to **audusmail1@gmail.com**. The destination is verified, the support rule is active, and the owner confirmed receipt of “Academy support address test.” Cloudflare's incoming MX/SPF/DKIM records were added without replacing Resend's sending records. Notifications use the support address as Reply-To. The domain address is a forwarding alias; it does not create a new mailbox or a Gmail “send as” identity.
 
-When those details are ready, update the public copy and class schedule and set `ACADEMY_ENROLLMENT_OPEN=true`. The application form will then be available. Applications appear under **Teaching → Applications**; saved student questions and replies appear under **Teaching → Open question inbox**. Instructor alerts go to **audusmail1@gmail.com**.
+The owner approved the published identity, correspondence address, 18+ eligibility, response target and retention schedule in [PRIVACY-OPERATIONS.md](PRIVACY-OPERATIONS.md). Public privacy, terms, risk and contact pages are implemented. The current academy offering is free, so there is no checkout or refund policy to configure. `ACADEMY_ENROLLMENT_OPEN=true` is in the launch blueprint; server-side policy readiness is also required. Class dates, timezone and joining links still need to be entered when confirmed. Secure off-host backup storage/frequency remains to be selected.
+
+Applications appear under **Teaching → Applications**, including age and policy acknowledgment. Saved student questions and replies appear under **Teaching → Open question inbox**. Instructor alerts go to **audusmail1@gmail.com**. General support and privacy emails go to that same Gmail inbox through the support alias, not into the lesson question inbox.
 
 Do not scale the SQLite service to multiple instances. Optional `app.protraderacademy.company` and an academy backlink in the trading app can be considered separately; no new trading service is needed.
 
