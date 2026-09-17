@@ -5,12 +5,12 @@
 The academy is deployed and responding at **https://protraderacademy.company**. HTTPS health checks pass; `www.protraderacademy.company` redirects to the canonical address. The public introduction and video guides are available. The hosted instructor account and email delivery are working. The owner received the live test notification in Gmail. The owner approved a free intake for adults 18+, public contact and policy pages, and the retention schedule. The launch release opens applications; class dates and joining links will be confirmed separately. See [the launch-copy release](LAUNCH-COPY-RELEASE.md).
 
 - Repository: **audusmail1-lab/ProTrader**, branch **codex/academy-launch**.
-- Blueprint: **academy_backend/render.yaml**. The root blueprint belongs to the existing trading app; leave it unchanged.
+- Blueprint: **academy_backend/render.yaml**. The root blueprint belongs to the separate trading app and now records the owner-approved Starter plan; do not mix the two service configurations.
 - Render service: **protrader-academy**, ID **srv-dam1oklbedkc73abn56g**.
 - Render blueprint: **exs-dam1n6rm8hqs73b9dfbg**.
 - Hosting: Frankfurt, 0.5 CPU / 512 MB, persistent 1 GB disk mounted at `/var/data`; academy data is `/var/data/academy`.
 - Owner approved **$7.25/month base** ($7 service plus $0.25 disk), before taxes and usage extras. The service and disk have already been created. Do not create duplicates or request the same approval again.
-- Existing beta trading app: **https://protrader-jaoy.onrender.com/**. It remains unchanged and is linked from academy navigation. The two products have separate sign-in systems.
+- Existing beta trading app: **https://protrader-jaoy.onrender.com/**. It is linked from academy navigation and was upgraded to the owner-approved $7/month Starter hosting on September 17; its application behavior was not changed. The two products have separate sign-in systems.
 - Instructor notification recipient: **audusmail1@gmail.com**.
 - First hosted instructor: created by the owner with their privately chosen password. Teaching dashboard access, session persistence and saved records were verified after a Render service restart. The one-time bootstrap is complete.
 
@@ -33,7 +33,7 @@ The owner saved the Resend key directly as **ACADEMY_SMTP_PASSWORD** in the acad
 
 The approved public contact is **support@protraderacademy.company**, forwarded through Cloudflare Email Routing to **audusmail1@gmail.com**. The destination is verified, the support rule is active, and the owner confirmed receipt of “Academy support address test.” Cloudflare's incoming MX/SPF/DKIM records were added without replacing Resend's sending records. Notifications use the support address as Reply-To. The domain address is a forwarding alias; it does not create a new mailbox or a Gmail “send as” identity.
 
-The owner approved the published identity, correspondence address, 18+ eligibility, response target and retention schedule in [PRIVACY-OPERATIONS.md](PRIVACY-OPERATIONS.md). Public privacy, terms, risk and contact pages are implemented. The current academy offering is free, so there is no checkout or refund policy to configure. `ACADEMY_ENROLLMENT_OPEN=true` is in the launch blueprint; server-side policy readiness is also required. Class dates, timezone and joining links still need to be entered when confirmed. Secure off-host backup storage/frequency remains to be selected.
+The owner approved the published identity, correspondence address, 18+ eligibility, response target and retention schedule in [PRIVACY-OPERATIONS.md](PRIVACY-OPERATIONS.md). Public privacy, terms, risk and contact pages are implemented. The current academy offering is free, so there is no checkout or refund policy to configure. `ACADEMY_ENROLLMENT_OPEN=true` is in the launch blueprint; server-side policy readiness is also required. Class dates, timezone and joining links still need to be entered when confirmed. The initial encrypted off-host export and source ZIPs are stored in the owner’s restricted Google Drive folder. An isolated restore passed and the owner confirmed key storage in Google Password Manager. Recurring backup frequency remains to be approved; see [OFFSITE-BACKUPS.md](OFFSITE-BACKUPS.md) for verification scope.
 
 Applications appear under **Teaching → Applications**, including age and policy acknowledgment. Saved student questions and replies appear under **Teaching → Open question inbox**. Instructor alerts go to **audusmail1@gmail.com**. General support and privacy emails go to that same Gmail inbox through the support alias, not into the lesson question inbox.
 
@@ -70,5 +70,5 @@ Run `python -m unittest discover -s academy_backend -p 'test_*.py' -v` after ins
 - Eleven automated account, enrollment, isolation, persistence, recovery, SMTP and production tests passed, including notification recipient checks. JavaScript syntax and patch formatting checks passed.
 - Live SMTP TLS/authentication check passed with the privately saved key. Email delivery has been enabled after an empty-outbox check.
 - A real Teaching test notification was accepted, marked Delivered by Resend and confirmed received by the owner in Gmail.
-- Private backup integrity and an isolated restore check passed; one hosted instructor account was present. Off-host backup storage remains to be selected.
+- Private backup integrity and an isolated restore check passed; one hosted instructor account was present. The initial off-host copy is now in restricted Google Drive; recurring automation is not enabled. See [OFFSITE-BACKUPS.md](OFFSITE-BACKUPS.md).
 - Navigation, saved introduction status and stale-session recovery repairs are live as commit `7234f595617b42cfc571047d9cb97ec3e96b5b7d`. Post-deployment health, access restrictions, served files and instructor records were verified. See [the detailed verification report](VERIFICATION.md), including the fresh mobile-check limitation.
