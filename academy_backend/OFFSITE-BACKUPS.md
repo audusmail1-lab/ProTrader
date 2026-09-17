@@ -19,7 +19,7 @@ The data/settings archive was encrypted on Render with age v1.3.2 before transfe
 
 The owner selected Google Drive. A folder named **Pro Trader Academy — Private Backups** was created in the owner's Drive, and its access dialog showed **Restricted**, with only the owner listed. Source/data archives, recovery instructions, checksums and the restore report were uploaded successfully after the owner enabled Chrome extension local-file access. Drive confirmed completed uploads.
 
-Google Password Manager is the selected recovery-key store. The owner confirmed completing the private import of the recovery identity and existing SMTP credential. The temporary password-import file and decrypted test-data copies were removed after that confirmation. The private local recovery identity is retained temporarily while the optional cloud round-trip check is pending. Do not commit, upload to the backup folder, or print that import file or either secret. A Google passkey authenticates to Google; the separate age recovery identity decrypts the archive.
+Google Password Manager is the selected recovery-key store. The owner confirmed completing the private import of the recovery identity and existing SMTP credential. The temporary password-import file and decrypted test-data copies were removed after that confirmation. After the successful cloud round-trip restore, the temporary local recovery identity and decrypted restore copies were removed; the recovery identity remains in Google Password Manager. Do not commit, upload to the backup folder, or print that import file or either secret. A Google passkey authenticates to Google; the separate age recovery identity decrypts the archive.
 
 ## Restore test completed
 
@@ -31,7 +31,7 @@ At **21:09:31 UTC on September 17**, a fresh isolated restore from the encrypted
 - Environment/SMTP configuration validation without contacting the mail provider.
 - Restored service health, anonymous access restrictions and instructor access to the dashboard, lessons and question inbox.
 
-The snapshot contains one instructor and two mail history rows; there were no student applications, learning-progress rows or questions at snapshot time. The live database was not replaced. Email and enrollment were disabled in the isolated restore; no email was sent. A download-and-restore check of the Google Drive copy remains pending: Drive reported “Can’t download file” and a Chrome-blocked frame during the automated download. The owner has been asked to download the encrypted file normally, without bypassing a security warning. The completed test used the exported encrypted archive before cloud upload.
+The snapshot contains one instructor and two mail history rows; there were no student applications, learning-progress rows or questions at snapshot time. The live database was not replaced. Email and enrollment were disabled in the isolated restore; no email was sent. At **21:30:03 UTC / 22:30:03 Nigeria time on September 17**, the owner-downloaded Google Drive archive passed the complete isolated restore check again. Its SHA-256 matched the encrypted Render export exactly. Decryption, database integrity and all 10 table counts, saved instructor/password records, environment validation and the restored app access checks passed. The live service was not modified and no email was sent. This completes the off-site download-and-restore test.
 
 ## Retention and recurring backups
 
