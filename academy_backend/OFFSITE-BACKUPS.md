@@ -40,3 +40,7 @@ Recurring jobs are **not enabled**. Ask the owner to approve a schedule after th
 Follow the approved privacy schedule in [PRIVACY-OPERATIONS.md](PRIVACY-OPERATIONS.md): remove every backup containing deleted personal data within 30 days of active-system deletion. Reapply deletions/revocations after restoring an older snapshot. Review queued mail before re-enabling delivery, and revoke restored session/reset tokens before reopening a production restore.
 
 The recovery pack's `RESTORE-INSTRUCTIONS.txt` explains the isolated verification and production recovery sequence. Provider account logins, DNS-zone backups and users' browser-local trading settings are outside this Academy database snapshot.
+
+## Configuration change after this snapshot
+
+The September 17 snapshot predates the branded trading-app domain. When restoring its environment settings, set `ACADEMY_APP_URL=https://app.protraderacademy.company`. The original Render URL remains available. DNS and Render domain bindings are documented in [GO-LIVE.md](GO-LIVE.md); source history remains in GitHub.

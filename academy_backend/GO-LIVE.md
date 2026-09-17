@@ -10,11 +10,13 @@ The academy is deployed and responding at **https://protraderacademy.company**. 
 - Render blueprint: **exs-dam1n6rm8hqs73b9dfbg**.
 - Hosting: Frankfurt, 0.5 CPU / 512 MB, persistent 1 GB disk mounted at `/var/data`; academy data is `/var/data/academy`.
 - Owner approved **$7.25/month base** ($7 service plus $0.25 disk), before taxes and usage extras. The service and disk have already been created. Do not create duplicates or request the same approval again.
-- Existing beta trading app: **https://protrader-jaoy.onrender.com/**. It is linked from academy navigation and was upgraded to the owner-approved $7/month Starter hosting on September 17; its application behavior was not changed. The two products have separate sign-in systems.
+- Public trading app: **https://app.protraderacademy.company**. Academy navigation, homepage and footer use **Open Trading App** with this branded address. The original **https://protrader-jaoy.onrender.com/** remains enabled. The app uses the owner-approved $7/month Starter plan; the two products have separate sign-in systems.
 - Instructor notification recipient: **audusmail1@gmail.com**.
 - First hosted instructor: created by the owner with their privately chosen password. Teaching dashboard access, session persistence and saved records were verified after a Render service restart. The one-time bootstrap is complete.
 
 ## DNS and email
+
+The trading app subdomain `app` is a DNS-only CNAME to `protrader-jaoy.onrender.com` in Cloudflare. Render service `srv-da4bngk9v7es73atre80` binds `app.protraderacademy.company` through the root blueprint on `main` (commit `1d16233`). This uses the second included custom-domain slot, with no added domain charge. Both the branded HTTPS homepage and `/api/tickers` returned 200 with certificate validation on September 17; the original Render homepage also returned 200. Keep the onrender domain enabled. The academy blueprint sets `ACADEMY_APP_URL=https://app.protraderacademy.company`.
 
 Cloudflare has CNAME records for the root and `www`, both pointing to `protrader-academy.onrender.com`. At the launch-copy update, both were already proxied; this setting was preserved. Both passed Render verification; public HTTPS succeeds. The root certificate initially reported an error while provisioning, but a later certificate-validated HTTPS request succeeded.
 
@@ -37,7 +39,7 @@ The owner approved the published identity, correspondence address, 18+ eligibili
 
 Applications appear under **Teaching → Applications**, including age and policy acknowledgment. Saved student questions and replies appear under **Teaching → Open question inbox**. Instructor alerts go to **audusmail1@gmail.com**. General support and privacy emails go to that same Gmail inbox through the support alias, not into the lesson question inbox.
 
-Do not scale the SQLite service to multiple instances. Optional `app.protraderacademy.company` and an academy backlink in the trading app can be considered separately; no new trading service is needed.
+Do not scale the SQLite service to multiple instances. The branded app address uses the existing trading service. An academy backlink in the trading app can be considered separately.
 
 ## Provider references
 

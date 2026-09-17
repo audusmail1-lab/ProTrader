@@ -23,7 +23,7 @@ services:
       - key: ACADEMY_ORIGIN
         value: https://protraderacademy.company
       - key: ACADEMY_APP_URL
-        value: https://protrader-jaoy.onrender.com/
+        value: https://app.protraderacademy.company
       - key: ACADEMY_NOTIFICATION_RECIPIENT
         sync: false
       - key: ACADEMY_ENROLLMENT_OPEN
