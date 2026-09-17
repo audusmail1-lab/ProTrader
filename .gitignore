@@ -12,3 +12,10 @@ retracement_data.db
 
 # packaged mac launcher (rebuild locally, don't version)
 Trading Bot.app/
+
+# Local academy notification configuration
+/academy.config.local.json
+
+# Private academy runtime and mail credentials
+/.academy-data/
+/academy_backend/.env

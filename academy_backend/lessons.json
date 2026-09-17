@@ -1,0 +1,65 @@
+[
+  {
+    "title": "Get oriented",
+    "summary": "Meet the academy, understand paper trading and find your way around Pro Trader.",
+    "concept": "Paper trading is simulated practice. Begin by identifying the selected market and timeframe, then locate the chart, Trade panel and Journal. Keep account mode visible throughout your practice.",
+    "exercise": "Locate the chart, market selector, timeframe selector, Trade panel and Journal. Write one sentence explaining each.",
+    "deeper": "Map your current workflow to these tools. Identify a step you tend to skip.",
+    "check": "How will you confirm you are practicing without placing a live trade?",
+    "video": 4
+  },
+  {
+    "title": "Read and annotate a chart",
+    "summary": "Understand candles and timeframes, and mark a clear observation.",
+    "concept": "Each candle summarizes a time interval. A different timeframe changes the view. Use a prepared chart to describe what happened before drawing conclusions about what might happen next.",
+    "exercise": "On a prepared chart, mark one horizontal level and describe the observation behind it.",
+    "deeper": "Compare two timeframes. Explain what is visible in one view but less clear in the other.",
+    "check": "What does your marked level tell you, and what does it not tell you?",
+    "video": 1
+  },
+  {
+    "title": "Understand the practice ticket",
+    "summary": "Learn the fields and explain an order before any paper submission.",
+    "concept": "Direction, order type, size, stop loss and take profit describe different parts of a ticket. Displayed estimates depend on these inputs. Review the complete ticket and explain it in your own words.",
+    "exercise": "Identify each field on a prepared paper ticket. Explain the direction, size, stop and target without submitting a live order.",
+    "deeper": "Compare two prepared tickets that differ only in size. Explain the change in displayed loss estimate.",
+    "check": "Which fields would you review if the loss estimate looked unexpected?",
+    "video": 0
+  },
+  {
+    "title": "Interpret app analysis",
+    "summary": "Read Scanner, ARIA and Oracle as information to examine.",
+    "concept": "Scanner surfaces detected patterns. ARIA checks conditions and displays a verdict. Oracle’s percentage reflects the proportion of nine checks passed. These outputs are not predicted win rates.",
+    "exercise": "Describe one Scanner output and one ARIA verdict. List a question the output does not answer.",
+    "deeper": "Compare the output with the chart and check whether ARIA restrictions still apply.",
+    "check": "What does seven of nine checks passing mean? Why is it not a win probability?",
+    "video": 5
+  },
+  {
+    "title": "Complete a practice workflow",
+    "summary": "Connect observation, a written plan, paper ticket review and reflection.",
+    "concept": "A repeatable process connects what you observe with why you act and what you review. Write your practice plan first. Review the paper ticket, then use Journal after a paper close to understand what was recorded.",
+    "exercise": "Write an observation and practice plan, review a paper ticket, then describe a Journal entry after a paper close.",
+    "deeper": "Complete the sequence independently and identify where your actions differed from the plan.",
+    "check": "What did your process teach you beyond the recorded profit or loss?",
+    "video": 3
+  },
+  {
+    "title": "Practice clinic",
+    "summary": "Return to unclear steps and work through recurring questions.",
+    "concept": "Use this session to make the workflow easier to explain and repeat. Bring one precise question and the step where you got stuck. Work through that step on a prepared paper example.",
+    "exercise": "Repeat your least clear step from sessions 1–5 and explain it to another learner.",
+    "deeper": "Try the same task on a different prepared chart and describe what changes.",
+    "check": "Can you explain the step without relying on a memorized button sequence?",
+    "video": 2
+  },
+  {
+    "title": "Review and next steps",
+    "summary": "Check understanding and choose what needs another practice pass.",
+    "concept": "The practical check focuses on understanding, not profitability. Identify the tools, explain a paper ticket, interpret an analysis output and reflect on a Journal entry. Your instructor will confirm the next learning steps.",
+    "exercise": "Complete the workflow and record one thing you understand, one uncertainty and one question for your instructor.",
+    "deeper": "Explain the limitations of each analysis tool in your workflow.",
+    "check": "Which part can you now complete independently, and which needs guidance?",
+    "video": 6
+  }
+]

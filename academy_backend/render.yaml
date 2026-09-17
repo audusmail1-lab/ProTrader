@@ -1,0 +1,30 @@
+# OPTIONAL PAID deployment template. Do not apply before approving hosting costs.
+# Use this blueprint path explicitly; root render.yaml belongs to the trading app.
+services:
+  - type: web
+    name: protrader-academy
+    branch: codex/academy-launch
+    runtime: python
+    region: frankfurt
+    plan: 0.5c-512mb
+    buildCommand: pip install -r academy_backend/requirements.txt
+    startCommand: python academy_backend/production.py
+    healthCheckPath: /healthz
+    autoDeployTrigger: 'off'
+    disk:
+      name: academy-data
+      mountPath: /var/data
+      sizeGB: 1
+    envVars:
+      - key: ACADEMY_DATA_DIR
+        value: /var/data/academy
+      - key: ACADEMY_ORIGIN
+        value: https://protraderacademy.company
+      - key: ACADEMY_APP_URL
+        value: https://protrader-jaoy.onrender.com/
+      - key: ACADEMY_NOTIFICATION_RECIPIENT
+        sync: false
+      - key: ACADEMY_ENROLLMENT_OPEN
+        value: 'false'
+      - key: ACADEMY_MAIL_ENABLED
+        value: 'false'
