@@ -9,6 +9,7 @@ import os
 import threading
 
 from server import Academy, Handler, ROOT
+from telegram_bot import start_bot
 
 
 class WSGIHandler(Handler):
@@ -67,6 +68,7 @@ def main():
     os.environ.setdefault('ACADEMY_ENROLLMENT_OPEN', 'false')
     academy = Academy(directory, origin)
     threading.Thread(target=academy.send_loop, daemon=True).start()
+    start_bot(directory, academy.stop)
     try:
         serve(wsgi_app(academy), host='0.0.0.0', port=int(os.environ.get('PORT', '10000')),
               threads=4, connection_limit=100, channel_timeout=30,

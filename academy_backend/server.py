@@ -7,6 +7,7 @@ from http.server import ThreadingHTTPServer, BaseHTTPRequestHandler
 from pathlib import Path
 import argparse, hashlib, hmac, json, os, re, secrets, sqlite3, threading, time
 from mailer import SMTPConfig, safe_error
+from telegram_bot import public_links
 from contextlib import contextmanager
 from http.cookies import SimpleCookie
 from urllib.parse import urlsplit
@@ -189,7 +190,7 @@ class Handler(BaseHTTPRequestHandler):
             if path=='/api/session':
                 try: user=self.safe_user(self.user())
                 except APIError: user=None
-                return self.output({'user':user,'setupRequired':not self.app.has_admin(),'appUrl':self.app.app_url,'enrollmentOpen':self.app.applications_open(),'policy':self.app.policy})
+                return self.output({'user':user,'setupRequired':not self.app.has_admin(),'appUrl':self.app.app_url,'enrollmentOpen':self.app.applications_open(),'policy':self.app.policy,'telegram':public_links()})
             if path=='/api/lessons': self.user(accepted=True); return self.output(LESSONS)
             if path=='/api/materials.js':
                 self.user(accepted=True); return self.output((ROOT/'academy/practice.js').read_text(),content_type='text/javascript; charset=utf-8')

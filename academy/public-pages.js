@@ -4,7 +4,12 @@ const emailLink = policy => policy.contactEmail
   : '<span>Contact address awaiting owner confirmation</span>';
 const page = (title, introduction, body, policy) => `<section class="narrow page-heading legal-page"><p class="eyebrow">PRO TRADER ACADEMY</p><h1>${title}</h1><p>${introduction}</p>${policy.published ? `<p class="policy-date">Effective date: ${esc(policy.effectiveDate)}</p>` : '<p class="notice">Preview draft — operator details and policy choices are awaiting confirmation. Applications remain closed.</p>'}<article class="panel legal-content">${body}</article></section>`;
 
-export function contact(policy, enrolled) {
+export function telegramLinks(telegram = {}, buttons = false) {
+  const destinations = [['support','Chat on Telegram'],['community','Join Telegram Community'],['updates','Get Updates on Telegram']];
+  return destinations.filter(([key]) => /^https:\/\/t\.me\/[A-Za-z0-9_+\-]+$/.test(telegram[key] || '')).map(([key,label]) => `<a ${buttons ? 'class="button secondary"' : ''} href="${esc(telegram[key])}" target="_blank" rel="noopener noreferrer">${label} ↗</a>`).join('');
+}
+
+export function contact(policy, enrolled, telegram = {}) {
   return page('Contact the academy.', 'Enrollment, account support or a general question—we’ll help you find the next step.', `
     <h2>One address for help</h2>
     <p>For academy support, partnerships and privacy requests, email ${emailLink(policy)}.</p>
@@ -12,6 +17,7 @@ export function contact(policy, enrolled) {
     ${policy.contactEmail ? `<p><a class="button" href="mailto:${esc(policy.contactEmail)}?subject=Pro%20Trader%20Academy%20inquiry">Write an email ↗</a></p>` : ''}
     <p>This opens your email app. Include your name, the email used for your academy account if you have one, and a short description of what you need. You can also copy the address into Gmail or another email service.</p>
     <p>Please leave out passwords, broker keys, bank details and identity documents. If we need to confirm account ownership, we will explain a proportionate way to do that.</p>
+    ${telegramLinks(telegram) ? `<h2>Help and community on Telegram</h2><p>Use our private bot for app or enrollment support, follow official updates, or join the educational community. Telegram is optional; email remains available.</p><div class="actions">${telegramLinks(telegram, true)}</div><p>Support requests go privately to the academy operator. Group posts are visible to other members. Keep account information out of the community and read our <a href="#privacy">Privacy Policy</a> before sending a message.</p>` : ''}
     <h2>Questions about a lesson</h2>
     <p>${enrolled ? '<a href="#questions">Use Questions & replies</a>' : '<a href="#login">Sign in to your academy account</a>'} to keep a lesson question and your instructor’s reply together. General support and privacy requests go to the email address above.</p>
     <h2>Your information</h2>
@@ -21,7 +27,7 @@ export function contact(policy, enrolled) {
   `, policy);
 }
 
-export function privacy(policy) {
+export function privacy(policy, telegram = {}) {
   return page('Privacy Policy', 'How the academy uses your information, who helps us run it, and how to contact us about your data.', `
     <h2>1. Who is responsible</h2>
     <p>Pro Trader Academy is operated by ${esc(policy.operatorName || '[operator name pending]')}, at ${esc(policy.operatorAddress || '[contact address pending]')}. This operator decides how academy personal data is used. Contact: ${emailLink(policy)}.</p>
@@ -57,7 +63,8 @@ export function privacy(policy) {
     <p>You can also raise a concern with the <a href="https://ndpc.gov.ng/" target="_blank" rel="noopener noreferrer">Nigeria Data Protection Commission</a>. Contacting us first is welcome but does not remove your right to complain.</p>
     <h2>9. Age requirements</h2>
     <p>${policy.adultOnly ? 'The current academy intake is for adults aged 18 and over. We ask for age confirmation rather than your full date of birth. Contact us if you believe a child has submitted an application so we can investigate and remove inappropriate records.' : 'Age eligibility is being confirmed before this intake opens. Do not submit a child’s information through this preview.'}</p>
-    <h2>10. Updates</h2>
+    ${telegramLinks(telegram) ? `<h2>10. Optional Telegram support and community</h2><p>If you use our Telegram bot, we receive your Telegram chat ID and the name, issue category, device/browser, description and optional screenshot you choose to submit. We use these to answer your request and send replies in the same private bot chat. Using Telegram does not create an academy account or subscribe you to marketing.</p><p>Unfinished support drafts are stored for up to 24 hours. Submitted requests are held in a private database on Render and sent to the operator’s Telegram inbox. Closed requests are kept for up to 12 months. Screenshot files remain on Telegram; our database keeps a file reference. We review open requests and inbox copies monthly and apply the same retention schedule. Backup copies follow the deletion schedule above.</p><p>Telegram processes chats, media and connection data under its own <a href="https://telegram.org/privacy" target="_blank" rel="noopener noreferrer">Privacy Policy</a>, including international processing. Bot chats are cloud chats, not end-to-end encrypted secret chats. Community posts and your Telegram profile may be visible to other members according to your Telegram settings. Do not share credentials or sensitive financial information. Email ${emailLink(policy)} for access or deletion requests, including copies in our support inbox.</p>` : ''}
+    <h2>${telegramLinks(telegram) ? '11' : '10'}. Updates</h2>
     <p>We will update this page and its effective date when our practices change, and draw attention to material changes through the academy or service email. New optional processing will be explained before it starts.</p>
   `, policy);
 }

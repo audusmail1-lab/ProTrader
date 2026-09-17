@@ -1,0 +1,39 @@
+{
+  "businessName": "Pro Trader Academy",
+  "businessBio": "Trading education & PROTrader support. Educational only, not financial advice. protraderacademy.company",
+  "hours": "Monday–Friday, 09:00–17:00 WAT (Africa/Lagos). Replies within 1–2 business days.",
+  "introTitle": "Welcome to Pro Trader Academy",
+  "introMessage": "Explore PROTrader, join the academy or get help. Start with paper practice. Educational only, not financial advice.",
+  "greeting": "Welcome to Pro Trader Academy. How can we help?\n1. Open the app\n2. Join the academy\n3. Technical support\n4. General question\n\nApp: https://app.protraderacademy.company\nAcademy: https://protraderacademy.company/#start\nPlease never send passwords, verification codes or broker keys. Educational only, not financial advice.",
+  "away": "Thanks for contacting Pro Trader Academy. Our support hours are Monday–Friday, 09:00–17:00 WAT (UTC+1). We aim to reply within 1–2 business days. Please leave a short description of what you need.\n\nApp: https://app.protraderacademy.company\nEmail: support@protraderacademy.company\nNever send passwords, verification codes or broker keys.",
+  "updatesName": "Pro Trader Academy Updates",
+  "updatesDescription": "Official Academy announcements, PROTrader updates and learning resources. Educational only, not financial advice. Trading involves risk. Website: protraderacademy.company | App: app.protraderacademy.company",
+  "communityName": "Pro Trader Academy Community",
+  "communityDescription": "The official Pro Trader Academy community for learning, onboarding and PROTrader help. Adults 18+. Educational only, not financial advice. No spam, guaranteed-profit claims or unsolicited sales DMs. protraderacademy.company",
+  "updatesPinned": "Welcome to Pro Trader Academy Updates.\n\nOfficial academy announcements, PROTrader releases, learning resources and important notices live here.\n\nOpen Trading App: https://app.protraderacademy.company\nVisit the Academy: https://protraderacademy.company\nJoin the Community: {communityUrl}\nGet Support: {supportUrl}\n\nThe current academy intake is free, for adults 18+, and reviewed by the instructor. This is education, not financial advice. Trading involves risk; returns are never guaranteed.\n\nWe never ask for passwords, verification codes, broker API keys or deposits by private message. Check official links on our website before responding to anyone claiming to be support.",
+  "communityPinned": "Welcome to Pro Trader Academy Community.\n\nA space for educational discussion, onboarding help and product support for adults 18+.\n\nCommunity rules\n• Be respectful. Ask clear questions and help beginners.\n• No spam, referral promotions or unsolicited sales DMs.\n• No guaranteed-profit claims, account management offers or requests for money.\n• Educational discussion only. Nothing here is personalized financial advice. Trading involves risk.\n• Keep passwords, verification codes, broker keys and personal account information private. Crop screenshots before sharing.\n• Use private support for technical/account issues. Use the Academy classroom for questions about your lessons.\n\nOpen Trading App: https://app.protraderacademy.company\nJoin the Academy: https://protraderacademy.company/#enroll\nOfficial Updates: {updatesUrl}\nPrivate Support: {supportUrl}\n\nCommunity posts are visible to other members. Moderators may remove spam and restrict repeated misuse. We never guarantee trading results.",
+  "botName": "Pro Trader Academy Bot",
+  "botDescription": "Your guide to Pro Trader Academy and PROTrader. Open the app, apply to the free 18+ academy, find FAQs, or send a private support request to the academy team. Educational only, not financial advice. Never send passwords, verification codes or broker keys.",
+  "botShortDescription": "Pro Trader Academy & PROTrader onboarding and support. Educational only, not financial advice.",
+  "commands": {
+    "start": "Open the welcome menu",
+    "app": "Open PROTrader and install guidance",
+    "join": "Apply to the free 18+ academy",
+    "support": "Send a private support request",
+    "faq": "Answers to common questions",
+    "community": "Join the learning community",
+    "updates": "Get official announcements",
+    "contact": "Contact the academy team",
+    "help": "How to use this bot",
+    "cancel": "Cancel an unfinished support request"
+  },
+  "quickReplies": {
+    "app": "Open PROTrader: https://app.protraderacademy.company\nUse your normal browser if Telegram's in-app browser has trouble. On iPhone, open in Safari → Share → Add to Home Screen. On Android, open in Chrome → menu → Install app or Add to Home screen, if offered. Start with paper practice. Educational only, not financial advice.",
+    "join": "The current Pro Trader Academy intake is free for adults 18+. Apply here: https://protraderacademy.company/#enroll\nYour instructor reviews each application; submitting does not guarantee admission. Class dates and joining links are confirmed separately. New to trading? Start here: https://protraderacademy.company/#start",
+    "support": "Please send your name, the issue category (app, academy account or general), device/browser, and a short description: what you expected and what happened. A cropped screenshot is optional. Never send passwords, verification codes, broker keys, identity documents or bank details. We aim to reply within 1–2 business days. Privacy: https://protraderacademy.company/#privacy",
+    "faq": "Is the academy free? Yes, the current intake is free and 18+.\nDoes applying give instant classroom access? No. Your instructor reviews your application and verifies email ownership.\nAre profits guaranteed? No. Education only, not financial advice.\nDo I need experience? No. Begin here: https://protraderacademy.company/#start\nWhere are lesson questions? In the Academy's Questions & replies area.\nNeed account help? Use private support or support@protraderacademy.company.",
+    "community": "Join our educational community: {communityUrl}\nPlease read the pinned rules. Adults 18+; respectful learning, no spam or guaranteed-profit claims. Community messages are visible to other members. Keep account details in private support.",
+    "updates": "Official announcements, learning resources and PROTrader updates: {updatesUrl}\nFollowing the channel is optional. We do not automatically add applicants or send unsolicited promotions.",
+    "start": "Welcome to Pro Trader Academy.\nOpen App: https://app.protraderacademy.company\nJoin Academy: https://protraderacademy.company/#enroll\nBeginner introduction: https://protraderacademy.company/#start\nSupport: {supportUrl}\nCommunity: {communityUrl}\nUpdates: {updatesUrl}\nEducational only, not financial advice."
+  }
+}

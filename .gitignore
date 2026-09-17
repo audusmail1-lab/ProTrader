@@ -19,3 +19,7 @@ Trading Bot.app/
 # Private academy runtime and mail credentials
 /.academy-data/
 /academy_backend/.env
+
+# Private Telegram invitation links and setup review
+/telegram_setup/*.local.json
+/telegram_setup/*.local.md
