@@ -13,7 +13,8 @@ from urllib.parse import urlsplit
 
 ROOT = Path(__file__).resolve().parent.parent
 LESSONS = json.loads((ROOT / 'academy_backend/lessons.json').read_text())
-PUBLIC = {'styles.css','favicon.svg','live.js','live.css','public-content.js','public-intro.js'}
+PUBLIC = {'styles.css','favicon.svg','live.js','live.css','public-content.js','public-intro.js','public-pages.js'}
+POLICY = json.loads((ROOT / 'academy_backend/public_policy.json').read_text())
 EMAIL = re.compile(r'^[^\s@]+@[^\s@]+\.[^\s@]+$')
 
 class Academy:
@@ -35,6 +36,7 @@ class Academy:
             CREATE TABLE IF NOT EXISTS mail(id INTEGER PRIMARY KEY,recipient TEXT NOT NULL,subject TEXT NOT NULL,body TEXT NOT NULL,status TEXT DEFAULT 'queued',error TEXT DEFAULT '',created REAL NOT NULL);
             CREATE TABLE IF NOT EXISTS tokens(token TEXT PRIMARY KEY,user_id INTEGER NOT NULL,kind TEXT NOT NULL,expires REAL NOT NULL);
             CREATE TABLE IF NOT EXISTS audit(id INTEGER PRIMARY KEY,actor INTEGER,action TEXT,target INTEGER,created REAL NOT NULL);
+            CREATE TABLE IF NOT EXISTS agreements(user_id INTEGER PRIMARY KEY,version TEXT NOT NULL,adult INTEGER NOT NULL,accepted REAL NOT NULL);
             ''')
             columns = {r[1] for r in db.execute('PRAGMA table_info(mail)')}
             if 'delivery_key' not in columns:
@@ -54,6 +56,7 @@ class Academy:
             target = urlsplit(self.app_url)
             if target.scheme != 'https' or not target.hostname or target.username or any(c in self.app_url for c in '\r\n'):
                 raise ValueError('ACADEMY_APP_URL must be the verified HTTPS Pro Trader app URL.')
+        self.policy = dict(POLICY)
         self.enrollment_open = os.environ.get('ACADEMY_ENROLLMENT_OPEN', 'true') == 'true'
         self.setup_file = self.directory / 'setup-token'
         if not self.has_admin() and not self.setup_file.exists():
@@ -71,6 +74,10 @@ class Academy:
 
     def has_admin(self):
         with self.db() as db: return bool(db.execute("SELECT 1 FROM users WHERE role='teacher'").fetchone())
+
+    def applications_open(self):
+        policy_ready = self.policy.get('published') is True and all(self.policy.get(k) for k in ('operatorName','operatorAddress','contactEmail','retentionApproved')) and self.policy.get('adultOnly') is True
+        return bool(self.enrollment_open and policy_ready and self.has_admin())
 
     def limited(self, key, maximum=12, interval=900):
         with self.lock:
@@ -182,7 +189,7 @@ class Handler(BaseHTTPRequestHandler):
             if path=='/api/session':
                 try: user=self.safe_user(self.user())
                 except APIError: user=None
-                return self.output({'user':user,'setupRequired':not self.app.has_admin(),'appUrl':self.app.app_url,'enrollmentOpen':self.app.enrollment_open and self.app.has_admin()})
+                return self.output({'user':user,'setupRequired':not self.app.has_admin(),'appUrl':self.app.app_url,'enrollmentOpen':self.app.applications_open(),'policy':self.app.policy})
             if path=='/api/lessons': self.user(accepted=True); return self.output(LESSONS)
             if path=='/api/materials.js':
                 self.user(accepted=True); return self.output((ROOT/'academy/practice.js').read_text(),content_type='text/javascript; charset=utf-8')
@@ -204,7 +211,7 @@ class Handler(BaseHTTPRequestHandler):
             if path=='/api/admin':
                 self.user(teacher=True)
                 with self.app.db() as db:
-                    students=[dict(r) for r in db.execute("SELECT id,name,email,status,verified,experience,difficulty,goal,created FROM users WHERE role='student' ORDER BY created DESC")]
+                    students=[dict(r) for r in db.execute("SELECT u.id,u.name,u.email,u.status,u.verified,u.experience,u.difficulty,u.goal,u.created,a.version AS terms_version,a.adult AS adult_confirmed,a.accepted AS acknowledged_at FROM users u LEFT JOIN agreements a ON a.user_id=u.id WHERE u.role='student' ORDER BY u.created DESC")]
                     mail=[dict(r) for r in db.execute('SELECT id,recipient,subject,status,error,created FROM mail ORDER BY id DESC LIMIT 100')]
                 return self.output({'students':students,'mail':mail,'mailEnabled':self.app.mail_enabled,'recipient':self.app.recipient})
             if path=='/':
@@ -228,7 +235,7 @@ class Handler(BaseHTTPRequestHandler):
                 account_limited = app.limited(path+app.digest(identity), maximum=12)
                 if ip_limited or account_limited: raise APIError(429,'Too many attempts. Please try again in 15 minutes.')
             if path in ('/api/setup','/api/register'):
-                if path=='/api/register' and not app.enrollment_open: raise APIError(403,'Applications are not open yet. Please check back after the academy launch.')
+                if path=='/api/register' and not app.applications_open(): raise APIError(403,'Applications are not open yet. You can explore the public introduction and videos.')
                 email=self.email(data);name=self.text(data,'name',2,80);password=self.text(data,'password',12,128)
                 teacher=path=='/api/setup'
                 with app.lock:
@@ -239,11 +246,15 @@ class Handler(BaseHTTPRequestHandler):
                     experience='' if teacher else self.text(data,'experience',2,80)
                     difficulty='' if teacher else self.text(data,'difficulty',2,500)
                     goal='' if teacher else self.text(data,'goal',10,1000)
-                    if not teacher and data.get('consent') is not True: raise APIError(400,'Confirm that your details may be stored for academy enrollment and teaching.')
+                    if not teacher:
+                        if data.get('adult') is not True: raise APIError(400,'You must confirm that you are at least 18 to apply.')
+                        if data.get('consent') is not True or data.get('terms') is not True: raise APIError(400,'Read the Privacy Policy and agree to the Terms of Use before applying.')
+                        if data.get('policyVersion') != app.policy['version']: raise APIError(409,'The academy terms have changed. Refresh this page and review the current terms before applying.')
                     try:
                         with app.db() as db:
                             uid=db.execute('INSERT INTO users(email,name,password,role,status,verified,experience,difficulty,goal,created) VALUES(?,?,?,?,?,?,?,?,?,?)',(email,name,app.password(password),'teacher' if teacher else 'student','accepted' if teacher else 'pending',1 if teacher else 0,experience,difficulty,goal,time.time())).lastrowid
                             cookie=self.session(db,uid)
+                            if not teacher: db.execute('INSERT INTO agreements VALUES(?,?,?,?)',(uid,app.policy['version'],1,time.time()))
                             if not teacher: app.enqueue(db,app.recipient,'New academy application',f'A new application is ready for review. Sign in at {app.origin}/#teaching. Personal application details stay in your dashboard.')
                     except sqlite3.IntegrityError: raise APIError(409,'An account already uses that email. Sign in or request a password reset.')
                     if teacher: app.setup_file.unlink(missing_ok=True)

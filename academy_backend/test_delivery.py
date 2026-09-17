@@ -17,6 +17,7 @@ SMTP_ENV = {
     'ACADEMY_SMTP_HOST': 'smtp.resend.com', 'ACADEMY_SMTP_USER': 'resend',
     'ACADEMY_SMTP_PASSWORD': 'fake-test-secret', 'ACADEMY_SMTP_FROM': 'Academy <academy@example.com>',
     'ACADEMY_SMTP_PORT': '587', 'ACADEMY_SMTP_SECURITY': 'starttls',
+    'ACADEMY_SMTP_REPLY_TO': 'support@example.com',
     'ACADEMY_MAIL_ENABLED': 'true', 'ACADEMY_NOTIFICATION_RECIPIENT': 'owner@example.com',
 }
 
@@ -34,6 +35,7 @@ class DeliveryTests(unittest.TestCase):
             messages = [call.args[0] for call in connection.send_message.call_args_list]
             self.assertEqual(messages[0]['Message-ID'], messages[1]['Message-ID'])
             self.assertEqual(messages[0]['Resend-Idempotency-Key'], 'academy/stable-123')
+            self.assertEqual(messages[0]['Reply-To'], 'support@example.com')
             connection.noop.return_value = (250,b'OK')
             cfg.check()
             self.assertEqual(connection.send_message.call_count, 2)  # check sends nothing
@@ -42,6 +44,8 @@ class DeliveryTests(unittest.TestCase):
         with patch.dict(os.environ, {}, clear=True):
             with self.assertRaises(ValueError): SMTPConfig.from_environment()
         with patch.dict(os.environ, {**SMTP_ENV,'ACADEMY_SMTP_SECURITY':'none'}):
+            with self.assertRaises(ValueError): SMTPConfig.from_environment()
+        with patch.dict(os.environ, {**SMTP_ENV,'ACADEMY_SMTP_REPLY_TO':'support@example.com\nBcc: injected@example.com'}):
             with self.assertRaises(ValueError): SMTPConfig.from_environment()
         with tempfile.TemporaryDirectory() as directory, patch.dict(os.environ, SMTP_ENV):
             with self.assertRaises(ValueError): Academy(directory,'http://127.0.0.1:1234')

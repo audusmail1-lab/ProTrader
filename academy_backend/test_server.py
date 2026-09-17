@@ -15,6 +15,7 @@ class AcademyTests(unittest.TestCase):
         environment.start();self.addCleanup(environment.stop)
         self.tmp=tempfile.TemporaryDirectory()
         self.server=make_server(self.tmp.name,0)
+        self.server.app.policy.update(published=True,operatorName='Sample Operator',operatorAddress='Sample business address',contactEmail='teacher@example.com',adultOnly=True,retentionApproved=True)
         self.port=self.server.server_address[1]
         self.origin=f'http://127.0.0.1:{self.port}'
         self.server.app.origin=self.origin
@@ -39,7 +40,7 @@ class AcademyTests(unittest.TestCase):
         self.request('/api/setup',{'name':'Sample Instructor','email':'teacher@example.com','password':self.password,'setup_token':token},201)
         self.teacher_cookie=self.cookie
     def student(self,email='student@example.com'):
-        self.request('/api/register',{'name':'Sample Learner','email':email,'password':self.password,'experience':'Beginner','difficulty':'Reading charts','goal':'Learn to explain a fictional ticket.','consent':True},201)
+        self.request('/api/register',{'name':'Sample Learner','email':email,'password':self.password,'experience':'Beginner','difficulty':'Reading charts','goal':'Learn to explain a fictional ticket.','consent':True,'terms':True,'adult':True,'policyVersion':self.server.app.policy['version']},201)
         self.student_cookie=self.cookie
         return self.request('/api/session')['user']['id']
     def approve(self,uid):
@@ -50,9 +51,35 @@ class AcademyTests(unittest.TestCase):
         self.assertTrue(self.request('/api/session')['enrollmentOpen'])
         self.server.app.enrollment_open=False
         self.assertFalse(self.request('/api/session')['enrollmentOpen'])
-        self.request('/api/register',{'name':'Sample Learner','email':'closed@example.com','password':self.password,'experience':'Beginner','difficulty':'Reading charts','goal':'Learn to explain a fictional ticket.','consent':True},403)
+        self.request('/api/register',{'name':'Sample Learner','email':'closed@example.com','password':self.password,'experience':'Beginner','difficulty':'Reading charts','goal':'Learn to explain a fictional ticket.','consent':True,'terms':True,'adult':True,'policyVersion':self.server.app.policy['version']},403)
         with self.server.app.db() as db:
             self.assertEqual(db.execute("SELECT count(*) FROM users WHERE role='student'").fetchone()[0],0)
+    def test_application_requires_current_terms_and_adult_confirmation(self):
+        self.teacher()
+        application={'name':'Sample Learner','email':'adult@example.com','password':self.password,'experience':'Beginner','difficulty':'Reading charts','goal':'Learn to explain a fictional ticket.','consent':True,'terms':True,'adult':True,'policyVersion':self.server.app.policy['version']}
+        for field in ['consent','terms','adult']:
+            self.request('/api/register',{**application,field:False},400)
+        self.request('/api/register',{**application,'policyVersion':'old-version'},409)
+        with self.server.app.db() as db:
+            self.assertEqual(db.execute("SELECT count(*) FROM users WHERE role='student'").fetchone()[0],0)
+            self.assertEqual(db.execute('SELECT count(*) FROM agreements').fetchone()[0],0)
+            self.assertEqual(db.execute('SELECT count(*) FROM mail').fetchone()[0],0)
+        self.request('/api/register',application,201)
+        uid=self.request('/api/session')['user']['id']
+        with self.server.app.db() as db:
+            agreement=db.execute('SELECT * FROM agreements WHERE user_id=?',(uid,)).fetchone()
+            self.assertEqual(agreement['version'],self.server.app.policy['version'])
+            self.assertEqual(agreement['adult'],1)
+            self.assertLess(abs(agreement['accepted']-time.time()),10)
+    def test_incomplete_policy_cannot_open_applications(self):
+        self.teacher()
+        for field,missing in [('published',False),('operatorAddress',''),('retentionApproved',False)]:
+            original=self.server.app.policy[field]
+            self.server.app.policy[field]=missing
+            self.assertFalse(self.request('/api/session')['enrollmentOpen'])
+            self.request('/api/register',{},403)
+            self.server.app.policy[field]=original
+        self.assertTrue(self.request('/api/session')['enrollmentOpen'])
     def test_student_workflow_queues_notifications_to_the_right_recipient(self):
         self.teacher();uid=self.student();self.approve(uid)
         self.request('/api/questions',{'lesson':2,'body':'Why did the example loss change with size?'},201)

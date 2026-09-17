@@ -15,6 +15,7 @@ class SMTPConfig:
     password: str
     sender: str
     security: str = 'starttls'
+    reply_to: str = ''
 
     @classmethod
     def from_environment(cls):
@@ -33,7 +34,10 @@ class SMTPConfig:
         host, user, password, sender = [os.environ['ACADEMY_SMTP_' + key] for key in names]
         if any(c in host + sender for c in '\r\n') or '@' not in parseaddr(sender)[1]:
             raise ValueError('Check the SMTP host and sender address.')
-        return cls(host, port, user, password, sender, security)
+        reply_to = os.environ.get('ACADEMY_SMTP_REPLY_TO', '').strip()
+        if reply_to and (any(c in reply_to for c in '\r\n') or '@' not in parseaddr(reply_to)[1]):
+            raise ValueError('Check the email reply-to address.')
+        return cls(host, port, user, password, sender, security, reply_to)
 
     def connect(self):
         context = ssl.create_default_context()
@@ -61,6 +65,7 @@ class SMTPConfig:
         msg['From'] = self.sender
         msg['To'] = row['recipient']
         msg['Subject'] = row['subject']
+        if self.reply_to: msg['Reply-To'] = self.reply_to
         domain = parseaddr(self.sender)[1].split('@')[-1]
         msg['Message-ID'] = f"<academy-{row['delivery_key']}@{domain}>"
         if self.host.lower() == 'smtp.resend.com':

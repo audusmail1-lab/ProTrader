@@ -27,7 +27,7 @@ services:
       - key: ACADEMY_NOTIFICATION_RECIPIENT
         sync: false
       - key: ACADEMY_ENROLLMENT_OPEN
-        value: 'false'
+        value: 'true'
       - key: ACADEMY_MAIL_ENABLED
         value: 'true'
       - key: ACADEMY_SMTP_HOST
@@ -42,3 +42,5 @@ services:
         sync: false
       - key: ACADEMY_SMTP_FROM
         value: Pro Trader Academy <academy@protraderacademy.company>
+      - key: ACADEMY_SMTP_REPLY_TO
+        value: support@protraderacademy.company
