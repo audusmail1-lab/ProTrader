@@ -1,6 +1,6 @@
 # Working academy
 
-For the prepared public deployment, email setup and remaining owner choices, see [GO-LIVE.md](GO-LIVE.md). The optional academy Render blueprint is separate from the trading app’s root configuration. The public academy is deployed at https://protraderacademy.company; applications and email remain disabled pending owner setup. Real email delivery has not yet been verified.
+For the prepared public deployment, email setup and remaining owner choices, see [GO-LIVE.md](GO-LIVE.md). The optional academy Render blueprint is separate from the trading app’s root configuration. The public academy is deployed at https://protraderacademy.company; applications remain closed pending owner setup. The secure SMTP connection passed and delivery is enabled; actual inbox receipt has not yet been verified.
 
 Run from the repository root:
 
