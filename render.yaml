@@ -4,13 +4,13 @@
 #   2. render.com → New → Blueprint → pick the repo
 #   3. Render reads this file, builds the Dockerfile, gives you an https URL
 #
-# Free tier is enough to try it. Note the free instance sleeps after ~15 min
-# idle and takes ~30s to wake on the next visit; the "starter" plan stays on.
+# Paid always-on hosting approved September 17, 2026: Starter $7/month.
+# Keep this in sync with the Render service compute plan.
 services:
   - type: web
     name: protrader
     runtime: docker
-    plan: free            # change to "starter" for always-on
+    plan: starter         # $7/month, always-on (owner approved)
     region: frankfurt     # pick the region nearest your users
     healthCheckPath: /api/tickers
     autoDeploy: true      # every git push redeploys
