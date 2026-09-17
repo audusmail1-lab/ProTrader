@@ -1,6 +1,6 @@
 # Working academy
 
-For the prepared public deployment, email setup and remaining owner choices, see [GO-LIVE.md](GO-LIVE.md). The optional academy Render blueprint is separate from the trading app’s root configuration. The public academy is deployed at https://protraderacademy.company; applications remain closed pending owner setup. The secure SMTP connection passed and delivery is enabled; actual inbox receipt has not yet been verified.
+For the prepared public deployment, email setup and remaining owner choices, see [GO-LIVE.md](GO-LIVE.md). The optional academy Render blueprint is separate from the trading app’s root configuration. The public academy is deployed at https://protraderacademy.company; the hosted instructor account is ready and a real notification was confirmed received in Gmail. Applications remain closed while public intake details are finalized.
 
 Run from the repository root:
 
@@ -12,7 +12,7 @@ Open http://127.0.0.1:8743. This serves the connected application; the static pr
 
 ## First instructor
 
-Open Instructor setup in the footer. Use the private key in `.academy-data/setup-token`, enter your name and email, and choose a password of at least 12 characters. A local `/#setup/KEY` link can prefill the key. Setup closes after the first instructor is created. Never share that link or key.
+The first hosted instructor has already been created. For a new, separate installation, open Instructor setup in the footer. Use the private key in `.academy-data/setup-token`, enter your name and email, and choose a password of at least 12 characters. A local `/#setup/KEY` link can prefill the key. Setup closes after the first instructor is created. Never share that link or key.
 
 ## Daily use
 
@@ -28,11 +28,11 @@ Alerts go to the recipient in the private, ignored `academy.config.local.json`. 
 
 Resend requires a domain you own and have verified. The sender must use that domain; your Gmail address can remain the recipient. Follow https://resend.com/docs/send-with-smtp and https://resend.com/docs/dashboard/domains/introduction.
 
-When enabled, queued messages are processed every ten seconds. `sent` means the SMTP server accepted the message, not guaranteed inbox delivery. Failed messages can be retried from Teaching after checking provider logs for uncertain acceptance. A test-email button is available only when sending is configured. Expired password reset messages are skipped; request a fresh reset after email is connected. Before enabling delivery, review any queued test messages. No actual email delivery has been tested in this build.
+When enabled, queued messages are processed every ten seconds. `sent` means the SMTP server accepted the message, not guaranteed inbox delivery. Failed messages can be retried from Teaching after checking provider logs for uncertain acceptance. A test-email button is available only when sending is configured. Expired password reset messages are skipped; request a fresh reset after email is connected. Before enabling delivery, review any queued test messages. The hosted installation’s test notification was marked Delivered by Resend and confirmed received by the owner in Gmail.
 
 ## Student launch still required
 
-The academy is publicly hosted with HTTPS and persistent storage. Student enrollment remains closed until the owner finishes account setup, email checks and the launch decisions in GO-LIVE.md. The preview binds to 127.0.0.1; the prepared Waitress production entry point binds to the host’s injected port. A production deployment needs an HTTPS reverse proxy/managed host, persistent private storage and backups, the correct `ACADEMY_ORIGIN` public URL, a verified email sender, and an end-to-end delivery test. Configure account-abuse protection at the proxy; in-process throttling combines per-account and coarse connection-peer limits and is not suitable alone for broad public traffic. Confirm privacy/contact/retention terms, fees, actual session times and admission operations before inviting real learners. The privacy page no longer describes a local-only installation, but final contact and retention terms still require the owner’s decisions.
+The academy is publicly hosted with HTTPS and persistent storage. Instructor setup and email checks are complete. Student enrollment remains closed while the owner finalizes the public intake details in GO-LIVE.md. The preview binds to 127.0.0.1; the prepared Waitress production entry point binds to the host’s injected port. A production deployment needs an HTTPS reverse proxy/managed host, persistent private storage and backups, the correct `ACADEMY_ORIGIN` public URL, a verified email sender, and an end-to-end delivery test. Configure account-abuse protection at the proxy; in-process throttling combines per-account and coarse connection-peer limits and is not suitable alone for broad public traffic. Confirm privacy/contact/retention terms, fees, actual session times and admission operations before inviting real learners. The privacy page no longer describes a local-only installation, but final contact and retention terms still require the owner’s decisions.
 
 ## Verification
 
