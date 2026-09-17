@@ -208,7 +208,7 @@ class Handler(BaseHTTPRequestHandler):
                     mail=[dict(r) for r in db.execute('SELECT id,recipient,subject,status,error,created FROM mail ORDER BY id DESC LIMIT 100')]
                 return self.output({'students':students,'mail':mail,'mailEnabled':self.app.mail_enabled,'recipient':self.app.recipient})
             if path=='/':
-                html=(ROOT/'academy/index.html').read_text().replace('src="app.js"','src="live.js"').replace('</head>','<link rel="stylesheet" href="live.css"></head>')
+                html=(ROOT/'academy/live.html').read_text()
                 return self.output(html,content_type='text/html; charset=utf-8')
             name=path.removeprefix('/')
             if name in PUBLIC:

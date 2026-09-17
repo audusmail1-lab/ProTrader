@@ -1,14 +1,18 @@
 import http.client
 import json
+import os
 from pathlib import Path
 import tempfile
 import threading
 import time
 import unittest
+from unittest.mock import MagicMock, patch
 from server import make_server,Academy
 
 class AcademyTests(unittest.TestCase):
     def setUp(self):
+        environment=patch.dict(os.environ,{'ACADEMY_MAIL_ENABLED':'false','ACADEMY_ENROLLMENT_OPEN':'true','ACADEMY_NOTIFICATION_RECIPIENT':'teacher@example.com','ACADEMY_APP_URL':'https://app.example.com'})
+        environment.start();self.addCleanup(environment.stop)
         self.tmp=tempfile.TemporaryDirectory()
         self.server=make_server(self.tmp.name,0)
         self.port=self.server.server_address[1]
@@ -49,6 +53,31 @@ class AcademyTests(unittest.TestCase):
         self.request('/api/register',{'name':'Sample Learner','email':'closed@example.com','password':self.password,'experience':'Beginner','difficulty':'Reading charts','goal':'Learn to explain a fictional ticket.','consent':True},403)
         with self.server.app.db() as db:
             self.assertEqual(db.execute("SELECT count(*) FROM users WHERE role='student'").fetchone()[0],0)
+    def test_student_workflow_queues_notifications_to_the_right_recipient(self):
+        self.teacher();uid=self.student();self.approve(uid)
+        self.request('/api/questions',{'lesson':2,'body':'Why did the example loss change with size?'},201)
+        question=self.request('/api/questions')[0]
+        self.request('/api/reply',{'question':question['id'],'body':'Each additional unit has the same price difference.'},cookie=self.teacher_cookie)
+        self.request('/api/reset-request',{'email':'student@example.com'})
+        app=self.server.app
+        with app.db() as db:
+            rows=db.execute('SELECT recipient,subject,body FROM mail ORDER BY id').fetchall()
+        self.assertEqual([(r['recipient'],r['subject']) for r in rows],[
+            ('teacher@example.com','New academy application'),
+            ('student@example.com','Academy application update'),
+            ('teacher@example.com','New academy question'),
+            ('student@example.com','Your instructor replied'),
+            ('student@example.com','Reset your academy password'),
+        ])
+        self.assertNotIn('Learn to explain a fictional ticket.',rows[0]['body'])
+        self.assertNotIn('Why did the example loss change',rows[2]['body'])
+        self.assertNotIn('Each additional unit',rows[3]['body'])
+        self.assertIn(self.origin+'/#reset/',rows[4]['body'])
+        app.smtp=MagicMock();app.mail_enabled=True
+        app.process_mail()
+        self.assertEqual(app.smtp.send.call_count,5)
+        with app.db() as db:
+            self.assertEqual([tuple(r) for r in db.execute('SELECT status,body FROM mail')],[('sent','')]*5)
     def test_setup_auth_and_private_assets(self):
         self.request('/api/lessons',expected=401)
         self.request('/api/materials.js',expected=401)

@@ -1,6 +1,9 @@
 """Disposable browser QA only; never shares production data or sends email."""
-import tempfile,time
+import os,tempfile,time
 from server import make_server
+os.environ['ACADEMY_MAIL_ENABLED']='false'
+os.environ['ACADEMY_NOTIFICATION_RECIPIENT']='teacher@example.com'
+os.environ['ACADEMY_ENROLLMENT_OPEN']='true'
 server=make_server(tempfile.mkdtemp(prefix='academy-qa-'),8744)
 app=server.app
 with app.db() as db:
