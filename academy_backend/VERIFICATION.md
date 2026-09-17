@@ -1,5 +1,9 @@
 # Academy verification — September 17, 2026
 
+## Release
+
+The repairs below are live as commit `7234f595617b42cfc571047d9cb97ec3e96b5b7d`. Render deployment `dep-dam2t5m5vjqs73bi3nl0` succeeded. Post-deployment HTTPS checks passed; the served HTML and both changed JavaScript files match the tested files exactly. The instructor session and sent notification are still present. The beginner enrollment URL opens the signed-in account correctly.
+
 ## Verified
 
 - Canonical HTTPS health endpoint: 200. `www` redirects to the canonical domain.
@@ -8,7 +12,7 @@
 - Hosted instructor setup, authenticated dashboard and session/data persistence after a Render restart: passed.
 - Teaching test notification: sent in the academy outbox, Delivered in Resend, and receipt confirmed by the owner in Gmail. No repeat test was needed.
 - Private on-host backup and isolated restore: SQLite integrity passed; instructor account recovered from the copy. Off-host storage is still an owner choice.
-- Eleven automated tests passed: admission/verification gates, student isolation, progress/questions/replies, recovery token expiry and single use, session revocation, origin checks, TLS/authentication ordering, outbox success/failure/expiry, production request limits, backup, and notification recipients.
+- Eleven automated tests passed: admission/verification gates, student isolation, progress/questions/replies, recovery token single use, session revocation, origin checks, TLS/authentication ordering, outbox success/failure/expiry, production request limits, backup, and notification recipients.
 - Isolated browser journey: student sign-in, completed introduction, chart level interaction, saved notes/completion, lesson-linked question, instructor application approval, instructor reply, and learner reading the saved reply after signing in again.
 - Fictional ticket: changing one unit to two updates loss/gain from 2/4 to 4/8 credits.
 - All seven lessons load without browser errors. All seven video URLs return 200 with video/mp4; the ticket video played to its 30-second end without a media error.

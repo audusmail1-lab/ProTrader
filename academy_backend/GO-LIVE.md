@@ -65,7 +65,8 @@ Run `python -m unittest discover -s academy_backend -p 'test_*.py' -v` after ins
 - First instructor setup completed; authenticated Teaching access verified, including after a service restart.
 - Anonymous `/api/lessons`: 401, sign-in required.
 - Existing trading app: successful HTTPS GET, status 200; unchanged by this deployment.
-- Ten automated account, enrollment, isolation, persistence, recovery, SMTP and production tests passed after adding application-availability checks. JavaScript syntax and patch formatting checks passed.
+- Eleven automated account, enrollment, isolation, persistence, recovery, SMTP and production tests passed, including notification recipient checks. JavaScript syntax and patch formatting checks passed.
 - Live SMTP TLS/authentication check passed with the privately saved key. Email delivery has been enabled after an empty-outbox check.
 - A real Teaching test notification was accepted, marked Delivered by Resend and confirmed received by the owner in Gmail.
 - Private backup integrity and an isolated restore check passed; one hosted instructor account was present. Off-host backup storage remains to be selected.
+- Navigation, saved introduction status and stale-session recovery repairs are live as commit `7234f595617b42cfc571047d9cb97ec3e96b5b7d`. Post-deployment health, access restrictions, served files and instructor records were verified. See [the detailed verification report](VERIFICATION.md), including the fresh mobile-check limitation.
