@@ -29,7 +29,7 @@ services:
       - key: ACADEMY_ENROLLMENT_OPEN
         value: 'false'
       - key: ACADEMY_MAIL_ENABLED
-        value: 'false'
+        value: 'true'
       - key: ACADEMY_SMTP_HOST
         value: smtp.resend.com
       - key: ACADEMY_SMTP_PORT
@@ -38,5 +38,7 @@ services:
         value: starttls
       - key: ACADEMY_SMTP_USER
         value: resend
+      - key: ACADEMY_SMTP_PASSWORD
+        sync: false
       - key: ACADEMY_SMTP_FROM
         value: Pro Trader Academy <academy@protraderacademy.company>
