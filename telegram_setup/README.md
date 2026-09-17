@@ -10,10 +10,10 @@ Preparation is in progress. Public launch has not been approved.
 | Pro Trader Academy Updates | Private channel created; Academy logo, description and linked welcome post saved and pinned. |
 | Pro Trader Academy Community | Private group created and linked to the channel; logo, description, posting permissions and linked community rules saved and pinned. |
 | Pro Trader Academy Bot | Created as **@protrader_support_bot**. Name, description, short biography, logo and 10 commands saved through BotFather. Group invitations disabled. |
-| Bot automation | Implemented and locally tested; not deployed or connected yet. |
-| Academy entry points | Contact/footer links and Telegram privacy section implemented locally, hidden until explicit launch configuration. |
+| Bot automation | Deployed on the Academy service in owner-only preview. Real support request, image, reply and duplicate-submit tests passed. |
+| Academy entry points | Contact/footer links and Telegram privacy section deployed behind the public-launch switch; still hidden from visitors. |
 | Business automation | Copy ready. Hours, greeting, away message and quick replies are not configured: neither inspected Telegram Web client exposes these settings. |
-| Secrets | BotFather generated a token. Render field prepared; awaiting owner entry and confirmation. No token is in these files or Git. |
+| Secrets | Owner saved the token in Render Environment. The running bot successfully authenticated. No token is in these files, Git or local configuration. |
 
 The first username choice, `protraderacademy_bot`, was already taken. Do not direct users there.
 
@@ -23,7 +23,7 @@ The first username choice, `protraderacademy_bot`, was already taken. Do not dir
 - App: https://app.protraderacademy.company
 - Application: https://protraderacademy.company/#enroll
 - Beginner route: https://protraderacademy.company/#start
-- Support bot (created, awaiting activation): https://t.me/protrader_support_bot
+- Support bot (active for owner testing): https://t.me/protrader_support_bot
 - Operator support account: existing `@joels_t`, awaiting business profile rollout.
 - Updates management: https://web.telegram.org/a/#-1003552340837
 - Community management: https://web.telegram.org/a/#-1004349628698
@@ -87,13 +87,16 @@ Back up the new database with `academy_backend/backup.py --source /var/data/acad
 
 ## Validation
 
-The full Academy suite passes 24 checks (one optional SMTP integration check skipped), including eleven bot checks covering launch gating, ticket persistence, owner-only replies, duplicate submission, delivery retry and a consistent database export/restore. The 390 px Contact layout fits without horizontal scrolling. This is local verification, not a live Telegram delivery test.
+Private release: commit `1c6be06117b70672d38943e871107c4a835875ec`, Render deploy `dep-dam7ektbedkc73abrtrg`, live 18 September 2026 at 00:27:52 WAT. `ACADEMY_TELEGRAM_ENABLED=true`; `ACADEMY_TELEGRAM_PUBLIC=false`.
+
+
+The full Academy suite passes 24 checks (one optional SMTP integration check skipped), including eleven bot checks covering launch gating, ticket persistence, owner-only replies, duplicate submission, delivery retry and a consistent database export/restore. The 390 px Contact layout fits without horizontal scrolling. Live Telegram verification on 18 September 2026 also passed: welcome menu, privacy introduction, category/device/description collection, optional image forwarding, review/submit, owner notification, private reply and repeat-submit protection. Ticket #1 is a clearly labelled owner setup test and is now closed. A consistent copy of the production Telegram database restored with integrity_check=ok and one ticket; all 19 deliveries at that check were sent. This restore check ran in a temporary isolated file on Render and did not replace live data or create an off-site backup.
 
 ## Completion gates
 
-1. Owner privately saves token in Render.
-2. Owner identity verified from Saved Messages; private bot chat started. Apply the verified ID and owner-only configuration after token entry.
-3. Deploy and test the real menu, ticket, optional screenshot, owner reply, duplicate-submit guard and restart persistence.
+1. DONE — Owner privately saved token in Render.
+2. DONE — Owner identity verified from Saved Messages; private bot chat started; owner-only configuration applied.
+3. Real menu, ticket, optional image, reply, duplicate-submit protection and live database restore passed. Service restart at 00:35 WAT also passed: the saved request accepted another reply at 00:37 WAT, then was marked closed.
 4. Private pinned posts and invitation links are prepared and verified; retain private access until launch approval.
 5. Complete native Business settings where browser support is unavailable.
 6. Owner approves public entry points, profile branding, hours and Telegram data notice; update the published policy date for that release.
