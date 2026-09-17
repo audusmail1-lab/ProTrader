@@ -13,6 +13,8 @@ services:
     plan: starter         # $7/month, always-on (owner approved)
     region: frankfurt     # pick the region nearest your users
     healthCheckPath: /api/tickers
+    domains:
+      - app.protraderacademy.company
     autoDeploy: true      # every git push redeploys
     envVars:
       - key: PYTHONUNBUFFERED
