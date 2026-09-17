@@ -5944,7 +5944,12 @@ function toggleShortcutsHelp() {
   m.id = 'shortcutsModal';
   m.className = 'modal-backdrop open';
   m.innerHTML = `<div class="modal-card" style="max-width:380px">
-    <div class="modal-h"><span>⌨️ Keyboard Shortcuts</span><button class="modal-close" onclick="document.getElementById('shortcutsModal').classList.remove('open')">×</button></div>
+    <div class="modal-h"><span>Help & Keyboard Shortcuts</span><button class="modal-close" aria-label="Close help" onclick="document.getElementById('shortcutsModal').classList.remove('open')">×</button></div>
+    <div style="padding:14px 16px;border-bottom:1px solid var(--border);font-size:13px;line-height:1.6">
+      <a href="https://t.me/protrader_support_bot" target="_blank" rel="noopener noreferrer" style="display:block;padding:10px 0;color:var(--accent)">Chat on Telegram ↗</a>
+      <a href="https://protraderacademy.company/#contact" target="_blank" rel="noopener noreferrer" style="display:block;padding:10px 0;color:var(--accent)">Academy, community & updates ↗</a>
+      <p style="margin:8px 0 0;color:var(--tx-2)">For app help, include your device and a short description. Keep passwords, broker keys and account details private.</p>
+    </div>
     <div style="padding:14px 16px;display:flex;flex-direction:column;gap:6px;font-size:11px">
       <div class="kbd-row"><span>Timeframes</span><kbd>1</kbd><kbd>2</kbd><kbd>3</kbd><kbd>4</kbd><kbd>5</kbd><kbd>6</kbd></div>
       <div class="kbd-row"><span>Buy / Sell</span><kbd>B</kbd><kbd>S</kbd></div>
