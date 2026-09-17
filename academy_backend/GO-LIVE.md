@@ -1,44 +1,50 @@
 # Pro Trader Academy: launch handoff
 
-## Recommended setup
+## Deployment status — September 17, 2026
 
-The owner has purchased **protraderacademy.company** through Cloudflare and already has a Render account with the existing Pro Trader beta app at **https://protrader-jaoy.onrender.com/**. The owner confirms Resend shows **Verified** for this domain and confirms **no academy Render service has been created yet**. The SMTP key still needs secure entry into the new academy service.
+The academy is deployed and responding at **https://protraderacademy.company**. HTTPS health checks pass; `www.protraderacademy.company` redirects to the canonical address. The public introduction and video guides are available. Applications and email sending remain disabled while the owner completes private setup.
 
-- Academy canonical URL: **https://protraderacademy.company**.
-- Existing beta app: **https://protrader-jaoy.onrender.com/**; use it for “Open Pro Trader” now.
-- Optional later alias: **app.protraderacademy.company**, attached to the existing app service after approval. Do not create or charge for another trading-app server.
-- Proposed sender: **Pro Trader Academy <academy@protraderacademy.company>**, usable only once Resend reports the domain verified. This is a sending identity, not a newly created receiving mailbox.
+- Repository: **audusmail1-lab/ProTrader**, branch **codex/academy-launch**.
+- Blueprint: **academy_backend/render.yaml**. The root blueprint belongs to the existing trading app; leave it unchanged.
+- Render service: **protrader-academy**, ID **srv-dam1oklbedkc73abn56g**.
+- Render blueprint: **exs-dam1n6rm8hqs73b9dfbg**.
+- Hosting: Frankfurt, 0.5 CPU / 512 MB, persistent 1 GB disk mounted at `/var/data`; academy data is `/var/data/academy`.
+- Owner approved **$7.25/month base** ($7 service plus $0.25 disk), before taxes and usage extras. The service and disk have already been created. Do not create duplicates or request the same approval again.
+- Existing beta trading app: **https://protrader-jaoy.onrender.com/**. It remains unchanged and is linked from academy navigation. The two products have separate sign-in systems.
+- Instructor notification recipient: **audusmail1@gmail.com**.
+- First hosted instructor: not yet created at the latest public session check. Local accounts are not automatically copied to production.
 
-A separate **paid Render Python web service with a persistent disk**, plus the existing prepared SMTP integration, fits the academy. The optional blueprint is `academy_backend/render.yaml`; **do not apply or change the root `render.yaml` or existing trading service**. Configuring the academy incurs a new cost and requires the owner's approval of the concrete service below. The purchased domain does not need to be purchased again.
+## DNS and email
 
-Official requirements checked September 17, 2026:
+Cloudflare now has DNS-only CNAME records for the root and `www`, both pointing to `protrader-academy.onrender.com`. Both passed Render verification; public HTTPS succeeds. The root certificate initially reported an error while provisioning, but a later certificate-validated HTTPS request succeeded.
 
-- Render requires paid services for persistent disks; its ordinary filesystem is ephemeral: https://render.com/docs/disks.
-- Render free services also block common SMTP ports and are not recommended by Render for production: https://render.com/docs/free.
-- Resend SMTP needs an API key and verified owned domain: https://resend.com/docs/send-with-smtp.
-- Resend's current free transactional allowance is 3,000 emails/month, capped at 100/day: https://resend.com/pricing. This is an email allowance, not domain registration or mailbox hosting.
+Resend's dashboard originally showed a sending-region mismatch. The `rsend` CNAME was corrected from `rsend.forge.rmta.net` to the dashboard-required **rsend-euw1.forge.rmta.net**. The other sending CNAME remains `send.forge.rmta.net`; DKIM was already verified. After restarting verification, all three sending records showed Verified and the sending error banner disappeared. The overall domain was still Pending, with a separate receiving-MX failure. Receiving is not required for outbound academy notifications, and no root receiving MX was added. Do not claim actual email delivery until tested.
 
-## Initial budget
+Non-secret SMTP settings are deployed: `smtp.resend.com`, port `587`, STARTTLS, username `resend`, sender **Pro Trader Academy <academy@protraderacademy.company>**. This sender is not a receiving mailbox.
 
-The owner prefers US$10–15/month in incremental hosting. The proposed academy service is **0.5 CPU / 512 MB RAM ($7/month) plus 1 GB persistent disk ($0.25/month): $7.25/month base**, before taxes, usage overages and any paid backup storage. The already-running app's existing bill is separate and unchanged. Keep the current Render workspace unless an actual required feature needs an upgrade. Confirm the checkout price and receive explicit approval before creating the new paid service.
+The owner is being handed the prepared Resend key form (Sending access, restricted to `protraderacademy.company`) and a blank Render environment value named **ACADEMY_SMTP_PASSWORD**. They must create/copy the key and save it directly in the academy service. Never place the key or a password in chat or Git. Keep `ACADEMY_MAIL_ENABLED=false` until checks pass.
 
-## Minimum next step for the owner
+## Remaining owner setup and launch checks
 
-Approve the concrete $7.25/month academy configuration above, then create that service in the existing Render account. No new domain or trading-app service is needed. Never paste a password or API key in chat.
+1. Finish secure entry of the Resend key in **Render → protrader-academy → Environment → ACADEMY_SMTP_PASSWORD**, then deploy/restart so the service receives the saved value. Avoid changing the existing trading app service.
+2. Run `python academy_backend/check_email.py` in the academy's Render Shell. This checks TLS and authentication without sending any message. Check Resend's sending-domain status as well.
+3. In Render's private shell, read `/var/data/academy/setup-token` yourself. Open **https://protraderacademy.company/#setup**, enter that key and your name/email, and choose your own 12+ character password. Do not send the key/password through chat. The token is removed after the first instructor is created.
+4. Review the notification outbox. Set `ACADEMY_MAIL_ENABLED=true` in both the deployment configuration and the hosted environment, then deploy. From Teaching, use **Send a test to my notification address**. Verify provider acceptance and actual arrival in Gmail/spam; acceptance alone does not prove inbox delivery. Then check application-update, instructor-reply and password-reset messages with controlled accounts.
+5. Before inviting students, confirm final privacy/contact/retention terms, session dates/timezone/join links, fees and admission operations. The privacy page explains stored data but still calls out unfinished final terms. Verify backup and restore, and agree secure off-host backup storage/frequency.
+6. Open applications with `ACADEMY_ENROLLMENT_OPEN=true` only after these checks and decisions. The public interface now reads application availability from the server, so closed applications show an explanatory page instead of a form that cannot be submitted.
 
-## Prepared deployment procedure
+Do not scale the SQLite service to multiple instances. Optional `app.protraderacademy.company` and an academy backlink in the trading app can be considered separately; no new trading service is needed.
 
-1. Use the academy launch branch **codex/academy-launch** in **audusmail1-lab/ProTrader**. The academy blueprint path is **academy_backend/render.yaml**. Verify that this branch/path is visible in GitHub before starting Render setup. Do not select the root blueprint or change the existing trading service. Private local config, databases, setup keys and credentials remain excluded from Git.
-2. In the existing Render account choose **New → Blueprint**, select **audusmail1-lab/ProTrader**, choose **codex/academy-launch**, and set Blueprint Path to **academy_backend/render.yaml**. Review only one new service named **protrader-academy**, the paid 512 MB instance, 1 GB disk and the checkout total before applying. Enter **audusmail1@gmail.com** when prompted for the notification recipient. Use the **academy** blueprint path or create a Python service with its build/start commands. It has manual deployments, one process, a private persistent disk at `/var/data`, and health checks at `/healthz`. Never scale this SQLite deployment to multiple instances.
-3. The prepared `ACADEMY_ORIGIN` is `https://protraderacademy.company`. Connect that custom domain and HTTPS before signing in. If testing the assigned Render URL first, temporarily set the origin to that exact URL, then restore the academy domain before sending email. Login requests from a different origin are rejected; use the canonical URL for all links.
-4. Set `ACADEMY_NOTIFICATION_RECIPIENT` to `audusmail1@gmail.com`. Keep `ACADEMY_MAIL_ENABLED=false` and `ACADEMY_ENROLLMENT_OPEN=false` during setup.
-5. In Render's private shell, read `/var/data/academy/setup-token` yourself. Enter it on `/#setup`, set your name/email and your own 12+ character password. Do not send that key/password through chat. The key is removed after bootstrap. The first public instructor account must be created separately unless the existing local database is deliberately migrated through a secure transfer.
-6. Add `protraderacademy.company` as a custom domain on the academy service and enter the exact records supplied by that service in Cloudflare. Set `ACADEMY_APP_URL=https://protrader-jaoy.onrender.com/`; “Open Pro Trader” then appears in its navigation. This links the products; it does not combine their login systems or grant broker/trading access. Add an academy backlink to the app once its final URL and app deployment owner are confirmed.
-7. The owner has confirmed that Resend shows `protraderacademy.company` as Verified. Create a sending API key restricted to that domain where supported, or reuse an existing appropriate sending key through secure entry.
-8. In Render → academy service → Environment, enter SMTP settings directly: host `smtp.resend.com`, port `587`, security `starttls`, user `resend`, password the private API key, and proposed sender `Pro Trader Academy <academy@protraderacademy.company>` after that domain is verified. Use `ACADEMY_SMTP_*` names from `.env.example`. Do not put secrets in GitHub code or chat.
-9. With sending still disabled, run `python academy_backend/check_email.py` in the host shell. It checks TLS and authentication only; no email is sent. Review the queued messages before enabling the worker.
-10. Set `ACADEMY_MAIL_ENABLED=true` and restart. In Teaching, press “Send a test to my notification address.” Verify both provider acceptance in the outbox and actual arrival in Gmail/spam. Then test one application update, reply and reset message with controlled accounts. SMTP acceptance alone does not prove inbox delivery; no live delivery has been verified yet.
-11. Before inviting students, confirm final contact/privacy/retention wording and replace the local-only privacy text, class dates/timezone/join links, fees/admission wording and support process. Verify a backup and restore. Open applications with `ACADEMY_ENROLLMENT_OPEN=true` only after these choices and launch checks are complete.
+## Provider references
+
+Requirements checked September 17, 2026:
+
+- Render persistent disks: https://render.com/docs/disks
+- Render free-service restrictions (including SMTP ports): https://render.com/docs/free
+- Render custom domains and Cloudflare DNS: https://render.com/docs/custom-domains and https://render.com/docs/configure-cloudflare-dns
+- Resend SMTP: https://resend.com/docs/send-with-smtp
+- Resend domain sending/receiving status: https://resend.com/docs/dashboard/domains/manage-domains
+- Resend allowance: https://resend.com/pricing (free transactional plan: 3,000 emails/month, 100/day; not mailbox hosting).
 
 ## Operating limits and verification
 
@@ -52,14 +58,10 @@ Run `python -m unittest discover -s academy_backend -p 'test_*.py' -v` after ins
 
 ## Latest verification: September 17, 2026
 
-- Existing beta app `https://protrader-jaoy.onrender.com/`: successful HTTPS GET, status 200. It rejects HEAD with 405, so use GET for reachability checks.
-- Local academy `http://127.0.0.1:8743`: restarted with actual app URL; rendered Open Pro Trader navigation points to the beta app.
-- `protraderacademy.company`: did not resolve through this machine's DNS resolver during the check. Domain registration is confirmed by the owner, but a live academy site is not established by that purchase or by email DNS records.
-- The owner has since confirmed Resend Verified status and that there is no academy service yet. This task’s browser exposes only the local academy tab. No SMTP credentials are configured locally; enter them directly into the new hosted service.
-- Existing nine tests passed; a test-fixture shutdown race was corrected and the five deployment/email tests passed again cleanly. No real message was sent.
-
-### Concrete next dashboard action
-
-After approving the $7.25/month base cost, use **New → Blueprint**, repository **audusmail1-lab/ProTrader**, branch **codex/academy-launch**, path **academy_backend/render.yaml**. Confirm the new service is named **protrader-academy** and does not modify the existing trading service. The launch branch must be visible remotely before applying.
-
-Once the academy service exists, enter the Resend API key directly into **that service → Environment → Add environment variable**, with the name **ACADEMY_SMTP_PASSWORD**. Use the remaining non-secret SMTP settings from `.env.example`. Do not put the key in the existing trading app service or send it through chat. Keep mail off until the secure connection check passes and queue contents are reviewed. Confirm the Resend domain says **Verified**, then enable email and use Teaching's test button to verify actual receipt in Gmail.
+- Canonical academy `/healthz`: certificate-validated HTTPS, status 200, `{"ok": true}`.
+- `www` academy URL: HTTPS 301 to the canonical domain.
+- Anonymous `/api/session`: no signed-in user; first instructor setup still required.
+- Anonymous `/api/lessons`: 401, sign-in required.
+- Existing trading app: successful HTTPS GET, status 200; unchanged by this deployment.
+- Ten automated account, enrollment, isolation, persistence, recovery, SMTP and production tests passed after adding application-availability checks. JavaScript syntax and patch formatting checks passed.
+- Live SMTP authentication, actual inbox receipt, hosted account creation and restart persistence still require completion. No real notification has been sent by this task.

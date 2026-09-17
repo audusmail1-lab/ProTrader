@@ -1,4 +1,4 @@
-# OPTIONAL PAID deployment template. Do not apply before approving hosting costs.
+# Approved academy deployment: $7.25/month base, created September 17, 2026.
 # Use this blueprint path explicitly; root render.yaml belongs to the trading app.
 services:
   - type: web

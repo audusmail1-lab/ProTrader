@@ -1,6 +1,6 @@
 # Working academy
 
-For the prepared public deployment, email setup and remaining owner choices, see [GO-LIVE.md](GO-LIVE.md). The optional academy Render blueprint is separate from the trading app’s root configuration. No public deployment or real email delivery has occurred.
+For the prepared public deployment, email setup and remaining owner choices, see [GO-LIVE.md](GO-LIVE.md). The optional academy Render blueprint is separate from the trading app’s root configuration. The public academy is deployed at https://protraderacademy.company; applications and email remain disabled pending owner setup. Real email delivery has not yet been verified.
 
 Run from the repository root:
 
@@ -20,7 +20,7 @@ Applications appear under Teaching. Review the details, verify the person's emai
 
 Students save notes and completion from each lesson. Questions retain their lesson and replies. Teaching also manages the shared class schedule and notification outbox. Add the date, time, timezone and HTTPS joining link for each confirmed session.
 
-SQLite stores users, sessions, applications, practice work, questions, replies and queued notifications in `.academy-data/academy.sqlite3`. Back up the data directory securely with the server stopped. Never place it in a public web directory or commit it. Passwords are salted and hashed; session and recovery tokens are hashed. The separate mail queue contains recovery links until removed under the operator's retention policy.
+SQLite stores users, sessions, applications, practice work, questions, replies and queued notifications in `.academy-data/academy.sqlite3`. Use `academy_backend/backup.py` for a consistent private SQLite backup and store a copy securely off the host. Never place it in a public web directory or commit it. Passwords are salted and hashed; session and recovery tokens are hashed. The separate mail queue contains recovery links until sent or expired; sent message bodies are cleared.
 
 ## Email setup
 
@@ -30,9 +30,9 @@ Resend requires a domain you own and have verified. The sender must use that dom
 
 When enabled, queued messages are processed every ten seconds. `sent` means the SMTP server accepted the message, not guaranteed inbox delivery. Failed messages can be retried from Teaching after checking provider logs for uncertain acceptance. A test-email button is available only when sending is configured. Expired password reset messages are skipped; request a fresh reset after email is connected. Before enabling delivery, review any queued test messages. No actual email delivery has been tested in this build.
 
-## Public launch still required
+## Student launch still required
 
-The current preview is a working local installation, not a publicly deployed service. The preview binds to 127.0.0.1; the prepared Waitress production entry point binds to the host’s injected port. A production deployment needs an HTTPS reverse proxy/managed host, persistent private storage and backups, the correct `ACADEMY_ORIGIN` public URL, a verified email sender, and an end-to-end delivery test. Configure account-abuse protection at the proxy; in-process throttling combines per-account and coarse connection-peer limits and is not suitable alone for broad public traffic. Confirm privacy/contact/retention terms, fees, actual session times and admission operations before inviting real learners. The existing local-only privacy page must be updated for the deployment.
+The academy is publicly hosted with HTTPS and persistent storage. Student enrollment remains closed until the owner finishes account setup, email checks and the launch decisions in GO-LIVE.md. The preview binds to 127.0.0.1; the prepared Waitress production entry point binds to the host’s injected port. A production deployment needs an HTTPS reverse proxy/managed host, persistent private storage and backups, the correct `ACADEMY_ORIGIN` public URL, a verified email sender, and an end-to-end delivery test. Configure account-abuse protection at the proxy; in-process throttling combines per-account and coarse connection-peer limits and is not suitable alone for broad public traffic. Confirm privacy/contact/retention terms, fees, actual session times and admission operations before inviting real learners. The privacy page no longer describes a local-only installation, but final contact and retention terms still require the owner’s decisions.
 
 ## Verification
 

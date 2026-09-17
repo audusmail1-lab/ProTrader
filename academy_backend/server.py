@@ -182,7 +182,7 @@ class Handler(BaseHTTPRequestHandler):
             if path=='/api/session':
                 try: user=self.safe_user(self.user())
                 except APIError: user=None
-                return self.output({'user':user,'setupRequired':not self.app.has_admin(),'appUrl':self.app.app_url})
+                return self.output({'user':user,'setupRequired':not self.app.has_admin(),'appUrl':self.app.app_url,'enrollmentOpen':self.app.enrollment_open and self.app.has_admin()})
             if path=='/api/lessons': self.user(accepted=True); return self.output(LESSONS)
             if path=='/api/materials.js':
                 self.user(accepted=True); return self.output((ROOT/'academy/practice.js').read_text(),content_type='text/javascript; charset=utf-8')

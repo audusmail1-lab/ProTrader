@@ -40,6 +40,15 @@ class AcademyTests(unittest.TestCase):
         return self.request('/api/session')['user']['id']
     def approve(self,uid):
         self.request('/api/admission',{'student':uid,'status':'accepted','verified':True,'note':'Welcome to the class.'},cookie=self.teacher_cookie)
+    def test_application_availability_matches_server_gate(self):
+        self.assertFalse(self.request('/api/session')['enrollmentOpen'])
+        self.teacher()
+        self.assertTrue(self.request('/api/session')['enrollmentOpen'])
+        self.server.app.enrollment_open=False
+        self.assertFalse(self.request('/api/session')['enrollmentOpen'])
+        self.request('/api/register',{'name':'Sample Learner','email':'closed@example.com','password':self.password,'experience':'Beginner','difficulty':'Reading charts','goal':'Learn to explain a fictional ticket.','consent':True},403)
+        with self.server.app.db() as db:
+            self.assertEqual(db.execute("SELECT count(*) FROM users WHERE role='student'").fetchone()[0],0)
     def test_setup_auth_and_private_assets(self):
         self.request('/api/lessons',expected=401)
         self.request('/api/materials.js',expected=401)
