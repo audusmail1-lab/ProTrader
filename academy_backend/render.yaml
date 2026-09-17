@@ -10,6 +10,8 @@ services:
     buildCommand: pip install -r academy_backend/requirements.txt
     startCommand: python academy_backend/production.py
     healthCheckPath: /healthz
+    domains:
+      - protraderacademy.company
     autoDeployTrigger: 'off'
     disk:
       name: academy-data
