@@ -12,7 +12,7 @@ Preparation is in progress. Public launch has not been approved.
 | Pro Trader Academy Bot | Created as **@protrader_support_bot**. Name, description, short biography, logo and 10 commands saved through BotFather. Group invitations disabled. |
 | Bot automation | Deployed on the Academy service in owner-only preview. Real support request, image, reply and duplicate-submit tests passed. |
 | Academy entry points | Contact/footer links and Telegram privacy section deployed behind the public-launch switch; still hidden from visitors. |
-| Business automation | Copy ready. Hours, greeting, away message and quick replies are not configured: neither inspected Telegram Web client exposes these settings. |
+| Business automation | All seven native Business quick replies saved and verified: app, join, support, faq, community, updates, start. Owner opens forms because automated mouse clicks fail; keyboard entry and saving work. Greeting text and settings saved successfully: enabled, Always Send, excluding Existing Chats and Contacts. Opening hours saved and verified: Monday–Friday 09:00–17:00, weekends closed, Africa/Lagos UTC+1. Away message saved and verified: enabled outside business hours, Only if Offline off, excluding Existing Chats and Contacts. Start page copy is entered and verified but not yet saved; main profile branding and public launch remain pending. |
 | Secrets | Owner saved the token in Render Environment. The running bot successfully authenticated. No token is in these files, Git or local configuration. |
 
 The first username choice, `protraderacademy_bot`, was already taken. Do not direct users there.
@@ -71,9 +71,9 @@ PROTrader app draft: `/private/tmp/protrader-paid-hosting/protrader_mobile.html`
 
 `copy.json` is the canonical copy pack: profile biography, intro, greeting, away message, two pinned posts, all seven business quick replies, bot introduction and command descriptions. Resolve invitation placeholders from the approved links before use.
 
-Proposed support hours: Monday–Friday, 09:00–17:00 WAT (Africa/Lagos); response target 1–2 business days. The bot's menu is available whenever hosting is online; these hours describe human support.
+Saved support hours: Monday–Friday, 09:00–17:00 WAT (Africa/Lagos); response target 1–2 business days. The bot's menu is available whenever hosting is online; these hours describe human support.
 
-The main account's Business settings may require an official native Telegram client. Set greeting/away recipients to new support contacts, excluding existing personal chats and contacts. Do not connect the bot to all account conversations. Standalone bot support needs no access to the operator's unrelated chats.
+The owner has opened Business settings on the phone. Four private Saved Messages contain the full copy pack and setup defaults. The official macOS client is installed and signed in, but its content controls cannot currently be operated through the available automation; keyboard navigation can open Settings. The owner can open each native form; keyboard entry and Return then work. All seven shortcuts have been created with the approved copy and verified in the native Quick Replies list: `/app`, `/join`, `/support`, `/faq`, `/community`, `/updates` and `/start`. The greeting switch is on and its Existing Chats / Contacts exclusions are saved and verified. After verifying the exclusions, the prepared greeting text was saved. The final settings submission showed “Your Telegram Business has been updated.” The initial automatic approval block was resolved by checking the recipient scope first. Set greeting/away recipients to new support contacts, excluding existing personal chats and contacts. Do not connect the bot to all account conversations. Standalone bot support needs no access to the operator's unrelated chats.
 
 Community permits text, photos, voice messages, link previews and reactions. Member file/video/music/sticker/GIF/poll posting is disabled. Member invitations, pinning and changing group information are disabled. No paid messaging was enabled. Owner moderation remains manual.
 
@@ -83,7 +83,7 @@ Before launch, obtain approval for the drafted Telegram privacy section. Propose
 
 Daily when launched: review support requests, failures and community activity. Monthly: review unresolved tickets, inbox retention, links, contact copy and permissions. Renew Premium if native Business features are required; account currently shows a September 2027 renewal date.
 
-Back up the new database with `academy_backend/backup.py --source /var/data/academy/telegram.sqlite3 PRIVATE_DESTINATION`. Encrypt the export with the existing age public recipient before sending it off-site. Include the bot settings in the encrypted configuration archive. The September 17 off-site restore predates this Telegram database and does not cover it. Reapply deletions after restoring an older copy. Keep the bot disabled while checking restored data; inspect its outbox before reactivation.
+Back up the new database with `academy_backend/backup.py --source /var/data/academy/telegram.sqlite3 PRIVATE_DESTINATION`. Encrypt the export with the existing age public recipient before sending it off-site. Include the bot settings in the encrypted configuration archive. The September 17 off-site restore predates this Telegram database and does not cover it. On September 18, a fresh encrypted snapshot of both databases and all Academy environment settings was created with the existing age recipient. Both database exports passed integrity checks; its encrypted transfer checksum matched. Drive upload is in progress. A decryption/restore of this new encrypted archive remains pending owner access to the recovery key. Reapply deletions after restoring an older copy. Keep the bot disabled while checking restored data; inspect its outbox before reactivation.
 
 ## Validation
 
