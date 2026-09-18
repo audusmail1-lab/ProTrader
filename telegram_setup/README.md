@@ -100,7 +100,7 @@ The full Academy suite passes 24 checks (one optional SMTP integration check ski
 4. DONE — Pinned posts and invitation links are verified and published after owner approval.
 5. DONE — Native Business settings and main profile saved and verified.
 6. DONE — Owner approved public entry points, profile branding and Telegram data notice. Policy version/date updated to 18 September 2026.
-7. DONE — Public mode enabled; website/mobile flows verified; encrypted off-site snapshot and source copies uploaded. New archive decryption restore and recurring schedule remain pending owner action.
+7. DONE — Public mode enabled; website/mobile flows verified; encrypted off-site snapshot and source copies uploaded. New archive decryption restore remains pending owner recovery-key access. Owner chose manual backups on September 18.
 
 ## Phase 2
 
@@ -111,3 +111,5 @@ References: [Telegram Bot API](https://core.telegram.org/bots/api#getupdates), [
 ## Public release
 
 Owner approved launch and privacy on 18 September. Public release cf4a11d is live via Render dep-dam8f4dbedkc73af8340 (01:37:20 WAT). Unauthenticated session and live Contact/privacy screens show the official Telegram links. A fresh bot /start response passed at 01:40 WAT. PROTrader main b69999d includes the phone-tested Help button and is live. The source/data snapshot predates public activation; the launch-state record documents ACADEMY_TELEGRAM_PUBLIC=true. Native greeting/away delivery still needs a fresh external-contact check.
+
+Owner decision: keep backups manual for now; no recurring job created. PROTrader cache refresh 678bf5c follows the Help release so installed browsers can receive the update. The live desktop Help menu was verified after refreshing.

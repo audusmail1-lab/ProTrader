@@ -206,7 +206,7 @@ Off-site folder: https://drive.google.com/drive/folders/1DCoU7qOvFcBNmvEqwiJzzC8
 
 The 18 September encrypted snapshot contains both Academy and Telegram databases plus environment settings. Consistent exports and transfer checksums passed. The previous 17 September downloaded off-site archive was restored successfully; the live Telegram database also passed an isolated restore and service-restart persistence test. Decrypting and restoring the NEW encrypted archive is still pending owner access to the existing recovery identity in Google Password Manager (academy-backup.invalid). Never paste that key into chat.
 
-The snapshot predates public activation: set ACADEMY_TELEGRAM_PUBLIC=true only when deliberately restoring approved public operation. Keep Telegram, email and enrollment disabled during isolated restore tests. Latest source copies and the launch-state record accompany the backup. Recurring backups have not been scheduled yet.
+The snapshot predates public activation: set ACADEMY_TELEGRAM_PUBLIC=true only when deliberately restoring approved public operation. Keep Telegram, email and enrollment disabled during isolated restore tests. Latest source copies and the launch-state record accompany the backup. Owner chose to keep backups manual on 18 September. No recurring backup job is scheduled.
 
 ## Verification
 
@@ -215,11 +215,11 @@ The snapshot predates public activation: set ACADEMY_TELEGRAM_PUBLIC=true only w
 - Live Contact/footer and Telegram privacy content checked in the browser.
 - Bot /start returned a fresh welcome/menu after launch at 01:40 WAT.
 - Earlier live support request, optional image, owner reply, duplicate-submit protection and restart persistence passed; test ticket #1 is closed.
-- PROTrader source b69999d is published on main; the live page contains the mobile Help button and support links. At 390 px, Help opens a readable support menu and fits within the viewport.
+- PROTrader feature source b69999d is published on main; cache-refresh follow-up is 678bf5c. The live page and browser Help menu contain the mobile Help button and support links. At 390 px, Help opens a readable support menu and fits within the viewport.
 - Academy automated checks passed, including 11 bot checks; the optional SMTP integration check was skipped.
 
 ## Remaining owner actions / phase 2
 
 No public-launch approval is outstanding. A fresh visitor should confirm the native greeting and after-hours reply from a new account outside your contacts. Complete the new encrypted archive's decryption restore when the recovery identity is available privately.
 
-Recommended next step: daily encrypted off-site backups with 30-day retention, a monthly restore test, and failure alerts. This needs approval of the recurring schedule and secure cloud authorization; a reminder alone is not a backup. Later, add a teaching-dashboard view of Telegram tickets and simple FAQ editing if real usage warrants them.
+The owner chose manual backups for now. In a later phase, consider daily encrypted off-site backups with 30-day retention, a monthly restore test, and failure alerts. That would need renewed approval and secure cloud authorization; a reminder alone is not a backup. Later, add a teaching-dashboard view of Telegram tickets and simple FAQ editing if real usage warrants them.
