@@ -2,7 +2,7 @@
 
 ## Status — 18 September 2026
 
-Owner approved public Telegram launch, Academy profile branding and the Telegram privacy notice on 18 September 2026. Public activation is in progress.
+Owner approved public Telegram launch, Academy profile branding and the Telegram privacy notice on 18 September 2026. Public activation completed and verified. See OPERATING-GUIDE.md for the current links and full copy.
 
 | Surface | State |
 | --- | --- |
@@ -10,9 +10,9 @@ Owner approved public Telegram launch, Academy profile branding and the Telegram
 | Pro Trader Academy Updates | Private channel created; Academy logo, description and linked welcome post saved and pinned. |
 | Pro Trader Academy Community | Private group created and linked to the channel; logo, description, posting permissions and linked community rules saved and pinned. |
 | Pro Trader Academy Bot | Created as **@protrader_support_bot**. Name, description, short biography, logo and 10 commands saved through BotFather. Group invitations disabled. |
-| Bot automation | Deployed on the Academy service in owner-only preview. Real support request, image, reply and duplicate-submit tests passed. |
-| Academy entry points | Contact/footer links and Telegram privacy section deployed behind the public-launch switch; still hidden from visitors. |
-| Business automation | All seven native Business quick replies saved and verified: app, join, support, faq, community, updates, start. Owner opens forms because automated mouse clicks fail; keyboard entry and saving work. Greeting text and settings saved successfully: enabled, Always Send, excluding Existing Chats and Contacts. Opening hours saved and verified: Monday–Friday 09:00–17:00, weekends closed, Africa/Lagos UTC+1. Away message saved and verified: enabled outside business hours, Only if Offline off, excluding Existing Chats and Contacts. Start page saved and verified. Main-account Academy name, logo and biography saved and verified. Public activation is in progress. |
+| Bot automation | Deployed publicly on the existing Academy service after owner approval. Real support request, image, reply and duplicate-submit tests passed. |
+| Academy entry points | Contact/footer links and approved Telegram privacy section are visible to visitors. |
+| Business automation | All seven native Business quick replies saved and verified: app, join, support, faq, community, updates, start. Owner opens forms because automated mouse clicks fail; keyboard entry and saving work. Greeting text and settings saved successfully: enabled, Always Send, excluding Existing Chats and Contacts. Opening hours saved and verified: Monday–Friday 09:00–17:00, weekends closed, Africa/Lagos UTC+1. Away message saved and verified: enabled outside business hours, Only if Offline off, excluding Existing Chats and Contacts. Start page saved and verified. Main-account Academy name, logo and biography saved and verified. Public activation completed and verified. See OPERATING-GUIDE.md for the current links and full copy. |
 | Secrets | Owner saved the token in Render Environment. The running bot successfully authenticated. No token is in these files, Git or local configuration. |
 
 The first username choice, `protraderacademy_bot`, was already taken. Do not direct users there.
@@ -23,13 +23,13 @@ The first username choice, `protraderacademy_bot`, was already taken. Do not dir
 - App: https://app.protraderacademy.company
 - Application: https://protraderacademy.company/#enroll
 - Beginner route: https://protraderacademy.company/#start
-- Support bot (active for owner testing): https://t.me/protrader_support_bot
-- Operator support account: existing `@joels_t`, awaiting business profile rollout.
+- Support bot (public): https://t.me/protrader_support_bot
+- Operator support account: `@joels_t`, Academy name/logo/biography applied.
 - Updates management: https://web.telegram.org/a/#-1003552340837
 - Community management: https://web.telegram.org/a/#-1004349628698
 - Support email: support@protraderacademy.company
 
-Private invitations are kept in the ignored `links.local.json` and review document. Do not put them into a public source repository before launch approval.
+Private invitations are kept in the ignored `links.local.json` and review document. Owner approved publishing these invitations on September 18; they are now listed in OPERATING-GUIDE.md.
 
 Visitors → website Contact/footer → private bot, optional updates, optional community.
 Bot → app / application / FAQs / private support request.
@@ -65,7 +65,7 @@ Owner tools, sent privately to the bot:
 
 Check delivery failures before promising a response reached someone. Telegram can reject messages if the person blocks the bot. Queued deliveries retry temporary errors. A process crash just after a send can repeat an acknowledgment; request creation is deduplicated. Telegram holds undelivered updates for at most 24 hours, so extended hosting outages can lose incoming messages.
 
-PROTrader app draft: `/private/tmp/protrader-paid-hosting/protrader_mobile.html` adds Help links to the private bot and Academy Contact page. Do not deploy it until public launch approval.
+PROTrader app integration: `/private/tmp/protrader-paid-hosting/protrader_mobile.html` adds Help links to the private bot and Academy Contact page. Published after approval; the final mobile Help improvement is commit b69999d on main.
 
 ## Business profile and copy
 
@@ -97,13 +97,17 @@ The full Academy suite passes 24 checks (one optional SMTP integration check ski
 1. DONE — Owner privately saved token in Render.
 2. DONE — Owner identity verified from Saved Messages; private bot chat started; owner-only configuration applied.
 3. Real menu, ticket, optional image, reply, duplicate-submit protection and live database restore passed. Service restart at 00:35 WAT also passed: the saved request accepted another reply at 00:37 WAT, then was marked closed.
-4. Private pinned posts and invitation links are prepared and verified; retain private access until launch approval.
-5. Complete native Business settings where browser support is unavailable.
+4. DONE — Pinned posts and invitation links are verified and published after owner approval.
+5. DONE — Native Business settings and main profile saved and verified.
 6. DONE — Owner approved public entry points, profile branding and Telegram data notice. Policy version/date updated to 18 September 2026.
-7. Enable public mode; verify website/mobile flows and create an encrypted off-site snapshot of the new database/settings.
+7. DONE — Public mode enabled; website/mobile flows verified; encrypted off-site snapshot and source copies uploaded. New archive decryption restore and recurring schedule remain pending owner action.
 
 ## Phase 2
 
 Add a private teaching-dashboard view of Telegram tickets if needed; keep replies tied to the correct Telegram chat. Add a small FAQ editor, ticket tags and approved announcement scheduling only when usage justifies them. Set up daily encrypted backups after owner approves the recurring schedule and private cloud credentials. A reminder alone is not a backup job.
 
 References: [Telegram Bot API](https://core.telegram.org/bots/api#getupdates), [Telegram Business](https://telegram.org/blog/telegram-business), [Telegram Privacy Policy](https://telegram.org/privacy).
+
+## Public release
+
+Owner approved launch and privacy on 18 September. Public release cf4a11d is live via Render dep-dam8f4dbedkc73af8340 (01:37:20 WAT). Unauthenticated session and live Contact/privacy screens show the official Telegram links. A fresh bot /start response passed at 01:40 WAT. PROTrader main b69999d includes the phone-tested Help button and is live. The source/data snapshot predates public activation; the launch-state record documents ACADEMY_TELEGRAM_PUBLIC=true. Native greeting/away delivery still needs a fresh external-contact check.
