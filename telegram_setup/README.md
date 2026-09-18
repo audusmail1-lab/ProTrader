@@ -2,17 +2,17 @@
 
 ## Status — 18 September 2026
 
-Preparation is in progress. Public launch has not been approved.
+Owner approved public Telegram launch, Academy profile branding and the Telegram privacy notice on 18 September 2026. Public activation is in progress.
 
 | Surface | State |
 | --- | --- |
-| Main account | Premium active. Existing account name/username unchanged. |
+| Main account | Premium active. Academy name, logo and approved biography saved and verified. Username remains @joels_t. |
 | Pro Trader Academy Updates | Private channel created; Academy logo, description and linked welcome post saved and pinned. |
 | Pro Trader Academy Community | Private group created and linked to the channel; logo, description, posting permissions and linked community rules saved and pinned. |
 | Pro Trader Academy Bot | Created as **@protrader_support_bot**. Name, description, short biography, logo and 10 commands saved through BotFather. Group invitations disabled. |
 | Bot automation | Deployed on the Academy service in owner-only preview. Real support request, image, reply and duplicate-submit tests passed. |
 | Academy entry points | Contact/footer links and Telegram privacy section deployed behind the public-launch switch; still hidden from visitors. |
-| Business automation | All seven native Business quick replies saved and verified: app, join, support, faq, community, updates, start. Owner opens forms because automated mouse clicks fail; keyboard entry and saving work. Greeting text and settings saved successfully: enabled, Always Send, excluding Existing Chats and Contacts. Opening hours saved and verified: Monday–Friday 09:00–17:00, weekends closed, Africa/Lagos UTC+1. Away message saved and verified: enabled outside business hours, Only if Offline off, excluding Existing Chats and Contacts. Start page copy is entered and verified but not yet saved; main profile branding and public launch remain pending. |
+| Business automation | All seven native Business quick replies saved and verified: app, join, support, faq, community, updates, start. Owner opens forms because automated mouse clicks fail; keyboard entry and saving work. Greeting text and settings saved successfully: enabled, Always Send, excluding Existing Chats and Contacts. Opening hours saved and verified: Monday–Friday 09:00–17:00, weekends closed, Africa/Lagos UTC+1. Away message saved and verified: enabled outside business hours, Only if Offline off, excluding Existing Chats and Contacts. Start page saved and verified. Main-account Academy name, logo and biography saved and verified. Public activation is in progress. |
 | Secrets | Owner saved the token in Render Environment. The running bot successfully authenticated. No token is in these files, Git or local configuration. |
 
 The first username choice, `protraderacademy_bot`, was already taken. Do not direct users there.
@@ -79,11 +79,11 @@ Community permits text, photos, voice messages, link previews and reactions. Mem
 
 ## Data and maintenance
 
-Before launch, obtain approval for the drafted Telegram privacy section. Proposed retention: unfinished drafts up to 24 hours; closed support requests up to 12 months; monthly review of open requests and operator inbox copies. Screenshot files remain on Telegram; the server retains references. Automatic database cleanup does not delete Telegram inbox copies. Honor deletion requests in both locations.
+Owner approved the Telegram privacy section on 18 September 2026. Approved retention: unfinished drafts up to 24 hours; closed support requests up to 12 months; monthly review of open requests and operator inbox copies. Screenshot files remain on Telegram; the server retains references. Automatic database cleanup does not delete Telegram inbox copies. Honor deletion requests in both locations.
 
 Daily when launched: review support requests, failures and community activity. Monthly: review unresolved tickets, inbox retention, links, contact copy and permissions. Renew Premium if native Business features are required; account currently shows a September 2027 renewal date.
 
-Back up the new database with `academy_backend/backup.py --source /var/data/academy/telegram.sqlite3 PRIVATE_DESTINATION`. Encrypt the export with the existing age public recipient before sending it off-site. Include the bot settings in the encrypted configuration archive. The September 17 off-site restore predates this Telegram database and does not cover it. On September 18, a fresh encrypted snapshot of both databases and all Academy environment settings was created with the existing age recipient. Both database exports passed integrity checks; its encrypted transfer checksum matched. Drive upload is in progress. A decryption/restore of this new encrypted archive remains pending owner access to the recovery key. Reapply deletions after restoring an older copy. Keep the bot disabled while checking restored data; inspect its outbox before reactivation.
+Back up the new database with `academy_backend/backup.py --source /var/data/academy/telegram.sqlite3 PRIVATE_DESTINATION`. Encrypt the export with the existing age public recipient before sending it off-site. Include the bot settings in the encrypted configuration archive. The September 17 off-site restore predates this Telegram database and does not cover it. On September 18, a fresh encrypted snapshot of both databases and all Academy environment settings was created with the existing age recipient. Both database exports passed integrity checks; its encrypted transfer checksum matched. All six files were uploaded and verified present in the existing private Google Drive folder on September 18. A decryption/restore of this new encrypted archive remains pending owner access to the recovery key. Reapply deletions after restoring an older copy. Keep the bot disabled while checking restored data; inspect its outbox before reactivation.
 
 ## Validation
 
@@ -99,7 +99,7 @@ The full Academy suite passes 24 checks (one optional SMTP integration check ski
 3. Real menu, ticket, optional image, reply, duplicate-submit protection and live database restore passed. Service restart at 00:35 WAT also passed: the saved request accepted another reply at 00:37 WAT, then was marked closed.
 4. Private pinned posts and invitation links are prepared and verified; retain private access until launch approval.
 5. Complete native Business settings where browser support is unavailable.
-6. Owner approves public entry points, profile branding, hours and Telegram data notice; update the published policy date for that release.
+6. DONE — Owner approved public entry points, profile branding and Telegram data notice. Policy version/date updated to 18 September 2026.
 7. Enable public mode; verify website/mobile flows and create an encrypted off-site snapshot of the new database/settings.
 
 ## Phase 2
