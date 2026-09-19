@@ -1,5 +1,5 @@
 import fs from 'node:fs/promises';
-const ROOT='/home/user/tutorial-final';
+const ROOT='/home/user/academy-phase1';
 export default async ({project})=>{
  const all=JSON.parse(await fs.readFile(ROOT+'/timed-manifest.json','utf8'));
  const preview=process.env.PREVIEW_ONLY==='1';

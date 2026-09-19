@@ -783,20 +783,20 @@
         "asset": {
           "file": "3-1.png",
           "crop": [
-            445,
+            560,
             0,
-            715,
-            48
+            950,
+            60
           ],
-          "width": 270,
-          "height": 48,
+          "width": 390,
+          "height": 60,
           "prepared": "3-1-asset.jpg"
         },
         "highlight": [
-          67,
-          2,
-          200,
-          42
+          180,
+          3,
+          195,
+          51
         ],
         "subnote": "Illustrative practice · no live order"
       },
@@ -1521,10 +1521,10 @@
             0,
             0,
             538,
-            285
+            270
           ],
           "width": 538,
-          "height": 285,
+          "height": 270,
           "prepared": "6-6-asset.jpg"
         },
         "subnote": "Shared checks · not independent confirmation"
@@ -1573,16 +1573,13 @@
         "caption": "Tools prepare. You review and decide.",
         "focus": "Still final state",
         "asset": {
-          "file": "4-3.png",
-          "crop": [
-            0,
-            836,
-            538,
-            913
-          ],
-          "width": 538,
-          "height": 77,
-          "prepared": "6-9-asset.jpg"
+          "kind": "guide",
+          "title": "YOUR REVIEW COMES FIRST",
+          "lines": [
+            "Read the reasons",
+            "Check failed conditions",
+            "Wait when unclear"
+          ]
         },
         "subnote": "Illustrative practice · no live order"
       }
