@@ -12,7 +12,10 @@ def get(url,path):
     urllib.request.urlretrieve(url,path)
 def stamp(t):
     n=round(t*1000);return f'{n//3600000:02}:{n//60000%60:02}:{n//1000%60:02}.{n%1000:03}'
-def tokens(s): return re.findall(r"[a-z0-9]+",s.lower())
+def tokens(s):
+    s=s.lower().replace('protrader','pro trader').replace('summarises','summarizes').replace('eighty-nine','89').replace('%',' percent ')
+    s=re.sub(r'\beight\b','8',s);s=re.sub(r'\bnine\b','9',s)
+    return re.findall(r"[a-z0-9]+",s)
 
 dur=87
 opening=json.loads((ROOT/'opening-checkpoint.json').read_text())
@@ -26,14 +29,14 @@ spec=[
  (7,67,9,jobs[4]['result_url'],['New here? Choose Start Here.','Build your foundations first,','then open a short guide','when you need a specific tool.']),
  (8,76,11,jobs[5]['result_url'],['Pro Trader Academy.','Understand the tools.','Build your process.','Your first step starts here.'])
 ]
-model=WhisperModel('base',device='cpu',compute_type='int8',cpu_threads=4)
+model=WhisperModel('small',device='cpu',compute_type='int8',cpu_threads=4)
 timeline=[]; captions=[]; asr=[]
 for ix,at,window,url,phrases in spec:
     wav=ROOT/f'voice-{ix}.wav';get(url,wav)
     length=float(run('ffprobe','-v','error','-show_entries','format=duration','-of','default=nw=1:nk=1',str(wav)))
     assert length+.4 < window, (ix,length,window)
-    segs,info=model.transcribe(str(wav),language='en',word_timestamps=True,beam_size=5,initial_prompt='Pro Trader Academy. PROTrader. ARIA. Oracle. Confluence. Chart-analysis workspace.')
-    words=[{'word':w.word.strip(),'start':w.start,'end':w.end} for s in segs for w in s.words]
+    segs,info=model.transcribe(str(wav),language='en',word_timestamps=True,beam_size=5,condition_on_previous_text=False,initial_prompt='Pro Trader Academy, ARIA and Oracle.')
+    words=[{'word':w.word.strip(),'start':w.start,'end':w.end} for s in segs for w in s.words if w.end-w.start>.015 and w.start<length-.03]
     heard=[]; timed=[]
     for w in words:
         ts=tokens(w['word']);heard.extend(ts);timed.extend([w]*len(ts))
