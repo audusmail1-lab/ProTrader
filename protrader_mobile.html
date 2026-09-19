@@ -3376,8 +3376,10 @@ const DRAW = {
       case 'ray': {
         if (!b || a.x == null || b.x == null) return false;
         const dx = b.x - a.x, dy = b.y - a.y;
-        const k = dx === 0 ? 0 : (W - a.x) / dx;
-        const ex = dx === 0 ? a.x : W, ey = dx === 0 ? (dy > 0 ? H : 0) : a.y + dy * k;
+        // Extend toward whichever edge the ray was dragged toward, not always right.
+        const ex = dx === 0 ? a.x : (dx > 0 ? W : 0);
+        const k = dx === 0 ? 0 : (ex - a.x) / dx;
+        const ey = dx === 0 ? (dy > 0 ? H : 0) : a.y + dy * k;
         return this.distSeg(x, y, a.x, a.y, ex, ey) <= HIT_TOL;
       }
       case 'rect': {
@@ -3510,9 +3512,11 @@ const DRAW = {
       case 'ray': {
         if (ax == null || bx == null) break;
         const dx = bx - ax, dy = b.y - a.y;
-        const k = dx === 0 ? 0 : (W - ax) / dx;
+        // Extend toward whichever edge the ray was dragged toward, not always right.
+        const ex = dx === 0 ? ax : (dx > 0 ? W : 0);
+        const k = dx === 0 ? 0 : (ex - ax) / dx;
         ctx.beginPath(); ctx.moveTo(ax, a.y);
-        ctx.lineTo(dx === 0 ? ax : W, dx === 0 ? (dy > 0 ? H : 0) : a.y + dy * k);
+        ctx.lineTo(ex, dx === 0 ? (dy > 0 ? H : 0) : a.y + dy * k);
         ctx.stroke();
         break;
       }
