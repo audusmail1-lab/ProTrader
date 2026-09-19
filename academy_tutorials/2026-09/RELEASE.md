@@ -1,6 +1,6 @@
 # Phase 1 — Academy tutorial release
 
-Prepared 19 September 2026. Status: release candidate complete; live deployment awaits the owner's maintenance-window approval required by the original brief.
+Published 19 September 2026 after the owner approved: ‘Beautiful integrate everything to live site’. Status: live and verified at https://protraderacademy.company/#home.
 
 ## Delivered
 
@@ -44,7 +44,7 @@ Testing used a disposable local learner with outbound mail disabled. No live stu
 
 Target only the existing Academy service `srv-dam1oklbedkc73abn56g`, using `academy_backend/requirements.txt` and `academy_backend/production.py`. The Academy deployment branch is `codex/academy-launch`, with automatic deployment disabled. Confirm the approved release commit in Render, deploy, then verify `/healthz`, public captions/posters, library playback and existing access gates.
 
-The currently live Academy baseline is `b55eb4c3f5cd06ec1d8855486644614fd7e9be31`. Roll back to that commit if a post-deployment check fails. `previous-videos.json` also retains the original media URLs. This release contains no database migration or account, email, Telegram, broker or trading-engine changes.
+The previous Academy release and rollback target is `b55eb4c3f5cd06ec1d8855486644614fd7e9be31`. Roll back to that commit if a post-deployment check fails. `previous-videos.json` also retains the original media URLs. This release contains no database migration or account, email, Telegram, broker or trading-engine changes.
 
 The owner's app remains on main commit `678bf5c4aa0b2032801f585de9b17b87607962a9`; it is outside this deployment.
 
@@ -71,4 +71,16 @@ Full-film review: http://127.0.0.1:8781/opening-review.html?film=complete
 Academy preview: http://127.0.0.1:8782/#home
 Production metadata: `intro/film-checkpoint.json`, `intro/quality.json`, `intro/intro.vtt`.
 
-**Not deployed:** this release remains on the tutorial feature branch. The live Academy and the owner’s trading app have not been redeployed. The original brief’s restriction on deploying during active market hours still applies.
+## Live deployment and verification — 19 September 2026
+
+The owner explicitly approved publishing the completed work. The Academy deployment branch was fast-forwarded to `dbef8a57c7be8a81be5a7f7e765e740afcbefc3d`. Render deployment `dep-dandlhbm8hqs73avnpug` succeeded in 46.7 seconds and is Live. Automatic deployment remains off. The separate trading app was not redeployed.
+
+Post-deployment checks passed:
+- `/healthz` returned healthy. All 27 checked public files matched the approved release byte for byte, including the page, scripts, styles, eight caption files and nine posters.
+- All nine video files returned successful video responses: seven tutorials and both intro editions.
+- Anonymous access to lessons, materials, classroom, questions and administration returned 401. Private source/config paths remained unavailable (404). No student records or outgoing messages were created for testing.
+- Desktop introduction played from the Oracle transcript timestamp with the expected 87-second landscape source. Escape removed playback and restored focus.
+- At a 375-pixel viewport the portrait introduction used its correct source and width, English captions loaded and were enabled, and playback from 1:16 reached the end. The completion message and Begin the basics handoff worked.
+- Library category filtering, Oracle search, keyboard clearing back to all seven guides, and the 62-second Oracle tutorial playback passed. Homepage, player, library and beginner handoff had no page-wide phone overflow. No browser console errors were observed.
+
+Evidence: `live-verification.json`. Responsive verification uses Chrome viewport simulation; physical-device Safari testing remains unperformed. Runtime remains on the exact approved code commit; later documentation commits do not require another deployment.

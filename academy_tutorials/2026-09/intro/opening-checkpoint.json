@@ -1,5 +1,5 @@
 {
-  "status": "approved_full_film_completed",
+  "status": "approved_full_film_live",
   "voice": {
     "name": "Callan",
     "type": "preset",
@@ -33,6 +33,6 @@
   },
   "captions": "opening.vtt is the corrected, phrase-aligned source. The first-pass cloud review archive has draft machine-grouped captions; use this repository version.",
   "fullFilmRendered": true,
-  "deployed": false,
-  "next": "Full film and local Academy integration ready for review. Live deployment remains separate."
+  "deployed": true,
+  "next": "Full film and all seven guides are live in the Academy. See film-checkpoint.json and ../live-verification.json."
 }

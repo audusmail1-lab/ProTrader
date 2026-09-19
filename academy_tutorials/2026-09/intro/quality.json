@@ -53,7 +53,7 @@
     "captionSource": "intro.vtt",
     "sourceScreens": "Sanitised local demonstration screens; no real learner records",
     "backendRegressionTests": 16,
-    "deployed": false,
+    "deployed": true,
     "browserPlayback": {
       "landscape": true,
       "portraitToEnd": true,
@@ -70,6 +70,7 @@
       768,
       1169
     ],
-    "physicalDeviceTesting": false
+    "physicalDeviceTesting": false,
+    "liveVerification": "../live-verification.json"
   }
 }

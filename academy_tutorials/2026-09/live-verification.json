@@ -1,0 +1,307 @@
+{
+  "checkedAtUTC": "2026-09-19T18:58:41.032033+00:00",
+  "releaseCommit": "dbef8a57c7be8a81be5a7f7e765e740afcbefc3d",
+  "renderDeploy": "dep-dandlhbm8hqs73avnpug",
+  "site": "https://protraderacademy.company",
+  "health": {
+    "status": 200,
+    "healthy": true
+  },
+  "assets": [
+    {
+      "file": "live.html",
+      "status": 200,
+      "contentType": "text/html; charset=utf-8",
+      "matchesRelease": true
+    },
+    {
+      "file": "live.js",
+      "status": 200,
+      "contentType": "text/javascript; charset=utf-8",
+      "matchesRelease": true
+    },
+    {
+      "file": "live.css",
+      "status": 200,
+      "contentType": "text/css; charset=utf-8",
+      "matchesRelease": true
+    },
+    {
+      "file": "styles.css",
+      "status": 200,
+      "contentType": "text/css; charset=utf-8",
+      "matchesRelease": true
+    },
+    {
+      "file": "public-content.js",
+      "status": 200,
+      "contentType": "text/javascript; charset=utf-8",
+      "matchesRelease": true
+    },
+    {
+      "file": "public-intro.js",
+      "status": 200,
+      "contentType": "text/javascript; charset=utf-8",
+      "matchesRelease": true
+    },
+    {
+      "file": "public-pages.js",
+      "status": 200,
+      "contentType": "text/javascript; charset=utf-8",
+      "matchesRelease": true
+    },
+    {
+      "file": "video-player.js",
+      "status": 200,
+      "contentType": "text/javascript; charset=utf-8",
+      "matchesRelease": true
+    },
+    {
+      "file": "video-library.js",
+      "status": 200,
+      "contentType": "text/javascript; charset=utf-8",
+      "matchesRelease": true
+    },
+    {
+      "file": "intro-video.js",
+      "status": 200,
+      "contentType": "text/javascript; charset=utf-8",
+      "matchesRelease": true
+    },
+    {
+      "file": "captions/intro.vtt",
+      "status": 200,
+      "contentType": "text/vtt; charset=utf-8",
+      "matchesRelease": true
+    },
+    {
+      "file": "posters/intro-landscape.jpg",
+      "status": 200,
+      "contentType": "image/jpeg; charset=utf-8",
+      "matchesRelease": true
+    },
+    {
+      "file": "posters/intro-portrait.jpg",
+      "status": 200,
+      "contentType": "image/jpeg; charset=utf-8",
+      "matchesRelease": true
+    },
+    {
+      "file": "captions/tutorial-0.vtt",
+      "status": 200,
+      "contentType": "text/vtt; charset=utf-8",
+      "matchesRelease": true
+    },
+    {
+      "file": "captions/tutorial-1.vtt",
+      "status": 200,
+      "contentType": "text/vtt; charset=utf-8",
+      "matchesRelease": true
+    },
+    {
+      "file": "captions/tutorial-2.vtt",
+      "status": 200,
+      "contentType": "text/vtt; charset=utf-8",
+      "matchesRelease": true
+    },
+    {
+      "file": "captions/tutorial-3.vtt",
+      "status": 200,
+      "contentType": "text/vtt; charset=utf-8",
+      "matchesRelease": true
+    },
+    {
+      "file": "captions/tutorial-4.vtt",
+      "status": 200,
+      "contentType": "text/vtt; charset=utf-8",
+      "matchesRelease": true
+    },
+    {
+      "file": "captions/tutorial-5.vtt",
+      "status": 200,
+      "contentType": "text/vtt; charset=utf-8",
+      "matchesRelease": true
+    },
+    {
+      "file": "captions/tutorial-6.vtt",
+      "status": 200,
+      "contentType": "text/vtt; charset=utf-8",
+      "matchesRelease": true
+    },
+    {
+      "file": "posters/tutorial-0.jpg",
+      "status": 200,
+      "contentType": "image/jpeg; charset=utf-8",
+      "matchesRelease": true
+    },
+    {
+      "file": "posters/tutorial-1.jpg",
+      "status": 200,
+      "contentType": "image/jpeg; charset=utf-8",
+      "matchesRelease": true
+    },
+    {
+      "file": "posters/tutorial-2.jpg",
+      "status": 200,
+      "contentType": "image/jpeg; charset=utf-8",
+      "matchesRelease": true
+    },
+    {
+      "file": "posters/tutorial-3.jpg",
+      "status": 200,
+      "contentType": "image/jpeg; charset=utf-8",
+      "matchesRelease": true
+    },
+    {
+      "file": "posters/tutorial-4.jpg",
+      "status": 200,
+      "contentType": "image/jpeg; charset=utf-8",
+      "matchesRelease": true
+    },
+    {
+      "file": "posters/tutorial-5.jpg",
+      "status": 200,
+      "contentType": "image/jpeg; charset=utf-8",
+      "matchesRelease": true
+    },
+    {
+      "file": "posters/tutorial-6.jpg",
+      "status": 200,
+      "contentType": "image/jpeg; charset=utf-8",
+      "matchesRelease": true
+    }
+  ],
+  "accessGates": [
+    {
+      "path": "/api/lessons",
+      "status": 401,
+      "expected": 401,
+      "passed": true
+    },
+    {
+      "path": "/api/materials.js",
+      "status": 401,
+      "expected": 401,
+      "passed": true
+    },
+    {
+      "path": "/api/classroom",
+      "status": 401,
+      "expected": 401,
+      "passed": true
+    },
+    {
+      "path": "/api/questions",
+      "status": 401,
+      "expected": 401,
+      "passed": true
+    },
+    {
+      "path": "/api/admin",
+      "status": 401,
+      "expected": 401,
+      "passed": true
+    },
+    {
+      "path": "/practice.js",
+      "status": 404,
+      "expected": 404,
+      "passed": true
+    },
+    {
+      "path": "/content.js",
+      "status": 404,
+      "expected": 404,
+      "passed": true
+    },
+    {
+      "path": "/academy.config.local.json",
+      "status": 404,
+      "expected": 404,
+      "passed": true
+    }
+  ],
+  "media": [
+    {
+      "url": "https://d2ol7oe51mr4n9.cloudfront.net/user_3JK9HzQtMubHcINDjvbZuTRS9eo/48690f9c-8b1f-4c7d-9a96-1fc9874079b1.mp4",
+      "status": 200,
+      "contentType": "video/mp4",
+      "bytes": "2110641",
+      "passed": true
+    },
+    {
+      "url": "https://d2ol7oe51mr4n9.cloudfront.net/user_3JK9HzQtMubHcINDjvbZuTRS9eo/4c0b4dcc-b2a9-4bd4-91c2-cd39a12d9a65.mp4",
+      "status": 200,
+      "contentType": "video/mp4",
+      "bytes": "2836150",
+      "passed": true
+    },
+    {
+      "url": "https://d2ol7oe51mr4n9.cloudfront.net/user_3JK9HzQtMubHcINDjvbZuTRS9eo/67b5adec-fd4e-4a20-8d8c-f2b73964b7d6.mp4",
+      "status": 200,
+      "contentType": "video/mp4",
+      "bytes": "3086122",
+      "passed": true
+    },
+    {
+      "url": "https://d2ol7oe51mr4n9.cloudfront.net/user_3JK9HzQtMubHcINDjvbZuTRS9eo/91274c1c-7032-4d86-8d3c-5425e42a2f61.mp4",
+      "status": 200,
+      "contentType": "video/mp4",
+      "bytes": "1937504",
+      "passed": true
+    },
+    {
+      "url": "https://d2ol7oe51mr4n9.cloudfront.net/user_3JK9HzQtMubHcINDjvbZuTRS9eo/9a6f4bd1-e9f3-4d6b-8fe2-f93e9e8997db.mp4",
+      "status": 200,
+      "contentType": "video/mp4",
+      "bytes": "2683702",
+      "passed": true
+    },
+    {
+      "url": "https://d2ol7oe51mr4n9.cloudfront.net/user_3JK9HzQtMubHcINDjvbZuTRS9eo/a965a2d4-c34c-456a-9594-8d0def6585dc.mp4",
+      "status": 200,
+      "contentType": "video/mp4",
+      "bytes": "15221112",
+      "passed": true
+    },
+    {
+      "url": "https://d2ol7oe51mr4n9.cloudfront.net/user_3JK9HzQtMubHcINDjvbZuTRS9eo/d184fbea-5e60-44b9-8804-62da566b4d6b.mp4",
+      "status": 200,
+      "contentType": "video/mp4",
+      "bytes": "2310807",
+      "passed": true
+    },
+    {
+      "url": "https://d2ol7oe51mr4n9.cloudfront.net/user_3JK9HzQtMubHcINDjvbZuTRS9eo/daa23f92-2667-4f55-9585-7979ea50666c.mp4",
+      "status": 200,
+      "contentType": "video/mp4",
+      "bytes": "2286385",
+      "passed": true
+    },
+    {
+      "url": "https://d2ol7oe51mr4n9.cloudfront.net/user_3JK9HzQtMubHcINDjvbZuTRS9eo/e953c85b-8e92-4af2-97ab-2f2e92498359.mp4",
+      "status": 200,
+      "contentType": "video/mp4",
+      "bytes": "14739039",
+      "passed": true
+    }
+  ],
+  "passed": true,
+  "browser": {
+    "desktopWidth": 1169,
+    "phoneWidth": 375,
+    "introLandscapePlayback": true,
+    "introPortraitPlayedToEnd": true,
+    "englishCaptionsLoadedAndEnabled": true,
+    "transcriptSeek": true,
+    "beginnerHandoff": true,
+    "keyboardCloseAndFocusReturn": true,
+    "libraryCategoryFilter": true,
+    "librarySearchAndKeyboardClear": true,
+    "allGuidesCount": 7,
+    "oraclePlaybackSeconds": 62,
+    "noPageOverflowOnCheckedRoutes": true,
+    "consoleErrors": 0,
+    "physicalDeviceTesting": false
+  }
+}

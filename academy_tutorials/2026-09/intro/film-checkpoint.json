@@ -1,5 +1,5 @@
 {
-  "status": "complete_in_local_academy_preview",
+  "status": "live_verified",
   "durationSeconds": 87,
   "voice": "Callan",
   "landscape": "https://d2ol7oe51mr4n9.cloudfront.net/user_3JK9HzQtMubHcINDjvbZuTRS9eo/e953c85b-8e92-4af2-97ab-2f2e92498359.mp4",
@@ -9,6 +9,14 @@
   "review": "http://127.0.0.1:8781/opening-review.html?film=complete",
   "academyPreview": "http://127.0.0.1:8782/#home",
   "approvedByOwner": "19 September 2026, after the Callan opening preview",
-  "deployed": false,
-  "verification": "quality.json"
+  "deployed": true,
+  "verification": "quality.json",
+  "deployment": {
+    "site": "https://protraderacademy.company/#home",
+    "commit": "dbef8a57c7be8a81be5a7f7e765e740afcbefc3d",
+    "renderDeploy": "dep-dandlhbm8hqs73avnpug",
+    "date": "2026-09-19",
+    "status": "live_verified",
+    "authorization": "Owner: Beautiful integrate everything to live site"
+  }
 }
