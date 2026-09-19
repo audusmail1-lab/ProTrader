@@ -1,0 +1,75 @@
+{
+  "landscape": {
+    "duration": 87.0,
+    "width": 1920,
+    "height": 1080,
+    "fps": "30/1",
+    "codec": "h264",
+    "audioCodec": "aac",
+    "sampleRate": "48000",
+    "allFramesDecode": true,
+    "loudness": {
+      "input_i": "-17.35",
+      "input_tp": "-1.52",
+      "input_lra": "5.30",
+      "input_thresh": "-27.61",
+      "output_i": "-16.87",
+      "output_tp": "-1.50",
+      "output_lra": "4.70",
+      "output_thresh": "-27.05",
+      "normalization_type": "dynamic",
+      "target_offset": "-0.13"
+    },
+    "bytes": 14739039
+  },
+  "portrait": {
+    "duration": 87.0,
+    "width": 1080,
+    "height": 1920,
+    "fps": "30/1",
+    "codec": "h264",
+    "audioCodec": "aac",
+    "sampleRate": "48000",
+    "allFramesDecode": true,
+    "loudness": {
+      "input_i": "-17.35",
+      "input_tp": "-1.52",
+      "input_lra": "5.30",
+      "input_thresh": "-27.61",
+      "output_i": "-16.87",
+      "output_tp": "-1.50",
+      "output_lra": "4.70",
+      "output_thresh": "-27.05",
+      "normalization_type": "dynamic",
+      "target_offset": "-0.13"
+    },
+    "bytes": 15221112
+  },
+  "validation": {
+    "blackIntervalsAtLeastPoint3Seconds": 0,
+    "captionCues": 26,
+    "narrationReview": "All seven takes transcribed and aligned with the approved script. Numerical and spelling differences reviewed against isolated recognition.",
+    "voiceSpeedChanged": false,
+    "captionSource": "intro.vtt",
+    "sourceScreens": "Sanitised local demonstration screens; no real learner records",
+    "backendRegressionTests": 16,
+    "deployed": false,
+    "browserPlayback": {
+      "landscape": true,
+      "portraitToEnd": true,
+      "durationSeconds": 87
+    },
+    "captionsLoadedAndEnabled": true,
+    "transcriptSeek": true,
+    "beginnerHandoff": true,
+    "keyboardCloseAndFocusReturn": true,
+    "mediaFailureFallback": true,
+    "existingTutorialLayoutPreserved": true,
+    "responsiveWidthsWithoutOverflow": [
+      375,
+      768,
+      1169
+    ],
+    "physicalDeviceTesting": false
+  }
+}

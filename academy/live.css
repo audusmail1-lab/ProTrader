@@ -42,6 +42,18 @@
 .tutorial-transcript p { margin: 16px 0; }
 .tutorial-transcript button { border: 0; background: transparent; padding: 8px 8px 8px 0; min-height: 44px; font: inherit; cursor: pointer; }
 .hero-visual video { width: 100%; height: auto; max-height: none; aspect-ratio: 9/16; object-fit: contain; }
+.intro-hero { align-self: center; }
+.intro-film-preview { display: block; position: relative; width: 100%; padding: 0; border: 0; background: #070b08; color: var(--text); text-align: left; cursor: pointer; }
+.intro-film-preview img { display: block; width: 100%; height: auto; aspect-ratio: 16/9; }
+.intro-play-label { display: flex; align-items: center; justify-content: center; gap: 12px; min-height: 60px; padding: 14px 18px; background: var(--lime); color: var(--ink); font-size: 14px; font-weight: 600; }
+.intro-film-summary { padding: 24px; }
+.intro-film-summary h3 { font-size: clamp(24px, 2.6vw, 32px); }
+.intro-film-summary p { margin-top: 12px; font-size: 15px; }
+.intro-transcript-link { background: transparent; color: var(--lime); border: 0; padding: 14px 0 0; min-height: 44px; font: inherit; font-size: 14px; text-decoration: underline; cursor: pointer; }
+#player.intro-player[data-format="landscape"] #player-content { grid-template-columns: minmax(0, 1fr); }
+#player.intro-player[data-format="landscape"] video { aspect-ratio: 16/9; }
+#player.intro-player .music-credit { margin-top: 24px; font-size: 12px; }
+.music-credit a { color: var(--lime); text-decoration: underline; }
 @media (min-width: 761px) {
   #player-content { grid-template-columns: minmax(300px, min(440px, calc(51.75dvh - 82px))) minmax(0, 1fr); }
 }

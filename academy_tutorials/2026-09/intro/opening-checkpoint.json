@@ -1,5 +1,5 @@
 {
-  "status": "opening_ready_awaiting_new_intro_storyboard_approval",
+  "status": "approved_full_film_completed",
   "voice": {
     "name": "Callan",
     "type": "preset",
@@ -32,7 +32,7 @@
     "chapterTargetHeight": 44
   },
   "captions": "opening.vtt is the corrected, phrase-aligned source. The first-pass cloud review archive has draft machine-grouped captions; use this repository version.",
-  "fullFilmRendered": false,
+  "fullFilmRendered": true,
   "deployed": false,
-  "next": "Owner reviews new 84-second storyboard and opening direction before full render. Academy deployment approval remains separate."
+  "next": "Full film and local Academy integration ready for review. Live deployment remains separate."
 }

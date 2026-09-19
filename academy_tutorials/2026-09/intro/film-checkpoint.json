@@ -1,0 +1,14 @@
+{
+  "status": "complete_in_local_academy_preview",
+  "durationSeconds": 87,
+  "voice": "Callan",
+  "landscape": "https://d2ol7oe51mr4n9.cloudfront.net/user_3JK9HzQtMubHcINDjvbZuTRS9eo/e953c85b-8e92-4af2-97ab-2f2e92498359.mp4",
+  "portrait": "https://d2ol7oe51mr4n9.cloudfront.net/user_3JK9HzQtMubHcINDjvbZuTRS9eo/a965a2d4-c34c-456a-9594-8d0def6585dc.mp4",
+  "qualityArchive": "https://d2ol7oe51mr4n9.cloudfront.net/user_3JK9HzQtMubHcINDjvbZuTRS9eo/3e141c13-51a1-422a-b744-41e7431409bb.zip",
+  "music": "Neon (No Melody) by Scott Buckley, CC BY 4.0",
+  "review": "http://127.0.0.1:8781/opening-review.html?film=complete",
+  "academyPreview": "http://127.0.0.1:8782/#home",
+  "approvedByOwner": "19 September 2026, after the Callan opening preview",
+  "deployed": false,
+  "verification": "quality.json"
+}

@@ -28,22 +28,13 @@ Music brief: original or appropriately licensed instrumental electronic track, a
 
 The first native style-frame archive is an exploration only. It predates this reference and should not be promoted to a final render unchanged. Build a revised 15–20-second voice-and-visual sample, then obtain the owner's required storyboard approval before rendering the complete film.
 
-## Current checkpoint
+## Completed production checkpoint — 19 September 2026
 
-- Script: drafted; accurate shared-check wording and beginner journey retained.
-- Voice: Arthur rejected. Owner selected Callan; opening audition completed.
-- Narration: Callan opening generated, job 96890971-4e53-4b45-92bf-fcbee5980d4e. The Arthur take is excluded.
-- Music: licensed trial uses Origami by Scott Buckley (CC BY 4.0), credited on the review page and in MUSIC-CREDIT.txt.
-- Video: revised 19-second Callan opening rendered at 1920 × 1080 / 30 fps with music and animated captions. Browser playback and 375 px review-page checks passed. Full film pending storyboard approval; not added to homepage or deployed.
-- Guide library: local searchable categories added; search, empty-state recovery, category filtering and modal opening checked. Phone check at 375 px passed with no page overflow, 45 px category controls and keyboard focus restored after Escape.
-- Focused backend checks: public/private asset separation and account/classroom gates passed. Existing seven lesson-video IDs preserved.
-- Publication: no live deployment. The prior required deployment approval remains pending.
-
-## Continue production
-
-1. DONE: owner selected Callan and the opening audition was generated.
-2. DONE for opening: revised native visuals. Full portrait composition remains part of final production.
-3. Present the corrected storyboard and the revised voice/visual sample together for approval.
-4. Produce the complete narration, licensed/original music mix, landscape and portrait compositions, captions and transcript.
-5. Replace the ticket-led homepage hero with the finished introductory film. Keep the category ribbon and feature library below it.
-6. Run playback, caption, responsive, accessibility and route checks; update the release report; obtain the already-required deployment-window approval before publishing.
+- Owner approved Callan’s opening and the complete film. All seven full-film narration takes use Callan at their original speed.
+- Final duration: 87 seconds, in landscape and independently composed portrait editions.
+- Final music: “Neon” (No Melody) by Scott Buckley, CC BY 4.0. The earlier 19-second audition used “Origami”; that trial soundtrack was replaced after the owner requested more electric energy.
+- Homepage: the introduction replaces the ticket-first hero. Begin the basics opens Start Here. The category ribbon and searchable feature library remain below the hero.
+- Verification: all scene frames inspected, full-file decoding and audio checks completed, captions and transcript included. Phone playback to completion, desktop playback, seeking, failure fallback, keyboard closing and the beginner handoff passed. No horizontal overflow at the tested 375, 768 and 1169 px widths.
+- Existing seven curriculum videos and lesson IDs are unchanged. Sixteen focused backend regression tests passed.
+- Full links and production metadata: `film-checkpoint.json` and `quality.json`.
+- Publication: feature branch and local preview only; no live deployment. The original brief’s restriction on deployment during active market hours remains in effect.

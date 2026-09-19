@@ -1,10 +1,10 @@
 # Pro Trader Academy — Clarity starts here
 
-Status: full film approved by the owner on 19 September 2026, following the Callan opening preview. Produce the complete film with a more electric licensed soundtrack. This is a new introduction, separate from the seven approved feature tutorials. Live deployment remains a separate approval.
+Status: full film approved by the owner on 19 September 2026, following the Callan opening preview. The complete 87-second film is rendered with a more electric licensed soundtrack and integrated in the local Academy preview. This is a new introduction, separate from the seven approved feature tutorials. Live deployment remains a separate approval.
 
 ## Direction
 
-An 84-second product introduction. Original Academy branding: near-black, warm white, restrained lime, generous space, large typography and genuine PROTrader interface crops. Premium product-launch rhythm with smooth, deliberate movement. Explain the ecosystem before mechanics. No simulated hardware, invented execution interface, flashing formula vortex or unverified performance claim.
+An approximately 84-second product introduction; the completed cut runs 87 seconds, preserving natural speech and a clear closing hold. Original Academy branding: near-black, warm white, restrained lime, generous space, large typography and genuine PROTrader interface crops. Premium product-launch rhythm with smooth, deliberate movement. Explain the ecosystem before mechanics. No simulated hardware, invented execution interface, flashing formula vortex or unverified performance claim.
 
 Voice direction: energetic, warm, confident and curious. An inviting lift on the opening question; clear emphasis on the short verbs. Allow a full breath at each transition. The technical explanation slows down. Finish with conviction, without shouting. Arthur was explicitly rejected by the owner as too dull. The owner selected Callan (preset d8061b90-ff25-5882-8384-7a6a28806f30). The owner approved his opening audition; retain that recording and use Callan for the remaining scenes. Do not equate higher playback speed with excitement.
 

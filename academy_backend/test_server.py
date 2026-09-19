@@ -115,6 +115,8 @@ class AcademyTests(unittest.TestCase):
     def test_public_captions_do_not_expand_private_asset_access(self):
         for i in range(7):
             self.assertTrue(self.request(f'/captions/tutorial-{i}.vtt').startswith('WEBVTT\n'))
+        self.assertTrue(self.request('/captions/intro.vtt').startswith('WEBVTT\n'))
+        self.assertIn('introVideo', self.request('/intro-video.js'))
         self.assertIn('createVideoPlayer',self.request('/video-player.js'))
         conn=http.client.HTTPConnection('127.0.0.1',self.port,timeout=5)
         conn.request('GET','/posters/tutorial-6.jpg')
@@ -123,9 +125,18 @@ class AcademyTests(unittest.TestCase):
         self.assertTrue(poster.getheader('Content-Type').startswith('image/jpeg'))
         self.assertTrue(poster.read().startswith(b'\xff\xd8'))
         conn.close()
+        for name in ['intro-landscape.jpg', 'intro-portrait.jpg']:
+            conn=http.client.HTTPConnection('127.0.0.1',self.port,timeout=5)
+            conn.request('GET','/posters/'+name)
+            response=conn.getresponse()
+            self.assertEqual(response.status,200)
+            self.assertTrue(response.getheader('Content-Type').startswith('image/jpeg'))
+            self.assertTrue(response.read().startswith(b'\xff\xd8'))
+            conn.close()
         for path in ['/captions/tutorial-7.vtt','/captions/../practice.js',
                      '/captions/%2e%2e/academy.sqlite3','/captions/production-review.zip',
-                     '/posters/tutorial-7.jpg','/posters/../academy.sqlite3']:
+                     '/posters/tutorial-7.jpg','/posters/../academy.sqlite3',
+                     '/intro/voice-jobs.json','/posters/intro-source.zip']:
             self.request(path,expected=404)
         self.request('/api/materials.js',expected=401)
 

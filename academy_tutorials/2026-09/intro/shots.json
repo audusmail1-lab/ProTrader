@@ -1,0 +1,57 @@
+[
+  {
+    "at": 0,
+    "dur": 3.48,
+    "name": "01 Your next step"
+  },
+  {
+    "at": 3.48,
+    "dur": 2.84,
+    "name": "02 Academy reveal"
+  },
+  {
+    "at": 6.32,
+    "dur": 6.34,
+    "name": "03 Explore your workspace"
+  },
+  {
+    "at": 12.66,
+    "dur": 5.34,
+    "name": "04 Practise with purpose"
+  },
+  {
+    "at": 18,
+    "dur": 12,
+    "name": "05 ARIA explains the checks"
+  },
+  {
+    "at": 30,
+    "dur": 15,
+    "name": "06 Confluence is a count"
+  },
+  {
+    "at": 45,
+    "dur": 9,
+    "name": "07 Your own reasoning"
+  },
+  {
+    "at": 54,
+    "dur": 6.519999999999996,
+    "name": "08 Save a practice reflection"
+  },
+  {
+    "at": 60.519999999999996,
+    "dur": 6.480000000000004,
+    "name": "09 Ask a lesson question"
+  },
+  {
+    "at": 67,
+    "dur": 9,
+    "name": "10 Your beginner route"
+  },
+  {
+    "at": 76,
+    "dur": 11,
+    "name": "11 Begin the basics"
+  }
+]

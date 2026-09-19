@@ -1,0 +1,37 @@
+[
+  {
+    "index": 1,
+    "recognized": "What if your next step was clearer? Welcome to Pro Trader Academy. Learn the foundations. Explore Pro Trader, your chart analysis workspace. Then turn what you learn into guided practice.",
+    "alignmentRatio": 1.0
+  },
+  {
+    "index": 3,
+    "recognized": "Start with ARIA. It explains market conditions and the checks behind a setup, so you can understand the reasoning, including when the conditions say wait.",
+    "alignmentRatio": 1.0
+  },
+  {
+    "index": 4,
+    "recognized": "Oracle summarizes those same checks. In this example, 8 out of 9 agree. About 89 % confluence. That is accounts of matching conditions, not a win probability.",
+    "alignmentRatio": 0.9455
+  },
+  {
+    "index": 5,
+    "recognized": "Compare the output with the chart and your own reasoning. The tools support your review. You stay in control.",
+    "alignmentRatio": 1.0
+  },
+  {
+    "index": 6,
+    "recognized": "In the Academy, follow a guided lesson, practice with a supplied example, and save your notes. Ask a question whenever you need help. Your instructor replies in the same thread.",
+    "alignmentRatio": 0.9667
+  },
+  {
+    "index": 7,
+    "recognized": "New here? Choose Start Here. Build your foundations first, then open a short guide when you need a specific tool.",
+    "alignmentRatio": 1.0
+  },
+  {
+    "index": 8,
+    "recognized": "Pro Trader Academy, understand the tools, build your process. Your first step starts here.",
+    "alignmentRatio": 1.0
+  }
+]

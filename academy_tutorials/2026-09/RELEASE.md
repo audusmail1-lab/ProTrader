@@ -16,7 +16,7 @@ Prepared 19 September 2026. Status: release candidate complete; live deployment 
 
 All seven use 1080 × 1920, 24 fps H.264 video and 48 kHz AAC narration. Individual files are approximately 1.9–3.1 MB. Introductions last five seconds; subsequent steps hold for five seconds or longer. Trade ticket and Oracle receive additional time for their more involved explanations.
 
-The homepage, video library and existing lesson associations use the new files. Accurate duration labels, readable poster images, optional English captions and complete timestamped transcripts are included. Closing a tutorial stops playback and restores keyboard focus. Opening a tutorial preserves unsaved lesson notes. Unavailable media displays a written fallback and opens the transcript.
+The video library and existing lesson associations use the new files. The homepage now leads with the separate Academy introduction described below. Accurate duration labels, readable poster images, optional English captions and complete timestamped transcripts are included. Closing a tutorial stops playback and restores keyboard focus. Opening a tutorial preserves unsaved lesson notes. Unavailable media displays a written fallback and opens the transcript.
 
 Phone lessons contain wide practice tables inside horizontally scrollable, keyboard-focusable regions. The video retains a readable width on phones. Desktop media and controls fit the available dialog height, with a persistent close control. Editing saved practice notes clears the old success message until the next save.
 
@@ -51,3 +51,24 @@ The owner's app remains on main commit `678bf5c4aa0b2032801f585de9b17b87607962a9
 ## Next work, outside this release
 
 Confirm class dates and run one coached lesson with the first learners. Structured exercise submission, instructor review and retries remain a separate product decision. Student practice-account isolation, misleading funding controls and any Deriv integration require the separate architecture review before implementation. Keep backups manual unless the owner changes that preference.
+
+## Approved Academy introduction — completed 19 September 2026
+
+The owner approved Callan’s opening audition and the complete introduction, asking for more electric music. The final film runs **1:27** in both 1920 × 1080 and separately composed 1080 × 1920 editions, at 30 fps. It uses Callan throughout and “Neon” (No Melody) by Scott Buckley under CC BY 4.0. The creator’s credit and licence link are included beside the player. The reference video’s soundtrack was not copied. Any YouTube upload must also include the music credit in its description.
+
+The homepage now leads with the introduction, a Begin the basics link and a category ribbon. The searchable guide library keeps all seven feature guides, with unchanged curriculum IDs. The overview is a separate public video (ID 7), outside the seven lesson associations. Selecting it loads the edition appropriate to the viewport; resizing during playback does not restart the film. Its thumbnail does not download the movie until the player is opened.
+
+The script accurately describes ARIA and Oracle as views sharing checks, and explains eight of nine as about 89% confluence, not a win probability. It shows genuine chart, practice-note and question screens with fictional local data. Instructor replies remain manual.
+
+Validation for this addition:
+- Both films fully decoded: 87 seconds, H.264 / AAC, 48 kHz; about 15 MB per edition. No black intervals lasting 0.3 seconds or more at the configured detection threshold. Integrated loudness −17.35 LUFS, true peak −1.52 dBTP.
+- All scene keyframes reviewed in both compositions. Mobile ARIA spacing and question-panel scale corrected after review. Phrase-aligned captions, full narration and seven seekable transcript sections included.
+- Desktop playback, portrait playback to completion, English caption loading and enabling, seeking, keyboard close/focus return, failed-media fallback, and the Begin the basics handoff verified in Chrome. Existing tutorial layout restored correctly after viewing the intro.
+- Homepage / player checks at 375, 768 and 1169 pixels found no horizontal overflow. Viewport simulation was used; physical-device Safari playback was not tested.
+- 16 focused Academy server, welcome-email and delivery tests passed. New public files are explicitly allowlisted; private lesson/material gates remain closed to anonymous users. JavaScript syntax and whitespace checks passed.
+
+Full-film review: http://127.0.0.1:8781/opening-review.html?film=complete
+Academy preview: http://127.0.0.1:8782/#home
+Production metadata: `intro/film-checkpoint.json`, `intro/quality.json`, `intro/intro.vtt`.
+
+**Not deployed:** this release remains on the tutorial feature branch. The live Academy and the owner’s trading app have not been redeployed. The original brief’s restriction on deploying during active market hours still applies.
