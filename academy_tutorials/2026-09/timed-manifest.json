@@ -1,0 +1,2314 @@
+[
+  {
+    "id": 0,
+    "title": "Know your trade ticket",
+    "duration": 66,
+    "shots": [
+      {
+        "at": 0,
+        "dur": 5,
+        "action": "Show labelled paper ticket",
+        "caption": "Prepare a paper trade before acting.",
+        "focus": "Still introduction",
+        "asset": {
+          "file": "0-0.png",
+          "crop": [
+            0,
+            0,
+            538,
+            730
+          ],
+          "width": 538,
+          "height": 730,
+          "prepared": "0-0-asset.jpg"
+        },
+        "subnote": "Illustrative practice \u00b7 no live order",
+        "audio_from": 0.10675,
+        "audio_to": 2.29667,
+        "narration": "Prepare a paper trade before acting.",
+        "audio_lead": 0.18
+      },
+      {
+        "at": 5,
+        "dur": 6,
+        "action": "Open Trade and identify instrument",
+        "caption": "Open Trade. Check the instrument.",
+        "focus": "Panel opening and symbol hold",
+        "asset": {
+          "file": "0-0.png",
+          "crop": [
+            0,
+            65,
+            538,
+            177
+          ],
+          "width": 538,
+          "height": 112,
+          "prepared": "0-1-asset.jpg"
+        },
+        "nav": {
+          "file": "fresh-captures/ticket-initial-full.jpg",
+          "crop": [
+            887,
+            47,
+            1045,
+            78
+          ],
+          "highlight": [
+            82,
+            2,
+            35,
+            27
+          ],
+          "width": 158,
+          "height": 31,
+          "prepared": "0-1-nav.jpg"
+        },
+        "subnote": "Illustrative practice \u00b7 no live order",
+        "audio_from": 3.46983,
+        "audio_to": 6.99837,
+        "narration": "Open Trade, and check the instrument you are viewing.",
+        "audio_lead": 0.18
+      },
+      {
+        "at": 11,
+        "dur": 6,
+        "action": "Select direction",
+        "caption": "Choose Buy or Sell deliberately.",
+        "focus": "Direction control",
+        "asset": {
+          "file": "0-1.png",
+          "crop": [
+            0,
+            190,
+            538,
+            310
+          ],
+          "width": 538,
+          "height": 120,
+          "prepared": "0-2-asset.jpg"
+        },
+        "highlight": [
+          275,
+          6,
+          252,
+          81
+        ],
+        "subnote": "Illustrative practice \u00b7 no live order",
+        "audio_from": 7.78396,
+        "audio_to": 12.4069,
+        "narration": "Choose Buy or Sell deliberately. We will use Buy.",
+        "audio_lead": 0.18
+      },
+      {
+        "at": 17,
+        "dur": 6,
+        "action": "Identify Market order type",
+        "caption": "Check the order type.",
+        "focus": "Order-type close-up",
+        "asset": {
+          "file": "0-1.png",
+          "crop": [
+            0,
+            286,
+            538,
+            346
+          ],
+          "width": 538,
+          "height": 60,
+          "prepared": "0-3-asset.jpg"
+        },
+        "highlight": [
+          8,
+          8,
+          167,
+          41
+        ],
+        "subnote": "Illustrative practice \u00b7 no live order",
+        "audio_from": 13.2857,
+        "audio_to": 16.5854,
+        "narration": "Check the order type. This example uses Market.",
+        "audio_lead": 0.18
+      },
+      {
+        "at": 23,
+        "dur": 6,
+        "action": "Enter example lot size",
+        "caption": "Set the lot size.",
+        "focus": "Input and settled value",
+        "asset": {
+          "file": "0-1.png",
+          "crop": [
+            0,
+            348,
+            538,
+            450
+          ],
+          "width": 538,
+          "height": 102,
+          "prepared": "0-4-asset.jpg"
+        },
+        "highlight": [
+          70,
+          37,
+          390,
+          50
+        ],
+        "subnote": "Illustrative practice \u00b7 no live order",
+        "audio_from": 17.863,
+        "audio_to": 22.0897,
+        "narration": "Set the lot size. This is an illustrative practice account.",
+        "audio_lead": 0.18
+      },
+      {
+        "at": 29,
+        "dur": 6,
+        "action": "Enable and enter example stop",
+        "caption": "Set a stop-loss level.",
+        "focus": "Stop field and chart context",
+        "asset": {
+          "file": "0-2.png",
+          "crop": [
+            0,
+            0,
+            538,
+            134
+          ],
+          "width": 538,
+          "height": 134,
+          "prepared": "0-5-asset.jpg"
+        },
+        "highlight": [
+          9,
+          10,
+          335,
+          102
+        ],
+        "subnote": "Illustrative practice \u00b7 no live order",
+        "audio_from": 23.4708,
+        "audio_to": 27.6612,
+        "narration": "Enable Stop Loss, then enter your exercise's stop level.",
+        "audio_lead": 0.18
+      },
+      {
+        "at": 35,
+        "dur": 6,
+        "action": "Enable and enter target",
+        "caption": "Set a take-profit level.",
+        "focus": "Target field and chart context",
+        "asset": {
+          "file": "0-2.png",
+          "crop": [
+            0,
+            132,
+            538,
+            271
+          ],
+          "width": 538,
+          "height": 139,
+          "prepared": "0-6-asset.jpg"
+        },
+        "highlight": [
+          8,
+          9,
+          335,
+          101
+        ],
+        "subnote": "Illustrative practice \u00b7 no live order",
+        "audio_from": 28.0097,
+        "audio_to": 31.79185,
+        "narration": "Enable Take Profit, then enter your exercise's target.",
+        "audio_lead": 0.18
+      },
+      {
+        "at": 41,
+        "dur": 6,
+        "action": "Read displayed estimates",
+        "caption": "Review the estimated loss and margin.",
+        "focus": "Enlarged metrics; no motion while reading",
+        "asset": {
+          "file": "0-3.png",
+          "crop": [
+            0,
+            730,
+            538,
+            815
+          ],
+          "width": 538,
+          "height": 85,
+          "prepared": "0-7-asset.jpg"
+        },
+        "subnote": "Illustrative practice \u00b7 no live order",
+        "audio_from": 31.79185,
+        "audio_to": 36.3655,
+        "narration": "Pause to review the estimated loss and margin.",
+        "audio_lead": 0.18
+      },
+      {
+        "at": 47,
+        "dur": 6,
+        "action": "Reduce size and observe estimate",
+        "caption": "Smaller size changes the loss estimate.",
+        "focus": "One change; hold updated result",
+        "asset": {
+          "file": "0-4.png",
+          "crop": [
+            0,
+            350,
+            538,
+            820
+          ],
+          "width": 538,
+          "height": 470,
+          "prepared": "0-8-asset.jpg"
+        },
+        "before": {
+          "file": "0-3.png",
+          "crop": [
+            0,
+            350,
+            538,
+            820
+          ],
+          "width": 538,
+          "height": 470,
+          "prepared": "0-8-before.jpg"
+        },
+        "changeAt": 1.65,
+        "subnote": "Illustrative practice \u00b7 no live order",
+        "audio_from": 37.4293,
+        "audio_to": 41.553,
+        "narration": "Reduce the lot size, and check how the estimate changes.",
+        "audio_lead": 0.18
+      },
+      {
+        "at": 53,
+        "dur": 6.541666666666667,
+        "action": "Review the complete prepared ticket",
+        "caption": "Recheck direction, size, stop and target.",
+        "focus": "Stable ticket summary",
+        "asset": {
+          "file": "0-4.png",
+          "crop": [
+            0,
+            319,
+            538,
+            904
+          ],
+          "width": 538,
+          "height": 585,
+          "prepared": "0-9-asset.jpg"
+        },
+        "subnote": "Illustrative values \u00b7 estimates only",
+        "audio_from": 42.5459,
+        "audio_to": 48.5282,
+        "narration": "Recheck direction, size, stop and target. These are estimates.",
+        "audio_lead": 0.18
+      },
+      {
+        "at": 59.541666666666664,
+        "dur": 6.458333333333343,
+        "action": "Leave Submit untouched",
+        "caption": "Prepared only. No order submitted.",
+        "focus": "Clear final state",
+        "asset": {
+          "kind": "guide",
+          "title": "PREPARED ONLY",
+          "lines": [
+            "Review the ticket",
+            "No order submitted",
+            "No broker connected"
+          ]
+        },
+        "subnote": "Illustrative practice \u00b7 no live order",
+        "audio_from": 48.7921,
+        "audio_to": 53.356708,
+        "narration": "Stop here with the prepared ticket. No order was submitted.",
+        "audio_lead": 0.18
+      }
+    ],
+    "transcript": "Prepare a paper trade before acting. Open Trade, and check the instrument you are viewing. Choose Buy or Sell deliberately. We will use Buy. Check the order type. This example uses Market. Set the lot size. This is an illustrative practice account. Enable Stop Loss, then enter your exercise's stop level. Enable Take Profit, then enter your exercise's target. Pause to review the estimated loss and margin. Reduce the lot size, and check how the estimate changes. Recheck direction, size, stop and target. These are estimates. Stop here with the prepared ticket. No order was submitted.",
+    "audio": "Arthur narration",
+    "boundary_checks": [
+      {
+        "split": 2.8682499999999997,
+        "silence": [
+          2.16667,
+          3.56983
+        ]
+      },
+      {
+        "split": 7.376165,
+        "silence": [
+          6.86837,
+          7.88396
+        ]
+      },
+      {
+        "split": 12.831299999999999,
+        "silence": [
+          12.2769,
+          13.3857
+        ]
+      },
+      {
+        "split": 17.209200000000003,
+        "silence": [
+          16.4554,
+          17.963
+        ]
+      },
+      {
+        "split": 22.76525,
+        "silence": [
+          21.9597,
+          23.5708
+        ]
+      },
+      {
+        "split": 27.82045,
+        "silence": [
+          27.5312,
+          28.1097
+        ]
+      },
+      {
+        "split": 31.79185,
+        "silence": [
+          31.7586,
+          31.8251
+        ]
+      },
+      {
+        "split": 36.882400000000004,
+        "silence": [
+          36.2355,
+          37.5293
+        ]
+      },
+      {
+        "split": 42.03445,
+        "silence": [
+          41.423,
+          42.6459
+        ]
+      },
+      {
+        "split": 48.64515,
+        "silence": [
+          48.3982,
+          48.8921
+        ]
+      }
+    ]
+  },
+  {
+    "id": 1,
+    "title": "Make your chart readable",
+    "duration": 60,
+    "shots": [
+      {
+        "at": 0,
+        "dur": 5,
+        "action": "Show a clean, labelled example chart",
+        "caption": "Mark one level. Keep the chart clear.",
+        "focus": "Still introduction",
+        "asset": {
+          "file": "fresh-captures/chart-before-full.jpg",
+          "crop": [
+            205,
+            125,
+            805,
+            485
+          ],
+          "width": 600,
+          "height": 360,
+          "prepared": "1-0-asset.jpg"
+        },
+        "subnote": "Illustrative practice \u00b7 no live order",
+        "audio_from": 0.401625,
+        "audio_to": 3.84025,
+        "narration": "A clear chart starts with one useful observation.",
+        "audio_lead": 0.18
+      },
+      {
+        "at": 5,
+        "dur": 6,
+        "action": "Identify the active symbol",
+        "caption": "Check the market first.",
+        "focus": "Highlight symbol chip",
+        "asset": {
+          "file": "fresh-captures/ticket-initial-full.jpg",
+          "crop": [
+            0,
+            86,
+            194,
+            156
+          ],
+          "width": 194,
+          "height": 70,
+          "prepared": "1-1-asset.jpg"
+        },
+        "subnote": "Illustrative practice \u00b7 no live order",
+        "audio_from": 4.70012,
+        "audio_to": 7.30687,
+        "narration": "First, check the market you are viewing.",
+        "audio_lead": 0.18
+      },
+      {
+        "at": 11,
+        "dur": 6,
+        "action": "Select one timeframe",
+        "caption": "Choose one timeframe.",
+        "focus": "Cursor move; hold selected timeframe",
+        "asset": {
+          "file": "1-1.png",
+          "crop": [
+            0,
+            0,
+            432,
+            72
+          ],
+          "width": 432,
+          "height": 72,
+          "prepared": "1-2-asset.jpg"
+        },
+        "subnote": "Illustrative practice \u00b7 no live order",
+        "audio_from": 9.24275,
+        "audio_to": 12.6683,
+        "narration": "Choose one timeframe before adding any drawings.",
+        "audio_lead": 0.18
+      },
+      {
+        "at": 17,
+        "dur": 6,
+        "action": "Indicate one repeated price area",
+        "caption": "Find a level worth observing.",
+        "focus": "Soft chart highlight",
+        "asset": {
+          "file": "fresh-captures/chart-before-full.jpg",
+          "crop": [
+            205,
+            125,
+            805,
+            485
+          ],
+          "width": 600,
+          "height": 360,
+          "prepared": "1-3-asset.jpg"
+        },
+        "subnote": "Illustrative practice \u00b7 no live order",
+        "audio_from": 14.8605,
+        "audio_to": 18.0388,
+        "narration": "Look for a price area you want to observe.",
+        "audio_lead": 0.18
+      },
+      {
+        "at": 23,
+        "dur": 6,
+        "action": "Select H-Line",
+        "caption": "Select H-Line.",
+        "focus": "Toolbar close-up",
+        "asset": {
+          "file": "fresh-captures/hline-selected-full.jpg",
+          "crop": [
+            200,
+            49,
+            280,
+            83
+          ],
+          "width": 80,
+          "height": 34,
+          "prepared": "1-4-asset.jpg"
+        },
+        "highlight": [
+          2,
+          2,
+          74,
+          26
+        ],
+        "subnote": "Illustrative practice \u00b7 no live order",
+        "audio_from": 19.0554,
+        "audio_to": 22.087,
+        "narration": "Select H-Line in the drawing toolbar.",
+        "audio_lead": 0.18
+      },
+      {
+        "at": 29,
+        "dur": 6,
+        "action": "Place one horizontal line",
+        "caption": "Click once to mark the level.",
+        "focus": "Show actual click and resulting line",
+        "asset": {
+          "file": "fresh-captures/hline-placed-full.jpg",
+          "crop": [
+            205,
+            125,
+            805,
+            485
+          ],
+          "width": 600,
+          "height": 360,
+          "prepared": "1-5-asset.jpg"
+        },
+        "before": {
+          "file": "fresh-captures/chart-before-full.jpg",
+          "crop": [
+            205,
+            125,
+            805,
+            485
+          ],
+          "width": 600,
+          "height": 360,
+          "prepared": "1-5-before.jpg"
+        },
+        "changeAt": 1.65,
+        "point": [
+          210,
+          216
+        ],
+        "subnote": "Illustrative practice \u00b7 no live order",
+        "audio_from": 23.2977,
+        "audio_to": 26.088,
+        "narration": "Click once on the chart to mark that level.",
+        "audio_lead": 0.18
+      },
+      {
+        "at": 35,
+        "dur": 6,
+        "action": "Hold the completed annotation",
+        "caption": "This line records an observation.",
+        "focus": "Stable chart detail",
+        "asset": {
+          "file": "fresh-captures/hline-placed-full.jpg",
+          "crop": [
+            205,
+            249,
+            815,
+            411
+          ],
+          "width": 610,
+          "height": 162,
+          "prepared": "1-6-asset.jpg"
+        },
+        "subnote": "Illustrative practice \u00b7 no live order",
+        "audio_from": 28.4934,
+        "audio_to": 31.2405,
+        "narration": "Pause and check where your line landed.",
+        "audio_lead": 0.18
+      },
+      {
+        "at": 41,
+        "dur": 6,
+        "action": "Select Cursor",
+        "caption": "Return to Cursor when finished.",
+        "focus": "Toolbar close-up, then wider view",
+        "asset": {
+          "file": "fresh-captures/cursor-return-full.jpg",
+          "crop": [
+            635,
+            49,
+            705,
+            83
+          ],
+          "width": 70,
+          "height": 34,
+          "prepared": "1-7-asset.jpg"
+        },
+        "highlight": [
+          4,
+          3,
+          59,
+          27
+        ],
+        "subnote": "Illustrative practice \u00b7 no live order",
+        "audio_from": 32.2053,
+        "audio_to": 34.9398,
+        "narration": "Return to Cursor when you finish drawing.",
+        "audio_lead": 0.18
+      },
+      {
+        "at": 47,
+        "dur": 7,
+        "action": "Inspect price around the level",
+        "caption": "A level does not guarantee a reaction.",
+        "focus": "No new action",
+        "asset": {
+          "file": "fresh-captures/cursor-return-full.jpg",
+          "crop": [
+            205,
+            125,
+            805,
+            485
+          ],
+          "width": 600,
+          "height": 360,
+          "prepared": "1-8-asset.jpg"
+        },
+        "subnote": "Illustrative practice \u00b7 no live order",
+        "audio_from": 36.3889,
+        "audio_to": 40.1935,
+        "narration": "A marked level does not guarantee a price reaction.",
+        "audio_lead": 0.18
+      },
+      {
+        "at": 54,
+        "dur": 6,
+        "action": "End on the clean annotated chart",
+        "caption": "Practise marking one level yourself.",
+        "focus": "Still final state",
+        "asset": {
+          "kind": "guide",
+          "title": "YOUR PRACTICE TASK",
+          "lines": [
+            "Mark one horizontal level",
+            "Explain your observation",
+            "Return to Cursor"
+          ]
+        },
+        "subnote": "Illustrative practice \u00b7 no live order",
+        "audio_from": 41.5674,
+        "audio_to": 45.581,
+        "narration": "Practise marking one level, then explain why you chose it.",
+        "audio_lead": 0.18
+      }
+    ],
+    "transcript": "A clear chart starts with one useful observation. First, check the market you are viewing. Choose one timeframe before adding any drawings. Look for a price area you want to observe. Select H-Line in the drawing toolbar. Click once on the chart to mark that level. Pause and check where your line landed. Return to Cursor when you finish drawing. A marked level does not guarantee a price reaction. Practise marking one level, then explain why you chose it.",
+    "audio": "Arthur narration",
+    "boundary_checks": [
+      {
+        "split": 4.255185,
+        "silence": [
+          3.71025,
+          4.80012
+        ]
+      },
+      {
+        "split": 8.25981,
+        "silence": [
+          7.17687,
+          9.34275
+        ]
+      },
+      {
+        "split": 13.7494,
+        "silence": [
+          12.5383,
+          14.9605
+        ]
+      },
+      {
+        "split": 18.5321,
+        "silence": [
+          17.9088,
+          19.1554
+        ]
+      },
+      {
+        "split": 22.67735,
+        "silence": [
+          21.957,
+          23.3977
+        ]
+      },
+      {
+        "split": 27.2757,
+        "silence": [
+          25.958,
+          28.5934
+        ]
+      },
+      {
+        "split": 31.707900000000002,
+        "silence": [
+          31.1105,
+          32.3053
+        ]
+      },
+      {
+        "split": 35.64935,
+        "silence": [
+          34.8098,
+          36.4889
+        ]
+      },
+      {
+        "split": 40.865449999999996,
+        "silence": [
+          40.0635,
+          41.6674
+        ]
+      }
+    ]
+  },
+  {
+    "id": 2,
+    "title": "Read a pattern with context",
+    "duration": 60,
+    "shots": [
+      {
+        "at": 0,
+        "dur": 5,
+        "action": "Introduce one illustrative pattern",
+        "caption": "Review a pattern in its chart context.",
+        "focus": "Still introduction",
+        "asset": {
+          "file": "2-2.png",
+          "crop": null,
+          "width": 320,
+          "height": 64,
+          "prepared": "2-0-asset.jpg"
+        },
+        "subnote": "Illustrative practice \u00b7 no live order",
+        "audio_from": 0.349708,
+        "audio_to": 3.8815,
+        "narration": "Review one detected pattern in its chart context.",
+        "audio_lead": 0.18
+      },
+      {
+        "at": 5,
+        "dur": 6,
+        "action": "Identify symbol and timeframe",
+        "caption": "Check the market and timeframe.",
+        "focus": "Paired context labels",
+        "asset": {
+          "file": "1-1.png",
+          "crop": [
+            0,
+            0,
+            432,
+            72
+          ],
+          "width": 432,
+          "height": 72,
+          "prepared": "2-1-asset.jpg"
+        },
+        "nav": {
+          "file": "fresh-captures/ticket-initial-full.jpg",
+          "crop": [
+            0,
+            86,
+            194,
+            156
+          ],
+          "width": 194,
+          "height": 70,
+          "prepared": "2-1-nav.jpg"
+        },
+        "subnote": "Illustrative practice \u00b7 no live order",
+        "audio_from": 5.45171,
+        "audio_to": 9.48587,
+        "narration": "First, check the market and the selected timeframe.",
+        "audio_lead": 0.18
+      },
+      {
+        "at": 11,
+        "dur": 6,
+        "action": "Open Scanner",
+        "caption": "Open Scanner below the chart.",
+        "focus": "Panel navigation",
+        "asset": {
+          "file": "2-0.png",
+          "crop": [
+            0,
+            0,
+            340,
+            78
+          ],
+          "width": 340,
+          "height": 78,
+          "prepared": "2-2-asset.jpg"
+        },
+        "highlight": [
+          0,
+          0,
+          184,
+          58
+        ],
+        "subnote": "Illustrative practice \u00b7 no live order",
+        "audio_from": 11.6376,
+        "audio_to": 13.7768,
+        "narration": "Open Scanner beneath the chart.",
+        "audio_lead": 0.18
+      },
+      {
+        "at": 17,
+        "dur": 6,
+        "action": "Focus one result",
+        "caption": "Read one pattern name.",
+        "focus": "Result close-up",
+        "asset": {
+          "file": "2-3.png",
+          "crop": [
+            870,
+            170,
+            1230,
+            280
+          ],
+          "width": 360,
+          "height": 110,
+          "prepared": "2-3-asset.jpg"
+        },
+        "subnote": "Illustrative practice \u00b7 no live order",
+        "audio_from": 14.6629,
+        "audio_to": 17.6154,
+        "narration": "Choose one result and read the pattern name.",
+        "audio_lead": 0.18
+      },
+      {
+        "at": 23,
+        "dur": 6,
+        "action": "Read direction",
+        "caption": "Check its direction.",
+        "focus": "BULL / BEAR / NEUT label",
+        "asset": {
+          "file": "2-2.png",
+          "crop": [
+            104,
+            0,
+            320,
+            64
+          ],
+          "width": 216,
+          "height": 64,
+          "prepared": "2-4-asset.jpg"
+        },
+        "subnote": "Illustrative practice \u00b7 no live order",
+        "audio_from": 19.2013,
+        "audio_to": 23.6132,
+        "narration": "Check whether its direction is bullish, bearish, or neutral.",
+        "audio_lead": 0.18
+      },
+      {
+        "at": 29,
+        "dur": 6,
+        "action": "Inspect score without promise",
+        "caption": "This score is a review cue.",
+        "focus": "Score label and hold",
+        "asset": {
+          "file": "2-4.png",
+          "crop": null,
+          "width": 320,
+          "height": 64,
+          "prepared": "2-5-asset.jpg"
+        },
+        "subnote": "A heuristic score \u00b7 not win probability",
+        "audio_from": 25.4578,
+        "audio_to": 29.4083,
+        "narration": "Its score is a review cue, not a win probability.",
+        "audio_lead": 0.18
+      },
+      {
+        "at": 35,
+        "dur": 6,
+        "action": "Toggle Patterns on",
+        "caption": "Show the available chart overlay.",
+        "focus": "One click and result",
+        "asset": {
+          "file": "fresh-captures/patterns-on-full.jpg",
+          "crop": [
+            640,
+            48,
+            883,
+            390
+          ],
+          "width": 243,
+          "height": 342,
+          "prepared": "2-6-asset.jpg"
+        },
+        "before": {
+          "file": "fresh-captures/patterns-off-full.jpg",
+          "crop": [
+            640,
+            48,
+            883,
+            390
+          ],
+          "width": 243,
+          "height": 342,
+          "prepared": "2-6-before.jpg"
+        },
+        "changeAt": 1.65,
+        "point": [
+          215,
+          19
+        ],
+        "subnote": "Illustrative practice \u00b7 no live order",
+        "audio_from": 29.7965,
+        "audio_to": 33.4304,
+        "narration": "Turn on Patterns to see the available chart overlay.",
+        "audio_lead": 0.18
+      },
+      {
+        "at": 41,
+        "dur": 6,
+        "action": "Compare overlay to candles",
+        "caption": "Compare the overlay with price action.",
+        "focus": "Chart crop",
+        "asset": {
+          "file": "2-3.png",
+          "crop": [
+            905,
+            177,
+            1247,
+            617
+          ],
+          "width": 342,
+          "height": 440,
+          "prepared": "2-7-asset.jpg"
+        },
+        "subnote": "Illustrative practice \u00b7 no live order",
+        "audio_from": 34.2284,
+        "audio_to": 37.1982,
+        "narration": "Compare the overlay with the candles you are viewing.",
+        "audio_lead": 0.18
+      },
+      {
+        "at": 47,
+        "dur": 7,
+        "action": "Explain a conflicting observation",
+        "caption": "Look for evidence against the idea.",
+        "focus": "Highlight contradiction",
+        "asset": {
+          "kind": "guide",
+          "title": "LOOK FOR CONTRADICTIONS",
+          "lines": [
+            "Pattern direction",
+            "Surrounding structure",
+            "Missing or unclear evidence"
+          ]
+        },
+        "subnote": "Illustrative practice \u00b7 no live order",
+        "audio_from": 38.2113,
+        "audio_to": 41.8142,
+        "narration": "Look for evidence that could contradict the idea.",
+        "audio_lead": 0.18
+      },
+      {
+        "at": 54,
+        "dur": 6,
+        "action": "Stay on analysis, no order",
+        "caption": "Unclear setup? Wait and ask.",
+        "focus": "Still final state",
+        "asset": {
+          "kind": "guide",
+          "title": "A VALID NEXT STEP",
+          "lines": [
+            "Wait when unclear",
+            "Keep a practice note",
+            "Ask your instructor"
+          ]
+        },
+        "subnote": "Illustrative practice \u00b7 no live order",
+        "audio_from": 42.8162,
+        "audio_to": 47.436125,
+        "narration": "If the setup is unclear, wait and ask your instructor.",
+        "audio_lead": 0.18
+      }
+    ],
+    "transcript": "Review one detected pattern in its chart context. First, check the market and the selected timeframe. Open Scanner beneath the chart. Choose one result and read the pattern name. Check whether its direction is bullish, bearish, or neutral. Its score is a review cue, not a win probability. Turn on Patterns to see the available chart overlay. Compare the overlay with the candles you are viewing. Look for evidence that could contradict the idea. If the setup is unclear, wait and ask your instructor.",
+    "audio": "Arthur narration",
+    "boundary_checks": [
+      {
+        "split": 4.651605,
+        "silence": [
+          3.7515,
+          5.55171
+        ]
+      },
+      {
+        "split": 10.546735,
+        "silence": [
+          9.35587,
+          11.7376
+        ]
+      },
+      {
+        "split": 14.20485,
+        "silence": [
+          13.6468,
+          14.7629
+        ]
+      },
+      {
+        "split": 18.393349999999998,
+        "silence": [
+          17.4854,
+          19.3013
+        ]
+      },
+      {
+        "split": 24.5205,
+        "silence": [
+          23.4832,
+          25.5578
+        ]
+      },
+      {
+        "split": 29.587400000000002,
+        "silence": [
+          29.2783,
+          29.8965
+        ]
+      },
+      {
+        "split": 33.814400000000006,
+        "silence": [
+          33.3004,
+          34.3284
+        ]
+      },
+      {
+        "split": 37.689750000000004,
+        "silence": [
+          37.0682,
+          38.3113
+        ]
+      },
+      {
+        "split": 42.300200000000004,
+        "silence": [
+          41.6842,
+          42.9162
+        ]
+      }
+    ]
+  },
+  {
+    "id": 3,
+    "title": "Turn a close into a review",
+    "duration": 60,
+    "shots": [
+      {
+        "at": 0,
+        "dur": 5,
+        "action": "Establish an illustrative already-closed paper example",
+        "caption": "Turn one result into a lesson.",
+        "focus": "PAPER / ILLUSTRATIVE visible",
+        "asset": {
+          "file": "3-2.png",
+          "crop": [
+            0,
+            0,
+            290,
+            110
+          ],
+          "width": 290,
+          "height": 110,
+          "prepared": "3-0-asset.jpg"
+        },
+        "subnote": "Illustrative practice \u00b7 no live order",
+        "audio_from": 0.703958,
+        "audio_to": 4.76879,
+        "narration": "Turn one paper result into a useful learning reflection.",
+        "audio_lead": 0.18
+      },
+      {
+        "at": 5,
+        "dur": 6,
+        "action": "Locate Journal below chart",
+        "caption": "Open Journal beneath the chart.",
+        "focus": "Panel location overview",
+        "asset": {
+          "file": "3-1.png",
+          "crop": [
+            560,
+            0,
+            950,
+            60
+          ],
+          "width": 390,
+          "height": 60,
+          "prepared": "3-1-asset.jpg"
+        },
+        "highlight": [
+          180,
+          3,
+          195,
+          51
+        ],
+        "subnote": "Illustrative practice \u00b7 no live order",
+        "audio_from": 5.68042,
+        "audio_to": 10.1726,
+        "narration": "After a practice close, open Journal beneath the chart.",
+        "audio_lead": 0.18
+      },
+      {
+        "at": 11,
+        "dur": 6,
+        "action": "Select the latest visible row",
+        "caption": "Read the latest close.",
+        "focus": "One row enlarged",
+        "asset": {
+          "file": "3-2.png",
+          "crop": [
+            0,
+            0,
+            290,
+            58
+          ],
+          "width": 290,
+          "height": 58,
+          "prepared": "3-2-asset.jpg"
+        },
+        "subnote": "Illustrative practice \u00b7 no live order",
+        "audio_from": 10.9511,
+        "audio_to": 13.3397,
+        "narration": "Start with the newest close at the top.",
+        "audio_lead": 0.18
+      },
+      {
+        "at": 17,
+        "dur": 6,
+        "action": "Identify side and instrument",
+        "caption": "Check direction and instrument together.",
+        "focus": "Sequential subtle emphasis",
+        "asset": {
+          "file": "3-3.png",
+          "crop": [
+            0,
+            0,
+            290,
+            58
+          ],
+          "width": 290,
+          "height": 58,
+          "prepared": "3-3-asset.jpg"
+        },
+        "subnote": "Illustrative practice \u00b7 no live order",
+        "audio_from": 14.3094,
+        "audio_to": 17.2844,
+        "narration": "Read the trade direction and instrument together.",
+        "audio_lead": 0.18
+      },
+      {
+        "at": 23,
+        "dur": 6,
+        "action": "Read volume",
+        "caption": "Check how much was closed.",
+        "focus": "Volume highlight",
+        "asset": {
+          "file": "3-3.png",
+          "crop": [
+            0,
+            0,
+            290,
+            58
+          ],
+          "width": 290,
+          "height": 58,
+          "prepared": "3-4-asset.jpg"
+        },
+        "highlight": [
+          49,
+          12,
+          57,
+          28
+        ],
+        "subnote": "Illustrative practice \u00b7 no live order",
+        "audio_from": 18.1225,
+        "audio_to": 20.2377,
+        "narration": "Check the volume that was closed.",
+        "audio_lead": 0.18
+      },
+      {
+        "at": 29,
+        "dur": 6,
+        "action": "Read labelled paper P&L",
+        "caption": "Paper profit alone proves little.",
+        "focus": "Result hold",
+        "asset": {
+          "file": "3-2.png",
+          "crop": [
+            0,
+            0,
+            290,
+            58
+          ],
+          "width": 290,
+          "height": 58,
+          "prepared": "3-5-asset.jpg"
+        },
+        "subnote": "Illustrative practice \u00b7 no live order",
+        "audio_from": 21.3918,
+        "audio_to": 25.4935,
+        "narration": "Then read the paper result. Profit alone proves little.",
+        "audio_lead": 0.18
+      },
+      {
+        "at": 35,
+        "dur": 6,
+        "action": "Show partial-close example beside explanation",
+        "caption": "Partial closes can create separate entries.",
+        "focus": "Mark as illustrative, not extra full trades",
+        "asset": {
+          "file": "3-4.png",
+          "crop": [
+            0,
+            0,
+            290,
+            110
+          ],
+          "width": 290,
+          "height": 110,
+          "prepared": "3-6-asset.jpg"
+        },
+        "subnote": "Illustrative practice \u00b7 no live order",
+        "audio_from": 26.3107,
+        "audio_to": 30.2475,
+        "narration": "A partial close can create another row for one position.",
+        "audio_lead": 0.18
+      },
+      {
+        "at": 41,
+        "dur": 6,
+        "action": "Transition through Academy to relevant lesson",
+        "caption": "Open your classroom practice notes.",
+        "focus": "Context card, then real navigation",
+        "asset": {
+          "file": "fresh-captures/notes-empty-v2.jpg",
+          "crop": [
+            80,
+            237,
+            435,
+            430
+          ],
+          "width": 355,
+          "height": 193,
+          "prepared": "3-7-asset.jpg"
+        },
+        "subnote": "Switch to Academy \u2192 open your lesson",
+        "audio_from": 31.0549,
+        "audio_to": 35.6784,
+        "narration": "For a learning record, use your Academy lesson's practice notes.",
+        "audio_lead": 0.18
+      },
+      {
+        "at": 47,
+        "dur": 6,
+        "action": "Enter one short reflection in test account",
+        "caption": "Write what you would review next.",
+        "focus": "Fictional text; no real student details",
+        "asset": {
+          "file": "fresh-captures/notes-short-full.jpg",
+          "crop": [
+            80,
+            237,
+            435,
+            430
+          ],
+          "width": 355,
+          "height": 193,
+          "prepared": "3-8-asset.jpg"
+        },
+        "before": {
+          "file": "fresh-captures/notes-empty-v2.jpg",
+          "crop": [
+            80,
+            237,
+            435,
+            430
+          ],
+          "width": 355,
+          "height": 193,
+          "prepared": "3-8-before.jpg"
+        },
+        "changeAt": 1.65,
+        "subnote": "Illustrative practice \u00b7 no live order",
+        "audio_from": 36.6667,
+        "audio_to": 39.8179,
+        "narration": "Write one thing you would review next time.",
+        "audio_lead": 0.18
+      },
+      {
+        "at": 53,
+        "dur": 7,
+        "action": "Save and show the actual saved response",
+        "caption": "Save the reflection for your next lesson.",
+        "focus": "Hold saved confirmation",
+        "asset": {
+          "file": "fresh-captures/notes-short-saved-full.jpg",
+          "crop": [
+            80,
+            265,
+            390,
+            375
+          ],
+          "width": 310,
+          "height": 110,
+          "prepared": "3-9-asset.jpg"
+        },
+        "nav": {
+          "file": "fresh-captures/notes-short-saved-full.jpg",
+          "crop": [
+            80,
+            8,
+            435,
+            190
+          ],
+          "width": 355,
+          "height": 182,
+          "prepared": "3-9-nav.jpg"
+        },
+        "subnote": "A manual reflection \u00b7 saved to your account",
+        "point": [
+          124,
+          81
+        ],
+        "audio_from": 40.8425,
+        "audio_to": 44.807292,
+        "narration": "Save your reflection, and ask a lesson question if needed.",
+        "audio_lead": 0.18
+      }
+    ],
+    "transcript": "Turn one paper result into a useful learning reflection. After a practice close, open Journal beneath the chart. Start with the newest close at the top. Read the trade direction and instrument together. Check the volume that was closed. Then read the paper result. Profit alone proves little. A partial close can create another row for one position. For a learning record, use your Academy lesson's practice notes. Write one thing you would review next time. Save your reflection, and ask a lesson question if needed.",
+    "audio": "Arthur narration",
+    "boundary_checks": [
+      {
+        "split": 5.209605,
+        "silence": [
+          4.63879,
+          5.78042
+        ]
+      },
+      {
+        "split": 10.54685,
+        "silence": [
+          10.0426,
+          11.0511
+        ]
+      },
+      {
+        "split": 13.80955,
+        "silence": [
+          13.2097,
+          14.4094
+        ]
+      },
+      {
+        "split": 17.68845,
+        "silence": [
+          17.1544,
+          18.2225
+        ]
+      },
+      {
+        "split": 20.799750000000003,
+        "silence": [
+          20.1077,
+          21.4918
+        ]
+      },
+      {
+        "split": 25.887099999999997,
+        "silence": [
+          25.3635,
+          26.4107
+        ]
+      },
+      {
+        "split": 30.636200000000002,
+        "silence": [
+          30.1175,
+          31.1549
+        ]
+      },
+      {
+        "split": 36.15755,
+        "silence": [
+          35.5484,
+          36.7667
+        ]
+      },
+      {
+        "split": 40.315200000000004,
+        "silence": [
+          39.6879,
+          40.9425
+        ]
+      }
+    ]
+  },
+  {
+    "id": 4,
+    "title": "Find your flow with shortcuts",
+    "duration": 46,
+    "shots": [
+      {
+        "at": 0,
+        "dur": 5,
+        "action": "Show desktop workspace",
+        "caption": "Learn two useful desktop shortcuts.",
+        "focus": "Optional desktop badge",
+        "asset": {
+          "file": "fresh-captures/shortcuts-help.jpg",
+          "crop": [
+            0,
+            243,
+            381,
+            532
+          ],
+          "width": 381,
+          "height": 289,
+          "prepared": "4-0-asset.jpg"
+        },
+        "subnote": "Illustrative practice \u00b7 no live order",
+        "audio_from": 0.0,
+        "audio_to": 3.63908,
+        "narration": "Learn two useful shortcuts for your desktop keyboard.",
+        "audio_lead": 0.18
+      },
+      {
+        "at": 5,
+        "dur": 6,
+        "action": "Move focus outside editable fields",
+        "caption": "Click outside any text input.",
+        "focus": "Show focus change",
+        "asset": {
+          "kind": "guide",
+          "title": "BEFORE USING KEYS",
+          "lines": [
+            "Desktop keyboard",
+            "Focus outside text inputs",
+            "Shortcuts change the view"
+          ]
+        },
+        "subnote": "Illustrative practice \u00b7 no live order",
+        "audio_from": 4.26225,
+        "audio_to": 7.60437,
+        "narration": "First, click outside any text input.",
+        "audio_lead": 0.18
+      },
+      {
+        "at": 11,
+        "dur": 6,
+        "action": "Press ? and inspect help",
+        "caption": "Press question mark for shortcut help.",
+        "focus": "Key overlay and settled help screen",
+        "asset": {
+          "file": "fresh-captures/shortcuts-help.jpg",
+          "crop": [
+            0,
+            243,
+            381,
+            532
+          ],
+          "width": 381,
+          "height": 289,
+          "prepared": "4-2-asset.jpg"
+        },
+        "key": "?",
+        "subnote": "Illustrative practice \u00b7 no live order",
+        "audio_from": 8.35321,
+        "audio_to": 11.2809,
+        "narration": "Press question mark to open Keyboard Shortcuts.",
+        "audio_lead": 0.18
+      },
+      {
+        "at": 17,
+        "dur": 6.25,
+        "action": "Read A and P mappings",
+        "caption": "Start with A and P.",
+        "focus": "Two mappings only",
+        "asset": {
+          "file": "fresh-captures/shortcuts-help.jpg",
+          "crop": [
+            7,
+            313,
+            371,
+            419
+          ],
+          "width": 364,
+          "height": 106,
+          "prepared": "4-3-asset.jpg"
+        },
+        "subnote": "Illustrative practice \u00b7 no live order",
+        "audio_from": 11.2809,
+        "audio_to": 16.9598,
+        "narration": "Start with A for Aria, and P for Portfolio.",
+        "audio_lead": 0.18
+      },
+      {
+        "at": 23.25,
+        "dur": 6,
+        "action": "Press Escape, then A",
+        "caption": "Close help. Press A for ARIA.",
+        "focus": "Separated actions with holds",
+        "asset": {
+          "file": "fresh-captures/shortcuts-aria.jpg",
+          "crop": [
+            0,
+            0,
+            266,
+            325
+          ],
+          "width": 266,
+          "height": 325,
+          "prepared": "4-4-asset.jpg"
+        },
+        "key": "Esc \u2192 A",
+        "subnote": "Illustrative practice \u00b7 no live order",
+        "audio_from": 17.8709,
+        "audio_to": 21.6363,
+        "narration": "Close help with Escape, then press A.",
+        "audio_lead": 0.18
+      },
+      {
+        "at": 29.25,
+        "dur": 6,
+        "action": "Press P",
+        "caption": "Press P for Portfolio.",
+        "focus": "Panel change and hold",
+        "asset": {
+          "file": "fresh-captures/shortcuts-portfolio.jpg",
+          "crop": [
+            0,
+            0,
+            266,
+            264
+          ],
+          "width": 266,
+          "height": 264,
+          "prepared": "4-5-asset.jpg"
+        },
+        "key": "P",
+        "subnote": "Illustrative practice \u00b7 no live order",
+        "audio_from": 22.4253,
+        "audio_to": 26.7782,
+        "narration": "Pause, then press P to open Portfolio.",
+        "audio_lead": 0.18
+      },
+      {
+        "at": 35.25,
+        "dur": 5,
+        "action": "Show equivalent navigation tabs",
+        "caption": "On phones, use the visible tabs.",
+        "focus": "Context-preserving highlight",
+        "asset": {
+          "file": "fresh-captures/shortcuts-portfolio.jpg",
+          "crop": [
+            0,
+            0,
+            266,
+            30
+          ],
+          "width": 266,
+          "height": 30,
+          "prepared": "4-6-asset.jpg"
+        },
+        "subnote": "Illustrative practice \u00b7 no live order",
+        "audio_from": 27.0408,
+        "audio_to": 30.2445,
+        "narration": "On a phone, use the visible tabs instead.",
+        "audio_lead": 0.18
+      },
+      {
+        "at": 40.25,
+        "dur": 5.75,
+        "action": "End on workspace",
+        "caption": "Practise these two shortcuts at your pace.",
+        "focus": "Still final state",
+        "asset": {
+          "kind": "guide",
+          "title": "PRACTISE AT YOUR PACE",
+          "lines": [
+            "A \u2192 ARIA",
+            "P \u2192 Portfolio"
+          ]
+        },
+        "subnote": "Illustrative practice \u00b7 no live order",
+        "audio_from": 30.2445,
+        "audio_to": 33.749542,
+        "narration": "Practise these two shortcuts at your own pace.",
+        "audio_lead": 0.18
+      }
+    ],
+    "transcript": "Learn two useful shortcuts for your desktop keyboard. First, click outside any text input. Press question mark to open Keyboard Shortcuts. Start with A for Aria, and P for Portfolio. Close help with Escape, then press A. Pause, then press P to open Portfolio. On a phone, use the visible tabs instead. Practise these two shortcuts at your own pace.",
+    "audio": "Arthur narration",
+    "boundary_checks": [
+      {
+        "split": 3.935665,
+        "silence": [
+          3.50908,
+          4.36225
+        ]
+      },
+      {
+        "split": 7.96379,
+        "silence": [
+          7.47437,
+          8.45321
+        ]
+      },
+      {
+        "split": 11.280899999999999,
+        "silence": [
+          11.2182,
+          11.3436
+        ]
+      },
+      {
+        "split": 17.40035,
+        "silence": [
+          16.8298,
+          17.9709
+        ]
+      },
+      {
+        "split": 22.0158,
+        "silence": [
+          21.5063,
+          22.5253
+        ]
+      },
+      {
+        "split": 26.8945,
+        "silence": [
+          26.6482,
+          27.1408
+        ]
+      },
+      {
+        "split": 30.2445,
+        "silence": [
+          30.1576,
+          30.3314
+        ]
+      }
+    ]
+  },
+  {
+    "id": 5,
+    "title": "Understand ARIA\u2019s checks",
+    "duration": 60,
+    "shots": [
+      {
+        "at": 0,
+        "dur": 5,
+        "action": "Introduce a labelled analysis example",
+        "caption": "Understand why ARIA says wait.",
+        "focus": "Still introduction",
+        "asset": {
+          "file": "4-3.png",
+          "crop": [
+            0,
+            836,
+            538,
+            913
+          ],
+          "width": 538,
+          "height": 77,
+          "prepared": "5-0-asset.jpg"
+        },
+        "subnote": "Illustrative practice \u00b7 no live order",
+        "audio_from": 0.354917,
+        "audio_to": 2.77496,
+        "narration": "Understand why Aria says to wait.",
+        "audio_lead": 0.18
+      },
+      {
+        "at": 5,
+        "dur": 6,
+        "action": "Identify active symbol and timeframe",
+        "caption": "Check the chart context first.",
+        "focus": "Chart overview",
+        "asset": {
+          "kind": "guide",
+          "title": "CHART CONTEXT",
+          "lines": [
+            "EUR/USD example",
+            "Read market + timeframe",
+            "Data is illustrative"
+          ]
+        },
+        "subnote": "Illustrative practice \u00b7 no live order",
+        "audio_from": 3.3035,
+        "audio_to": 5.93737,
+        "narration": "Begin by checking the market and timeframe.",
+        "audio_lead": 0.18
+      },
+      {
+        "at": 11,
+        "dur": 6,
+        "action": "Open ARIA",
+        "caption": "Open ARIA.",
+        "focus": "Tab and panel hold",
+        "asset": {
+          "file": "4-3.png",
+          "crop": [
+            0,
+            0,
+            538,
+            318
+          ],
+          "width": 538,
+          "height": 318,
+          "prepared": "5-2-asset.jpg"
+        },
+        "nav": {
+          "file": "fresh-captures/ticket-initial-full.jpg",
+          "crop": [
+            887,
+            47,
+            1045,
+            78
+          ],
+          "highlight": [
+            1,
+            2,
+            37,
+            27
+          ],
+          "width": 158,
+          "height": 31,
+          "prepared": "5-2-nav.jpg"
+        },
+        "subnote": "Illustrative practice \u00b7 no live order",
+        "audio_from": 6.80467,
+        "audio_to": 9.42475,
+        "narration": "Open Aria to inspect its checks.",
+        "audio_lead": 0.18
+      },
+      {
+        "at": 17,
+        "dur": 6,
+        "action": "Read market-condition section",
+        "caption": "Read the market conditions.",
+        "focus": "One section at a time",
+        "asset": {
+          "file": "4-3.png",
+          "crop": [
+            0,
+            83,
+            538,
+            187
+          ],
+          "width": 538,
+          "height": 104,
+          "prepared": "5-3-asset.jpg"
+        },
+        "subnote": "Illustrative practice \u00b7 no live order",
+        "audio_from": 9.9025,
+        "audio_to": 12.8583,
+        "narration": "Read the market conditions before looking at the score.",
+        "audio_lead": 0.18
+      },
+      {
+        "at": 23,
+        "dur": 6,
+        "action": "Highlight one passing gate",
+        "caption": "A passed gate matches one condition.",
+        "focus": "Single gate close-up",
+        "asset": {
+          "file": "4-3.png",
+          "crop": [
+            0,
+            406,
+            538,
+            527
+          ],
+          "width": 538,
+          "height": 121,
+          "prepared": "5-4-asset.jpg"
+        },
+        "subnote": "Illustrative practice \u00b7 no live order",
+        "audio_from": 13.8541,
+        "audio_to": 16.8483,
+        "narration": "A passed gate means one rule matched.",
+        "audio_lead": 0.18
+      },
+      {
+        "at": 29,
+        "dur": 6,
+        "action": "Highlight one failing gate",
+        "caption": "Read the condition that failed.",
+        "focus": "Single gate close-up",
+        "asset": {
+          "file": "4-3.png",
+          "crop": [
+            0,
+            342,
+            538,
+            407
+          ],
+          "width": 538,
+          "height": 65,
+          "prepared": "5-5-asset.jpg"
+        },
+        "subnote": "Illustrative practice \u00b7 no live order",
+        "audio_from": 17.6602,
+        "audio_to": 19.7722,
+        "narration": "Now read a condition that failed.",
+        "audio_lead": 0.18
+      },
+      {
+        "at": 35,
+        "dur": 6,
+        "action": "Reveal verdict and restriction",
+        "caption": "Read the verdict and its restriction.",
+        "focus": "Result hold",
+        "asset": {
+          "file": "4-3.png",
+          "crop": [
+            0,
+            836,
+            538,
+            1178
+          ],
+          "width": 538,
+          "height": 342,
+          "prepared": "5-6-asset.jpg"
+        },
+        "subnote": "Illustrative practice \u00b7 no live order",
+        "audio_from": 20.831,
+        "audio_to": 24.0245,
+        "narration": "Read the verdict, including any restriction.",
+        "audio_lead": 0.18
+      },
+      {
+        "at": 41,
+        "dur": 6,
+        "action": "Compare restriction to chart",
+        "caption": "What would invalidate this idea?",
+        "focus": "Clear chart context",
+        "asset": {
+          "kind": "guide",
+          "title": "CHECK YOUR REASONING",
+          "lines": [
+            "What supports the idea?",
+            "What contradicts it?",
+            "What would invalidate it?"
+          ]
+        },
+        "subnote": "Illustrative practice \u00b7 no live order",
+        "audio_from": 24.6247,
+        "audio_to": 27.7812,
+        "narration": "Ask what evidence would invalidate this idea.",
+        "audio_lead": 0.18
+      },
+      {
+        "at": 47,
+        "dur": 7,
+        "action": "Leave the ticket untouched",
+        "caption": "Waiting is a valid decision.",
+        "focus": "No action or implied trade",
+        "asset": {
+          "file": "4-3.png",
+          "crop": [
+            0,
+            836,
+            538,
+            1178
+          ],
+          "width": 538,
+          "height": 342,
+          "prepared": "5-8-asset.jpg"
+        },
+        "subnote": "Illustrative practice \u00b7 no live order",
+        "audio_from": 28.4173,
+        "audio_to": 32.737,
+        "narration": "In this example, we wait and leave the ticket alone.",
+        "audio_lead": 0.18
+      },
+      {
+        "at": 54,
+        "dur": 6,
+        "action": "End on verdict",
+        "caption": "Bring your reasoning to the lesson.",
+        "focus": "Still final state",
+        "asset": {
+          "kind": "guide",
+          "title": "YOUR LEARNING RECORD",
+          "lines": [
+            "Explain why you waited",
+            "Save a practice note",
+            "Ask about this lesson"
+          ]
+        },
+        "subnote": "Illustrative practice \u00b7 no live order",
+        "audio_from": 33.7406,
+        "audio_to": 39.13025,
+        "narration": "Bring your reasoning to the lesson. Matching checks cannot guarantee results.",
+        "audio_lead": 0.18
+      }
+    ],
+    "transcript": "Understand why Aria says to wait. Begin by checking the market and timeframe. Open Aria to inspect its checks. Read the market conditions before looking at the score. A passed gate means one rule matched. Now read a condition that failed. Read the verdict, including any restriction. Ask what evidence would invalidate this idea. In this example, we wait and leave the ticket alone. Bring your reasoning to the lesson. Matching checks cannot guarantee results.",
+    "audio": "Arthur narration",
+    "boundary_checks": [
+      {
+        "split": 3.02423,
+        "silence": [
+          2.64496,
+          3.4035
+        ]
+      },
+      {
+        "split": 6.35602,
+        "silence": [
+          5.80737,
+          6.90467
+        ]
+      },
+      {
+        "split": 9.648625,
+        "silence": [
+          9.29475,
+          10.0025
+        ]
+      },
+      {
+        "split": 13.3412,
+        "silence": [
+          12.7283,
+          13.9541
+        ]
+      },
+      {
+        "split": 17.23925,
+        "silence": [
+          16.7183,
+          17.7602
+        ]
+      },
+      {
+        "split": 20.2866,
+        "silence": [
+          19.6422,
+          20.931
+        ]
+      },
+      {
+        "split": 24.3096,
+        "silence": [
+          23.8945,
+          24.7247
+        ]
+      },
+      {
+        "split": 28.084249999999997,
+        "silence": [
+          27.6512,
+          28.5173
+        ]
+      },
+      {
+        "split": 33.2238,
+        "silence": [
+          32.607,
+          33.8406
+        ]
+      }
+    ]
+  },
+  {
+    "id": 6,
+    "title": "What Oracle\u2019s percentage means",
+    "duration": 62,
+    "shots": [
+      {
+        "at": 0,
+        "dur": 5,
+        "action": "Introduce Oracle with practice example label",
+        "caption": "What does Oracle\u2019s percentage actually mean?",
+        "focus": "Still introduction",
+        "asset": {
+          "file": "6-1.png",
+          "crop": null,
+          "width": 538,
+          "height": 308,
+          "prepared": "6-0-asset.jpg"
+        },
+        "subnote": "Illustrative practice \u00b7 no live order",
+        "audio_from": 0.193625,
+        "audio_to": 3.681335,
+        "narration": "Understand Oracle's percentage before using it.",
+        "audio_lead": 0.18
+      },
+      {
+        "at": 5,
+        "dur": 6,
+        "action": "Open Oracle from known chart",
+        "caption": "Open Oracle for this chart.",
+        "focus": "Tab and panel hold",
+        "asset": {
+          "file": "6-0.png",
+          "crop": [
+            0,
+            0,
+            538,
+            308
+          ],
+          "width": 538,
+          "height": 308,
+          "prepared": "6-1-asset.jpg"
+        },
+        "nav": {
+          "file": "fresh-captures/ticket-initial-full.jpg",
+          "crop": [
+            887,
+            47,
+            1045,
+            78
+          ],
+          "highlight": [
+            42,
+            2,
+            38,
+            27
+          ],
+          "width": 158,
+          "height": 31,
+          "prepared": "6-1-nav.jpg"
+        },
+        "subnote": "Illustrative practice \u00b7 no live order",
+        "audio_from": 3.681335,
+        "audio_to": 6.22642,
+        "narration": "Open Oracle for the chart you are reviewing.",
+        "audio_lead": 0.18
+      },
+      {
+        "at": 11,
+        "dur": 6,
+        "action": "Show 8/9 matching checks",
+        "caption": "Eight of nine checks passed.",
+        "focus": "Large numeric explanation",
+        "asset": {
+          "file": "5-2.png",
+          "crop": [
+            0,
+            0,
+            538,
+            180
+          ],
+          "width": 538,
+          "height": 180,
+          "prepared": "6-2-asset.jpg"
+        },
+        "subnote": "Illustrative practice \u00b7 no live order",
+        "audio_from": 6.42833,
+        "audio_to": 10.08421,
+        "narration": "In this example, eight of the nine checks pass.",
+        "audio_lead": 0.18
+      },
+      {
+        "at": 17,
+        "dur": 6,
+        "action": "Show calculation to nearest whole percent",
+        "caption": "Eight divided by nine is about 89%.",
+        "focus": "Simple count-to-percentage graphic",
+        "asset": {
+          "kind": "score8",
+          "title": "EXAMPLE A",
+          "lines": [
+            "8 / 9",
+            "matching checks",
+            "\u2248 89% confluence"
+          ]
+        },
+        "subnote": "Illustrative practice \u00b7 no live order",
+        "audio_from": 10.7754,
+        "audio_to": 14.334,
+        "narration": "Eight divided by nine rounds to eighty-nine percent.",
+        "audio_lead": 0.18
+      },
+      {
+        "at": 23,
+        "dur": 6,
+        "action": "Hold that figure",
+        "caption": "Confluence counts conditions that agree.",
+        "focus": "No other motion",
+        "asset": {
+          "kind": "score8",
+          "title": "EXAMPLE A",
+          "lines": [
+            "8 / 9",
+            "matching checks",
+            "\u2248 89% confluence"
+          ]
+        },
+        "subnote": "Illustrative practice \u00b7 no live order",
+        "audio_from": 15.2514,
+        "audio_to": 19.3856,
+        "narration": "This is confluence: a count of conditions that agree.",
+        "audio_lead": 0.18
+      },
+      {
+        "at": 29,
+        "dur": 6,
+        "action": "Clarify meaning",
+        "caption": "It is not a win probability.",
+        "focus": "Clear caption and result hold",
+        "asset": {
+          "file": "6-1.png",
+          "crop": null,
+          "width": 538,
+          "height": 308,
+          "prepared": "6-5-asset.jpg"
+        },
+        "subnote": "Illustrative practice \u00b7 no live order",
+        "audio_from": 20.1688,
+        "audio_to": 23.0458,
+        "narration": "It is not the probability that a trade will win.",
+        "audio_lead": 0.18
+      },
+      {
+        "at": 35,
+        "dur": 6.625,
+        "action": "Compare same checks in ARIA",
+        "caption": "Oracle and ARIA share these checks.",
+        "focus": "No \u201cindependent\u201d badge",
+        "asset": {
+          "file": "5-2.png",
+          "crop": [
+            0,
+            0,
+            538,
+            270
+          ],
+          "width": 538,
+          "height": 270,
+          "prepared": "6-6-asset.jpg"
+        },
+        "subnote": "Shared checks \u00b7 not independent confirmation",
+        "audio_from": 23.8859,
+        "audio_to": 29.9521,
+        "narration": "Oracle and Aria use the same checks, so they are not independent confirmations.",
+        "audio_lead": 0.18
+      },
+      {
+        "at": 41.625,
+        "dur": 6,
+        "action": "Introduce separate low-confluence example",
+        "caption": "Fewer checks agree in this example.",
+        "focus": "Explicit \u201cAnother illustrative setup\u201d context",
+        "asset": {
+          "kind": "score6",
+          "title": "EXAMPLE B",
+          "lines": [
+            "6 / 9",
+            "matching checks",
+            "\u2248 67% confluence"
+          ]
+        },
+        "subnote": "A different illustrative setup",
+        "audio_from": 30.9255,
+        "audio_to": 35.5175,
+        "narration": "In another example, only six of nine checks agree.",
+        "audio_lead": 0.18
+      },
+      {
+        "at": 47.625,
+        "dur": 7,
+        "action": "Inspect reasons; leave Apply unused",
+        "caption": "Skip this setup. Keep reviewing.",
+        "focus": "Hold reasons and unused button",
+        "asset": {
+          "file": "4-3.png",
+          "crop": [
+            0,
+            836,
+            538,
+            1178
+          ],
+          "width": 538,
+          "height": 342,
+          "prepared": "6-8-asset.jpg"
+        },
+        "subnote": "Read the failed conditions before proceeding",
+        "audio_from": 36.317,
+        "audio_to": 42.1425,
+        "narration": "Read the reasons. Aria says waiting, so leave Apply unused.",
+        "audio_lead": 0.18
+      },
+      {
+        "at": 54.625,
+        "dur": 7.374999999999997,
+        "action": "End on low-score context",
+        "caption": "Tools prepare. You review and decide.",
+        "focus": "Still final state",
+        "asset": {
+          "kind": "guide",
+          "title": "YOUR REVIEW COMES FIRST",
+          "lines": [
+            "Read the reasons",
+            "Check failed conditions",
+            "Wait when unclear"
+          ]
+        },
+        "subnote": "Illustrative practice \u00b7 no live order",
+        "audio_from": 42.317,
+        "audio_to": 48.1947,
+        "narration": "Tools help you prepare. Review the evidence, and decide with care.",
+        "audio_lead": 0.18
+      }
+    ],
+    "transcript": "Understand Oracle's percentage before using it. Open Oracle for the chart you are reviewing. In this example, eight of the nine checks pass. Eight divided by nine rounds to eighty-nine percent. This is confluence: a count of conditions that agree. It is not the probability that a trade will win. Oracle and Aria use the same checks, so they are not independent confirmations. In another example, only six of nine checks agree. Read the reasons. Aria says waiting, so leave Apply unused. Tools help you prepare. Review the evidence, and decide with care.",
+    "audio": "Arthur narration",
+    "boundary_checks": [
+      {
+        "split": 3.681335,
+        "silence": [
+          3.61546,
+          3.74721
+        ]
+      },
+      {
+        "split": 6.312375,
+        "silence": [
+          6.09642,
+          6.52833
+        ]
+      },
+      {
+        "split": 10.414805000000001,
+        "silence": [
+          9.95421,
+          10.8754
+        ]
+      },
+      {
+        "split": 14.7777,
+        "silence": [
+          14.204,
+          15.3514
+        ]
+      },
+      {
+        "split": 19.7622,
+        "silence": [
+          19.2556,
+          20.2688
+        ]
+      },
+      {
+        "split": 23.450850000000003,
+        "silence": [
+          22.9158,
+          23.9859
+        ]
+      },
+      {
+        "split": 30.4238,
+        "silence": [
+          29.8221,
+          31.0255
+        ]
+      },
+      {
+        "split": 35.90225,
+        "silence": [
+          35.3875,
+          36.417
+        ]
+      },
+      {
+        "split": 42.21475,
+        "silence": [
+          42.0125,
+          42.417
+        ]
+      }
+    ]
+  }
+]

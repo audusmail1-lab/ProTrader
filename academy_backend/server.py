@@ -15,7 +15,7 @@ from urllib.parse import urlsplit
 
 ROOT = Path(__file__).resolve().parent.parent
 LESSONS = json.loads((ROOT / 'academy_backend/lessons.json').read_text())
-PUBLIC = {'styles.css','favicon.svg','live.js','live.css','public-content.js','public-intro.js','public-pages.js'}
+PUBLIC = {'styles.css','favicon.svg','live.js','live.css','public-content.js','public-intro.js','public-pages.js','video-player.js'} | {f'captions/tutorial-{i}.vtt' for i in range(7)} | {f'posters/tutorial-{i}.jpg' for i in range(7)}
 POLICY = json.loads((ROOT / 'academy_backend/public_policy.json').read_text())
 EMAIL = re.compile(r'^[^\s@]+@[^\s@]+\.[^\s@]+$')
 
@@ -223,7 +223,7 @@ class Handler(BaseHTTPRequestHandler):
                 return self.output(html,content_type='text/html; charset=utf-8')
             name=path.removeprefix('/')
             if name in PUBLIC:
-                mime='text/javascript' if name.endswith('.js') else 'text/css' if name.endswith('.css') else 'image/svg+xml'
+                mime='image/jpeg' if name.endswith('.jpg') else 'text/vtt' if name.endswith('.vtt') else 'text/javascript' if name.endswith('.js') else 'text/css' if name.endswith('.css') else 'image/svg+xml'
                 return self.output((ROOT/'academy'/name).read_bytes(),content_type=mime+'; charset=utf-8')
             raise APIError(404,'Not found.')
         except APIError as e: self.output({'error':e.message},e.status)

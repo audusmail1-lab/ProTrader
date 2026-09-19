@@ -3,5 +3,38 @@
 /* Keep the private bootstrap field out of view when a setup link supplies it. */
 [hidden] { display: none !important; }
 
+/* Let wide practice tables scroll inside their panel, never widen the page. */
+.dashboard > *, .beginner-layout > *, .learning-main, .panel, .guide { min-width: 0; }
+.table-wrap { width: 100%; overflow-x: auto; overscroll-behavior-x: contain; }
+.table-wrap:focus-visible { outline: 2px solid var(--lime); outline-offset: 4px; }
+.timing { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+.timing dd, .lesson-row > div { min-width: 0; overflow-wrap: anywhere; }
+
+/* Portrait tutorials keep readable width; the dialog scrolls instead of shrinking them. */
+.video-open { overflow: hidden; }
+#player { width: min(980px, calc(100vw - 24px)); max-height: 92vh; max-height: 92dvh; }
+.player-toolbar { position: sticky; top: 0; z-index: 3; display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 8px 14px; background: #191f16; border-bottom: 1px solid var(--line); font-size: 11px; letter-spacing: .08em; }
+#player .close { position: static; width: 44px; height: 44px; flex-shrink: 0; color: var(--text); cursor: pointer; }
+#player-content { align-items: start; }
+#player-content video { width: 100%; height: auto; max-height: none; aspect-ratio: 9/16; object-fit: contain; }
+.tutorial-media { min-width: 0; background: #101611; }
+.tutorial-media > p { padding: 14px 20px; margin: 0; font-size: 13px; }
+.video-fallback a, .tutorial-transcript button { color: var(--lime); text-decoration: underline; }
+#player .guide { padding: 28px 24px; }
+.tutorial-transcript { margin-top: 28px; }
+.tutorial-transcript summary { cursor: pointer; font-weight: 600; padding: 12px 0; }
+.tutorial-transcript p { margin: 16px 0; }
+.tutorial-transcript button { border: 0; background: transparent; padding: 8px 8px 8px 0; min-height: 44px; font: inherit; cursor: pointer; }
+.hero-visual video { width: 100%; height: auto; max-height: none; aspect-ratio: 9/16; object-fit: contain; }
+@media (min-width: 761px) {
+  #player-content { grid-template-columns: minmax(300px, min(440px, calc(51.75dvh - 82px))) minmax(0, 1fr); }
+}
+@media (max-width: 760px) {
+  .dashboard, .beginner-layout { grid-template-columns: minmax(0, 1fr); }
+  #player-content { grid-template-columns: minmax(0, 1fr); }
+  #player { max-width: 480px; }
+  .timing { font-size: 13px; }
+}
+
 /* Launch information and readable policy pages. */
 header nav{align-items:center;justify-content:center;flex:1;gap:12px 18px}header .brand,header>.button{flex-shrink:0}header .app-link{font-size:12px;padding:9px 12px}.hero-copy>.launch-status{font-size:14px!important;line-height:1.7;margin-bottom:16px!important}.launch-status a{display:block;color:var(--lime);text-decoration:underline;margin-top:10px}.hero-copy>.hero-disclaimer{font-size:12px!important;margin:0!important}.app-section>p{max-width:740px}.legal-page{max-width:920px}.legal-page h1{font-size:clamp(2.4rem,5vw,4rem)}.legal-content{overflow-wrap:anywhere}.legal-content h2{font-size:23px;margin-top:36px}.legal-content h2:first-child{margin-top:0}.legal-content p{margin:14px 0}.legal-content ul{color:var(--muted);padding-left:22px}.legal-content li{margin:12px 0}.legal-content strong{color:var(--text)}.legal-content a:not(.button),.footer-disclaimer a{color:var(--lime);text-decoration:underline}.legal-content .button{overflow-wrap:anywhere}.policy-date{font-size:13px!important}.footer-heading{display:flex;width:100%;gap:24px;flex-wrap:wrap;align-items:center}footer nav{display:flex;flex-wrap:wrap;gap:12px 22px;width:100%;font-size:13px}.footer-disclaimer{flex-basis:100%;max-width:850px;font-size:12px;line-height:1.8}.cookie-note{display:block;max-width:1440px;margin:auto;padding:9px 5%;font-size:12px;color:var(--muted);border-bottom:1px solid var(--line)}.cookie-note a{text-decoration:underline;color:var(--lime)}@media(max-width:760px){header nav{justify-content:flex-start;flex-basis:100%}.legal-page .panel{padding:22px}.legal-content h2{font-size:21px}footer nav{order:2;justify-content:flex-start;padding:0}.footer-heading p{margin:0}.cookie-note{font-size:11px}.legal-content .button{max-width:100%;white-space:normal}.footer-heading{gap:14px}}

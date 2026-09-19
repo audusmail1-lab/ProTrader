@@ -1,0 +1,107 @@
+[
+  {
+    "url": "https://d2ol7oe51mr4n9.cloudfront.net/user_3JK9HzQtMubHcINDjvbZuTRS9eo/bf139c70-aec0-4497-bbf4-6d3f3acfc0ce.mp4",
+    "id": 0,
+    "duration": "0:30",
+    "title": "Know your trade ticket",
+    "topic": "Trade & risk",
+    "label": "01 / TRADE TICKET",
+    "summary": "Find direction, order type, lot size, stop loss and take profit. Review Max Loss, margin and risk-to-reward estimates before a paper order.",
+    "steps": [
+      "Open Trade and select Buy or Sell.",
+      "Choose the order type and lot size; enable stop loss and take profit.",
+      "Change the lot size and describe how the loss estimate changes."
+    ],
+    "note": "Estimates depend on your inputs and instrument. Review every field before submitting."
+  },
+  {
+    "url": "https://d2ol7oe51mr4n9.cloudfront.net/user_3JK9HzQtMubHcINDjvbZuTRS9eo/1d98cd13-fc8a-47fd-9df8-521eb5840f09.mp4",
+    "id": 1,
+    "duration": "0:30",
+    "title": "Make your chart readable",
+    "topic": "Chart foundations",
+    "label": "02 / CHART TOOLS",
+    "summary": "Select a market and timeframe, then use H-Line, Trend and Fib to annotate a prepared chart.",
+    "steps": [
+      "Choose your market and timeframe.",
+      "Use H-Line for a level or Trend to connect two points.",
+      "Return to Cursor and remove drawings that do not help explain your observation."
+    ],
+    "note": "A marked level describes an observation; it does not guarantee a price reaction."
+  },
+  {
+    "url": "https://d2ol7oe51mr4n9.cloudfront.net/user_3JK9HzQtMubHcINDjvbZuTRS9eo/4fc060d6-47d6-4722-a54d-91a056bc659e.mp4",
+    "id": 2,
+    "duration": "0:30",
+    "title": "Read a pattern with context",
+    "topic": "Analysis tools",
+    "label": "03 / SCANNER",
+    "summary": "Review the pattern name, direction and score in Scanner, then compare available overlays with the chart.",
+    "steps": [
+      "Open Scanner for the selected market and timeframe.",
+      "Read one pattern\u2019s name, direction and score.",
+      "Toggle Patterns and compare the overlay with price action."
+    ],
+    "note": "A scanner score is a review cue, not a guaranteed outcome."
+  },
+  {
+    "url": "https://d2ol7oe51mr4n9.cloudfront.net/user_3JK9HzQtMubHcINDjvbZuTRS9eo/3c419c0f-63e9-4e9f-95a0-be3f51842d4d.mp4",
+    "id": 3,
+    "duration": "0:30",
+    "title": "Turn a close into a review",
+    "topic": "Practice & review",
+    "label": "04 / JOURNAL",
+    "summary": "After a paper position closes, read its direction, closed volume, instrument and profit or loss together in Journal.",
+    "steps": [
+      "Close a paper position in your practice environment.",
+      "Open Journal beneath the chart; read the latest entry.",
+      "Explain the result and note one thing to review next time."
+    ],
+    "note": "Partial closes can create separate entries. Profit or loss alone does not explain a decision."
+  },
+  {
+    "url": "https://d2ol7oe51mr4n9.cloudfront.net/user_3JK9HzQtMubHcINDjvbZuTRS9eo/d1d5e502-ee4d-4d19-a45f-8b032eb2480f.mp4",
+    "id": 4,
+    "duration": "0:30",
+    "title": "Find your flow with shortcuts",
+    "topic": "Chart foundations",
+    "label": "05 / SHORTCUTS",
+    "summary": "Open the shortcut reference and learn two keys you can use during each session.",
+    "steps": [
+      "Press ? to open Keyboard Shortcuts.",
+      "Use 1\u20136 for timeframes; A for ARIA, O for Oracle, P for Portfolio.",
+      "Press Escape to close help, then practice two shortcuts."
+    ],
+    "note": "Use shortcuts while focus is outside a text input."
+  },
+  {
+    "url": "https://d2ol7oe51mr4n9.cloudfront.net/user_3JK9HzQtMubHcINDjvbZuTRS9eo/98476413-cca1-4ab9-8744-be26f9d6df47.mp4",
+    "id": 5,
+    "duration": "0:30",
+    "title": "Understand ARIA\u2019s checks",
+    "topic": "Analysis tools",
+    "label": "06 / ARIA",
+    "summary": "Read market conditions, nine gates and the verdict. Review what applying ARIA copies into the Trade ticket.",
+    "steps": [
+      "Open ARIA and read market conditions and the nine gates.",
+      "Explain the verdict and any restrictions.",
+      "When available, Apply ARIA to Trade copies direction, stop and target; check the paper ticket."
+    ],
+    "note": "Gates count matching conditions, not your chance of winning."
+  },
+  {
+    "url": "https://d2ol7oe51mr4n9.cloudfront.net/user_3JK9HzQtMubHcINDjvbZuTRS9eo/a3748e4a-9ed5-4596-a7ef-5a86664bd7e4.mp4",
+    "id": 6,
+    "duration": "0:30",
+    "title": "What Oracle\u2019s percentage means",
+    "topic": "Analysis tools",
+    "label": "07 / ORACLE",
+    "summary": "Understand the percentage as the share of nine ARIA checks that pass, then read the reasons and suggested trade.",
+    "steps": [
+      "Open Oracle and read the reasons behind its percentage.",
+      "Compare the same setup with ARIA\u2019s verdict and restrictions.",
+      "If applying the signal, check size manually: suggested size is not copied."
+    ],
+    "note": "78% means seven of nine checks passed. It is not a predicted win rate. This clip is caption-only."
+  }
+]

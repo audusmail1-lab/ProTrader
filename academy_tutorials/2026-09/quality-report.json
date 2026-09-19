@@ -1,0 +1,625 @@
+[
+  {
+    "id": 0,
+    "duration": 66,
+    "bytes": 2683702,
+    "dimensions": [
+      1080,
+      1920
+    ],
+    "fps": "24/1",
+    "audio_sample_rate": "48000",
+    "all_frames_decoded": true,
+    "loudness": {
+      "input_i": "-15.84",
+      "input_tp": "-4.99",
+      "input_lra": "5.50",
+      "input_thresh": "-26.58",
+      "output_i": "-16.17",
+      "output_tp": "-4.11",
+      "output_lra": "5.70",
+      "output_thresh": "-26.85",
+      "normalization_type": "dynamic",
+      "target_offset": "0.17"
+    },
+    "speech_boundaries": [
+      {
+        "split": 2.8682499999999997,
+        "silence": [
+          2.16667,
+          3.56983
+        ]
+      },
+      {
+        "split": 7.376165,
+        "silence": [
+          6.86837,
+          7.88396
+        ]
+      },
+      {
+        "split": 12.831299999999999,
+        "silence": [
+          12.2769,
+          13.3857
+        ]
+      },
+      {
+        "split": 17.209200000000003,
+        "silence": [
+          16.4554,
+          17.963
+        ]
+      },
+      {
+        "split": 22.76525,
+        "silence": [
+          21.9597,
+          23.5708
+        ]
+      },
+      {
+        "split": 27.82045,
+        "silence": [
+          27.5312,
+          28.1097
+        ]
+      },
+      {
+        "split": 31.79185,
+        "silence": [
+          31.7586,
+          31.8251
+        ]
+      },
+      {
+        "split": 36.882400000000004,
+        "silence": [
+          36.2355,
+          37.5293
+        ]
+      },
+      {
+        "split": 42.03445,
+        "silence": [
+          41.423,
+          42.6459
+        ]
+      },
+      {
+        "split": 48.64515,
+        "silence": [
+          48.3982,
+          48.8921
+        ]
+      }
+    ],
+    "minimum_scene_hold": 5
+  },
+  {
+    "id": 1,
+    "duration": 60,
+    "bytes": 3086122,
+    "dimensions": [
+      1080,
+      1920
+    ],
+    "fps": "24/1",
+    "audio_sample_rate": "48000",
+    "all_frames_decoded": true,
+    "loudness": {
+      "input_i": "-15.94",
+      "input_tp": "-4.92",
+      "input_lra": "7.40",
+      "input_thresh": "-26.49",
+      "output_i": "-15.77",
+      "output_tp": "-4.17",
+      "output_lra": "7.40",
+      "output_thresh": "-26.29",
+      "normalization_type": "dynamic",
+      "target_offset": "-0.23"
+    },
+    "speech_boundaries": [
+      {
+        "split": 4.255185,
+        "silence": [
+          3.71025,
+          4.80012
+        ]
+      },
+      {
+        "split": 8.25981,
+        "silence": [
+          7.17687,
+          9.34275
+        ]
+      },
+      {
+        "split": 13.7494,
+        "silence": [
+          12.5383,
+          14.9605
+        ]
+      },
+      {
+        "split": 18.5321,
+        "silence": [
+          17.9088,
+          19.1554
+        ]
+      },
+      {
+        "split": 22.67735,
+        "silence": [
+          21.957,
+          23.3977
+        ]
+      },
+      {
+        "split": 27.2757,
+        "silence": [
+          25.958,
+          28.5934
+        ]
+      },
+      {
+        "split": 31.707900000000002,
+        "silence": [
+          31.1105,
+          32.3053
+        ]
+      },
+      {
+        "split": 35.64935,
+        "silence": [
+          34.8098,
+          36.4889
+        ]
+      },
+      {
+        "split": 40.865449999999996,
+        "silence": [
+          40.0635,
+          41.6674
+        ]
+      }
+    ],
+    "minimum_scene_hold": 5
+  },
+  {
+    "id": 2,
+    "duration": 60,
+    "bytes": 2310807,
+    "dimensions": [
+      1080,
+      1920
+    ],
+    "fps": "24/1",
+    "audio_sample_rate": "48000",
+    "all_frames_decoded": true,
+    "loudness": {
+      "input_i": "-15.89",
+      "input_tp": "-4.99",
+      "input_lra": "5.60",
+      "input_thresh": "-26.39",
+      "output_i": "-16.16",
+      "output_tp": "-4.71",
+      "output_lra": "5.60",
+      "output_thresh": "-26.64",
+      "normalization_type": "dynamic",
+      "target_offset": "0.16"
+    },
+    "speech_boundaries": [
+      {
+        "split": 4.651605,
+        "silence": [
+          3.7515,
+          5.55171
+        ]
+      },
+      {
+        "split": 10.546735,
+        "silence": [
+          9.35587,
+          11.7376
+        ]
+      },
+      {
+        "split": 14.20485,
+        "silence": [
+          13.6468,
+          14.7629
+        ]
+      },
+      {
+        "split": 18.393349999999998,
+        "silence": [
+          17.4854,
+          19.3013
+        ]
+      },
+      {
+        "split": 24.5205,
+        "silence": [
+          23.4832,
+          25.5578
+        ]
+      },
+      {
+        "split": 29.587400000000002,
+        "silence": [
+          29.2783,
+          29.8965
+        ]
+      },
+      {
+        "split": 33.814400000000006,
+        "silence": [
+          33.3004,
+          34.3284
+        ]
+      },
+      {
+        "split": 37.689750000000004,
+        "silence": [
+          37.0682,
+          38.3113
+        ]
+      },
+      {
+        "split": 42.300200000000004,
+        "silence": [
+          41.6842,
+          42.9162
+        ]
+      }
+    ],
+    "minimum_scene_hold": 5
+  },
+  {
+    "id": 3,
+    "duration": 60,
+    "bytes": 2110641,
+    "dimensions": [
+      1080,
+      1920
+    ],
+    "fps": "24/1",
+    "audio_sample_rate": "48000",
+    "all_frames_decoded": true,
+    "loudness": {
+      "input_i": "-16.06",
+      "input_tp": "-5.00",
+      "input_lra": "6.10",
+      "input_thresh": "-26.62",
+      "output_i": "-15.74",
+      "output_tp": "-4.00",
+      "output_lra": "5.80",
+      "output_thresh": "-26.27",
+      "normalization_type": "dynamic",
+      "target_offset": "-0.26"
+    },
+    "speech_boundaries": [
+      {
+        "split": 5.209605,
+        "silence": [
+          4.63879,
+          5.78042
+        ]
+      },
+      {
+        "split": 10.54685,
+        "silence": [
+          10.0426,
+          11.0511
+        ]
+      },
+      {
+        "split": 13.80955,
+        "silence": [
+          13.2097,
+          14.4094
+        ]
+      },
+      {
+        "split": 17.68845,
+        "silence": [
+          17.1544,
+          18.2225
+        ]
+      },
+      {
+        "split": 20.799750000000003,
+        "silence": [
+          20.1077,
+          21.4918
+        ]
+      },
+      {
+        "split": 25.887099999999997,
+        "silence": [
+          25.3635,
+          26.4107
+        ]
+      },
+      {
+        "split": 30.636200000000002,
+        "silence": [
+          30.1175,
+          31.1549
+        ]
+      },
+      {
+        "split": 36.15755,
+        "silence": [
+          35.5484,
+          36.7667
+        ]
+      },
+      {
+        "split": 40.315200000000004,
+        "silence": [
+          39.6879,
+          40.9425
+        ]
+      }
+    ],
+    "minimum_scene_hold": 5
+  },
+  {
+    "id": 4,
+    "duration": 46,
+    "bytes": 1937504,
+    "dimensions": [
+      1080,
+      1920
+    ],
+    "fps": "24/1",
+    "audio_sample_rate": "48000",
+    "all_frames_decoded": true,
+    "loudness": {
+      "input_i": "-16.18",
+      "input_tp": "-4.93",
+      "input_lra": "6.00",
+      "input_thresh": "-26.78",
+      "output_i": "-15.95",
+      "output_tp": "-4.39",
+      "output_lra": "5.50",
+      "output_thresh": "-26.54",
+      "normalization_type": "dynamic",
+      "target_offset": "-0.05"
+    },
+    "speech_boundaries": [
+      {
+        "split": 3.935665,
+        "silence": [
+          3.50908,
+          4.36225
+        ]
+      },
+      {
+        "split": 7.96379,
+        "silence": [
+          7.47437,
+          8.45321
+        ]
+      },
+      {
+        "split": 11.280899999999999,
+        "silence": [
+          11.2182,
+          11.3436
+        ]
+      },
+      {
+        "split": 17.40035,
+        "silence": [
+          16.8298,
+          17.9709
+        ]
+      },
+      {
+        "split": 22.0158,
+        "silence": [
+          21.5063,
+          22.5253
+        ]
+      },
+      {
+        "split": 26.8945,
+        "silence": [
+          26.6482,
+          27.1408
+        ]
+      },
+      {
+        "split": 30.2445,
+        "silence": [
+          30.1576,
+          30.3314
+        ]
+      }
+    ],
+    "minimum_scene_hold": 5
+  },
+  {
+    "id": 5,
+    "duration": 60,
+    "bytes": 2286385,
+    "dimensions": [
+      1080,
+      1920
+    ],
+    "fps": "24/1",
+    "audio_sample_rate": "48000",
+    "all_frames_decoded": true,
+    "loudness": {
+      "input_i": "-15.89",
+      "input_tp": "-4.99",
+      "input_lra": "8.90",
+      "input_thresh": "-26.53",
+      "output_i": "-15.99",
+      "output_tp": "-4.59",
+      "output_lra": "9.30",
+      "output_thresh": "-26.63",
+      "normalization_type": "dynamic",
+      "target_offset": "-0.01"
+    },
+    "speech_boundaries": [
+      {
+        "split": 3.02423,
+        "silence": [
+          2.64496,
+          3.4035
+        ]
+      },
+      {
+        "split": 6.35602,
+        "silence": [
+          5.80737,
+          6.90467
+        ]
+      },
+      {
+        "split": 9.648625,
+        "silence": [
+          9.29475,
+          10.0025
+        ]
+      },
+      {
+        "split": 13.3412,
+        "silence": [
+          12.7283,
+          13.9541
+        ]
+      },
+      {
+        "split": 17.23925,
+        "silence": [
+          16.7183,
+          17.7602
+        ]
+      },
+      {
+        "split": 20.2866,
+        "silence": [
+          19.6422,
+          20.931
+        ]
+      },
+      {
+        "split": 24.3096,
+        "silence": [
+          23.8945,
+          24.7247
+        ]
+      },
+      {
+        "split": 28.084249999999997,
+        "silence": [
+          27.6512,
+          28.5173
+        ]
+      },
+      {
+        "split": 33.2238,
+        "silence": [
+          32.607,
+          33.8406
+        ]
+      }
+    ],
+    "minimum_scene_hold": 5
+  },
+  {
+    "id": 6,
+    "duration": 62,
+    "bytes": 2836150,
+    "dimensions": [
+      1080,
+      1920
+    ],
+    "fps": "24/1",
+    "audio_sample_rate": "48000",
+    "all_frames_decoded": true,
+    "loudness": {
+      "input_i": "-15.77",
+      "input_tp": "-4.94",
+      "input_lra": "5.20",
+      "input_thresh": "-26.26",
+      "output_i": "-15.78",
+      "output_tp": "-4.54",
+      "output_lra": "4.70",
+      "output_thresh": "-26.27",
+      "normalization_type": "dynamic",
+      "target_offset": "-0.22"
+    },
+    "speech_boundaries": [
+      {
+        "split": 3.681335,
+        "silence": [
+          3.61546,
+          3.74721
+        ]
+      },
+      {
+        "split": 6.312375,
+        "silence": [
+          6.09642,
+          6.52833
+        ]
+      },
+      {
+        "split": 10.414805000000001,
+        "silence": [
+          9.95421,
+          10.8754
+        ]
+      },
+      {
+        "split": 14.7777,
+        "silence": [
+          14.204,
+          15.3514
+        ]
+      },
+      {
+        "split": 19.7622,
+        "silence": [
+          19.2556,
+          20.2688
+        ]
+      },
+      {
+        "split": 23.450850000000003,
+        "silence": [
+          22.9158,
+          23.9859
+        ]
+      },
+      {
+        "split": 30.4238,
+        "silence": [
+          29.8221,
+          31.0255
+        ]
+      },
+      {
+        "split": 35.90225,
+        "silence": [
+          35.3875,
+          36.417
+        ]
+      },
+      {
+        "split": 42.21475,
+        "silence": [
+          42.0125,
+          42.417
+        ]
+      }
+    ],
+    "minimum_scene_hold": 5
+  }
+]

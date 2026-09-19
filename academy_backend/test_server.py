@@ -112,6 +112,23 @@ class AcademyTests(unittest.TestCase):
         self.assertEqual(app.smtp.send.call_count,5)
         with app.db() as db:
             self.assertEqual([tuple(r) for r in db.execute('SELECT status,body,html_body FROM mail')],[('sent','','')]*5)
+    def test_public_captions_do_not_expand_private_asset_access(self):
+        for i in range(7):
+            self.assertTrue(self.request(f'/captions/tutorial-{i}.vtt').startswith('WEBVTT\n'))
+        self.assertIn('createVideoPlayer',self.request('/video-player.js'))
+        conn=http.client.HTTPConnection('127.0.0.1',self.port,timeout=5)
+        conn.request('GET','/posters/tutorial-6.jpg')
+        poster=conn.getresponse()
+        self.assertEqual(poster.status,200)
+        self.assertTrue(poster.getheader('Content-Type').startswith('image/jpeg'))
+        self.assertTrue(poster.read().startswith(b'\xff\xd8'))
+        conn.close()
+        for path in ['/captions/tutorial-7.vtt','/captions/../practice.js',
+                     '/captions/%2e%2e/academy.sqlite3','/captions/production-review.zip',
+                     '/posters/tutorial-7.jpg','/posters/../academy.sqlite3']:
+            self.request(path,expected=404)
+        self.request('/api/materials.js',expected=401)
+
     def test_setup_auth_and_private_assets(self):
         self.request('/api/lessons',expected=401)
         self.request('/api/materials.js',expected=401)

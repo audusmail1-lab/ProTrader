@@ -1,0 +1,3434 @@
+[
+  {
+    "id": 0,
+    "expected": "Prepare a paper trade before acting. Open Trade, and check the instrument you are viewing. Choose Buy or Sell deliberately. We will use Buy. Check the order type. This example uses Market. Set the lot size. This is an illustrative practice account. Enable Stop Loss, then enter your exercise's stop level. Enable Take Profit, then enter your exercise's target. Pause to review the estimated loss and margin. Reduce the lot size, and check how the estimate changes. Recheck direction, size, stop and target. These are estimates. Stop here with the prepared ticket. No order was submitted.",
+    "transcription": [
+      {
+        "start": 0.0,
+        "end": 2.06,
+        "text": " Prepare a paper trade before acting.",
+        "words": [
+          {
+            "start": 0.0,
+            "end": 0.38,
+            "word": " Prepare"
+          },
+          {
+            "start": 0.38,
+            "end": 0.72,
+            "word": " a"
+          },
+          {
+            "start": 0.72,
+            "end": 0.86,
+            "word": " paper"
+          },
+          {
+            "start": 0.86,
+            "end": 1.28,
+            "word": " trade"
+          },
+          {
+            "start": 1.28,
+            "end": 1.6,
+            "word": " before"
+          },
+          {
+            "start": 1.6,
+            "end": 2.06,
+            "word": " acting."
+          }
+        ]
+      },
+      {
+        "start": 5.22,
+        "end": 8.34,
+        "text": " Open trade and check the instrument you are viewing.",
+        "words": [
+          {
+            "start": 5.22,
+            "end": 5.5,
+            "word": " Open"
+          },
+          {
+            "start": 5.5,
+            "end": 5.82,
+            "word": " trade"
+          },
+          {
+            "start": 5.82,
+            "end": 6.8,
+            "word": " and"
+          },
+          {
+            "start": 6.8,
+            "end": 7.0,
+            "word": " check"
+          },
+          {
+            "start": 7.0,
+            "end": 7.26,
+            "word": " the"
+          },
+          {
+            "start": 7.26,
+            "end": 7.64,
+            "word": " instrument"
+          },
+          {
+            "start": 7.64,
+            "end": 7.98,
+            "word": " you"
+          },
+          {
+            "start": 7.98,
+            "end": 8.08,
+            "word": " are"
+          },
+          {
+            "start": 8.08,
+            "end": 8.34,
+            "word": " viewing."
+          }
+        ]
+      },
+      {
+        "start": 11.16,
+        "end": 13.0,
+        "text": " Choose buy or sell deliberately.",
+        "words": [
+          {
+            "start": 11.16,
+            "end": 11.44,
+            "word": " Choose"
+          },
+          {
+            "start": 11.44,
+            "end": 11.88,
+            "word": " buy"
+          },
+          {
+            "start": 11.88,
+            "end": 12.34,
+            "word": " or"
+          },
+          {
+            "start": 12.34,
+            "end": 12.6,
+            "word": " sell"
+          },
+          {
+            "start": 12.6,
+            "end": 13.0,
+            "word": " deliberately."
+          }
+        ]
+      },
+      {
+        "start": 14.54,
+        "end": 15.38,
+        "text": " We will use buy.",
+        "words": [
+          {
+            "start": 14.54,
+            "end": 14.76,
+            "word": " We"
+          },
+          {
+            "start": 14.76,
+            "end": 14.94,
+            "word": " will"
+          },
+          {
+            "start": 14.94,
+            "end": 15.06,
+            "word": " use"
+          },
+          {
+            "start": 15.06,
+            "end": 15.38,
+            "word": " buy."
+          }
+        ]
+      },
+      {
+        "start": 16.82,
+        "end": 18.16,
+        "text": " Check the order type.",
+        "words": [
+          {
+            "start": 16.82,
+            "end": 17.38,
+            "word": " Check"
+          },
+          {
+            "start": 17.38,
+            "end": 17.58,
+            "word": " the"
+          },
+          {
+            "start": 17.58,
+            "end": 17.78,
+            "word": " order"
+          },
+          {
+            "start": 17.78,
+            "end": 18.16,
+            "word": " type."
+          }
+        ]
+      },
+      {
+        "start": 18.72,
+        "end": 20.02,
+        "text": " This example uses market.",
+        "words": [
+          {
+            "start": 18.72,
+            "end": 18.76,
+            "word": " This"
+          },
+          {
+            "start": 18.76,
+            "end": 19.1,
+            "word": " example"
+          },
+          {
+            "start": 19.1,
+            "end": 19.58,
+            "word": " uses"
+          },
+          {
+            "start": 19.58,
+            "end": 20.02,
+            "word": " market."
+          }
+        ]
+      },
+      {
+        "start": 23.27,
+        "end": 24.15,
+        "text": " Set the lot size.",
+        "words": [
+          {
+            "start": 23.27,
+            "end": 23.45,
+            "word": " Set"
+          },
+          {
+            "start": 23.45,
+            "end": 23.69,
+            "word": " the"
+          },
+          {
+            "start": 23.69,
+            "end": 23.85,
+            "word": " lot"
+          },
+          {
+            "start": 23.85,
+            "end": 24.15,
+            "word": " size."
+          }
+        ]
+      },
+      {
+        "start": 25.09,
+        "end": 27.05,
+        "text": " This is an illustrative practice account.",
+        "words": [
+          {
+            "start": 25.09,
+            "end": 25.29,
+            "word": " This"
+          },
+          {
+            "start": 25.29,
+            "end": 25.45,
+            "word": " is"
+          },
+          {
+            "start": 25.45,
+            "end": 25.59,
+            "word": " an"
+          },
+          {
+            "start": 25.59,
+            "end": 26.25,
+            "word": " illustrative"
+          },
+          {
+            "start": 26.25,
+            "end": 26.49,
+            "word": " practice"
+          },
+          {
+            "start": 26.49,
+            "end": 27.05,
+            "word": " account."
+          }
+        ]
+      },
+      {
+        "start": 28.77,
+        "end": 33.11,
+        "text": " Enable stop loss, then enter your exercise's stop level.",
+        "words": [
+          {
+            "start": 28.77,
+            "end": 29.45,
+            "word": " Enable"
+          },
+          {
+            "start": 29.45,
+            "end": 29.87,
+            "word": " stop"
+          },
+          {
+            "start": 29.87,
+            "end": 30.19,
+            "word": " loss,"
+          },
+          {
+            "start": 30.85,
+            "end": 31.07,
+            "word": " then"
+          },
+          {
+            "start": 31.07,
+            "end": 31.35,
+            "word": " enter"
+          },
+          {
+            "start": 31.35,
+            "end": 31.55,
+            "word": " your"
+          },
+          {
+            "start": 31.55,
+            "end": 32.37,
+            "word": " exercise's"
+          },
+          {
+            "start": 32.37,
+            "end": 32.65,
+            "word": " stop"
+          },
+          {
+            "start": 32.65,
+            "end": 33.11,
+            "word": " level."
+          }
+        ]
+      },
+      {
+        "start": 33.11,
+        "end": 44.68,
+        "text": " Enable, take profit, then enter your exercise's target. Pause to review the estimated loss",
+        "words": [
+          {
+            "start": 33.11,
+            "end": 34.07,
+            "word": " Enable,"
+          },
+          {
+            "start": 35.32,
+            "end": 35.88,
+            "word": " take"
+          },
+          {
+            "start": 35.88,
+            "end": 36.2,
+            "word": " profit,"
+          },
+          {
+            "start": 37.14,
+            "end": 37.14,
+            "word": " then"
+          },
+          {
+            "start": 37.14,
+            "end": 37.42,
+            "word": " enter"
+          },
+          {
+            "start": 37.42,
+            "end": 37.6,
+            "word": " your"
+          },
+          {
+            "start": 37.6,
+            "end": 38.38,
+            "word": " exercise's"
+          },
+          {
+            "start": 38.38,
+            "end": 38.66,
+            "word": " target."
+          },
+          {
+            "start": 42.64,
+            "end": 42.96,
+            "word": " Pause"
+          },
+          {
+            "start": 42.96,
+            "end": 43.24,
+            "word": " to"
+          },
+          {
+            "start": 43.24,
+            "end": 43.52,
+            "word": " review"
+          },
+          {
+            "start": 43.52,
+            "end": 43.82,
+            "word": " the"
+          },
+          {
+            "start": 43.82,
+            "end": 44.12,
+            "word": " estimated"
+          },
+          {
+            "start": 44.12,
+            "end": 44.68,
+            "word": " loss"
+          }
+        ]
+      },
+      {
+        "start": 44.68,
+        "end": 50.2,
+        "text": " and margin. Reduce the lot size and check how the estimate",
+        "words": [
+          {
+            "start": 44.68,
+            "end": 45.0,
+            "word": " and"
+          },
+          {
+            "start": 45.0,
+            "end": 45.36,
+            "word": " margin."
+          },
+          {
+            "start": 46.86,
+            "end": 47.54,
+            "word": " Reduce"
+          },
+          {
+            "start": 47.54,
+            "end": 47.88,
+            "word": " the"
+          },
+          {
+            "start": 47.88,
+            "end": 48.04,
+            "word": " lot"
+          },
+          {
+            "start": 48.04,
+            "end": 48.34,
+            "word": " size"
+          },
+          {
+            "start": 48.34,
+            "end": 49.22,
+            "word": " and"
+          },
+          {
+            "start": 49.22,
+            "end": 49.42,
+            "word": " check"
+          },
+          {
+            "start": 49.42,
+            "end": 49.78,
+            "word": " how"
+          },
+          {
+            "start": 49.78,
+            "end": 49.88,
+            "word": " the"
+          },
+          {
+            "start": 49.88,
+            "end": 50.2,
+            "word": " estimate"
+          }
+        ]
+      },
+      {
+        "start": 50.2,
+        "end": 60.71,
+        "text": " changes. Re-check direction, size, stop and target. These are estimates. Stop here with",
+        "words": [
+          {
+            "start": 50.2,
+            "end": 50.9,
+            "word": " changes."
+          },
+          {
+            "start": 53.19,
+            "end": 53.39,
+            "word": " Re"
+          },
+          {
+            "start": 53.39,
+            "end": 53.65,
+            "word": "-check"
+          },
+          {
+            "start": 53.65,
+            "end": 54.11,
+            "word": " direction,"
+          },
+          {
+            "start": 54.93,
+            "end": 55.27,
+            "word": " size,"
+          },
+          {
+            "start": 56.33,
+            "end": 56.33,
+            "word": " stop"
+          },
+          {
+            "start": 56.33,
+            "end": 56.93,
+            "word": " and"
+          },
+          {
+            "start": 56.93,
+            "end": 57.33,
+            "word": " target."
+          },
+          {
+            "start": 57.95,
+            "end": 58.01,
+            "word": " These"
+          },
+          {
+            "start": 58.01,
+            "end": 58.21,
+            "word": " are"
+          },
+          {
+            "start": 58.21,
+            "end": 58.57,
+            "word": " estimates."
+          },
+          {
+            "start": 59.93,
+            "end": 60.09,
+            "word": " Stop"
+          },
+          {
+            "start": 60.09,
+            "end": 60.39,
+            "word": " here"
+          },
+          {
+            "start": 60.39,
+            "end": 60.71,
+            "word": " with"
+          }
+        ]
+      },
+      {
+        "start": 60.71,
+        "end": 64.01,
+        "text": " the prepared ticket. No order was submitted.",
+        "words": [
+          {
+            "start": 60.71,
+            "end": 60.85,
+            "word": " the"
+          },
+          {
+            "start": 60.85,
+            "end": 61.13,
+            "word": " prepared"
+          },
+          {
+            "start": 61.13,
+            "end": 61.57,
+            "word": " ticket."
+          },
+          {
+            "start": 62.73,
+            "end": 63.05,
+            "word": " No"
+          },
+          {
+            "start": 63.05,
+            "end": 63.41,
+            "word": " order"
+          },
+          {
+            "start": 63.41,
+            "end": 63.63,
+            "word": " was"
+          },
+          {
+            "start": 63.63,
+            "end": 64.01,
+            "word": " submitted."
+          }
+        ]
+      }
+    ],
+    "black_intervals": []
+  },
+  {
+    "id": 1,
+    "expected": "A clear chart starts with one useful observation. First, check the market you are viewing. Choose one timeframe before adding any drawings. Look for a price area you want to observe. Select H-Line in the drawing toolbar. Click once on the chart to mark that level. Pause and check where your line landed. Return to Cursor when you finish drawing. A marked level does not guarantee a price reaction. Practise marking one level, then explain why you chose it.",
+    "transcription": [
+      {
+        "start": 0.0,
+        "end": 3.14,
+        "text": " A clear chart starts with one useful observation.",
+        "words": [
+          {
+            "start": 0.0,
+            "end": 0.32,
+            "word": " A"
+          },
+          {
+            "start": 0.32,
+            "end": 0.54,
+            "word": " clear"
+          },
+          {
+            "start": 0.54,
+            "end": 0.8,
+            "word": " chart"
+          },
+          {
+            "start": 0.8,
+            "end": 1.28,
+            "word": " starts"
+          },
+          {
+            "start": 1.28,
+            "end": 1.66,
+            "word": " with"
+          },
+          {
+            "start": 1.66,
+            "end": 1.9,
+            "word": " one"
+          },
+          {
+            "start": 1.9,
+            "end": 2.4,
+            "word": " useful"
+          },
+          {
+            "start": 2.4,
+            "end": 3.14,
+            "word": " observation."
+          }
+        ]
+      },
+      {
+        "start": 5.18,
+        "end": 7.38,
+        "text": " First, check the market you are viewing.",
+        "words": [
+          {
+            "start": 5.18,
+            "end": 5.56,
+            "word": " First,"
+          },
+          {
+            "start": 5.88,
+            "end": 6.14,
+            "word": " check"
+          },
+          {
+            "start": 6.14,
+            "end": 6.32,
+            "word": " the"
+          },
+          {
+            "start": 6.32,
+            "end": 6.7,
+            "word": " market"
+          },
+          {
+            "start": 6.7,
+            "end": 6.98,
+            "word": " you"
+          },
+          {
+            "start": 6.98,
+            "end": 7.12,
+            "word": " are"
+          },
+          {
+            "start": 7.12,
+            "end": 7.38,
+            "word": " viewing."
+          }
+        ]
+      },
+      {
+        "start": 11.17,
+        "end": 13.97,
+        "text": " Choose one time frame before adding any drawings.",
+        "words": [
+          {
+            "start": 11.17,
+            "end": 11.43,
+            "word": " Choose"
+          },
+          {
+            "start": 11.43,
+            "end": 11.77,
+            "word": " one"
+          },
+          {
+            "start": 11.77,
+            "end": 12.17,
+            "word": " time"
+          },
+          {
+            "start": 12.17,
+            "end": 12.51,
+            "word": " frame"
+          },
+          {
+            "start": 12.51,
+            "end": 12.81,
+            "word": " before"
+          },
+          {
+            "start": 12.81,
+            "end": 13.37,
+            "word": " adding"
+          },
+          {
+            "start": 13.37,
+            "end": 13.69,
+            "word": " any"
+          },
+          {
+            "start": 13.69,
+            "end": 13.97,
+            "word": " drawings."
+          }
+        ]
+      },
+      {
+        "start": 17.17,
+        "end": 19.85,
+        "text": " Look for a price area you want to observe.",
+        "words": [
+          {
+            "start": 17.17,
+            "end": 17.37,
+            "word": " Look"
+          },
+          {
+            "start": 17.37,
+            "end": 17.63,
+            "word": " for"
+          },
+          {
+            "start": 17.63,
+            "end": 17.75,
+            "word": " a"
+          },
+          {
+            "start": 17.75,
+            "end": 18.01,
+            "word": " price"
+          },
+          {
+            "start": 18.01,
+            "end": 18.43,
+            "word": " area"
+          },
+          {
+            "start": 18.43,
+            "end": 19.05,
+            "word": " you"
+          },
+          {
+            "start": 19.05,
+            "end": 19.27,
+            "word": " want"
+          },
+          {
+            "start": 19.27,
+            "end": 19.45,
+            "word": " to"
+          },
+          {
+            "start": 19.45,
+            "end": 19.85,
+            "word": " observe."
+          }
+        ]
+      },
+      {
+        "start": 23.26,
+        "end": 25.68,
+        "text": " Select H-Line in the drawing toolbar.",
+        "words": [
+          {
+            "start": 23.26,
+            "end": 23.56,
+            "word": " Select"
+          },
+          {
+            "start": 23.56,
+            "end": 23.94,
+            "word": " H"
+          },
+          {
+            "start": 23.94,
+            "end": 24.34,
+            "word": "-Line"
+          },
+          {
+            "start": 24.34,
+            "end": 24.86,
+            "word": " in"
+          },
+          {
+            "start": 24.86,
+            "end": 24.98,
+            "word": " the"
+          },
+          {
+            "start": 24.98,
+            "end": 25.18,
+            "word": " drawing"
+          },
+          {
+            "start": 25.18,
+            "end": 25.68,
+            "word": " toolbar."
+          }
+        ]
+      },
+      {
+        "start": 29.17,
+        "end": 31.71,
+        "text": " Click once on the chart to mark that level.",
+        "words": [
+          {
+            "start": 29.17,
+            "end": 29.37,
+            "word": " Click"
+          },
+          {
+            "start": 29.37,
+            "end": 29.65,
+            "word": " once"
+          },
+          {
+            "start": 29.65,
+            "end": 29.93,
+            "word": " on"
+          },
+          {
+            "start": 29.93,
+            "end": 30.07,
+            "word": " the"
+          },
+          {
+            "start": 30.07,
+            "end": 30.31,
+            "word": " chart"
+          },
+          {
+            "start": 30.31,
+            "end": 30.77,
+            "word": " to"
+          },
+          {
+            "start": 30.77,
+            "end": 30.97,
+            "word": " mark"
+          },
+          {
+            "start": 30.97,
+            "end": 31.29,
+            "word": " that"
+          },
+          {
+            "start": 31.29,
+            "end": 31.71,
+            "word": " level."
+          }
+        ]
+      },
+      {
+        "start": 35.21,
+        "end": 37.57,
+        "text": " Pause and check where your line landed.",
+        "words": [
+          {
+            "start": 35.21,
+            "end": 35.53,
+            "word": " Pause"
+          },
+          {
+            "start": 35.53,
+            "end": 35.83,
+            "word": " and"
+          },
+          {
+            "start": 35.83,
+            "end": 36.05,
+            "word": " check"
+          },
+          {
+            "start": 36.05,
+            "end": 36.41,
+            "word": " where"
+          },
+          {
+            "start": 36.41,
+            "end": 36.61,
+            "word": " your"
+          },
+          {
+            "start": 36.61,
+            "end": 36.93,
+            "word": " line"
+          },
+          {
+            "start": 36.93,
+            "end": 37.57,
+            "word": " landed."
+          }
+        ]
+      },
+      {
+        "start": 41.07,
+        "end": 43.47,
+        "text": " Return to cursor when you finish drawing.",
+        "words": [
+          {
+            "start": 41.07,
+            "end": 41.51,
+            "word": " Return"
+          },
+          {
+            "start": 41.51,
+            "end": 41.77,
+            "word": " to"
+          },
+          {
+            "start": 41.77,
+            "end": 42.05,
+            "word": " cursor"
+          },
+          {
+            "start": 42.05,
+            "end": 42.71,
+            "word": " when"
+          },
+          {
+            "start": 42.71,
+            "end": 42.85,
+            "word": " you"
+          },
+          {
+            "start": 42.85,
+            "end": 43.13,
+            "word": " finish"
+          },
+          {
+            "start": 43.13,
+            "end": 43.47,
+            "word": " drawing."
+          }
+        ]
+      },
+      {
+        "start": 43.47,
+        "end": 56.67,
+        "text": " A marked level does not guarantee a price reaction. Practice marking one level, then",
+        "words": [
+          {
+            "start": 43.47,
+            "end": 44.65,
+            "word": " A"
+          },
+          {
+            "start": 47.34,
+            "end": 47.54,
+            "word": " marked"
+          },
+          {
+            "start": 47.54,
+            "end": 48.04,
+            "word": " level"
+          },
+          {
+            "start": 48.04,
+            "end": 48.66,
+            "word": " does"
+          },
+          {
+            "start": 48.66,
+            "end": 48.9,
+            "word": " not"
+          },
+          {
+            "start": 48.9,
+            "end": 49.34,
+            "word": " guarantee"
+          },
+          {
+            "start": 49.34,
+            "end": 49.7,
+            "word": " a"
+          },
+          {
+            "start": 49.7,
+            "end": 49.92,
+            "word": " price"
+          },
+          {
+            "start": 49.92,
+            "end": 50.7,
+            "word": " reaction."
+          },
+          {
+            "start": 54.12,
+            "end": 54.56,
+            "word": " Practice"
+          },
+          {
+            "start": 54.56,
+            "end": 55.1,
+            "word": " marking"
+          },
+          {
+            "start": 55.1,
+            "end": 55.36,
+            "word": " one"
+          },
+          {
+            "start": 55.36,
+            "end": 55.76,
+            "word": " level,"
+          },
+          {
+            "start": 56.22,
+            "end": 56.67,
+            "word": " then"
+          }
+        ]
+      },
+      {
+        "start": 56.67,
+        "end": 57.99,
+        "text": " Explain why you chose it.",
+        "words": [
+          {
+            "start": 56.67,
+            "end": 56.95,
+            "word": " Explain"
+          },
+          {
+            "start": 56.95,
+            "end": 57.23,
+            "word": " why"
+          },
+          {
+            "start": 57.23,
+            "end": 57.39,
+            "word": " you"
+          },
+          {
+            "start": 57.39,
+            "end": 57.63,
+            "word": " chose"
+          },
+          {
+            "start": 57.63,
+            "end": 57.99,
+            "word": " it."
+          }
+        ]
+      }
+    ],
+    "black_intervals": []
+  },
+  {
+    "id": 2,
+    "expected": "Review one detected pattern in its chart context. First, check the market and the selected timeframe. Open Scanner beneath the chart. Choose one result and read the pattern name. Check whether its direction is bullish, bearish, or neutral. Its score is a review cue, not a win probability. Turn on Patterns to see the available chart overlay. Compare the overlay with the candles you are viewing. Look for evidence that could contradict the idea. If the setup is unclear, wait and ask your instructor.",
+    "transcription": [
+      {
+        "start": 0.0,
+        "end": 3.1,
+        "text": " Review one detected pattern in its chart context.",
+        "words": [
+          {
+            "start": 0.0,
+            "end": 0.54,
+            "word": " Review"
+          },
+          {
+            "start": 0.54,
+            "end": 0.84,
+            "word": " one"
+          },
+          {
+            "start": 0.84,
+            "end": 1.14,
+            "word": " detected"
+          },
+          {
+            "start": 1.14,
+            "end": 1.66,
+            "word": " pattern"
+          },
+          {
+            "start": 1.66,
+            "end": 2.18,
+            "word": " in"
+          },
+          {
+            "start": 2.18,
+            "end": 2.38,
+            "word": " its"
+          },
+          {
+            "start": 2.38,
+            "end": 2.62,
+            "word": " chart"
+          },
+          {
+            "start": 2.62,
+            "end": 3.1,
+            "word": " context."
+          }
+        ]
+      },
+      {
+        "start": 4.86,
+        "end": 8.78,
+        "text": " First, check the market and the selected time frame.",
+        "words": [
+          {
+            "start": 4.86,
+            "end": 5.62,
+            "word": " First,"
+          },
+          {
+            "start": 6.06,
+            "end": 6.44,
+            "word": " check"
+          },
+          {
+            "start": 6.44,
+            "end": 6.68,
+            "word": " the"
+          },
+          {
+            "start": 6.68,
+            "end": 7.06,
+            "word": " market"
+          },
+          {
+            "start": 7.06,
+            "end": 7.38,
+            "word": " and"
+          },
+          {
+            "start": 7.38,
+            "end": 7.52,
+            "word": " the"
+          },
+          {
+            "start": 7.52,
+            "end": 7.84,
+            "word": " selected"
+          },
+          {
+            "start": 7.84,
+            "end": 8.38,
+            "word": " time"
+          },
+          {
+            "start": 8.38,
+            "end": 8.78,
+            "word": " frame."
+          }
+        ]
+      },
+      {
+        "start": 11.2,
+        "end": 12.86,
+        "text": " Open Scanner beneath the chart.",
+        "words": [
+          {
+            "start": 11.2,
+            "end": 11.52,
+            "word": " Open"
+          },
+          {
+            "start": 11.52,
+            "end": 12.08,
+            "word": " Scanner"
+          },
+          {
+            "start": 12.08,
+            "end": 12.38,
+            "word": " beneath"
+          },
+          {
+            "start": 12.38,
+            "end": 12.62,
+            "word": " the"
+          },
+          {
+            "start": 12.62,
+            "end": 12.86,
+            "word": " chart."
+          }
+        ]
+      },
+      {
+        "start": 17.4,
+        "end": 19.72,
+        "text": " Choose one result and read the pattern name.",
+        "words": [
+          {
+            "start": 17.4,
+            "end": 17.4,
+            "word": " Choose"
+          },
+          {
+            "start": 17.4,
+            "end": 17.78,
+            "word": " one"
+          },
+          {
+            "start": 17.78,
+            "end": 18.12,
+            "word": " result"
+          },
+          {
+            "start": 18.12,
+            "end": 18.56,
+            "word": " and"
+          },
+          {
+            "start": 18.56,
+            "end": 18.76,
+            "word": " read"
+          },
+          {
+            "start": 18.76,
+            "end": 19.0,
+            "word": " the"
+          },
+          {
+            "start": 19.0,
+            "end": 19.32,
+            "word": " pattern"
+          },
+          {
+            "start": 19.32,
+            "end": 19.72,
+            "word": " name."
+          }
+        ]
+      },
+      {
+        "start": 23.21,
+        "end": 27.11,
+        "text": " Check whether its direction is bullish, bearish or neutral.",
+        "words": [
+          {
+            "start": 23.21,
+            "end": 23.37,
+            "word": " Check"
+          },
+          {
+            "start": 23.37,
+            "end": 23.69,
+            "word": " whether"
+          },
+          {
+            "start": 23.69,
+            "end": 23.91,
+            "word": " its"
+          },
+          {
+            "start": 23.91,
+            "end": 24.31,
+            "word": " direction"
+          },
+          {
+            "start": 24.31,
+            "end": 24.71,
+            "word": " is"
+          },
+          {
+            "start": 24.71,
+            "end": 25.03,
+            "word": " bullish,"
+          },
+          {
+            "start": 25.85,
+            "end": 26.29,
+            "word": " bearish"
+          },
+          {
+            "start": 26.29,
+            "end": 26.83,
+            "word": " or"
+          },
+          {
+            "start": 26.83,
+            "end": 27.11,
+            "word": " neutral."
+          }
+        ]
+      },
+      {
+        "start": 29.17,
+        "end": 32.45,
+        "text": " Its score is a review queue, not a win probability.",
+        "words": [
+          {
+            "start": 29.17,
+            "end": 29.41,
+            "word": " Its"
+          },
+          {
+            "start": 29.41,
+            "end": 29.75,
+            "word": " score"
+          },
+          {
+            "start": 29.75,
+            "end": 30.15,
+            "word": " is"
+          },
+          {
+            "start": 30.15,
+            "end": 30.29,
+            "word": " a"
+          },
+          {
+            "start": 30.29,
+            "end": 30.57,
+            "word": " review"
+          },
+          {
+            "start": 30.57,
+            "end": 30.99,
+            "word": " queue,"
+          },
+          {
+            "start": 31.43,
+            "end": 31.69,
+            "word": " not"
+          },
+          {
+            "start": 31.69,
+            "end": 31.83,
+            "word": " a"
+          },
+          {
+            "start": 31.83,
+            "end": 32.01,
+            "word": " win"
+          },
+          {
+            "start": 32.01,
+            "end": 32.45,
+            "word": " probability."
+          }
+        ]
+      },
+      {
+        "start": 35.11,
+        "end": 38.31,
+        "text": " Turn on patterns to see the available chart overlay.",
+        "words": [
+          {
+            "start": 35.11,
+            "end": 35.47,
+            "word": " Turn"
+          },
+          {
+            "start": 35.47,
+            "end": 35.69,
+            "word": " on"
+          },
+          {
+            "start": 35.69,
+            "end": 35.99,
+            "word": " patterns"
+          },
+          {
+            "start": 35.99,
+            "end": 36.45,
+            "word": " to"
+          },
+          {
+            "start": 36.45,
+            "end": 36.65,
+            "word": " see"
+          },
+          {
+            "start": 36.65,
+            "end": 36.87,
+            "word": " the"
+          },
+          {
+            "start": 36.87,
+            "end": 37.29,
+            "word": " available"
+          },
+          {
+            "start": 37.29,
+            "end": 37.77,
+            "word": " chart"
+          },
+          {
+            "start": 37.77,
+            "end": 38.31,
+            "word": " overlay."
+          }
+        ]
+      },
+      {
+        "start": 40.93,
+        "end": 43.75,
+        "text": " Compare the overlay with the candles you are viewing.",
+        "words": [
+          {
+            "start": 40.93,
+            "end": 41.57,
+            "word": " Compare"
+          },
+          {
+            "start": 41.57,
+            "end": 41.83,
+            "word": " the"
+          },
+          {
+            "start": 41.83,
+            "end": 42.23,
+            "word": " overlay"
+          },
+          {
+            "start": 42.23,
+            "end": 42.57,
+            "word": " with"
+          },
+          {
+            "start": 42.57,
+            "end": 42.69,
+            "word": " the"
+          },
+          {
+            "start": 42.69,
+            "end": 43.01,
+            "word": " candles"
+          },
+          {
+            "start": 43.01,
+            "end": 43.37,
+            "word": " you"
+          },
+          {
+            "start": 43.37,
+            "end": 43.51,
+            "word": " are"
+          },
+          {
+            "start": 43.51,
+            "end": 43.75,
+            "word": " viewing."
+          }
+        ]
+      },
+      {
+        "start": 47.18,
+        "end": 50.34,
+        "text": " Look for evidence that could contradict the idea.",
+        "words": [
+          {
+            "start": 47.18,
+            "end": 47.4,
+            "word": " Look"
+          },
+          {
+            "start": 47.4,
+            "end": 47.66,
+            "word": " for"
+          },
+          {
+            "start": 47.66,
+            "end": 47.98,
+            "word": " evidence"
+          },
+          {
+            "start": 47.98,
+            "end": 48.74,
+            "word": " that"
+          },
+          {
+            "start": 48.74,
+            "end": 48.94,
+            "word": " could"
+          },
+          {
+            "start": 48.94,
+            "end": 49.44,
+            "word": " contradict"
+          },
+          {
+            "start": 49.44,
+            "end": 49.98,
+            "word": " the"
+          },
+          {
+            "start": 49.98,
+            "end": 50.34,
+            "word": " idea."
+          }
+        ]
+      },
+      {
+        "start": 54.26,
+        "end": 58.44,
+        "text": " If the setup is unclear, wait and ask your instructor.",
+        "words": [
+          {
+            "start": 54.26,
+            "end": 54.34,
+            "word": " If"
+          },
+          {
+            "start": 54.34,
+            "end": 54.54,
+            "word": " the"
+          },
+          {
+            "start": 54.54,
+            "end": 54.84,
+            "word": " setup"
+          },
+          {
+            "start": 54.84,
+            "end": 55.16,
+            "word": " is"
+          },
+          {
+            "start": 55.16,
+            "end": 55.58,
+            "word": " unclear,"
+          },
+          {
+            "start": 56.5,
+            "end": 56.74,
+            "word": " wait"
+          },
+          {
+            "start": 56.74,
+            "end": 57.32,
+            "word": " and"
+          },
+          {
+            "start": 57.32,
+            "end": 57.64,
+            "word": " ask"
+          },
+          {
+            "start": 57.64,
+            "end": 57.94,
+            "word": " your"
+          },
+          {
+            "start": 57.94,
+            "end": 58.44,
+            "word": " instructor."
+          }
+        ]
+      }
+    ],
+    "black_intervals": []
+  },
+  {
+    "id": 3,
+    "expected": "Turn one paper result into a useful learning reflection. After a practice close, open Journal beneath the chart. Start with the newest close at the top. Read the trade direction and instrument together. Check the volume that was closed. Then read the paper result. Profit alone proves little. A partial close can create another row for one position. For a learning record, use your Academy lesson's practice notes. Write one thing you would review next time. Save your reflection, and ask a lesson question if needed.",
+    "transcription": [
+      {
+        "start": 0.0,
+        "end": 3.76,
+        "text": " Turn one paper result into a useful learning reflection.",
+        "words": [
+          {
+            "start": 0.0,
+            "end": 0.5,
+            "word": " Turn"
+          },
+          {
+            "start": 0.5,
+            "end": 0.78,
+            "word": " one"
+          },
+          {
+            "start": 0.78,
+            "end": 1.16,
+            "word": " paper"
+          },
+          {
+            "start": 1.16,
+            "end": 1.6,
+            "word": " result"
+          },
+          {
+            "start": 1.6,
+            "end": 2.2,
+            "word": " into"
+          },
+          {
+            "start": 2.2,
+            "end": 2.4,
+            "word": " a"
+          },
+          {
+            "start": 2.4,
+            "end": 2.7,
+            "word": " useful"
+          },
+          {
+            "start": 2.7,
+            "end": 3.2,
+            "word": " learning"
+          },
+          {
+            "start": 3.2,
+            "end": 3.76,
+            "word": " reflection."
+          }
+        ]
+      },
+      {
+        "start": 5.08,
+        "end": 9.28,
+        "text": " After a practice close, open, journal beneath the chart.",
+        "words": [
+          {
+            "start": 5.08,
+            "end": 5.54,
+            "word": " After"
+          },
+          {
+            "start": 5.54,
+            "end": 5.7,
+            "word": " a"
+          },
+          {
+            "start": 5.7,
+            "end": 6.06,
+            "word": " practice"
+          },
+          {
+            "start": 6.06,
+            "end": 6.46,
+            "word": " close,"
+          },
+          {
+            "start": 6.86,
+            "end": 7.22,
+            "word": " open,"
+          },
+          {
+            "start": 7.64,
+            "end": 8.0,
+            "word": " journal"
+          },
+          {
+            "start": 8.0,
+            "end": 8.72,
+            "word": " beneath"
+          },
+          {
+            "start": 8.72,
+            "end": 9.0,
+            "word": " the"
+          },
+          {
+            "start": 9.0,
+            "end": 9.28,
+            "word": " chart."
+          }
+        ]
+      },
+      {
+        "start": 10.76,
+        "end": 13.3,
+        "text": " Start with the newest close at the top.",
+        "words": [
+          {
+            "start": 10.76,
+            "end": 11.48,
+            "word": " Start"
+          },
+          {
+            "start": 11.48,
+            "end": 11.82,
+            "word": " with"
+          },
+          {
+            "start": 11.82,
+            "end": 11.98,
+            "word": " the"
+          },
+          {
+            "start": 11.98,
+            "end": 12.22,
+            "word": " newest"
+          },
+          {
+            "start": 12.22,
+            "end": 12.58,
+            "word": " close"
+          },
+          {
+            "start": 12.58,
+            "end": 12.94,
+            "word": " at"
+          },
+          {
+            "start": 12.94,
+            "end": 13.06,
+            "word": " the"
+          },
+          {
+            "start": 13.06,
+            "end": 13.3,
+            "word": " top."
+          }
+        ]
+      },
+      {
+        "start": 17.34,
+        "end": 19.76,
+        "text": " Read the trade direction and instrument together.",
+        "words": [
+          {
+            "start": 17.34,
+            "end": 17.42,
+            "word": " Read"
+          },
+          {
+            "start": 17.42,
+            "end": 17.68,
+            "word": " the"
+          },
+          {
+            "start": 17.68,
+            "end": 17.9,
+            "word": " trade"
+          },
+          {
+            "start": 17.9,
+            "end": 18.38,
+            "word": " direction"
+          },
+          {
+            "start": 18.38,
+            "end": 18.82,
+            "word": " and"
+          },
+          {
+            "start": 18.82,
+            "end": 19.2,
+            "word": " instrument"
+          },
+          {
+            "start": 19.2,
+            "end": 19.76,
+            "word": " together."
+          }
+        ]
+      },
+      {
+        "start": 23.28,
+        "end": 24.68,
+        "text": " Check the volume that was closed.",
+        "words": [
+          {
+            "start": 23.28,
+            "end": 23.38,
+            "word": " Check"
+          },
+          {
+            "start": 23.38,
+            "end": 23.64,
+            "word": " the"
+          },
+          {
+            "start": 23.64,
+            "end": 23.98,
+            "word": " volume"
+          },
+          {
+            "start": 23.98,
+            "end": 24.26,
+            "word": " that"
+          },
+          {
+            "start": 24.26,
+            "end": 24.4,
+            "word": " was"
+          },
+          {
+            "start": 24.4,
+            "end": 24.68,
+            "word": " closed."
+          }
+        ]
+      },
+      {
+        "start": 29.41,
+        "end": 30.49,
+        "text": " Then read the paper result.",
+        "words": [
+          {
+            "start": 29.41,
+            "end": 29.41,
+            "word": " Then"
+          },
+          {
+            "start": 29.41,
+            "end": 29.69,
+            "word": " read"
+          },
+          {
+            "start": 29.69,
+            "end": 29.89,
+            "word": " the"
+          },
+          {
+            "start": 29.89,
+            "end": 30.19,
+            "word": " paper"
+          },
+          {
+            "start": 30.19,
+            "end": 30.49,
+            "word": " result."
+          }
+        ]
+      },
+      {
+        "start": 31.71,
+        "end": 32.89,
+        "text": " Profit alone proves little.",
+        "words": [
+          {
+            "start": 31.71,
+            "end": 31.73,
+            "word": " Profit"
+          },
+          {
+            "start": 31.73,
+            "end": 32.05,
+            "word": " alone"
+          },
+          {
+            "start": 32.05,
+            "end": 32.47,
+            "word": " proves"
+          },
+          {
+            "start": 32.47,
+            "end": 32.89,
+            "word": " little."
+          }
+        ]
+      },
+      {
+        "start": 35.24,
+        "end": 38.6,
+        "text": " A partial close can create another row for one position.",
+        "words": [
+          {
+            "start": 35.24,
+            "end": 35.32,
+            "word": " A"
+          },
+          {
+            "start": 35.32,
+            "end": 35.58,
+            "word": " partial"
+          },
+          {
+            "start": 35.58,
+            "end": 36.06,
+            "word": " close"
+          },
+          {
+            "start": 36.06,
+            "end": 36.5,
+            "word": " can"
+          },
+          {
+            "start": 36.5,
+            "end": 36.86,
+            "word": " create"
+          },
+          {
+            "start": 36.86,
+            "end": 37.22,
+            "word": " another"
+          },
+          {
+            "start": 37.22,
+            "end": 37.6,
+            "word": " row"
+          },
+          {
+            "start": 37.6,
+            "end": 38.06,
+            "word": " for"
+          },
+          {
+            "start": 38.06,
+            "end": 38.3,
+            "word": " one"
+          },
+          {
+            "start": 38.3,
+            "end": 38.6,
+            "word": " position."
+          }
+        ]
+      },
+      {
+        "start": 38.6,
+        "end": 48.24,
+        "text": " tradition. For a learning record, use your Academy lessons practice notes. Write one thing",
+        "words": [
+          {
+            "start": 38.6,
+            "end": 38.82,
+            "word": " tradition."
+          },
+          {
+            "start": 41.14,
+            "end": 41.36,
+            "word": " For"
+          },
+          {
+            "start": 41.36,
+            "end": 41.48,
+            "word": " a"
+          },
+          {
+            "start": 41.48,
+            "end": 41.74,
+            "word": " learning"
+          },
+          {
+            "start": 41.74,
+            "end": 42.28,
+            "word": " record,"
+          },
+          {
+            "start": 42.96,
+            "end": 43.14,
+            "word": " use"
+          },
+          {
+            "start": 43.14,
+            "end": 43.4,
+            "word": " your"
+          },
+          {
+            "start": 43.4,
+            "end": 43.82,
+            "word": " Academy"
+          },
+          {
+            "start": 43.82,
+            "end": 44.16,
+            "word": " lessons"
+          },
+          {
+            "start": 44.16,
+            "end": 44.76,
+            "word": " practice"
+          },
+          {
+            "start": 44.76,
+            "end": 45.32,
+            "word": " notes."
+          },
+          {
+            "start": 47.1,
+            "end": 47.44,
+            "word": " Write"
+          },
+          {
+            "start": 47.44,
+            "end": 47.78,
+            "word": " one"
+          },
+          {
+            "start": 47.78,
+            "end": 48.24,
+            "word": " thing"
+          }
+        ]
+      },
+      {
+        "start": 48.24,
+        "end": 56.86,
+        "text": " you would review next time. Save your reflection and ask a lesson question if needed.",
+        "words": [
+          {
+            "start": 48.24,
+            "end": 48.52,
+            "word": " you"
+          },
+          {
+            "start": 48.52,
+            "end": 48.66,
+            "word": " would"
+          },
+          {
+            "start": 48.66,
+            "end": 49.04,
+            "word": " review"
+          },
+          {
+            "start": 49.04,
+            "end": 49.5,
+            "word": " next"
+          },
+          {
+            "start": 49.5,
+            "end": 49.96,
+            "word": " time."
+          },
+          {
+            "start": 53.28,
+            "end": 53.48,
+            "word": " Save"
+          },
+          {
+            "start": 53.48,
+            "end": 53.74,
+            "word": " your"
+          },
+          {
+            "start": 53.74,
+            "end": 54.08,
+            "word": " reflection"
+          },
+          {
+            "start": 54.08,
+            "end": 55.0,
+            "word": " and"
+          },
+          {
+            "start": 55.0,
+            "end": 55.26,
+            "word": " ask"
+          },
+          {
+            "start": 55.26,
+            "end": 55.46,
+            "word": " a"
+          },
+          {
+            "start": 55.46,
+            "end": 55.7,
+            "word": " lesson"
+          },
+          {
+            "start": 55.7,
+            "end": 56.08,
+            "word": " question"
+          },
+          {
+            "start": 56.08,
+            "end": 56.46,
+            "word": " if"
+          },
+          {
+            "start": 56.46,
+            "end": 56.86,
+            "word": " needed."
+          }
+        ]
+      }
+    ],
+    "black_intervals": []
+  },
+  {
+    "id": 4,
+    "expected": "Learn two useful shortcuts for your desktop keyboard. First, click outside any text input. Press question mark to open Keyboard Shortcuts. Start with A for Aria, and P for Portfolio. Close help with Escape, then press A. Pause, then press P to open Portfolio. On a phone, use the visible tabs instead. Practise these two shortcuts at your own pace.",
+    "transcription": [
+      {
+        "start": 0.0,
+        "end": 3.28,
+        "text": " Learn two useful shortcuts for your desktop keyboard.",
+        "words": [
+          {
+            "start": 0.0,
+            "end": 0.54,
+            "word": " Learn"
+          },
+          {
+            "start": 0.54,
+            "end": 0.84,
+            "word": " two"
+          },
+          {
+            "start": 0.84,
+            "end": 1.38,
+            "word": " useful"
+          },
+          {
+            "start": 1.38,
+            "end": 1.92,
+            "word": " shortcuts"
+          },
+          {
+            "start": 1.92,
+            "end": 2.32,
+            "word": " for"
+          },
+          {
+            "start": 2.32,
+            "end": 2.46,
+            "word": " your"
+          },
+          {
+            "start": 2.46,
+            "end": 2.74,
+            "word": " desktop"
+          },
+          {
+            "start": 2.74,
+            "end": 3.28,
+            "word": " keyboard."
+          }
+        ]
+      },
+      {
+        "start": 4.88,
+        "end": 8.06,
+        "text": " First, click outside any text input.",
+        "words": [
+          {
+            "start": 4.88,
+            "end": 5.54,
+            "word": " First,"
+          },
+          {
+            "start": 5.9,
+            "end": 6.46,
+            "word": " click"
+          },
+          {
+            "start": 6.46,
+            "end": 6.72,
+            "word": " outside"
+          },
+          {
+            "start": 6.72,
+            "end": 7.38,
+            "word": " any"
+          },
+          {
+            "start": 7.38,
+            "end": 7.64,
+            "word": " text"
+          },
+          {
+            "start": 7.64,
+            "end": 8.06,
+            "word": " input."
+          }
+        ]
+      },
+      {
+        "start": 11.14,
+        "end": 13.74,
+        "text": " Press question mark to open keyboard shortcut.",
+        "words": [
+          {
+            "start": 11.14,
+            "end": 11.4,
+            "word": " Press"
+          },
+          {
+            "start": 11.4,
+            "end": 11.88,
+            "word": " question"
+          },
+          {
+            "start": 11.88,
+            "end": 12.16,
+            "word": " mark"
+          },
+          {
+            "start": 12.16,
+            "end": 12.5,
+            "word": " to"
+          },
+          {
+            "start": 12.5,
+            "end": 12.8,
+            "word": " open"
+          },
+          {
+            "start": 12.8,
+            "end": 13.24,
+            "word": " keyboard"
+          },
+          {
+            "start": 13.24,
+            "end": 13.74,
+            "word": " shortcut."
+          }
+        ]
+      },
+      {
+        "start": 18.45,
+        "end": 22.41,
+        "text": " Start with A for ARIA and P for Portfolio.",
+        "words": [
+          {
+            "start": 18.45,
+            "end": 18.73,
+            "word": " Start"
+          },
+          {
+            "start": 18.73,
+            "end": 19.05,
+            "word": " with"
+          },
+          {
+            "start": 19.05,
+            "end": 19.39,
+            "word": " A"
+          },
+          {
+            "start": 19.39,
+            "end": 19.71,
+            "word": " for"
+          },
+          {
+            "start": 19.71,
+            "end": 20.21,
+            "word": " ARIA"
+          },
+          {
+            "start": 20.21,
+            "end": 21.27,
+            "word": " and"
+          },
+          {
+            "start": 21.27,
+            "end": 21.49,
+            "word": " P"
+          },
+          {
+            "start": 21.49,
+            "end": 21.85,
+            "word": " for"
+          },
+          {
+            "start": 21.85,
+            "end": 22.41,
+            "word": " Portfolio."
+          }
+        ]
+      },
+      {
+        "start": 23.35,
+        "end": 24.71,
+        "text": " Close Help with Escape.",
+        "words": [
+          {
+            "start": 23.35,
+            "end": 23.69,
+            "word": " Close"
+          },
+          {
+            "start": 23.69,
+            "end": 24.09,
+            "word": " Help"
+          },
+          {
+            "start": 24.09,
+            "end": 24.41,
+            "word": " with"
+          },
+          {
+            "start": 24.41,
+            "end": 24.71,
+            "word": " Escape."
+          }
+        ]
+      },
+      {
+        "start": 26.07,
+        "end": 29.81,
+        "text": " Then press A. Pause.",
+        "words": [
+          {
+            "start": 26.07,
+            "end": 26.07,
+            "word": " Then"
+          },
+          {
+            "start": 26.07,
+            "end": 26.33,
+            "word": " press"
+          },
+          {
+            "start": 26.33,
+            "end": 26.81,
+            "word": " A."
+          },
+          {
+            "start": 29.43,
+            "end": 29.81,
+            "word": " Pause."
+          }
+        ]
+      },
+      {
+        "start": 31.05,
+        "end": 33.39,
+        "text": " Then press P to open Portfolio.",
+        "words": [
+          {
+            "start": 31.05,
+            "end": 31.05,
+            "word": " Then"
+          },
+          {
+            "start": 31.05,
+            "end": 31.31,
+            "word": " press"
+          },
+          {
+            "start": 31.31,
+            "end": 31.63,
+            "word": " P"
+          },
+          {
+            "start": 31.63,
+            "end": 32.37,
+            "word": " to"
+          },
+          {
+            "start": 32.37,
+            "end": 32.67,
+            "word": " open"
+          },
+          {
+            "start": 32.67,
+            "end": 33.39,
+            "word": " Portfolio."
+          }
+        ]
+      },
+      {
+        "start": 33.39,
+        "end": 38.29,
+        "text": " video. On a phone, use the visible tabs instead.",
+        "words": [
+          {
+            "start": 33.39,
+            "end": 33.59,
+            "word": " video."
+          },
+          {
+            "start": 34.97,
+            "end": 35.63,
+            "word": " On"
+          },
+          {
+            "start": 35.63,
+            "end": 35.71,
+            "word": " a"
+          },
+          {
+            "start": 35.71,
+            "end": 36.03,
+            "word": " phone,"
+          },
+          {
+            "start": 36.47,
+            "end": 36.71,
+            "word": " use"
+          },
+          {
+            "start": 36.71,
+            "end": 36.95,
+            "word": " the"
+          },
+          {
+            "start": 36.95,
+            "end": 37.29,
+            "word": " visible"
+          },
+          {
+            "start": 37.29,
+            "end": 37.63,
+            "word": " tabs"
+          },
+          {
+            "start": 37.63,
+            "end": 38.29,
+            "word": " instead."
+          }
+        ]
+      },
+      {
+        "start": 38.29,
+        "end": 43.71,
+        "text": " bed. Practise these two shortcuts at your own pace.",
+        "words": [
+          {
+            "start": 38.29,
+            "end": 38.51,
+            "word": " bed."
+          },
+          {
+            "start": 40.43,
+            "end": 40.97,
+            "word": " Practise"
+          },
+          {
+            "start": 40.97,
+            "end": 41.27,
+            "word": " these"
+          },
+          {
+            "start": 41.27,
+            "end": 41.59,
+            "word": " two"
+          },
+          {
+            "start": 41.59,
+            "end": 42.17,
+            "word": " shortcuts"
+          },
+          {
+            "start": 42.17,
+            "end": 42.87,
+            "word": " at"
+          },
+          {
+            "start": 42.87,
+            "end": 43.09,
+            "word": " your"
+          },
+          {
+            "start": 43.09,
+            "end": 43.37,
+            "word": " own"
+          },
+          {
+            "start": 43.37,
+            "end": 43.71,
+            "word": " pace."
+          }
+        ]
+      }
+    ],
+    "black_intervals": []
+  },
+  {
+    "id": 5,
+    "expected": "Understand why Aria says to wait. Begin by checking the market and timeframe. Open Aria to inspect its checks. Read the market conditions before looking at the score. A passed gate means one rule matched. Now read a condition that failed. Read the verdict, including any restriction. Ask what evidence would invalidate this idea. In this example, we wait and leave the ticket alone. Bring your reasoning to the lesson. Matching checks cannot guarantee results.",
+    "transcription": [
+      {
+        "start": 0.0,
+        "end": 12.07,
+        "text": " Understand why Aria says to wait. Begin by checking the market and time frame. Open Aria",
+        "words": [
+          {
+            "start": 0.0,
+            "end": 0.64,
+            "word": " Understand"
+          },
+          {
+            "start": 0.64,
+            "end": 1.12,
+            "word": " why"
+          },
+          {
+            "start": 1.12,
+            "end": 1.66,
+            "word": " Aria"
+          },
+          {
+            "start": 1.66,
+            "end": 1.86,
+            "word": " says"
+          },
+          {
+            "start": 1.86,
+            "end": 2.08,
+            "word": " to"
+          },
+          {
+            "start": 2.08,
+            "end": 2.3,
+            "word": " wait."
+          },
+          {
+            "start": 4.98,
+            "end": 5.38,
+            "word": " Begin"
+          },
+          {
+            "start": 5.38,
+            "end": 5.76,
+            "word": " by"
+          },
+          {
+            "start": 5.76,
+            "end": 6.08,
+            "word": " checking"
+          },
+          {
+            "start": 6.08,
+            "end": 6.32,
+            "word": " the"
+          },
+          {
+            "start": 6.32,
+            "end": 6.68,
+            "word": " market"
+          },
+          {
+            "start": 6.68,
+            "end": 6.9,
+            "word": " and"
+          },
+          {
+            "start": 6.9,
+            "end": 7.14,
+            "word": " time"
+          },
+          {
+            "start": 7.14,
+            "end": 7.42,
+            "word": " frame."
+          },
+          {
+            "start": 11.09,
+            "end": 11.51,
+            "word": " Open"
+          },
+          {
+            "start": 11.51,
+            "end": 12.07,
+            "word": " Aria"
+          }
+        ]
+      },
+      {
+        "start": 12.07,
+        "end": 23.88,
+        "text": " to inspect its checks. Read the market conditions before looking at the score. A past gate",
+        "words": [
+          {
+            "start": 12.07,
+            "end": 12.23,
+            "word": " to"
+          },
+          {
+            "start": 12.23,
+            "end": 12.59,
+            "word": " inspect"
+          },
+          {
+            "start": 12.59,
+            "end": 13.01,
+            "word": " its"
+          },
+          {
+            "start": 13.01,
+            "end": 13.31,
+            "word": " checks."
+          },
+          {
+            "start": 17.16,
+            "end": 17.38,
+            "word": " Read"
+          },
+          {
+            "start": 17.38,
+            "end": 17.6,
+            "word": " the"
+          },
+          {
+            "start": 17.6,
+            "end": 17.86,
+            "word": " market"
+          },
+          {
+            "start": 17.86,
+            "end": 18.24,
+            "word": " conditions"
+          },
+          {
+            "start": 18.24,
+            "end": 18.74,
+            "word": " before"
+          },
+          {
+            "start": 18.74,
+            "end": 19.14,
+            "word": " looking"
+          },
+          {
+            "start": 19.14,
+            "end": 19.34,
+            "word": " at"
+          },
+          {
+            "start": 19.34,
+            "end": 19.48,
+            "word": " the"
+          },
+          {
+            "start": 19.48,
+            "end": 19.78,
+            "word": " score."
+          },
+          {
+            "start": 23.22,
+            "end": 23.32,
+            "word": " A"
+          },
+          {
+            "start": 23.32,
+            "end": 23.62,
+            "word": " past"
+          },
+          {
+            "start": 23.62,
+            "end": 23.88,
+            "word": " gate"
+          }
+        ]
+      },
+      {
+        "start": 24.2,
+        "end": 37.33,
+        "text": " means one rule matched. Now read a condition that failed. Read the verdict, including any",
+        "words": [
+          {
+            "start": 24.2,
+            "end": 24.56,
+            "word": " means"
+          },
+          {
+            "start": 24.56,
+            "end": 25.0,
+            "word": " one"
+          },
+          {
+            "start": 25.0,
+            "end": 25.32,
+            "word": " rule"
+          },
+          {
+            "start": 25.32,
+            "end": 25.74,
+            "word": " matched."
+          },
+          {
+            "start": 29.21,
+            "end": 29.39,
+            "word": " Now"
+          },
+          {
+            "start": 29.39,
+            "end": 29.71,
+            "word": " read"
+          },
+          {
+            "start": 29.71,
+            "end": 29.85,
+            "word": " a"
+          },
+          {
+            "start": 29.85,
+            "end": 30.23,
+            "word": " condition"
+          },
+          {
+            "start": 30.23,
+            "end": 30.53,
+            "word": " that"
+          },
+          {
+            "start": 30.53,
+            "end": 30.81,
+            "word": " failed."
+          },
+          {
+            "start": 35.21,
+            "end": 35.39,
+            "word": " Read"
+          },
+          {
+            "start": 35.39,
+            "end": 35.61,
+            "word": " the"
+          },
+          {
+            "start": 35.61,
+            "end": 35.93,
+            "word": " verdict,"
+          },
+          {
+            "start": 36.43,
+            "end": 36.81,
+            "word": " including"
+          },
+          {
+            "start": 36.81,
+            "end": 37.33,
+            "word": " any"
+          }
+        ]
+      },
+      {
+        "start": 37.33,
+        "end": 50.11,
+        "text": " restriction. Ask what evidence would invalidate this idea. In this example, we wait and leave",
+        "words": [
+          {
+            "start": 37.33,
+            "end": 37.85,
+            "word": " restriction."
+          },
+          {
+            "start": 41.18,
+            "end": 41.48,
+            "word": " Ask"
+          },
+          {
+            "start": 41.48,
+            "end": 41.86,
+            "word": " what"
+          },
+          {
+            "start": 41.86,
+            "end": 42.16,
+            "word": " evidence"
+          },
+          {
+            "start": 42.16,
+            "end": 42.64,
+            "word": " would"
+          },
+          {
+            "start": 42.64,
+            "end": 43.36,
+            "word": " invalidate"
+          },
+          {
+            "start": 43.36,
+            "end": 43.54,
+            "word": " this"
+          },
+          {
+            "start": 43.54,
+            "end": 43.92,
+            "word": " idea."
+          },
+          {
+            "start": 46.85,
+            "end": 47.37,
+            "word": " In"
+          },
+          {
+            "start": 47.37,
+            "end": 47.53,
+            "word": " this"
+          },
+          {
+            "start": 47.53,
+            "end": 47.97,
+            "word": " example,"
+          },
+          {
+            "start": 48.59,
+            "end": 48.85,
+            "word": " we"
+          },
+          {
+            "start": 48.85,
+            "end": 49.15,
+            "word": " wait"
+          },
+          {
+            "start": 49.15,
+            "end": 49.85,
+            "word": " and"
+          },
+          {
+            "start": 49.85,
+            "end": 50.11,
+            "word": " leave"
+          }
+        ]
+      },
+      {
+        "start": 50.11,
+        "end": 58.44,
+        "text": " Leave the ticket alone. Bring your reasoning to the lesson. Matching checks cannot guarantee",
+        "words": [
+          {
+            "start": 50.11,
+            "end": 50.29,
+            "word": " Leave"
+          },
+          {
+            "start": 50.29,
+            "end": 50.41,
+            "word": " the"
+          },
+          {
+            "start": 50.41,
+            "end": 50.69,
+            "word": " ticket"
+          },
+          {
+            "start": 50.69,
+            "end": 51.07,
+            "word": " alone."
+          },
+          {
+            "start": 54.24,
+            "end": 54.36,
+            "word": " Bring"
+          },
+          {
+            "start": 54.36,
+            "end": 54.58,
+            "word": " your"
+          },
+          {
+            "start": 54.58,
+            "end": 54.94,
+            "word": " reasoning"
+          },
+          {
+            "start": 54.94,
+            "end": 55.28,
+            "word": " to"
+          },
+          {
+            "start": 55.28,
+            "end": 55.4,
+            "word": " the"
+          },
+          {
+            "start": 55.4,
+            "end": 55.72,
+            "word": " lesson."
+          },
+          {
+            "start": 56.72,
+            "end": 57.2,
+            "word": " Matching"
+          },
+          {
+            "start": 57.2,
+            "end": 57.46,
+            "word": " checks"
+          },
+          {
+            "start": 57.46,
+            "end": 57.98,
+            "word": " cannot"
+          },
+          {
+            "start": 57.98,
+            "end": 58.44,
+            "word": " guarantee"
+          }
+        ]
+      },
+      {
+        "start": 58.44,
+        "end": 59.08,
+        "text": " results.",
+        "words": [
+          {
+            "start": 58.44,
+            "end": 59.08,
+            "word": " results."
+          }
+        ]
+      }
+    ],
+    "black_intervals": []
+  },
+  {
+    "id": 6,
+    "expected": "Understand Oracle's percentage before using it. Open Oracle for the chart you are reviewing. In this example, eight of the nine checks pass. Eight divided by nine rounds to eighty-nine percent. This is confluence: a count of conditions that agree. It is not the probability that a trade will win. Oracle and Aria use the same checks, so they are not independent confirmations. In another example, only six of nine checks agree. Read the reasons. Aria says waiting, so leave Apply unused. Tools help you prepare. Review the evidence, and decide with care.",
+    "transcription": [
+      {
+        "start": 0.0,
+        "end": 3.52,
+        "text": " Understand Oracle's percentage before using it.",
+        "words": [
+          {
+            "start": 0.0,
+            "end": 0.8,
+            "word": " Understand"
+          },
+          {
+            "start": 0.8,
+            "end": 1.76,
+            "word": " Oracle's"
+          },
+          {
+            "start": 1.76,
+            "end": 2.12,
+            "word": " percentage"
+          },
+          {
+            "start": 2.12,
+            "end": 2.76,
+            "word": " before"
+          },
+          {
+            "start": 2.76,
+            "end": 3.28,
+            "word": " using"
+          },
+          {
+            "start": 3.28,
+            "end": 3.52,
+            "word": " it."
+          }
+        ]
+      },
+      {
+        "start": 4.8,
+        "end": 7.3,
+        "text": " Open Oracle for the chart you are reviewing.",
+        "words": [
+          {
+            "start": 4.8,
+            "end": 5.44,
+            "word": " Open"
+          },
+          {
+            "start": 5.44,
+            "end": 5.76,
+            "word": " Oracle"
+          },
+          {
+            "start": 5.76,
+            "end": 6.24,
+            "word": " for"
+          },
+          {
+            "start": 6.24,
+            "end": 6.36,
+            "word": " the"
+          },
+          {
+            "start": 6.36,
+            "end": 6.58,
+            "word": " chart"
+          },
+          {
+            "start": 6.58,
+            "end": 6.88,
+            "word": " you"
+          },
+          {
+            "start": 6.88,
+            "end": 7.02,
+            "word": " are"
+          },
+          {
+            "start": 7.02,
+            "end": 7.3,
+            "word": " reviewing."
+          }
+        ]
+      },
+      {
+        "start": 11.19,
+        "end": 14.41,
+        "text": " In this example, eight of the nine checks pass.",
+        "words": [
+          {
+            "start": 11.19,
+            "end": 11.35,
+            "word": " In"
+          },
+          {
+            "start": 11.35,
+            "end": 11.49,
+            "word": " this"
+          },
+          {
+            "start": 11.49,
+            "end": 11.87,
+            "word": " example,"
+          },
+          {
+            "start": 12.65,
+            "end": 12.93,
+            "word": " eight"
+          },
+          {
+            "start": 12.93,
+            "end": 13.21,
+            "word": " of"
+          },
+          {
+            "start": 13.21,
+            "end": 13.35,
+            "word": " the"
+          },
+          {
+            "start": 13.35,
+            "end": 13.61,
+            "word": " nine"
+          },
+          {
+            "start": 13.61,
+            "end": 13.95,
+            "word": " checks"
+          },
+          {
+            "start": 13.95,
+            "end": 14.41,
+            "word": " pass."
+          }
+        ]
+      },
+      {
+        "start": 17.09,
+        "end": 20.67,
+        "text": " Eight divided by nine rounds to 89%.",
+        "words": [
+          {
+            "start": 17.09,
+            "end": 17.45,
+            "word": " Eight"
+          },
+          {
+            "start": 17.45,
+            "end": 17.87,
+            "word": " divided"
+          },
+          {
+            "start": 17.87,
+            "end": 18.31,
+            "word": " by"
+          },
+          {
+            "start": 18.31,
+            "end": 18.71,
+            "word": " nine"
+          },
+          {
+            "start": 18.71,
+            "end": 19.15,
+            "word": " rounds"
+          },
+          {
+            "start": 19.15,
+            "end": 19.49,
+            "word": " to"
+          },
+          {
+            "start": 19.49,
+            "end": 20.67,
+            "word": " 89%."
+          }
+        ]
+      },
+      {
+        "start": 22.53,
+        "end": 24.11,
+        "text": " This is confluence.",
+        "words": [
+          {
+            "start": 22.53,
+            "end": 23.35,
+            "word": " This"
+          },
+          {
+            "start": 23.35,
+            "end": 23.53,
+            "word": " is"
+          },
+          {
+            "start": 23.53,
+            "end": 24.11,
+            "word": " confluence."
+          }
+        ]
+      },
+      {
+        "start": 24.95,
+        "end": 26.89,
+        "text": " Account of conditions that agree.",
+        "words": [
+          {
+            "start": 24.95,
+            "end": 25.29,
+            "word": " Account"
+          },
+          {
+            "start": 25.29,
+            "end": 25.61,
+            "word": " of"
+          },
+          {
+            "start": 25.61,
+            "end": 25.97,
+            "word": " conditions"
+          },
+          {
+            "start": 25.97,
+            "end": 26.61,
+            "word": " that"
+          },
+          {
+            "start": 26.61,
+            "end": 26.89,
+            "word": " agree."
+          }
+        ]
+      },
+      {
+        "start": 29.22,
+        "end": 31.7,
+        "text": " It is not the probability that a trade will win.",
+        "words": [
+          {
+            "start": 29.22,
+            "end": 29.36,
+            "word": " It"
+          },
+          {
+            "start": 29.36,
+            "end": 29.48,
+            "word": " is"
+          },
+          {
+            "start": 29.48,
+            "end": 29.66,
+            "word": " not"
+          },
+          {
+            "start": 29.66,
+            "end": 29.82,
+            "word": " the"
+          },
+          {
+            "start": 29.82,
+            "end": 30.18,
+            "word": " probability"
+          },
+          {
+            "start": 30.18,
+            "end": 30.82,
+            "word": " that"
+          },
+          {
+            "start": 30.82,
+            "end": 30.94,
+            "word": " a"
+          },
+          {
+            "start": 30.94,
+            "end": 31.16,
+            "word": " trade"
+          },
+          {
+            "start": 31.16,
+            "end": 31.48,
+            "word": " will"
+          },
+          {
+            "start": 31.48,
+            "end": 31.7,
+            "word": " win."
+          }
+        ]
+      },
+      {
+        "start": 35.25,
+        "end": 37.51,
+        "text": " Oracle and Aria use the same checks,",
+        "words": [
+          {
+            "start": 35.25,
+            "end": 35.47,
+            "word": " Oracle"
+          },
+          {
+            "start": 35.47,
+            "end": 35.99,
+            "word": " and"
+          },
+          {
+            "start": 35.99,
+            "end": 36.51,
+            "word": " Aria"
+          },
+          {
+            "start": 36.51,
+            "end": 36.73,
+            "word": " use"
+          },
+          {
+            "start": 36.73,
+            "end": 36.97,
+            "word": " the"
+          },
+          {
+            "start": 36.97,
+            "end": 37.21,
+            "word": " same"
+          },
+          {
+            "start": 37.21,
+            "end": 37.51,
+            "word": " checks,"
+          }
+        ]
+      },
+      {
+        "start": 37.51,
+        "end": 45.11,
+        "text": " so they are not independent confirmations. In another example only six of nine",
+        "words": [
+          {
+            "start": 37.51,
+            "end": 38.53,
+            "word": " so"
+          },
+          {
+            "start": 38.53,
+            "end": 38.69,
+            "word": " they"
+          },
+          {
+            "start": 38.69,
+            "end": 38.85,
+            "word": " are"
+          },
+          {
+            "start": 38.85,
+            "end": 39.03,
+            "word": " not"
+          },
+          {
+            "start": 39.03,
+            "end": 39.71,
+            "word": " independent"
+          },
+          {
+            "start": 39.71,
+            "end": 40.81,
+            "word": " confirmations."
+          },
+          {
+            "start": 41.83,
+            "end": 41.99,
+            "word": " In"
+          },
+          {
+            "start": 41.99,
+            "end": 42.25,
+            "word": " another"
+          },
+          {
+            "start": 42.25,
+            "end": 42.89,
+            "word": " example"
+          },
+          {
+            "start": 42.89,
+            "end": 43.97,
+            "word": " only"
+          },
+          {
+            "start": 43.97,
+            "end": 44.35,
+            "word": " six"
+          },
+          {
+            "start": 44.35,
+            "end": 44.77,
+            "word": " of"
+          },
+          {
+            "start": 44.77,
+            "end": 45.11,
+            "word": " nine"
+          }
+        ]
+      },
+      {
+        "start": 45.11,
+        "end": 55.55,
+        "text": " checks agree. Read the reasons Arya says waiting so leave apply unused. Tools help",
+        "words": [
+          {
+            "start": 45.11,
+            "end": 45.43,
+            "word": " checks"
+          },
+          {
+            "start": 45.43,
+            "end": 46.01,
+            "word": " agree."
+          },
+          {
+            "start": 47.41,
+            "end": 48.07,
+            "word": " Read"
+          },
+          {
+            "start": 48.07,
+            "end": 48.27,
+            "word": " the"
+          },
+          {
+            "start": 48.27,
+            "end": 48.67,
+            "word": " reasons"
+          },
+          {
+            "start": 48.67,
+            "end": 49.57,
+            "word": " Arya"
+          },
+          {
+            "start": 49.57,
+            "end": 50.09,
+            "word": " says"
+          },
+          {
+            "start": 50.09,
+            "end": 50.51,
+            "word": " waiting"
+          },
+          {
+            "start": 50.51,
+            "end": 51.65,
+            "word": " so"
+          },
+          {
+            "start": 51.65,
+            "end": 51.95,
+            "word": " leave"
+          },
+          {
+            "start": 51.95,
+            "end": 52.49,
+            "word": " apply"
+          },
+          {
+            "start": 52.49,
+            "end": 53.01,
+            "word": " unused."
+          },
+          {
+            "start": 54.45,
+            "end": 55.13,
+            "word": " Tools"
+          },
+          {
+            "start": 55.13,
+            "end": 55.55,
+            "word": " help"
+          }
+        ]
+      },
+      {
+        "start": 55.55,
+        "end": 60.29,
+        "text": " you prepare. Review the evidence and decide with care.",
+        "words": [
+          {
+            "start": 55.55,
+            "end": 55.77,
+            "word": " you"
+          },
+          {
+            "start": 55.77,
+            "end": 56.09,
+            "word": " prepare."
+          },
+          {
+            "start": 57.65,
+            "end": 57.65,
+            "word": " Review"
+          },
+          {
+            "start": 57.65,
+            "end": 57.95,
+            "word": " the"
+          },
+          {
+            "start": 57.95,
+            "end": 58.21,
+            "word": " evidence"
+          },
+          {
+            "start": 58.21,
+            "end": 59.23,
+            "word": " and"
+          },
+          {
+            "start": 59.23,
+            "end": 59.49,
+            "word": " decide"
+          },
+          {
+            "start": 59.49,
+            "end": 59.99,
+            "word": " with"
+          },
+          {
+            "start": 59.99,
+            "end": 60.29,
+            "word": " care."
+          }
+        ]
+      }
+    ],
+    "black_intervals": []
+  }
+]
