@@ -3,6 +3,22 @@
 /* Keep the private bootstrap field out of view when a setup link supplies it. */
 [hidden] { display: none !important; }
 
+/* The library is task-led, searchable and usable without horizontal scrolling. */
+.library-tools { max-width: 900px; margin-bottom: 32px; }
+.library-tools label { display: block; max-width: 620px; font-weight: 600; }
+.library-tools input { margin-top: 10px; }
+.guide-filters { display: flex; flex-wrap: wrap; gap: 10px; margin: 24px 0 18px; }
+.guide-filters button { min-height: 44px; padding: 10px 16px; border: 1px solid var(--line); border-radius: 24px; background: var(--surface); color: var(--text); font-size: 14px; }
+.guide-filters button[aria-pressed="true"] { background: var(--lime); color: var(--ink); border-color: var(--lime); }
+#guide-result-count { margin-top: 14px; font-size: 13px; }
+.guide-empty { grid-column: 1 / -1; padding: 32px; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; }
+.guide-empty h2 { font-size: 26px; }
+.guide-empty p { margin: 14px 0 22px; }
+.page-heading > .button { margin-top: 22px; }
+.guide-ribbon { max-width: 1440px; margin: auto; padding: 24px 5%; display: flex; flex-wrap: wrap; gap: 12px; border-block: 1px solid var(--line); }
+.guide-ribbon a { flex: 1 1 210px; display: flex; align-items: center; justify-content: space-between; gap: 18px; padding: 15px 18px; border: 1px solid var(--line); border-radius: 8px; color: var(--text); }
+.guide-ribbon a span { color: var(--lime); }
+
 /* Let wide practice tables scroll inside their panel, never widen the page. */
 .dashboard > *, .beginner-layout > *, .learning-main, .panel, .guide { min-width: 0; }
 .table-wrap { width: 100%; overflow-x: auto; overscroll-behavior-x: contain; }
