@@ -7,6 +7,7 @@ from http.server import ThreadingHTTPServer, BaseHTTPRequestHandler
 from pathlib import Path
 import argparse, hashlib, hmac, json, os, re, secrets, sqlite3, threading, time
 from mailer import SMTPConfig, safe_error
+from welcome import acceptance_message
 from telegram_bot import public_links
 from contextlib import contextmanager
 from http.cookies import SimpleCookie
@@ -42,6 +43,8 @@ class Academy:
             columns = {r[1] for r in db.execute('PRAGMA table_info(mail)')}
             if 'delivery_key' not in columns:
                 db.execute('ALTER TABLE mail ADD COLUMN delivery_key TEXT')
+            if 'html_body' not in columns:
+                db.execute("ALTER TABLE mail ADD COLUMN html_body TEXT NOT NULL DEFAULT ''")
             for row in db.execute('SELECT id FROM mail WHERE delivery_key IS NULL').fetchall():
                 db.execute('UPDATE mail SET delivery_key=? WHERE id=?', (secrets.token_hex(20), row[0]))
             db.execute("UPDATE mail SET status='failed',error='Delivery interrupted. Check provider logs before retrying.' WHERE status='sending'")
@@ -96,8 +99,8 @@ class Academy:
         result=salt.hex()+':'+hashlib.scrypt(value.encode(),salt=salt,n=16384,r=8,p=1).hex()
         return hmac.compare_digest(result,stored) if stored else result
 
-    def enqueue(self,db,to,subject,body):
-        if to: db.execute('INSERT INTO mail(recipient,subject,body,created,delivery_key) VALUES(?,?,?,?,?)',(to,subject,body,time.time(),secrets.token_hex(20)))
+    def enqueue(self,db,to,subject,body,html_body=''):
+        if to: db.execute('INSERT INTO mail(recipient,subject,body,html_body,created,delivery_key) VALUES(?,?,?,?,?,?)',(to,subject,body,html_body,time.time(),secrets.token_hex(20)))
 
     def process_mail(self):
         if not self.mail_enabled: return
@@ -108,7 +111,7 @@ class Academy:
                 claimed=db.execute("UPDATE mail SET status='sending' WHERE id=? AND status='queued'",(row['id'],)).rowcount
             if not claimed: continue
             if row['subject']=='Reset your academy password' and time.time()-row['created']>1800:
-                with self.db() as db: db.execute("UPDATE mail SET status='expired',body='',error='Reset link expired. Request a new one.' WHERE id=?",(row['id'],))
+                with self.db() as db: db.execute("UPDATE mail SET status='expired',body='',html_body='',error='Reset link expired. Request a new one.' WHERE id=?",(row['id'],))
                 continue
             try:
                 self.smtp.send(row)
@@ -116,7 +119,7 @@ class Academy:
             except Exception as exc:
                 status,error='failed',safe_error(exc)
             with self.db() as db:
-                db.execute("UPDATE mail SET status=?,error=?,body=CASE WHEN ?='sent' THEN '' ELSE body END WHERE id=?",(status,error,status,row['id']))
+                db.execute("UPDATE mail SET status=?,error=?,body=CASE WHEN ?='sent' THEN '' ELSE body END,html_body=CASE WHEN ?='sent' THEN '' ELSE html_body END WHERE id=?",(status,error,status,status,row['id']))
 
     def send_loop(self):
         while not self.stop.wait(10):
@@ -308,7 +311,11 @@ class Handler(BaseHTTPRequestHandler):
                     db.execute('UPDATE users SET status=?,verified=? WHERE id=?',(status,int(verified),student['id']))
                     db.execute('INSERT INTO settings(key,value) VALUES(?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value',('application_note:'+str(student['id']),json.dumps(note)))
                     db.execute('INSERT INTO audit(actor,action,target,created) VALUES(?,?,?,?)',(user['id'],'admission:'+status,student['id'],time.time()))
-                    app.enqueue(db,student['email'],'Academy application update',f'Your application status is now {status.replace("_"," ")}. '+(note+'\n' if note else '')+f'Check your account at {app.origin}/#account')
+                    if status=='accepted':
+                        subject,body,html_body=acceptance_message(student['name'],note,app.origin,app.app_url,app.policy.get('contactEmail',''))
+                        app.enqueue(db,student['email'],subject,body,html_body)
+                    else:
+                        app.enqueue(db,student['email'],'Academy application update',f'Your application status is now {status.replace("_"," ")}. '+(note+'\n' if note else '')+f'Check your account at {app.origin}/#account')
                 return self.output({'ok':True})
             if path=='/api/account':
                 user=self.user()

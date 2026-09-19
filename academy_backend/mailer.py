@@ -71,6 +71,8 @@ class SMTPConfig:
         if self.host.lower() == 'smtp.resend.com':
             msg['Resend-Idempotency-Key'] = 'academy/' + row['delivery_key']
         msg.set_content(row['body'])
+        if 'html_body' in row.keys() and row['html_body']:
+            msg.add_alternative(row['html_body'], subtype='html')
         with self.connect() as smtp:
             if smtp.send_message(msg):
                 raise smtplib.SMTPRecipientsRefused({})

@@ -28,7 +28,7 @@ class DeliveryTests(unittest.TestCase):
             connection.__enter__.return_value = connection
             connection.send_message.return_value = {}
             cfg = SMTPConfig.from_environment()
-            row = {'recipient':'student@example.com','subject':'Test','body':'Example','delivery_key':'stable-123'}
+            row = {'recipient':'student@example.com','subject':'Test','body':'Example','html_body':'<p>Example</p>','delivery_key':'stable-123'}
             cfg.send(row); cfg.send(row)
             names = [call[0] for call in connection.method_calls]
             self.assertLess(names.index('starttls'), names.index('login'))
@@ -36,6 +36,9 @@ class DeliveryTests(unittest.TestCase):
             self.assertEqual(messages[0]['Message-ID'], messages[1]['Message-ID'])
             self.assertEqual(messages[0]['Resend-Idempotency-Key'], 'academy/stable-123')
             self.assertEqual(messages[0]['Reply-To'], 'support@example.com')
+            self.assertEqual(messages[0].get_content_type(), 'multipart/alternative')
+            self.assertEqual(messages[0].get_body(preferencelist=('plain',)).get_content().strip(), 'Example')
+            self.assertEqual(messages[0].get_body(preferencelist=('html',)).get_content().strip(), '<p>Example</p>')
             connection.noop.return_value = (250,b'OK')
             cfg.check()
             self.assertEqual(connection.send_message.call_count, 2)  # check sends nothing
@@ -55,21 +58,22 @@ class DeliveryTests(unittest.TestCase):
             app = Academy(directory,'https://academy.example.com')
             app.smtp = MagicMock()
             with app.db() as db:
-                app.enqueue(db,'student@example.com','Update','Private text')
-                app.enqueue(db,'student@example.com','Reset your academy password','Expired token')
+                app.enqueue(db,'student@example.com','Update','Private text','<p>Private text</p>')
+                app.enqueue(db,'student@example.com','Reset your academy password','Expired token','<p>Expired token</p>')
                 db.execute("UPDATE mail SET created=? WHERE subject='Reset your academy password'",(time.time()-1900,))
             app.process_mail()
             self.assertEqual(app.smtp.send.call_count,1)
             with app.db() as db:
-                rows = db.execute('SELECT status,body FROM mail ORDER BY id').fetchall()
-            self.assertEqual([tuple(r) for r in rows],[('sent',''),('expired','')])
+                rows = db.execute('SELECT status,body,html_body FROM mail ORDER BY id').fetchall()
+            self.assertEqual([tuple(r) for r in rows],[('sent','',''),('expired','','')])
             app.smtp.send.side_effect = smtplib.SMTPAuthenticationError(535,b'fake-test-secret')
-            with app.db() as db: app.enqueue(db,'student@example.com','Another update','Body')
+            with app.db() as db: app.enqueue(db,'student@example.com','Another update','Body','<p>Body</p>')
             app.process_mail()
             with app.db() as db:
-                row = db.execute('SELECT status,error FROM mail ORDER BY id DESC LIMIT 1').fetchone()
+                row = db.execute('SELECT status,error,html_body FROM mail ORDER BY id DESC LIMIT 1').fetchone()
             self.assertEqual(row['status'],'failed')
             self.assertNotIn('fake-test-secret',row['error'])
+            self.assertEqual(row['html_body'],'<p>Body</p>')
             app.mail_enabled = False
             with app.db() as db: app.enqueue(db,'student@example.com','Disabled','Body')
             app.process_mail()

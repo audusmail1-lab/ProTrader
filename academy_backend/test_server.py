@@ -8,6 +8,7 @@ import time
 import unittest
 from unittest.mock import MagicMock, patch
 from server import make_server,Academy
+from welcome import WELCOME_SUBJECT
 
 class AcademyTests(unittest.TestCase):
     def setUp(self):
@@ -88,15 +89,21 @@ class AcademyTests(unittest.TestCase):
         self.request('/api/reset-request',{'email':'student@example.com'})
         app=self.server.app
         with app.db() as db:
-            rows=db.execute('SELECT recipient,subject,body FROM mail ORDER BY id').fetchall()
+            rows=db.execute('SELECT recipient,subject,body,html_body FROM mail ORDER BY id').fetchall()
         self.assertEqual([(r['recipient'],r['subject']) for r in rows],[
             ('teacher@example.com','New academy application'),
-            ('student@example.com','Academy application update'),
+            ('student@example.com',WELCOME_SUBJECT),
             ('teacher@example.com','New academy question'),
             ('student@example.com','Your instructor replied'),
             ('student@example.com','Reset your academy password'),
         ])
         self.assertNotIn('Learn to explain a fictional ticket.',rows[0]['body'])
+        self.assertIn('Hello Sample Learner,',rows[1]['body'])
+        self.assertIn('Welcome to the class.',rows[1]['body'])
+        self.assertIn(self.origin+'/#classroom',rows[1]['body'])
+        self.assertIn('https://app.example.com',rows[1]['html_body'])
+        self.assertIn('A note from your instructor',rows[1]['html_body'])
+        self.assertEqual(self.request('/api/account',{})['note'],'Welcome to the class.')
         self.assertNotIn('Why did the example loss change',rows[2]['body'])
         self.assertNotIn('Each additional unit',rows[3]['body'])
         self.assertIn(self.origin+'/#reset/',rows[4]['body'])
@@ -104,7 +111,7 @@ class AcademyTests(unittest.TestCase):
         app.process_mail()
         self.assertEqual(app.smtp.send.call_count,5)
         with app.db() as db:
-            self.assertEqual([tuple(r) for r in db.execute('SELECT status,body FROM mail')],[('sent','')]*5)
+            self.assertEqual([tuple(r) for r in db.execute('SELECT status,body,html_body FROM mail')],[('sent','','')]*5)
     def test_setup_auth_and_private_assets(self):
         self.request('/api/lessons',expected=401)
         self.request('/api/materials.js',expected=401)
