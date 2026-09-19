@@ -1,0 +1,38 @@
+{
+  "status": "opening_ready_awaiting_new_intro_storyboard_approval",
+  "voice": {
+    "name": "Callan",
+    "type": "preset",
+    "id": "d8061b90-ff25-5882-8384-7a6a28806f30",
+    "job": "96890971-4e53-4b45-92bf-fcbee5980d4e"
+  },
+  "audio": "https://d8j0ntlcm91z4.cloudfront.net/user_3JK9HzQtMubHcINDjvbZuTRS9eo/hf_20260919_160140_96890971-4e53-4b45-92bf-fcbee5980d4e.wav",
+  "openingVideo": "https://d2ol7oe51mr4n9.cloudfront.net/user_3JK9HzQtMubHcINDjvbZuTRS9eo/07a700cf-0f28-44f4-97bd-bdc663b0e1cd.mp4",
+  "review": "http://127.0.0.1:8781/opening-review.html",
+  "duration": 19,
+  "music": {
+    "name": "Origami",
+    "artist": "Scott Buckley",
+    "source": "https://www.scottbuckley.com.au/library/origami/",
+    "license": "CC BY 4.0",
+    "changes": "Excerpt, fade, level reduction and sidechain ducking under narration"
+  },
+  "checks": {
+    "allFramesDecode": true,
+    "dimensions": [
+      1920,
+      1080
+    ],
+    "fps": 30,
+    "loudnessLUFS": -17.59,
+    "truePeakDBTP": -2.09,
+    "browserPlayback": true,
+    "narrowPhoneWidth": 375,
+    "noPageOverflow": true,
+    "chapterTargetHeight": 44
+  },
+  "captions": "opening.vtt is the corrected, phrase-aligned source. The first-pass cloud review archive has draft machine-grouped captions; use this repository version.",
+  "fullFilmRendered": false,
+  "deployed": false,
+  "next": "Owner reviews new 84-second storyboard and opening direction before full render. Academy deployment approval remains separate."
+}

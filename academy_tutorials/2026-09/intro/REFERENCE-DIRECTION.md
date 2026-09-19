@@ -31,18 +31,18 @@ The first native style-frame archive is an exploration only. It predates this re
 ## Current checkpoint
 
 - Script: drafted; accurate shared-check wording and beginner journey retained.
-- Voice: Arthur rejected; replacement selection pending in the voice picker.
-- Narration: no replacement voice generated yet. The previous short Arthur take is excluded.
-- Music: brief prepared; no track selected or mixed yet.
-- Video: initial native 1080p style frames and silent opening rendered; not final, not added to the homepage, not deployed.
+- Voice: Arthur rejected. Owner selected Callan; opening audition completed.
+- Narration: Callan opening generated, job 96890971-4e53-4b45-92bf-fcbee5980d4e. The Arthur take is excluded.
+- Music: licensed trial uses Origami by Scott Buckley (CC BY 4.0), credited on the review page and in MUSIC-CREDIT.txt.
+- Video: revised 19-second Callan opening rendered at 1920 × 1080 / 30 fps with music and animated captions. Browser playback and 375 px review-page checks passed. Full film pending storyboard approval; not added to homepage or deployed.
 - Guide library: local searchable categories added; search, empty-state recovery, category filtering and modal opening checked. Phone check at 375 px passed with no page overflow, 45 px category controls and keyboard focus restored after Escape.
 - Focused backend checks: public/private asset separation and account/classroom gates passed. Existing seven lesson-video IDs preserved.
 - Publication: no live deployment. The prior required deployment approval remains pending.
 
 ## Continue production
 
-1. Select a new exact voice ID/type using the picker. Generate only a short opening audition first.
-2. Revise native visuals to the demonstration-led treatment above; review mobile composition separately.
+1. DONE: owner selected Callan and the opening audition was generated.
+2. DONE for opening: revised native visuals. Full portrait composition remains part of final production.
 3. Present the corrected storyboard and the revised voice/visual sample together for approval.
 4. Produce the complete narration, licensed/original music mix, landscape and portrait compositions, captions and transcript.
 5. Replace the ticket-led homepage hero with the finished introductory film. Keep the category ribbon and feature library below it.

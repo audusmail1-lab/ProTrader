@@ -1,0 +1,27 @@
+{
+  "duration": 19,
+  "dimensions": [
+    1920,
+    1080
+  ],
+  "fps": "30/1",
+  "audio": "aac",
+  "sampleRate": "48000",
+  "framesDecode": true,
+  "loudness": {
+    "input_i": "-17.59",
+    "input_tp": "-2.09",
+    "input_lra": "11.90",
+    "input_thresh": "-28.71",
+    "output_i": "-17.00",
+    "output_tp": "-1.88",
+    "output_lra": "4.30",
+    "output_thresh": "-28.00",
+    "normalization_type": "dynamic",
+    "target_offset": "1.00"
+  },
+  "voice": "Callan",
+  "voiceJob": "96890971-4e53-4b45-92bf-fcbee5980d4e",
+  "music": "Origami by Scott Buckley (CC BY 4.0), excerpt mixed under narration",
+  "status": "Opening audition only; not final film"
+}
