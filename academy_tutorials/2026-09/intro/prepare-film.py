@@ -9,7 +9,7 @@ from faster_whisper import WhisperModel
 ROOT=Path('/home/user/academy-film'); ROOT.mkdir(exist_ok=True)
 def run(*a): return subprocess.check_output(list(a),text=True)
 def get(url,path):
-    urllib.request.urlretrieve(url,path)
+    subprocess.run(['curl','-fsSL',url,'-o',str(path)],check=True)
 def stamp(t):
     n=round(t*1000);return f'{n//3600000:02}:{n//60000%60:02}:{n//1000%60:02}.{n%1000:03}'
 def tokens(s):
@@ -60,6 +60,15 @@ for ix,at,window,url,phrases in spec:
     timeline.append(item);asr.append({'index':ix,'recognized':' '.join(w['word'] for w in words),'alignmentRatio':round(ratio,4)})
     print('SPEECH',ix,round(length,3),round(ratio,3),asr[-1]['recognized'],flush=True)
 
+# Join short fragments into complete, readable caption thoughts.
+merge_with_next={'It explains market conditions','so you can understand the reasoning—','That is a count of matching conditions,','Compare the output with the chart','practise with a supplied example,','then open a short guide'}
+readable=[];i=0
+while i<len(captions):
+    c=dict(captions[i])
+    if c['text'] in merge_with_next and i+1<len(captions):
+        nxt=captions[i+1];c['end']=nxt['end'];c['text']+=' '+nxt['text'];i+=1
+    readable.append(c);i+=1
+captions=readable
 (ROOT/'timing.json').write_text(json.dumps({'duration':dur,'scenes':timeline,'captions':captions},indent=2))
 (ROOT/'asr-review.json').write_text(json.dumps(asr,indent=2))
 vtt=['WEBVTT','']

@@ -9,7 +9,7 @@ export default async ({project})=>{
   const p=await project({dir:ROOT+'/project-'+format,size:`${W}x${H}`,fps:30,background:'#070b08'});
   const bold=await p.add('/usr/share/fonts/truetype/higgsfield/Metropolis-ExtraBold.ttf');
   const regular=await p.add('/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf');
-  const files={chart:'assets/chart.png',notes:'assets/notes.png',saved:'assets/notes-saved.png',question:'assets/question.jpg',aria:'input/assets/5-2-asset.jpg',wait:'input/assets/5-0-asset.jpg',oracle:'input/assets/6-0-asset.jpg'};
+  const files={chart:'assets/chart.png',notes:'assets/notes.png',saved:'assets/notes-saved.png',question:'assets/question.jpg',questionFocus:'assets/question-focus.jpg',aria:'input/assets/5-2-asset.jpg',wait:'input/assets/5-0-asset.jpg',oracle:'input/assets/6-0-asset.jpg'};
   const assets={};for(const [k,f] of Object.entries(files))assets[k]=await p.add(ROOT+'/'+f);
   const ink='#070b08',lime='#c1f28b',white='#f2f4ec',muted='#aab8a5';
   const fade=d=>[{property:'opacity',keyframes:[{at:0,value:0},{at:.28,value:1},{at:d-.3,value:1},{at:d-.02,value:0}]}];
@@ -60,7 +60,8 @@ export default async ({project})=>{
    T('ARIA',M,mobile?255:232,mobile?W-2*M:820,170,mobile?132:145,lime,true,{motion:words}),
    T('Understand\nthe reasoning.',M,mobile?440:430,mobile?W-2*M:850,310,mobile?92:92,white,true,{motion:{...words,at:.35}}),
    T('Including when to wait.',M,mobile?795:793,mobile?W-2*M:810,118,mobile?40:42,muted,false,{animate:enter(6)}),
-   ...ui('aria',mobile?92:1038,mobile?1030:253,mobile?896:754,mobile?530:446,'PROTrader · Illustrative demo'),
+   ...ui('aria',mobile?92:1038,mobile?1030:253,mobile?896:754,mobile?530:446,mobile?null:'PROTrader · Illustrative demo'),
+   ...(mobile?[T('PROTrader · Illustrative demo',92,960,896,54,32,muted,false)]:[]),
    <group animate={enter(6)}><media file={assets.wait} x={mobile?92:1038} y={mobile?1610:784} width={mobile?896:754} height={mobile?128:108} fit='contain'/></group>
   ],18,12,'05 ARIA explains the checks');
   scene([
@@ -87,9 +88,9 @@ export default async ({project})=>{
   ],54,askAt-54,'08 Save a practice reflection');
   scene([
    T('Ask your\ninstructor.',M,mobile?236:291,mobile?W-2*M:960,350,mobile?110:117,white,true,{motion:words}),
-   T('Keep the conversation\nwith the lesson.',M,mobile?684:743,mobile?W-2*M:980,168,mobile?46:48,lime,false),
-   ...ui('question',mobile?310:1260,mobile?954:177,mobile?460:466,mobile?730:740,null),
-   T('Academy · Sample question',mobile?M:1080,mobile?1750:933,mobile?W-2*M:730,62,mobile?31:28,muted,false)
+   T('Keep the conversation\nwith the lesson.',M,mobile?630:743,mobile?W-2*M:980,168,mobile?46:48,lime,false),
+   ...ui(mobile?'questionFocus':'question',mobile?140:1260,mobile?830:177,mobile?800:466,mobile?917:740,null),
+   T('Academy · Sample question',mobile?M:1080,mobile?1775:933,mobile?W-2*M:730,62,mobile?31:28,muted,false)
   ],askAt,67-askAt,'09 Ask a lesson question');
   scene([
    T('Start here.',M,mobile?290:247,W-2*M,210,mobile?143:156,lime,true,{motion:words}),
