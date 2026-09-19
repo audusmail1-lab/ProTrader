@@ -1,12 +1,12 @@
 # Pro Trader Academy — Clarity starts here
 
-Status: revised storyboard and initial style frames; direction revised against the owner’s YouTube reference; a Callan opening audition is in production. Owner review required before final renders. This is a new introduction, separate from the seven approved feature tutorials. No live deployment.
+Status: full film approved by the owner on 19 September 2026, following the Callan opening preview. Produce the complete film with a more electric licensed soundtrack. This is a new introduction, separate from the seven approved feature tutorials. Live deployment remains a separate approval.
 
 ## Direction
 
 An 84-second product introduction. Original Academy branding: near-black, warm white, restrained lime, generous space, large typography and genuine PROTrader interface crops. Premium product-launch rhythm with smooth, deliberate movement. Explain the ecosystem before mechanics. No simulated hardware, invented execution interface, flashing formula vortex or unverified performance claim.
 
-Voice direction: energetic, warm, confident and curious. An inviting lift on the opening question; clear emphasis on the short verbs. Allow a full breath at each transition. The technical explanation slows down. Finish with conviction, without shouting. Arthur was explicitly rejected by the owner as too dull. The owner selected Callan (preset d8061b90-ff25-5882-8384-7a6a28806f30). Use his real opening audition to check the tone before full narration. Do not equate higher playback speed with excitement.
+Voice direction: energetic, warm, confident and curious. An inviting lift on the opening question; clear emphasis on the short verbs. Allow a full breath at each transition. The technical explanation slows down. Finish with conviction, without shouting. Arthur was explicitly rejected by the owner as too dull. The owner selected Callan (preset d8061b90-ff25-5882-8384-7a6a28806f30). The owner approved his opening audition; retain that recording and use Callan for the remaining scenes. Do not equate higher playback speed with excitement.
 
 ## Timed storyboard and exact narration
 
@@ -25,7 +25,7 @@ Duration is a target, not a reason to squeeze speech. Adjust scene boundaries to
 
 ## Sound and motion
 
-- Narration leads. Restrained original or properly licensed electronic texture underneath, with subtle transition accents; no aggressive trading-floor effects.
+- Narration leads. Driving, properly licensed synthwave underneath, with subtle transition accents; no aggressive trading-floor effects.
 - Opening has energy from a purposeful reveal and a strong voice, rather than rapid cuts.
 - Text enters over approximately 0.5–0.9 seconds and then holds. Major UI crops have several seconds of stable reading time.
 - UI crops are framed as illustrative examples; no implication of current market data or a validated performance record.
@@ -62,3 +62,7 @@ Duration is a target, not a reason to squeeze speech. Adjust scene boundaries to
 Callan, preset d8061b90-ff25-5882-8384-7a6a28806f30, selected through the owner’s voice picker. Opening job: 96890971-4e53-4b45-92bf-fcbee5980d4e. Default speech rate retained; the words are not sped up.
 
 Music trial: “Origami” by Scott Buckley, CC BY 4.0, https://www.scottbuckley.com.au/library/origami/. Use an excerpt faded and mixed beneath narration, with credit in the website player and any upload description. Music is an audition choice, not a final soundtrack approval.
+
+## Full-film approval and soundtrack
+
+Owner approved the complete film after reviewing the Callan opening on 19 September 2026. Soundtrack: “Neon” (No Melody) by Scott Buckley, CC BY 4.0. https://www.scottbuckley.com.au/library/neon/ . Use an energetic excerpt, fades and ducking beneath narration. Do not reuse the reference video’s recording without a licence.
