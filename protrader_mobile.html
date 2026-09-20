@@ -611,6 +611,22 @@ kbd{
 .hist-pnl{font-family:var(--font-mono);font-weight:800;font-size:9px}
 .hist-pnl.win{color:var(--green-lt)}.hist-pnl.loss{color:var(--red-lt)}
 .hist-time{font-size:8px;color:var(--tx-3)}
+/* MT5-style history rows (rebuilt from S.trades) */
+.hx-day{font-size:8px;font-weight:800;letter-spacing:.6px;text-transform:uppercase;color:var(--tx-3);padding:6px 2px 2px}
+.hx-row{padding:7px 8px;background:var(--bg-3);border:1px solid var(--bd-1);border-left:3px solid var(--bd-1);
+  border-radius:var(--r-xs);cursor:pointer;-webkit-tap-highlight-color:transparent}
+.hx-row.win{border-left-color:var(--green)}.hx-row.loss{border-left-color:var(--red)}
+.hx-l1,.hx-l2{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.hx-sym{font-size:11px;font-weight:800;color:var(--tx-1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hx-side.buy{color:#60a5fa}.hx-side.sell{color:var(--red-lt)}
+.hx-pnl{font-family:var(--font-mono);font-size:11px;font-weight:800;white-space:nowrap}
+.hx-pnl.win{color:var(--green-lt)}.hx-pnl.loss{color:var(--red-lt)}
+.hx-l2{margin-top:2px;font-family:var(--font-mono);font-size:9px;color:var(--tx-3)}
+.hx-det{display:none;margin-top:6px;padding-top:6px;border-top:1px dashed var(--bd-1);
+  grid-template-columns:1fr 1fr;gap:3px 12px;font-size:9px;color:var(--tx-3)}
+.hx-row.open .hx-det{display:grid}
+.hx-det b{color:var(--tx-1);font-weight:700;font-family:var(--font-mono)}
+.hx-sum{display:flex;justify-content:space-between;font-size:9px;color:var(--tx-3);padding:2px 2px 4px}
 /* open positions */
 .op-type{padding:1px 5px;border-radius:2px;font-size:8px;font-weight:800}
 .op-type.buy{background:rgba(16,185,129,.15);color:var(--green-lt)}
@@ -5146,8 +5162,8 @@ const OT = {
     else { p.volume = +(p.volume - vol).toFixed(6); p.margin = (p.margin || 0) - marginBack; }
 
     S.trades.push({ id: p.id, sym: p.symbol, pair: p.label, type: p.side, volume: vol,
-                    entry: p.entry, exit, pnl, closeTime: Date.now(), won, reason: reason || 'Manual' });
-    this.logClose(p, vol, exit, pnl, reason);
+                    entry: p.entry, exit, pnl, openTime: p.openTime || null, closeTime: Date.now(), won, reason: reason || 'Manual' });
+    this.renderHistory();
     updateBalDisplay(); renderPortfolio(); updateGarden(won, pnl);
     this.renderBook(); this.render(); this.save();
     showToast(`${won ? '✓' : '✕'} Closed ${vol} ${p.label} @ ${otFmtPx(p.symbol, exit)} · ${otMoney(pnl)}${reason ? ' · ' + reason : ''}`, 4000);
@@ -5231,29 +5247,46 @@ const OT = {
   },
 
   /* -- journal / history -- */
-  logClose(p, vol, exit, pnl, reason) {
-    const j = document.getElementById('journalPane');
-    if (j) {
-      if (j.textContent.includes('No trades')) j.innerHTML = '';
-      const row = document.createElement('div');
-      row.className = 'jnl-row';
-      row.innerHTML = `<span class="jnl-pair">${p.side.toUpperCase()} ${vol} ${p.label}</span>
-        <span style="color:${pnl >= 0 ? 'var(--green-lt)' : 'var(--red-lt)'}">${otMoney(pnl)}</span>`;
-      j.insertAdjacentElement('afterbegin', row);
-    }
+  /* History is always rebuilt from S.trades (the persisted record), so it
+     survives reloads instead of only existing as DOM rows added at close time. */
+  renderHistory() {
+    const esc = v => String(v == null ? '' : v).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+    const px = (t, v) => { try { return otFmtPx(t.sym, v); } catch (_) { return String(v); } };
+    const p2 = n => String(n).padStart(2, '0');
+    const stamp = ms => { const d = new Date(ms); return `${d.getFullYear()}.${p2(d.getMonth()+1)}.${p2(d.getDate())} ${p2(d.getHours())}:${p2(d.getMinutes())}:${p2(d.getSeconds())}`; };
+    const dur = ms => { const m = Math.round(ms / 60000); return m < 1 ? '<1m' : m < 60 ? m + 'm' : m < 1440 ? Math.floor(m/60) + 'h ' + (m%60) + 'm' : Math.floor(m/1440) + 'd ' + Math.floor((m%1440)/60) + 'h'; };
+    const trades = S.trades.slice().sort((a, b) => (b.closeTime || 0) - (a.closeTime || 0));
+
     const h = document.getElementById('historyList');
     if (h) {
-      if (h.textContent.includes('No trades')) h.innerHTML = '';
-      const row = document.createElement('div');
-      row.className = 'hist-row';
-      row.innerHTML = `
-        <div class="hist-type ${p.side}">${p.side.toUpperCase()}</div>
-        <div class="hist-pair">${p.label}</div>
-        <div class="hist-entry">${otFmtPx(p.symbol, p.entry)}→${otFmtPx(p.symbol, exit)}</div>
-        <div class="hist-pnl ${pnl >= 0 ? 'win' : 'loss'}">${otMoney(pnl)}</div>
-        <div class="hist-time">${new Date().toLocaleTimeString()}</div>`;
-      h.insertAdjacentElement('afterbegin', row);
-      if (h.children.length > 30) h.removeChild(h.lastChild);
+      if (!trades.length) {
+        h.innerHTML = '<div style="font-size:9px;color:var(--tx-3)">No closed trades yet. Close a position and it will be listed here.</div>';
+      } else {
+        const net = trades.reduce((a, t) => a + (t.pnl || 0), 0);
+        let html = `<div class="hx-sum"><span>${trades.length} closed trade${trades.length === 1 ? '' : 's'}</span><span>Net ${otMoney(net)}</span></div>`;
+        let lastDay = '';
+        trades.forEach(t => {
+          const day = t.closeTime ? new Date(t.closeTime).toDateString() : 'Earlier';
+          if (day !== lastDay) { html += `<div class="hx-day">${esc(day)}</div>`; lastDay = day; }
+          const cls = (t.pnl || 0) >= 0 ? 'win' : 'loss';
+          html += `<div class="hx-row ${cls}" onclick="this.classList.toggle('open')">
+            <div class="hx-l1"><span class="hx-sym">${esc(t.pair || t.sym)} <span class="hx-side ${esc(t.type)}">${esc(t.type)} ${esc(t.volume)}</span></span>
+              <span class="hx-pnl ${cls}">${otMoney(t.pnl || 0)}</span></div>
+            <div class="hx-l2"><span>${px(t, t.entry)} → ${px(t, t.exit)}</span><span>${t.closeTime ? stamp(t.closeTime) : ''}</span></div>
+            <div class="hx-det">
+              <span>Opened <b>${t.openTime ? stamp(t.openTime) : '—'}</b></span>
+              <span>Held <b>${t.openTime && t.closeTime ? dur(t.closeTime - t.openTime) : '—'}</b></span>
+              <span>Closed by <b>${esc(t.reason || 'Manual')}</b></span>
+              <span>Ticket <b>#${esc(t.id)}</b></span>
+            </div></div>`;
+        });
+        h.innerHTML = html;
+      }
+    }
+    const j = document.getElementById('journalPane');
+    if (j && trades.length) {
+      j.innerHTML = trades.slice(0, 30).map(t => `<div class="jnl-row"><span class="jnl-pair">${esc(String(t.type).toUpperCase())} ${esc(t.volume)} ${esc(t.pair || t.sym)}</span>
+        <span style="color:${(t.pnl || 0) >= 0 ? 'var(--green-lt)' : 'var(--red-lt)'}">${otMoney(t.pnl || 0)}</span></div>`).join('');
     }
   },
 
@@ -5262,7 +5295,7 @@ const OT = {
     try {
       localStorage.setItem(TRADE_STORE_KEY, JSON.stringify({
         balance: S.balance, pnlToday: S.pnlToday, wins: S.wins, losses: S.losses,
-        bestTrade: S.bestTrade, trades: S.trades.slice(-50),
+        bestTrade: S.bestTrade, trades: S.trades.slice(-500),
         positions: TR.positions, orders: TR.orders, seq: TR.seq,
         ticket: { volume: TK.volume, type: TK.type, side: TK.side },
       }));
@@ -5287,7 +5320,7 @@ const OT = {
         if (['market', 'limit', 'stop'].includes(d.ticket.type)) TK.type = d.ticket.type;
         if (['buy', 'sell'].includes(d.ticket.side)) TK.side = d.ticket.side;
       }
-      updateBalDisplay(); renderPortfolio();
+      updateBalDisplay(); renderPortfolio(); this.renderHistory();
     } catch (_) {}
   },
 
@@ -5525,7 +5558,12 @@ function updateBalDisplay() {
 }
 
 function renderPortfolio() {
-  const total = S.trades.length;
+  // Count from the win/loss tallies: S.trades is a capped list, so its length
+  // under-counts once the cap is hit and would push the win rate past 100%.
+  const total = Math.max(S.wins + S.losses, S.trades.length);
+  // "Today" means trades closed since local midnight, not the all-time gain.
+  const day0 = new Date(); day0.setHours(0, 0, 0, 0);
+  S.pnlToday = S.trades.reduce((a, t) => a + ((t.closeTime || 0) >= day0.getTime() ? (t.pnl || 0) : 0), 0);
   const wr = total > 0 ? ((S.wins / total) * 100).toFixed(0) + '%' : '—';
   const el = id => document.getElementById(id);
   if (el('pnlToday')) {
