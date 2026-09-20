@@ -611,6 +611,17 @@ kbd{
 .hist-pnl{font-family:var(--font-mono);font-weight:800;font-size:9px}
 .hist-pnl.win{color:var(--green-lt)}.hist-pnl.loss{color:var(--red-lt)}
 .hist-time{font-size:8px;color:var(--tx-3)}
+/* ── account chooser ── */
+.acct-opt{display:block;width:100%;text-align:left;background:var(--bg-3);border:1px solid var(--bd-1);border-radius:var(--r-sm);
+  padding:12px;margin-bottom:8px;cursor:pointer;color:var(--tx-2);font-family:inherit}
+.acct-opt.current{border-color:var(--green);background:rgba(16,185,129,.07)}
+.acct-opt.live.current{border-color:var(--amber);background:rgba(245,158,11,.08)}
+.acct-opt-h{display:flex;justify-content:space-between;align-items:center;font-size:13px;font-weight:800;color:var(--tx-1);margin-bottom:4px}
+.acct-opt-b{display:block;font-size:10.5px;line-height:1.45}
+.acct-opt-b b{color:var(--green-lt)}
+.acct-opt-tag{font-size:8px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;color:var(--tx-3)}
+.acct-opt.current .acct-opt-tag{color:var(--green-lt)}
+.acct-opt.live.current .acct-opt-tag{color:var(--amber)}
 /* ── MT5 live bridge ── */
 .lv{border:1px solid var(--bd-1);border-radius:var(--r-sm);background:var(--bg-3);overflow:hidden}
 .lv.routing{border-color:rgba(245,158,11,.55)}
@@ -1590,30 +1601,25 @@ kbd{
   </div>
 </div>
 
-<!-- ── DEPOSIT MODAL ── -->
+<!-- ── ACCOUNT MODE (demo / live MT5) ── -->
 <div class="modal-backdrop" id="depositModal" onclick="if(event.target===this)closeDeposit()">
   <div class="modal">
-    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px">
       <div>
-        <div class="modal-title">💳 Fund Your Account</div>
-        <div class="modal-sub">Demo balance: <b style="color:var(--green-lt)">$<span id="depDemoBal">10,000.00</span></b></div>
+        <div class="modal-title">Trading account</div>
+        <div class="modal-sub" style="margin-bottom:0">Choose where your trades go.</div>
       </div>
-      <button onclick="closeDeposit()" style="font-size:18px;color:var(--tx-3);background:none;border:none;cursor:pointer;line-height:1">×</button>
+      <button onclick="closeDeposit()" aria-label="Close" style="font-size:18px;color:var(--tx-3);background:none;border:none;cursor:pointer;line-height:1">×</button>
     </div>
-    <div class="dep-methods">
-      <div class="dep-method selected" onclick="selDepMethod(this)"><div class="dep-icon">💳</div>Card</div>
-      <div class="dep-method" onclick="selDepMethod(this)"><div class="dep-icon">🏦</div>Bank</div>
-      <div class="dep-method" onclick="selDepMethod(this)"><div class="dep-icon">📱</div>Mobile</div>
-    </div>
-    <div style="font-size:8.5px;font-weight:700;color:var(--tx-3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">Select Amount</div>
-    <div class="dep-amounts">
-      <div class="dep-amt" onclick="selDepAmt(100,this)">$100</div>
-      <div class="dep-amt selected" onclick="selDepAmt(500,this)">$500</div>
-      <div class="dep-amt" onclick="selDepAmt(1000,this)">$1,000</div>
-      <div class="dep-amt" onclick="selDepAmt(2500,this)">$2,500</div>
-    </div>
-    <div class="dep-note">🔒 Secured by Flutterwave · 256-bit SSL · PCI DSS Compliant</div>
-    <button class="xbtn buy" onclick="initFlutterwave()">Proceed to Payment</button>
+    <button class="acct-opt" id="acctOptDemo" onclick="chooseAccount('demo')">
+      <span class="acct-opt-h"><span>Demo account</span><span class="acct-opt-tag" id="acctTagDemo"></span></span>
+      <span class="acct-opt-b">Practice with <b>$<span id="depDemoBal">10,000.00</span></b> of paper money at live prices. Nothing real is sent.</span>
+    </button>
+    <button class="acct-opt live" id="acctOptLive" onclick="chooseAccount('live')">
+      <span class="acct-opt-h"><span>Trade live on my MT5</span><span class="acct-opt-tag" id="acctTagLive"></span></span>
+      <span class="acct-opt-b" id="acctLiveTxt">Send trades to your own Deriv MT5 account through the PROTrader Bridge. Every order asks you to confirm first.</span>
+    </button>
+    <div class="dep-note" style="margin:10px 0 0">PROTrader never holds your money. Deposits and withdrawals stay inside Deriv.</div>
   </div>
 </div>
 
@@ -4857,7 +4863,7 @@ function otAccount() {
 ════════════════════════════════════════════════════════════ */
 const LIVE_STORE_KEY = 'protrader.mt5bridge.v1';
 var LIVE = {
-  key: '', on: false, route: false, open: false, symMap: {},
+  key: '', on: false, shown: false, route: false, open: false, symMap: {},
   state: null, lastOk: 0, err: '', since: 0,
   specs: {}, specAsk: {}, waiters: {}, seenResults: {},
   _timer: null, _resolve: null, _histSig: '',
@@ -4867,14 +4873,15 @@ var LIVE = {
     try {
       const d = JSON.parse(localStorage.getItem(LIVE_STORE_KEY) || '{}');
       if (typeof d.key === 'string') this.key = d.key;
-      this.on = !!d.on && !!this.key;
+      this.shown = !!d.shown;                 // the user picked "Trade live" at some point
+      this.on = this.shown && !!this.key;
       if (d.symMap && typeof d.symMap === 'object') this.symMap = d.symMap;
       // Routing is deliberately NOT restored: every session starts on paper
       // and sending real orders is switched on by hand.
     } catch (_) {}
   },
   save() {
-    try { localStorage.setItem(LIVE_STORE_KEY, JSON.stringify({ key: this.key, on: this.on, symMap: this.symMap })); } catch (_) {}
+    try { localStorage.setItem(LIVE_STORE_KEY, JSON.stringify({ key: this.key, shown: this.shown, symMap: this.symMap })); } catch (_) {}
   },
   init() {
     this.load();
@@ -5126,6 +5133,29 @@ var LIVE = {
     this.poll();
   },
 
+  /* -- demo / live choice (from the account sheet) -- */
+  goLive() {
+    this.shown = true; this.open = true; this.on = !!this.key;
+    this.save();
+    if (this.on) this.start();
+    this.renderCard(); this.renderBook();
+    if (typeof mobileSetView === 'function') mobileSetView('trade');
+    if (typeof setRTab === 'function') setRTab('trade', document.querySelector('.rtab[data-tab="trade"]'));
+    const card = document.getElementById('lvCard');
+    if (card && card.scrollIntoView) setTimeout(() => card.scrollIntoView({ block: 'start', behavior: 'smooth' }), 120);
+    if (this.online()) this.setRouting(true);
+    else showToast(this.key ? 'MT5 is offline — open MT5 with the bridge EA running, then tick "Send my orders to MT5".'
+                            : 'Set up the MT5 bridge: tap New to create your key.', 5200);
+  },
+  goDemo() {
+    const was = this.routing();
+    this.route = false; this.shown = false; this.on = false; this.open = false;
+    this.save(); this.stop();
+    this.renderCard(); this.renderBook(); this.renderHistory();
+    if (typeof OT !== 'undefined') { OT.render(); OT.renderHistory(); }
+    showToast(was ? 'Back on the demo account — nothing is sent to MT5.' : 'Demo account — paper money, nothing real is sent.', 3800);
+  },
+
   /* -- settings -- */
   toggleOpen() { this.open = !this.open; this.renderCard(); },
   makeKey() {
@@ -5171,6 +5201,7 @@ var LIVE = {
   renderCard() {
     const el = id => document.getElementById(id);
     const card = el('lvCard'); if (!card) return;
+    card.style.display = this.shown ? '' : 'none';      // hidden until the user chooses to trade live
     const a = this.acct(), lim = this.limits(), online = this.online(), real = this.isReal();
     card.className = 'lv' + (this.open ? ' open' : '') + (this.routing() ? ' routing' : '') + (this.routing() && real ? ' real' : '');
     el('lvDot').className = 'lv-dot' + (!this.on ? '' : online ? ' on' : ' off');
@@ -5215,6 +5246,12 @@ var LIVE = {
     const route = el('lvRoute'); route.checked = this.route; route.disabled = !online && !this.route;
     el('lvKill').disabled = !online;
 
+    // header badge follows the active account
+    const badge = el('balDisplay');
+    if (badge) {
+      if (this.routing() && a) badge.textContent = `MT5 ${otMoney(+a.balance)}`;
+      else if (typeof updateBalDisplay === 'function') updateBalDisplay();
+    }
     const tag = el('otMode');
     if (tag) {
       tag.textContent = this.routing() ? (real ? 'Live · Real' : 'Live · Demo') : 'Paper';
@@ -6157,7 +6194,7 @@ function updateOpenPos() { OT.renderBook(); }
 function updateBalDisplay() {
   const fmt = v => v.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
   const set = (id, v) => { const n = document.getElementById(id); if (n) n.textContent = v; };
-  set('balDisplay', fmt(S.balance));
+  if (!(LIVE && LIVE.routing())) set('balDisplay', fmt(S.balance));   // while live, the badge shows the MT5 balance
   set('portBal', fmt(S.balance));
   set('depDemoBal', fmt(S.balance));
 }
@@ -6292,18 +6329,23 @@ function pushSignal(type, price) {
 /* ════════════════════════════════════════════════════════════
    DEPOSIT / FLUTTERWAVE
 ════════════════════════════════════════════════════════════ */
-function openDeposit() { document.getElementById('depositModal').classList.add('open'); }
-function closeDeposit() { document.getElementById('depositModal').classList.remove('open'); }
-function selDepAmt(amt, el) {
-  S.depAmt = parseFloat(amt) || 500;
-  document.querySelectorAll('.dep-amt').forEach(b => b.classList.remove('selected'));
-  if (el) el.classList.add('selected');
-  document.getElementById('customDepAmt').value = S.depAmt;
+function openDeposit() {
+  const el = id => document.getElementById(id);
+  const live = LIVE.shown, routing = LIVE.routing();
+  el('acctOptDemo').classList.toggle('current', !routing);
+  el('acctOptLive').classList.toggle('current', routing);
+  el('acctTagDemo').textContent = routing ? '' : 'Active';
+  el('acctTagLive').textContent = routing ? 'Active' : (live && LIVE.online() ? 'Connected' : live && LIVE.key ? 'MT5 offline' : 'Set up');
+  const a = LIVE.acct();
+  el('acctLiveTxt').textContent = live && LIVE.online() && a
+    ? `MT5 ${a.login} (${a.mode === 'real' ? 'REAL' : a.mode}) is connected. Trades from the ticket and ARIA go to it; every order asks you to confirm first.`
+    : 'Send trades to your own Deriv MT5 account through the PROTrader Bridge. Every order asks you to confirm first.';
+  el('depositModal').classList.add('open');
 }
-function initFlutterwave() {
+function closeDeposit() { document.getElementById('depositModal').classList.remove('open'); }
+function chooseAccount(mode) {
   closeDeposit();
-  showToast('🔐 Redirecting to Flutterwave secure payment…', 4000);
-  speak('Redirecting to secure payment. Please complete your deposit.');
+  if (mode === 'live') LIVE.goLive(); else LIVE.goDemo();
 }
 
 /* ════════════════════════════════════════════════════════════

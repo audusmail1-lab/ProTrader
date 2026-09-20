@@ -14,7 +14,8 @@ and take profits already placed live on Deriv's server and keep working.
 
 ## One-time setup (about 10 minutes)
 
-1. **Get a key.** In PROTrader open **Trade → MT5 Live → New**, then **Copy**.
+1. **Get a key.** In PROTrader tap the **balance ($) button → Trade live on my MT5**. The
+   MT5 Live panel appears in the Trade tab; tap **New**, then **Copy**.
    The key stays on your device; treat it like a password.
 2. **Install the EA.** In MT5 desktop: **File → Open Data Folder → MQL5 → Experts**,
    copy `PROTraderBridge.mq5` there. Open it in MetaEditor (double-click) and press
@@ -28,8 +29,9 @@ and take profits already placed live on Deriv's server and keep working.
    is green.
 5. The chart's top-left corner should read `Relay: Connected`, and the MT5 Live
    panel in PROTrader turns green and shows your balance.
-6. Tick **Send my orders to MT5**. This switch is off again every time the app
-   reloads, on purpose.
+6. Tick **Send my orders to MT5** (or tap the **$ button → Trade live on my MT5** again).
+   This switch is off again every time the app reloads, on purpose. To go back to
+   paper trading, tap the **$ button → Demo account**; that also hides the MT5 panel.
 
 ## Start on demo
 
