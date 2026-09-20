@@ -1352,6 +1352,9 @@ kbd{
                 </div>
                 <div class="lv-note" id="lvSymNote" style="margin-top:3px"></div>
               </div>
+              <div class="lv-row">
+                <button class="lv-btn" id="lvSize" onclick="LIVE.sizeToRisk()" style="flex:1">Size lot to my risk limit</button>
+              </div>
               <label class="lv-switch">
                 <input type="checkbox" id="lvRoute" onchange="LIVE.setRouting(this.checked)"/>
                 <span>Send my orders to MT5</span>
@@ -4942,6 +4945,7 @@ var LIVE = {
     this._polling = true;
     try {
       const st = await this.api('/state?since=' + encodeURIComponent(this.since));
+      if (!this.on) return;                 // switched back to demo while this request was in flight
       this.state = st; this.lastOk = Date.now(); this.err = '';
       (st.results || []).forEach(r => {
         if (r._at > this.since) this.since = r._at;
@@ -5023,6 +5027,36 @@ var LIVE = {
     return Math.abs(entry - sl) / sp.tickSize * sp.tickValue * volume;
   },
 
+  // Most a new trade may risk right now, in money. Newer EAs report it
+  // directly; older ones only had a fixed per-trade cap.
+  riskBudget() {
+    const lim = this.limits(); if (!lim) return null;
+    if (Number.isFinite(lim.riskBudget) && (lim.maxRisk > 0 || lim.openRiskCap > 0 || lim.dailyLoss > 0)) return lim.riskBudget;
+    return lim.maxRisk > 0 ? lim.maxRisk : null;
+  },
+  // Largest lot whose loss at the stop fits the risk budget.
+  sizeToRisk() {
+    const id = S.sym, sp = this.specs[id], budget = this.riskBudget();
+    if (!this.routing()) { showToast('Turn on "Send my orders to MT5" first.', 3500); return; }
+    if (!(TK.slOn && Number.isFinite(TK.sl))) { showToast('Set a stop loss first — the lot is sized from it.', 3800); return; }
+    if (!sp || budget == null) { showToast('Waiting for MT5 limits…', 3000); return; }
+    const entry = OT.entryRef();
+    const perLot = this.riskAtStop(id, 1, entry, TK.sl);
+    if (!Number.isFinite(entry) || !(perLot > 0)) { showToast('Cannot price the stop distance yet.', 3500); return; }
+    const step = sp.volStep > 0 ? sp.volStep : 0.01;
+    let lots = Math.floor((Math.max(0, budget) / perLot) / step + 1e-9) * step;
+    if (sp.volMax > 0) lots = Math.min(lots, sp.volMax);
+    lots = +lots.toFixed(6);
+    if (!(lots >= (sp.volMin || step))) {
+      showToast(`Even MT5's minimum lot (${sp.volMin}) risks ${otMoney(perLot * sp.volMin)} here — more than the ${otMoney(Math.max(0, budget))} you may risk. Tighten the stop.`, 6500);
+      return;
+    }
+    TK.volume = lots;
+    const inp = document.getElementById('otVol'); if (inp) inp.value = lots.toFixed(OT.volDp());
+    OT.render();
+    showToast(`Lot set to ${lots} → risks ${otMoney(perLot * lots)} of your ${otMoney(budget)} limit.`, 4500);
+  },
+
   /* Early feedback only — the EA re-checks all of this and has the final say. */
   validate(id, volume, entry) {
     const e = {};
@@ -5041,10 +5075,14 @@ var LIVE = {
     }
     const hasSl = TK.slOn && Number.isFinite(TK.sl);
     if (lim && lim.requireSl && !hasSl) e.sl = 'The MT5 bridge rejects entries without a stop loss.';
-    if (hasSl && lim && lim.maxRisk > 0 && Number.isFinite(entry)) {
+    if (hasSl && lim && Number.isFinite(entry)) {
       const risk = this.riskAtStop(id, volume, entry, TK.sl);
-      if (risk != null && risk > lim.maxRisk + 0.005) {
-        e.volume = `Risk at stop is ${otMoney(risk)} — above your EA cap of ${otMoney(lim.maxRisk)}. Reduce the lot or tighten the stop.`;
+      const budget = this.riskBudget();
+      if (risk != null && budget != null && risk > budget + 0.005) {
+        const why = lim.maxRisk > 0 && Math.abs(budget - lim.maxRisk) < 0.01
+          ? (lim.maxRiskPct > 0 ? `${lim.maxRiskPct}% of equity per trade` : "your EA's per-trade cap")
+          : 'what your open-risk and daily-loss limits leave';
+        e.volume = `Risk at stop is ${otMoney(risk)} — the most this trade may risk is ${otMoney(Math.max(0, budget))} (${why}). Tap "Size lot to my risk limit" or tighten the stop.`;
       }
     }
     return e;
@@ -5223,11 +5261,14 @@ var LIVE = {
     const L = el('lvLimits');
     if (lim && online) {
       L.style.display = '';
-      L.innerHTML = 'EA limits: '
-        + `<b>${lim.requireSl ? 'stop loss required' : 'stop loss optional'}</b> · max risk <b>${lim.maxRisk > 0 ? this.esc(otMoney(lim.maxRisk)) : 'off'}</b>`
-        + ` · daily loss lock <b>${lim.dailyLoss > 0 ? this.esc(otMoney(lim.dailyLoss)) : 'off'}</b>`
-        + ` · max positions <b>${lim.maxPositions > 0 ? this.esc(lim.maxPositions) : 'off'}</b>`
-        + ` · real account <b>${lim.allowReal ? 'allowed' : 'blocked'}</b>. Change these in the EA inputs in MT5.`;
+      const pct = (v, p) => v > 0 ? `${this.esc(otMoney(v))}${p > 0 ? ' (' + this.esc(p) + '%)' : ''}` : 'off';
+      L.innerHTML = lim.riskBudget === undefined
+        ? 'EA limits: ' + `<b>${lim.requireSl ? 'stop loss required' : 'stop loss optional'}</b> · max risk <b>${pct(lim.maxRisk)}</b> · daily loss lock <b>${pct(lim.dailyLoss)}</b>. Update the EA in MT5 to get percentage-based limits.`
+        : `Risk per trade <b>${pct(lim.maxRisk, lim.maxRiskPct)}</b> · open risk <b>${this.esc(otMoney(lim.openRisk))}</b> of <b>${pct(lim.openRiskCap, lim.openRiskPct)}</b>`
+          + ` · daily limit <b>${pct(lim.dailyLoss, lim.dailyLossPct)}</b> of start-of-day ${this.esc(otMoney(lim.startEquity))}`
+          + ` · losses today <b>${this.esc(lim.lossesToday)}${lim.maxLosses > 0 ? ' of ' + this.esc(lim.maxLosses) : ''}</b>`
+          + ` · next trade may risk <b>${this.esc(otMoney(Math.max(0, lim.riskBudget)))}</b>`
+          + ` · real account <b>${lim.allowReal ? 'allowed' : 'blocked'}</b>. Change these in the EA inputs in MT5.`;
     } else L.style.display = 'none';
 
     const warn = el('lvWarn'); let w = '';
@@ -5245,6 +5286,7 @@ var LIVE = {
 
     const route = el('lvRoute'); route.checked = this.route; route.disabled = !online && !this.route;
     el('lvKill').disabled = !online;
+    el('lvSize').disabled = !this.routing() || !online;
 
     // header badge follows the active account
     const badge = el('balDisplay');
