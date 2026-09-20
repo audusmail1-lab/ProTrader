@@ -47,7 +47,6 @@ bot = TradingBot()
 
 # In-memory store
 history: deque = deque(maxlen=50)
-cache:   dict[str, dict] = {}
 _quote_cache: dict[str, dict] = {}   # ticker → last quote (see /api/quotes)
 QUOTE_TTL_S = 5.0                    # batch-quote cache lifetime
 MOBILE_HTML_FILE = "protrader_mobile.html"
@@ -454,7 +453,6 @@ def analyze(ticker: str, interval: str = "1h") -> dict:
         )
         result["triggered_alerts"] = triggered
 
-        cache[label] = result
         history.appendleft({k: v for k, v in result.items() if k != "indicators"})
         return result
 
