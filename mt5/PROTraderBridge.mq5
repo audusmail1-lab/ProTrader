@@ -12,7 +12,7 @@
 //|  any one chart, paste your Bridge Key, and turn on Algo Trading.  |
 //+------------------------------------------------------------------+
 #property copyright "PROTrader"
-#property version   "1.00"
+#property version   "1.10"
 #property description "Bridge between the PROTrader web app and this MT5 account."
 
 #include <Trade\Trade.mqh>
@@ -24,16 +24,18 @@ input string BridgeKey            = "";      // Bridge Key (copy from PROTrader 
 input group "Safety limits (enforced here, not in the app)"
 input bool   AllowRealAccount     = false;   // Allow trading on a REAL account (leave false while testing on demo)
 input bool   RequireStopLoss      = true;    // Reject any entry that has no stop loss
-input double MaxRiskPerTrade      = 25.0;    // Max loss at the stop, in account currency (0 = no cap)
+input double MaxRiskPctPerTrade   = 1.0;     // Max loss at the stop, % of CURRENT equity (0 = no cap)
+input double MaxOpenRiskPct       = 2.0;     // Max combined risk of all open trades + pending orders, % of current equity (0 = no cap)
+input double DailyLossLimitPct    = 3.0;     // Hard daily loss limit, % of START-OF-DAY equity (0 = off)
+input int    MaxLosingTradesPerDay = 3;      // Stop for the day after this many losing trades (0 = off)
 input double MaxMarginPctPerTrade = 25.0;    // Max margin one trade may use, % of equity (0 = no cap)
 input int    MaxOpenPositions     = 3;       // Max open positions on the account (0 = no cap)
-input double DailyLossLimit       = 75.0;    // Block new entries once today's loss reaches this (0 = off)
 
 input group "Execution"
 input int    SlippagePoints       = 200;     // Max slippage in points
 input long   MagicNumber          = 770077;  // Tag for orders placed by this EA
 
-#define EA_VERSION     "1.00"
+#define EA_VERSION     "1.10"
 #define POLL_MS        1000
 #define HISTORY_EVERY  15        // seconds between history uploads
 #define HISTORY_DAYS   14
@@ -143,45 +145,162 @@ datetime DayStart()
    return(StringToTime(TimeToString(TimeCurrent(), TIME_DATE)));
   }
 
-// Closed P&L since midnight (server time) plus floating P&L of open positions.
-double DayPnl()
+//+------------------------------------------------------------------+
+//| Risk framework                                                    |
+//|   1. per trade   : risk at stop <= MaxRiskPctPerTrade of equity    |
+//|   2. open risk   : all open + pending risk <= MaxOpenRiskPct       |
+//|   3. daily loss  : (start-of-day equity - equity) can never exceed |
+//|                    DailyLossLimitPct. New risk is only allowed out |
+//|                    of what is left of that budget, so the limit    |
+//|                    holds even if every open stop is hit.           |
+//|   4. loss count  : no entries after MaxLosingTradesPerDay losers   |
+//+------------------------------------------------------------------+
+struct RiskState
   {
-   double total = 0.0;
-   if(HistorySelect(DayStart(), TimeCurrent() + 86400))
+   double startEquity;    // equity at the start of the trading day
+   double equity;
+   double dayPnl;         // equity - startEquity (closed + floating)
+   double openRisk;       // money lost if every open stop / pending stop is hit
+   int    unprotected;    // open positions with no stop loss (risk cannot be bounded)
+   int    lossesToday;    // closed losing positions today
+   double perTradeCap;    // money
+   double openRiskCap;    // money
+   double dailyCap;       // money
+   double budget;         // most a NEW trade may risk right now (money); <0 means unlimited
+  };
+
+string DayKey() { return("PTB_" + IntegerToString(AccountInfoInteger(ACCOUNT_LOGIN)) + "_" + TimeToString(DayStart(), TIME_DATE)); }
+
+// Net result of today's closed trades and today's deposits/withdrawals.
+void TodayClosed(double &tradePnl, double &balanceOps, int &losers)
+  {
+   tradePnl = 0.0; balanceOps = 0.0; losers = 0;
+   if(!HistorySelect(DayStart(), TimeCurrent() + 86400)) return;
+   int n = HistoryDealsTotal();
+   long   ids[];  double sums[];  bool closed[];
+   for(int i = 0; i < n; i++)
      {
-      int n = HistoryDealsTotal();
-      for(int i = 0; i < n; i++)
+      ulong t = HistoryDealGetTicket(i);
+      if(t == 0) continue;
+      long type = HistoryDealGetInteger(t, DEAL_TYPE);
+      double v = HistoryDealGetDouble(t, DEAL_PROFIT) + HistoryDealGetDouble(t, DEAL_SWAP) + HistoryDealGetDouble(t, DEAL_COMMISSION);
+      if(type != DEAL_TYPE_BUY && type != DEAL_TYPE_SELL) { balanceOps += v; continue; }
+      tradePnl += v;
+      // group by position so partial closes of one trade count as one result
+      long pid = HistoryDealGetInteger(t, DEAL_POSITION_ID);
+      long entry = HistoryDealGetInteger(t, DEAL_ENTRY);
+      int k = -1;
+      for(int j = 0; j < ArraySize(ids); j++) if(ids[j] == pid) { k = j; break; }
+      if(k < 0)
         {
-         ulong t = HistoryDealGetTicket(i);
-         if(t == 0) continue;
-         long type = HistoryDealGetInteger(t, DEAL_TYPE);
-         if(type != DEAL_TYPE_BUY && type != DEAL_TYPE_SELL) continue;   // skip deposits/withdrawals
-         total += HistoryDealGetDouble(t, DEAL_PROFIT)
-                + HistoryDealGetDouble(t, DEAL_SWAP)
-                + HistoryDealGetDouble(t, DEAL_COMMISSION);
+         k = ArraySize(ids);
+         ArrayResize(ids, k + 1); ArrayResize(sums, k + 1); ArrayResize(closed, k + 1);
+         ids[k] = pid; sums[k] = 0.0; closed[k] = false;
         }
+      sums[k] += v;
+      if(entry == DEAL_ENTRY_OUT || entry == DEAL_ENTRY_OUT_BY || entry == DEAL_ENTRY_INOUT) closed[k] = true;
      }
+   for(int j = 0; j < ArraySize(ids); j++)
+     {
+      if(!closed[j] || sums[j] >= 0.0) continue;
+      if(PositionSelectByTicket((ulong)ids[j])) continue;      // still partly open: not a finished loss yet
+      losers++;
+     }
+  }
+
+// Equity at the start of the trading day (server midnight). Stored in a
+// terminal global variable the first time it is seen each day so it
+// survives EA restarts; if the EA was not running at midnight it is rebuilt
+// from the balance minus everything that has happened today.
+double StartOfDayEquity(const double tradePnl, const double balanceOps)
+  {
+   string key = DayKey();
+   if(GlobalVariableCheck(key)) return(GlobalVariableGet(key) + balanceOps);   // deposits/withdrawals are not P&L
+   double floating = AccountInfoDouble(ACCOUNT_EQUITY) - AccountInfoDouble(ACCOUNT_BALANCE);
+   double start = AccountInfoDouble(ACCOUNT_BALANCE) - tradePnl - balanceOps;
+   // Positions carried in from yesterday: their float at midnight is unknown, so
+   // count today's float against today only if nothing was carried over.
+   bool carried = false;
+   for(int i = PositionsTotal() - 1; i >= 0; i--)
+      if(PositionGetTicket(i) != 0 && (datetime)PositionGetInteger(POSITION_TIME) < DayStart()) { carried = true; break; }
+   if(carried) start += floating;
+   GlobalVariableSet(key, start);
+   return(start + balanceOps);
+  }
+
+// Money lost if this position/order is stopped out. 0 when the stop locks in a profit.
+double RiskAtStop(const string sym, const bool isBuy, const double vol, const double entry, const double sl)
+  {
+   double pl = 0.0;
+   if(!OrderCalcProfit(isBuy ? ORDER_TYPE_BUY : ORDER_TYPE_SELL, sym, vol, entry, sl, pl)) return(-1.0);
+   return(pl < 0.0 ? -pl : 0.0);
+  }
+
+void ReadRisk(RiskState &r)
+  {
+   double tradePnl, balanceOps; int losers;
+   TodayClosed(tradePnl, balanceOps, losers);
+   r.equity      = AccountInfoDouble(ACCOUNT_EQUITY);
+   r.startEquity = StartOfDayEquity(tradePnl, balanceOps);
+   r.dayPnl      = r.equity - r.startEquity;
+   r.lossesToday = losers;
+   r.openRisk = 0.0; r.unprotected = 0;
    for(int i = PositionsTotal() - 1; i >= 0; i--)
      {
       if(PositionGetTicket(i) == 0) continue;
-      total += PositionGetDouble(POSITION_PROFIT) + PositionGetDouble(POSITION_SWAP);
+      double sl = PositionGetDouble(POSITION_SL);
+      if(sl <= 0.0) { r.unprotected++; continue; }
+      double x = RiskAtStop(PositionGetString(POSITION_SYMBOL), PositionGetInteger(POSITION_TYPE) == POSITION_TYPE_BUY,
+                            PositionGetDouble(POSITION_VOLUME), PositionGetDouble(POSITION_PRICE_OPEN), sl);
+      if(x < 0.0) r.unprotected++; else r.openRisk += x;
      }
-   return(total);
+   for(int i = OrdersTotal() - 1; i >= 0; i--)
+     {
+      if(OrderGetTicket(i) == 0) continue;
+      double sl = OrderGetDouble(ORDER_SL);
+      long ot = OrderGetInteger(ORDER_TYPE);
+      bool isBuy = (ot == ORDER_TYPE_BUY_LIMIT || ot == ORDER_TYPE_BUY_STOP || ot == ORDER_TYPE_BUY_STOP_LIMIT);
+      if(sl <= 0.0) { r.unprotected++; continue; }
+      double x = RiskAtStop(OrderGetString(ORDER_SYMBOL), isBuy, OrderGetDouble(ORDER_VOLUME_CURRENT), OrderGetDouble(ORDER_PRICE_OPEN), sl);
+      if(x < 0.0) r.unprotected++; else r.openRisk += x;
+     }
+   r.perTradeCap = MaxRiskPctPerTrade > 0.0 ? r.equity * MaxRiskPctPerTrade / 100.0 : -1.0;
+   r.openRiskCap = MaxOpenRiskPct     > 0.0 ? r.equity * MaxOpenRiskPct / 100.0 : -1.0;
+   r.dailyCap    = DailyLossLimitPct  > 0.0 ? r.startEquity * DailyLossLimitPct / 100.0 : -1.0;
+   // what a new trade may still risk: the tightest of the three
+   r.budget = -1.0;
+   if(r.perTradeCap >= 0.0) r.budget = r.perTradeCap;
+   if(r.openRiskCap >= 0.0)
+     { double left = r.openRiskCap - r.openRisk; if(r.budget < 0.0 || left < r.budget) r.budget = left; }
+   if(r.dailyCap >= 0.0)
+     { double left = r.dailyCap + r.dayPnl - r.openRisk; if(r.budget < 0.0 || left < r.budget) r.budget = left; }   // dayPnl is negative on a losing day
+   if(r.budget < 0.0 && (r.perTradeCap >= 0.0 || r.openRiskCap >= 0.0 || r.dailyCap >= 0.0)) r.budget = 0.0;
   }
 
+double DayPnl() { RiskState r; ReadRisk(r); return(r.dayPnl); }
+
 // Returns "" when new entries are allowed, otherwise the reason they are not.
-string EntryBlockReason()
+string EntryBlockReasonFor(const RiskState &r)
   {
    if(!TradingSwitchedOn())
       return("Algo Trading is off in MT5 (toolbar button, and 'Allow Algo Trading' in the EA settings)");
    if(AccountModeText() == "real" && !AllowRealAccount)
       return("This is a REAL account and AllowRealAccount is false in the EA inputs");
-   if(DailyLossLimit > 0.0 && DayPnl() <= -DailyLossLimit)
-      return("Daily loss limit reached (" + DoubleToString(DailyLossLimit, 2) + ") - new entries locked until tomorrow");
+   if(r.dailyCap >= 0.0 && -r.dayPnl >= r.dailyCap)
+      return("Daily loss limit reached: down " + DoubleToString(-r.dayPnl, 2) + " of " + DoubleToString(r.dailyCap, 2) +
+             " (" + DoubleToString(DailyLossLimitPct, 1) + "% of start-of-day equity) - locked until tomorrow");
+   if(MaxLosingTradesPerDay > 0 && r.lossesToday >= MaxLosingTradesPerDay)
+      return(IntegerToString(r.lossesToday) + " losing trades today - daily stop reached, locked until tomorrow");
    if(MaxOpenPositions > 0 && PositionsTotal() >= MaxOpenPositions)
       return("Max open positions reached (" + IntegerToString(MaxOpenPositions) + ")");
+   if(r.unprotected > 0 && (r.openRiskCap >= 0.0 || r.dailyCap >= 0.0))
+      return(IntegerToString(r.unprotected) + " open position/order has no stop loss, so open risk cannot be bounded - add a stop or close it first");
+   if((r.perTradeCap >= 0.0 || r.openRiskCap >= 0.0 || r.dailyCap >= 0.0) && r.budget <= 0.005)
+      return("No risk budget left: open risk " + DoubleToString(r.openRisk, 2) + ", today " + DoubleToString(r.dayPnl, 2));
    return("");
   }
+
+string EntryBlockReason() { RiskState r; ReadRisk(r); return(EntryBlockReasonFor(r)); }
 
 //+------------------------------------------------------------------+
 //| Symbols                                                           |
@@ -260,7 +379,8 @@ void ExecEntry(const string id, const string kind, const string wantSym, const s
                double vol, const bool hasPrice, double price,
                const bool hasSl, double sl, const bool hasTp, double tp)
   {
-   string block = EntryBlockReason();
+   RiskState rs; ReadRisk(rs);
+   string block = EntryBlockReasonFor(rs);
    if(block != "") { PushResult(id, false, block); return; }
 
    string sym = ResolveSymbol(wantSym);
@@ -311,17 +431,31 @@ void ExecEntry(const string id, const string kind, const string wantSym, const s
 
    ENUM_ORDER_TYPE calcType = isBuy ? ORDER_TYPE_BUY : ORDER_TYPE_SELL;
 
-   // risk at the stop, priced by MT5 itself
-   if(sl > 0.0 && MaxRiskPerTrade > 0.0)
+   // risk at the stop, priced by MT5 itself, against the three money limits
+   bool anyRiskCap = (rs.perTradeCap >= 0.0 || rs.openRiskCap >= 0.0 || rs.dailyCap >= 0.0);
+   if(sl <= 0.0 && anyRiskCap)
+     { PushResult(id, false, "No stop loss - risk limits are on, so every entry needs one"); return; }
+   if(sl > 0.0 && anyRiskCap)
      {
-      double pl = 0.0;
-      if(!OrderCalcProfit(calcType, sym, vol, entry, sl, pl))
-        { PushResult(id, false, "MT5 could not price the risk on this trade - not sent"); return; }
-      double risk = -pl;
-      if(risk > MaxRiskPerTrade + 0.005)
+      double risk = RiskAtStop(sym, isBuy, vol, entry, sl);
+      if(risk < 0.0) { PushResult(id, false, "MT5 could not price the risk on this trade - not sent"); return; }
+      if(rs.perTradeCap >= 0.0 && risk > rs.perTradeCap + 0.005)
         {
-         PushResult(id, false, "Risk at stop is " + DoubleToString(risk, 2) + ", above the EA cap of " +
-                    DoubleToString(MaxRiskPerTrade, 2) + " - reduce the lot size or tighten the stop");
+         PushResult(id, false, "Risk at stop is " + DoubleToString(risk, 2) + ", above " + DoubleToString(MaxRiskPctPerTrade, 1) +
+                    "% of equity (" + DoubleToString(rs.perTradeCap, 2) + ") - reduce the lot size or tighten the stop");
+         return;
+        }
+      if(rs.openRiskCap >= 0.0 && rs.openRisk + risk > rs.openRiskCap + 0.005)
+        {
+         PushResult(id, false, "Combined open risk would be " + DoubleToString(rs.openRisk + risk, 2) + ", above " +
+                    DoubleToString(MaxOpenRiskPct, 1) + "% of equity (" + DoubleToString(rs.openRiskCap, 2) + ") - " +
+                    DoubleToString(MathMax(0.0, rs.openRiskCap - rs.openRisk), 2) + " is available");
+         return;
+        }
+      if(rs.dailyCap >= 0.0 && risk > rs.dailyCap + rs.dayPnl - rs.openRisk + 0.005)
+        {
+         PushResult(id, false, "This trade could take today's loss past the " + DoubleToString(DailyLossLimitPct, 1) + "% daily limit (" +
+                    DoubleToString(rs.dailyCap, 2) + "): only " + DoubleToString(MathMax(0.0, rs.dailyCap + rs.dayPnl - rs.openRisk), 2) + " of risk is left today");
          return;
         }
      }
@@ -407,7 +541,8 @@ void ExecModify(const string id, const ulong ticket, const bool hasSl, double sl
    string sym = PositionGetString(POSITION_SYMBOL);
    double newSl = hasSl ? NormPrice(sym, sl) : PositionGetDouble(POSITION_SL);   // "-" keeps the current level, 0 removes it
    double newTp = hasTp ? NormPrice(sym, tp) : PositionGetDouble(POSITION_TP);
-   if(RequireStopLoss && newSl <= 0.0) { PushResult(id, false, "The EA will not remove a stop loss (RequireStopLoss is on)"); return; }
+   if(newSl <= 0.0 && (RequireStopLoss || MaxRiskPctPerTrade > 0.0 || MaxOpenRiskPct > 0.0 || DailyLossLimitPct > 0.0))
+     { PushResult(id, false, "The EA will not remove a stop loss while risk limits are on"); return; }
    if(trade.PositionModify(ticket, newSl, newTp) && trade.ResultRetcode() == TRADE_RETCODE_DONE)
       PushResult(id, true, "Updated SL/TP on #" + IntegerToString((long)ticket), "\"ticket\":" + JStr(IntegerToString((long)ticket)));
    else
@@ -610,8 +745,9 @@ string HistoryJson()
 
 string SnapshotJson(const bool withHistory)
   {
-   double dayPnl = DayPnl();                 // selects today's history; HistoryJson re-selects below
-   string block  = EntryBlockReason();
+   RiskState rs; ReadRisk(rs);               // selects today's history; HistoryJson re-selects below
+   double dayPnl = rs.dayPnl;
+   string block  = EntryBlockReasonFor(rs);
    string j = "{\"ea\":{\"version\":" + JStr(EA_VERSION) +
               ",\"time\":" + IntegerToString((long)TimeCurrent()) +
               ",\"gmtOffset\":" + IntegerToString((long)(TimeCurrent() - TimeGMT())) + "}";
@@ -628,10 +764,20 @@ string SnapshotJson(const bool withHistory)
         ",\"blockReason\":" + JStr(block) + "}";
    j += ",\"limits\":{\"allowReal\":" + JBool(AllowRealAccount) +
         ",\"requireSl\":" + JBool(RequireStopLoss) +
-        ",\"maxRisk\":" + JNum(MaxRiskPerTrade, 2) +
+        ",\"maxRisk\":" + JNum(rs.perTradeCap < 0.0 ? 0.0 : rs.perTradeCap, 2) +
+        ",\"maxRiskPct\":" + JNum(MaxRiskPctPerTrade, 2) +
+        ",\"openRisk\":" + JNum(rs.openRisk, 2) +
+        ",\"openRiskCap\":" + JNum(rs.openRiskCap < 0.0 ? 0.0 : rs.openRiskCap, 2) +
+        ",\"openRiskPct\":" + JNum(MaxOpenRiskPct, 2) +
+        ",\"dailyLoss\":" + JNum(rs.dailyCap < 0.0 ? 0.0 : rs.dailyCap, 2) +
+        ",\"dailyLossPct\":" + JNum(DailyLossLimitPct, 2) +
+        ",\"startEquity\":" + JNum(rs.startEquity, 2) +
+        ",\"lossesToday\":" + IntegerToString(rs.lossesToday) +
+        ",\"maxLosses\":" + IntegerToString(MaxLosingTradesPerDay) +
+        ",\"riskBudget\":" + JNum(rs.budget, 2) +
+        ",\"unprotected\":" + IntegerToString(rs.unprotected) +
         ",\"maxMarginPct\":" + JNum(MaxMarginPctPerTrade, 2) +
-        ",\"maxPositions\":" + IntegerToString(MaxOpenPositions) +
-        ",\"dailyLoss\":" + JNum(DailyLossLimit, 2) + "}";
+        ",\"maxPositions\":" + IntegerToString(MaxOpenPositions) + "}";
    j += ",\"positions\":" + PositionsJson();
    j += ",\"orders\":" + OrdersJson();
    if(withHistory) j += ",\"history\":" + HistoryJson();
@@ -691,13 +837,18 @@ void Sync()
 
 void ShowStatus()
   {
-   string block = EntryBlockReason();
+   RiskState r; ReadRisk(r);
+   string block = EntryBlockReasonFor(r);
+   string cur = AccountInfoString(ACCOUNT_CURRENCY);
    Comment("PROTrader Bridge v", EA_VERSION, "\n",
-           "Relay:    ", g_status, "\n",
-           "Account:  ", IntegerToString(AccountInfoInteger(ACCOUNT_LOGIN)), "  (", AccountModeText(), ")\n",
-           "Entries:  ", (block == "" ? "ALLOWED" : "BLOCKED - " + block), "\n",
-           "Today:    ", DoubleToString(DayPnl(), 2), " ", AccountInfoString(ACCOUNT_CURRENCY),
-           (DailyLossLimit > 0.0 ? "   (lock at -" + DoubleToString(DailyLossLimit, 2) + ")" : ""), "\n",
-           "Last:     ", g_lastAction);
+           "Relay:     ", g_status, "\n",
+           "Account:   ", IntegerToString(AccountInfoInteger(ACCOUNT_LOGIN)), "  (", AccountModeText(), ")\n",
+           "Entries:   ", (block == "" ? "ALLOWED" : "BLOCKED - " + block), "\n",
+           "Today:     ", DoubleToString(r.dayPnl, 2), " ", cur,
+           (r.dailyCap >= 0.0 ? "   (hard limit -" + DoubleToString(r.dailyCap, 2) + " = " + DoubleToString(DailyLossLimitPct, 1) + "% of " + DoubleToString(r.startEquity, 2) + ")" : ""), "\n",
+           "Losses:    ", IntegerToString(r.lossesToday), (MaxLosingTradesPerDay > 0 ? " of " + IntegerToString(MaxLosingTradesPerDay) : ""), "\n",
+           "Open risk: ", DoubleToString(r.openRisk, 2), (r.openRiskCap >= 0.0 ? " of " + DoubleToString(r.openRiskCap, 2) : ""),
+           "   Next trade may risk: ", (r.budget < 0.0 ? "no cap" : DoubleToString(MathMax(0.0, r.budget), 2)), "\n",
+           "Last:      ", g_lastAction);
   }
 //+------------------------------------------------------------------+

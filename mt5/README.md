@@ -46,10 +46,20 @@ behave the way you expect.
 |---|---|---|
 | AllowRealAccount | false | Must be true before any entry is accepted on a real account |
 | RequireStopLoss | true | Entries without a stop loss are rejected |
-| MaxRiskPerTrade | 25 | Max loss at the stop, in account currency, priced by MT5 |
+| MaxRiskPctPerTrade | 1.0 | Max loss at the stop, % of **current** equity, priced by MT5 |
+| MaxOpenRiskPct | 2.0 | Max combined risk of every open position and pending order, % of current equity |
+| DailyLossLimitPct | 3.0 | Hard daily loss limit, % of **start-of-day** equity (closed + floating) |
+| MaxLosingTradesPerDay | 3 | No new entries after this many losing trades in one day |
 | MaxMarginPctPerTrade | 25 | Max margin per trade as % of equity |
 | MaxOpenPositions | 3 | Counts every position on the account, manual ones included |
-| DailyLossLimit | 75 | Today's closed + floating loss at which new entries lock until tomorrow |
+
+How the money limits combine: a new trade may risk the **smallest** of (a) 1% of equity,
+(b) what is left of the 2% open-risk cap, and (c) what is left of the 3% daily budget
+after today's loss *and* the risk already open. Because of (c) the daily limit holds
+even if every open stop is hit (slippage and gaps aside). A position without a stop
+loss makes open risk unbounded, so it blocks new entries until it has a stop or is closed.
+The day runs on MT5 server time. "Size lot to my risk limit" in the app sets the largest
+lot that fits.
 
 Closing positions is never blocked by these limits. **Close all MT5 positions** in
 the app flattens the whole account, including trades opened by hand.
