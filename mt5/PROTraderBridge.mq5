@@ -12,7 +12,7 @@
 //|  any one chart, paste your Bridge Key, and turn on Algo Trading.  |
 //+------------------------------------------------------------------+
 #property copyright "PROTrader"
-#property version   "1.10"
+#property version   "1.20"
 #property description "Bridge between the PROTrader web app and this MT5 account."
 
 #include <Trade\Trade.mqh>
@@ -35,7 +35,7 @@ input group "Execution"
 input int    SlippagePoints       = 200;     // Max slippage in points
 input long   MagicNumber          = 770077;  // Tag for orders placed by this EA
 
-#define EA_VERSION     "1.10"
+#define EA_VERSION     "1.20"
 #define POLL_MS        1000
 #define HISTORY_EVERY  15        // seconds between history uploads
 #define HISTORY_DAYS   14
@@ -538,13 +538,56 @@ void ExecModify(const string id, const ulong ticket, const bool hasSl, double sl
   {
    if(!TradingSwitchedOn()) { PushResult(id, false, "Algo Trading is off in MT5"); return; }
    if(!PositionSelectByTicket(ticket)) { PushResult(id, false, "Position #" + IntegerToString((long)ticket) + " is not open"); return; }
-   string sym = PositionGetString(POSITION_SYMBOL);
-   double newSl = hasSl ? NormPrice(sym, sl) : PositionGetDouble(POSITION_SL);   // "-" keeps the current level, 0 removes it
-   double newTp = hasTp ? NormPrice(sym, tp) : PositionGetDouble(POSITION_TP);
+   // read everything now: ReadRisk() below walks the position list and changes the selection
+   string sym    = PositionGetString(POSITION_SYMBOL);
+   bool   isBuy  = (PositionGetInteger(POSITION_TYPE) == POSITION_TYPE_BUY);
+   double vol    = PositionGetDouble(POSITION_VOLUME);
+   double openPx = PositionGetDouble(POSITION_PRICE_OPEN);
+   double oldSl  = PositionGetDouble(POSITION_SL);
+   double oldTp  = PositionGetDouble(POSITION_TP);
+   int    dg     = (int)SymbolInfoInteger(sym, SYMBOL_DIGITS);
+   double newSl  = hasSl ? NormPrice(sym, sl) : oldSl;   // "-" keeps the current level, 0 removes it
+   double newTp  = hasTp ? NormPrice(sym, tp) : oldTp;
    if(newSl <= 0.0 && (RequireStopLoss || MaxRiskPctPerTrade > 0.0 || MaxOpenRiskPct > 0.0 || DailyLossLimitPct > 0.0))
      { PushResult(id, false, "The EA will not remove a stop loss while risk limits are on"); return; }
+
+   // stops must sit on the right side of the CURRENT price, outside the broker's minimum distance
+   MqlTick tk;
+   if(!SymbolInfoTick(sym, tk) || tk.bid <= 0.0) { PushResult(id, false, "No live MT5 price for " + sym); return; }
+   double minDist = (double)SymbolInfoInteger(sym, SYMBOL_TRADE_STOPS_LEVEL) * SymbolInfoDouble(sym, SYMBOL_POINT);
+   if(newSl > 0.0 && MathAbs(newSl - oldSl) > 1e-12)
+     {
+      if(isBuy  && newSl >= tk.bid - minDist) { PushResult(id, false, "Stop must be below the current price (" + DoubleToString(tk.bid - minDist, dg) + " or lower) - the trade is not far enough in profit yet"); return; }
+      if(!isBuy && newSl <= tk.ask + minDist) { PushResult(id, false, "Stop must be above the current price (" + DoubleToString(tk.ask + minDist, dg) + " or higher) - the trade is not far enough in profit yet"); return; }
+     }
+   if(newTp > 0.0 && MathAbs(newTp - oldTp) > 1e-12)
+     {
+      if(isBuy  && newTp <= tk.ask + minDist) { PushResult(id, false, "Take profit must be above the current price"); return; }
+      if(!isBuy && newTp >= tk.bid - minDist) { PushResult(id, false, "Take profit must be below the current price"); return; }
+     }
+
+   // Tightening a stop is always allowed. Widening it adds risk, so it has to fit the same limits as a new trade.
+   if(newSl > 0.0)
+     {
+      double oldRisk = (oldSl > 0.0) ? RiskAtStop(sym, isBuy, vol, openPx, oldSl) : -1.0;
+      double newRisk = RiskAtStop(sym, isBuy, vol, openPx, newSl);
+      if(newRisk < 0.0) { PushResult(id, false, "MT5 could not price the risk of that stop - not changed"); return; }
+      if(oldRisk >= 0.0 && newRisk > oldRisk + 0.005)
+        {
+         RiskState rs; ReadRisk(rs);
+         double extra = newRisk - oldRisk;
+         if(rs.perTradeCap >= 0.0 && newRisk > rs.perTradeCap + 0.005)
+           { PushResult(id, false, "That stop would risk " + DoubleToString(newRisk, 2) + ", above " + DoubleToString(MaxRiskPctPerTrade, 1) + "% of equity (" + DoubleToString(rs.perTradeCap, 2) + ") - not moved"); return; }
+         if(rs.openRiskCap >= 0.0 && rs.openRisk + extra > rs.openRiskCap + 0.005)
+           { PushResult(id, false, "Widening that stop would take combined open risk past " + DoubleToString(MaxOpenRiskPct, 1) + "% of equity - not moved"); return; }
+         if(rs.dailyCap >= 0.0 && extra > rs.dailyCap + rs.dayPnl - rs.openRisk + 0.005)
+           { PushResult(id, false, "Widening that stop could take today past the " + DoubleToString(DailyLossLimitPct, 1) + "% daily limit - not moved"); return; }
+        }
+     }
+
    if(trade.PositionModify(ticket, newSl, newTp) && trade.ResultRetcode() == TRADE_RETCODE_DONE)
-      PushResult(id, true, "Updated SL/TP on #" + IntegerToString((long)ticket), "\"ticket\":" + JStr(IntegerToString((long)ticket)));
+      PushResult(id, true, "#" + IntegerToString((long)ticket) + " " + sym + ": SL " + (newSl > 0.0 ? DoubleToString(newSl, dg) : "none") +
+                 " / TP " + (newTp > 0.0 ? DoubleToString(newTp, dg) : "none"), "\"ticket\":" + JStr(IntegerToString((long)ticket)));
    else
       PushResult(id, false, "MT5 could not modify #" + IntegerToString((long)ticket) + ": " + trade.ResultRetcodeDescription());
   }
