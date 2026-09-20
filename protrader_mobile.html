@@ -5155,6 +5155,64 @@ var LIVE = {
     showToast((r.ok ? '✓ MT5 · ' : '✕ ') + r.msg, r.ok ? 3800 : 6000);
     this.poll();
   },
+  /* -- moving stops and targets -- */
+  pos(ticket) { return ((this.snap() || {}).positions || []).find(x => x.ticket === String(ticket)) || null; },
+  // true once the stop already protects the entry price (or better)
+  atBreakeven(p) { return p.sl > 0 && (p.side === 'buy' ? p.sl >= p.entry : p.sl <= p.entry); },
+  moneyAt(p, price) {               // P&L of the position if it closed at `price`
+    const appId = Object.keys(this.specs).find(k => this.specs[k].symbol === p.symbol), sp = appId && this.specs[appId];
+    if (!sp || !(sp.tickSize > 0) || !(sp.tickValue > 0)) return null;
+    return (p.side === 'buy' ? price - p.entry : p.entry - price) / sp.tickSize * sp.tickValue * p.volume;
+  },
+  async breakeven(ticket) {
+    const p = this.pos(ticket); if (!p) return;
+    const inProfit = p.side === 'buy' ? p.price > p.entry : p.price < p.entry;
+    if (!inProfit) { showToast('Not in profit yet — a breakeven stop would sit on the wrong side of the price and be hit at once.', 5200); return; }
+    const rows = this.line('Position', this.esc(`${p.side.toUpperCase()} ${p.volume} ${p.symbol}`))
+      + this.line('Stop loss now', p.sl > 0 ? this.esc(p.sl) : 'none')
+      + this.line('New stop (entry)', this.esc(p.entry))
+      + this.line('Take profit', p.tp > 0 ? this.esc(p.tp) + ' (unchanged)' : 'none')
+      + '<div class="lv-note" style="margin-top:8px">At breakeven the trade can no longer lose, apart from slippage, and it stops counting toward your open risk.</div>';
+    if (!(await this.confirm('Move stop to breakeven?', rows, 'Move to breakeven', ''))) return;
+    const r = await this.send({ type: 'modify', ticket: String(ticket), sl: p.entry });
+    showToast((r.ok ? '✓ MT5 · ' : '✕ ') + r.msg, r.ok ? 4000 : 6500);
+    this.poll();
+  },
+  async editStops(ticket) {
+    const p = this.pos(ticket); if (!p) return;
+    const step = Math.pow(10, -(p.digits || 2));
+    const rows = this.line('Position', this.esc(`${p.side.toUpperCase()} ${p.volume} ${p.symbol}`))
+      + this.line('Entry → now', this.esc(`${p.entry} → ${p.price}`))
+      + `<div style="margin-top:10px"><div class="lv-lbl" style="margin-bottom:3px">Stop loss</div>
+           <input class="lv-inp" id="lvmSl" type="number" inputmode="decimal" step="${step}" value="${p.sl > 0 ? this.esc(p.sl) : ''}" style="width:100%;font-size:14px;padding:10px" oninput="LIVE._stopsPreview('${this.esc(p.ticket)}')"/>
+           <div class="lv-note" id="lvmSlNote" style="margin-top:3px"></div></div>
+         <div style="margin-top:10px"><div class="lv-lbl" style="margin-bottom:3px">Take profit <span style="text-transform:none;font-weight:600">(empty = none)</span></div>
+           <input class="lv-inp" id="lvmTp" type="number" inputmode="decimal" step="${step}" value="${p.tp > 0 ? this.esc(p.tp) : ''}" style="width:100%;font-size:14px;padding:10px" oninput="LIVE._stopsPreview('${this.esc(p.ticket)}')"/>
+           <div class="lv-note" id="lvmTpNote" style="margin-top:3px"></div></div>`;
+    const asked = this.confirm('Change stop / target', rows, 'Update on MT5', '');
+    this._stopsPreview(ticket);
+    if (!(await asked)) return;
+    const num = id => { const v = parseFloat((document.getElementById(id) || {}).value); return Number.isFinite(v) && v > 0 ? v : null; };
+    const sl = num('lvmSl'), tp = num('lvmTp');
+    if (sl == null) { showToast('A stop loss is required — nothing was changed.', 4500); return; }
+    if (sl === p.sl && (tp || 0) === (p.tp || 0)) { showToast('Nothing changed.', 2500); return; }
+    const r = await this.send({ type: 'modify', ticket: String(ticket), sl, tp: tp == null ? 0 : tp });
+    showToast((r.ok ? '✓ MT5 · ' : '✕ ') + r.msg, r.ok ? 4000 : 6500);
+    this.poll();
+  },
+  _stopsPreview(ticket) {
+    const p = this.pos(ticket); if (!p) return;
+    const show = (inpId, noteId, label) => {
+      const n = document.getElementById(noteId); if (!n) return;
+      const v = parseFloat((document.getElementById(inpId) || {}).value);
+      if (!Number.isFinite(v) || v <= 0) { n.textContent = ''; return; }
+      const m = this.moneyAt(p, v);
+      n.innerHTML = m == null ? '' : `${label} <b style="color:${m >= 0 ? 'var(--green-lt)' : 'var(--red-lt)'}">${this.esc(otMoney(m))}</b>`;
+    };
+    show('lvmSl', 'lvmSlNote', 'If the stop is hit:');
+    show('lvmTp', 'lvmTpNote', 'If the target is hit:');
+  },
+
   async cancelOrder(ticket) {
     const r = await this.send({ type: 'cancel', ticket: String(ticket) });
     showToast((r.ok ? '✓ MT5 · ' : '✕ ') + r.msg, r.ok ? 3800 : 6000);
@@ -5317,7 +5375,11 @@ var LIVE = {
         <div class="b"><span>${this.esc(p.entry)} → ${this.esc(p.price)}</span>
           <span>SL ${p.sl > 0 ? this.esc(p.sl) : '—'} · TP ${p.tp > 0 ? this.esc(p.tp) : '—'}</span></div>
         <div class="a" style="margin-top:5px"><span class="lv-note">#${this.esc(p.ticket)}${p.mine ? '' : ' · opened in MT5'}</span>
-          <button class="lv-btn danger" ${stale ? 'disabled' : ''} onclick="LIVE.closePosition('${this.esc(p.ticket)}')">Close</button></div>
+          <span style="display:flex;gap:4px">
+            <button class="lv-btn" ${stale || this.atBreakeven(p) ? 'disabled' : ''} onclick="LIVE.breakeven('${this.esc(p.ticket)}')">${this.atBreakeven(p) ? 'At BE' : 'Breakeven'}</button>
+            <button class="lv-btn" ${stale ? 'disabled' : ''} onclick="LIVE.editStops('${this.esc(p.ticket)}')">SL / TP</button>
+            <button class="lv-btn danger" ${stale ? 'disabled' : ''} onclick="LIVE.closePosition('${this.esc(p.ticket)}')">Close</button>
+          </span></div>
       </div>`).join('') : `<div class="pos-empty">${stale ? 'Bridge offline — last known: none' : 'No open MT5 positions'}</div>`;
     document.getElementById('lvOrders').innerHTML = ord.length ? ord.map(o => `
       <div class="lv-pos ${o.side === 'buy' ? 'buy' : 'sell'}">

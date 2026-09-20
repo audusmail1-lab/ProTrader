@@ -61,6 +61,11 @@ loss makes open risk unbounded, so it blocks new entries until it has a stop or 
 The day runs on MT5 server time. "Size lot to my risk limit" in the app sets the largest
 lot that fits.
 
+**Moving stops from the app.** Each MT5 position has **Breakeven** (moves the stop to your
+entry price once the trade is in profit) and **SL / TP** (type new levels, with the money
+outcome shown for each). Tightening a stop is always allowed; widening one adds risk, so
+the EA only accepts it if it still fits the limits above. A stop can never be removed.
+
 Closing positions is never blocked by these limits. **Close all MT5 positions** in
 the app flattens the whole account, including trades opened by hand.
 
