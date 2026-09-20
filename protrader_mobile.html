@@ -260,7 +260,10 @@ html,body{height:100%;overflow:hidden;background:var(--bg-1);color:var(--tx-1);f
 
 /* ── CHART AREA ── */
 .chart-wrap{flex:1;position:relative;overflow:hidden;background:var(--bg-1);min-height:0}
-#lwChart{position:absolute;inset:0;width:100%;height:100%}
+#lwChart{position:absolute;inset:0;width:100%;height:100%;touch-action:none}   /* gestures belong to the chart, not the browser */
+.ch-auto{position:absolute;right:4px;bottom:34px;z-index:21;display:none;padding:4px 8px;border-radius:999px;cursor:pointer;
+  font-size:9px;font-weight:800;letter-spacing:.5px;color:#fff;background:var(--blue);border:none;box-shadow:0 2px 8px rgba(0,0,0,.35)}
+.ch-auto.on{display:block}
 #lwChart .tv-lightweight-charts{border-radius:0}
 #drawLayer{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:5}
 #interactLayer{position:absolute;inset:0;width:100%;height:100%;z-index:6;touch-action:none;pointer-events:none}
@@ -1249,6 +1252,7 @@ kbd{
       <canvas id="drawLayer"></canvas>
       <div id="interactLayer"></div>
       <div class="price-tag" id="priceTag">—</div>
+      <button class="ch-auto" id="chAuto" onclick="CH.autoScale()" title="Back to automatic price scale" aria-label="Reset price scale to auto">AUTO</button>
       <div class="ch-xline" id="chXLine"></div>
       <div class="ch-yline" id="chYLine"></div>
       <div class="ch-price" id="chPrice"></div>
@@ -2837,9 +2841,20 @@ const CH = {
       localization: {
         priceFormatter: v => v.toFixed(Number.isFinite(S.dp) ? S.dp : 4),
       },
-      handleScroll: { mouseWheel: true, pressedMouseMove: true, horzTouchDrag: true, vertTouchDrag: false },
-      handleScale: { mouseWheel: true, pinch: true, axisPressedMouseMove: true },
+      // vertTouchDrag must be on for touch: with it off the library hands a
+      // vertical drag on the PRICE AXIS to the browser as a page scroll, so the
+      // axis could be dragged with a mouse but not with a finger. The page
+      // itself never scrolls (body is fixed), so nothing is lost. Once the
+      // scale is manual, a vertical drag on the candles pans price up/down.
+      handleScroll: { mouseWheel: true, pressedMouseMove: true, horzTouchDrag: true, vertTouchDrag: true },
+      handleScale: {
+        mouseWheel: true, pinch: true,
+        axisPressedMouseMove: { time: true, price: true },
+        axisDoubleClickReset: { time: true, price: true },   // double-click / double-tap the axis = back to auto
+      },
     });
+
+    this.bindScaleWatch(el);
 
     this.candle = this.chart.addSeries(LWC.CandlestickSeries, {
       upColor: p.up, downColor: p.down,
@@ -2980,6 +2995,7 @@ const CH = {
   },
 
   setAll(cdles) {
+    this.autoScale(true);
     this.paintSeries(cdles);
     this.chart.timeScale().scrollToRealTime();
   },
@@ -3351,6 +3367,50 @@ const CH = {
   },
   fromY(y) { return this.candle?.coordinateToPrice(y); },
 
+  /* ── manual price scale ────────────────────────────────────
+     Dragging the price axis switches the library to a manual scale
+     (autoScale=false). These helpers surface that state, offer a way
+     back, and keep the drawing overlay welded to the candles while the
+     scale is moving - the library only reports horizontal changes. */
+  isManualScale() {
+    try { return this.chart.priceScale('right').options().autoScale === false; } catch (_) { return false; }
+  },
+  autoScale(silent) {
+    if (!this.chart) return;
+    try { this.chart.priceScale('right').applyOptions({ autoScale: true }); } catch (_) {}
+    this._scaleKey = '';
+    if (!silent) { this.syncOverlay(); this.refreshLevels && this.refreshLevels(); }
+    this.syncScaleUi();
+  },
+  syncScaleUi() {
+    const b = document.getElementById('chAuto');
+    if (b) b.classList.toggle('on', this.isManualScale());
+  },
+  // Runs only while a finger/button is down on the chart (plus a short tail
+  // for momentum): redraws overlays whenever the price mapping moved.
+  watchScale(ms) {
+    this._watchUntil = performance.now() + (ms || 400);
+    if (this._watching) return;
+    this._watching = true;
+    const tick = () => {
+      let key = '';
+      try { key = this.candle.coordinateToPrice(0) + '|' + this.candle.coordinateToPrice(200); } catch (_) {}
+      if (key !== this._scaleKey) { this._scaleKey = key; this.syncOverlay(); this.syncScaleUi(); }
+      if (this._pointerDown || performance.now() < this._watchUntil) requestAnimationFrame(tick);
+      else this._watching = false;
+    };
+    requestAnimationFrame(tick);
+  },
+  bindScaleWatch(el) {
+    const down = () => { this._pointerDown = true; this.watchScale(); };
+    const up = () => { this._pointerDown = false; this.watchScale(600); };
+    // passive + capture: observe only, never interfere with the library's own handlers
+    ['pointerdown', 'touchstart'].forEach(t => el.addEventListener(t, down, { passive: true, capture: true }));
+    ['pointerup', 'pointercancel', 'touchend', 'touchcancel'].forEach(t => window.addEventListener(t, up, { passive: true, capture: true }));
+    el.addEventListener('wheel', () => this.watchScale(500), { passive: true, capture: true });
+    el.addEventListener('dblclick', () => this.watchScale(500), { passive: true, capture: true });
+  },
+
   syncOverlay() {
     const dc = document.getElementById('drawLayer');
     const wrap = document.getElementById('chartWrap');
@@ -3403,6 +3463,7 @@ function chartZoomBy(factor) { chartZoomWheel(factor > 1 ? -240 : 240, 3); }
 
 const CHART_DEFAULT_SPAN = 110;   // bars visible at the default zoom
 function chartZoomReset() {
+  CH.autoScale();
   const ts = CH.chart?.timeScale(); if (!ts) return;
   for (let i = 0; i < 30; i++) {
     const r = ts.getVisibleLogicalRange();
