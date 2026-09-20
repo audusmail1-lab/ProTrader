@@ -611,6 +611,66 @@ kbd{
 .hist-pnl{font-family:var(--font-mono);font-weight:800;font-size:9px}
 .hist-pnl.win{color:var(--green-lt)}.hist-pnl.loss{color:var(--red-lt)}
 .hist-time{font-size:8px;color:var(--tx-3)}
+/* ── account chooser ── */
+.acct-opt{display:block;width:100%;text-align:left;background:var(--bg-3);border:1px solid var(--bd-1);border-radius:var(--r-sm);
+  padding:12px;margin-bottom:8px;cursor:pointer;color:var(--tx-2);font-family:inherit}
+.acct-opt.current{border-color:var(--green);background:rgba(16,185,129,.07)}
+.acct-opt.live.current{border-color:var(--amber);background:rgba(245,158,11,.08)}
+.acct-opt-h{display:flex;justify-content:space-between;align-items:center;font-size:13px;font-weight:800;color:var(--tx-1);margin-bottom:4px}
+.acct-opt-b{display:block;font-size:10.5px;line-height:1.45}
+.acct-opt-b b{color:var(--green-lt)}
+.acct-opt-tag{font-size:8px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;color:var(--tx-3)}
+.acct-opt.current .acct-opt-tag{color:var(--green-lt)}
+.acct-opt.live.current .acct-opt-tag{color:var(--amber)}
+/* ── MT5 live bridge ── */
+.lv{border:1px solid var(--bd-1);border-radius:var(--r-sm);background:var(--bg-3);overflow:hidden}
+.lv.routing{border-color:rgba(245,158,11,.55)}
+.lv.routing.real{border-color:rgba(239,68,68,.7)}
+.lv-hdr{display:flex;align-items:center;gap:7px;padding:7px 9px;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.lv-dot{width:8px;height:8px;border-radius:50%;background:var(--tx-3);flex-shrink:0}
+.lv-dot.on{background:var(--green);box-shadow:0 0 8px var(--green)}
+.lv-dot.off{background:var(--red)}
+.lv-title{font-size:10px;font-weight:800;color:var(--tx-1);flex:1;min-width:0}
+.lv-sub{font-size:8.5px;color:var(--tx-3);font-weight:600}
+.lv-chev{font-size:10px;color:var(--tx-3);transition:transform var(--t2)}
+.lv.open .lv-chev{transform:rotate(180deg)}
+.lv-body{display:none;padding:0 9px 9px;flex-direction:column;gap:8px}
+.lv.open .lv-body{display:flex}
+.lv-row{display:flex;align-items:center;gap:6px}
+.lv-lbl{font-size:8px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;color:var(--tx-3)}
+.lv-inp{flex:1;min-width:0;background:var(--bg-2);border:1px solid var(--bd-1);border-radius:var(--r-xs);color:var(--tx-1);
+  font-family:var(--font-mono);font-size:10px;padding:6px 7px}
+.lv-btn{background:var(--bg-2);border:1px solid var(--bd-2);border-radius:var(--r-xs);color:var(--tx-1);font-size:9px;font-weight:800;
+  padding:6px 9px;cursor:pointer;white-space:nowrap}
+.lv-btn.danger{border-color:rgba(239,68,68,.5);color:var(--red-lt)}
+.lv-btn:disabled{opacity:.45;cursor:not-allowed}
+.lv-note{font-size:8.5px;line-height:1.45;color:var(--tx-3)}
+.lv-note b{color:var(--tx-1)}
+.lv-warn{font-size:9px;line-height:1.4;color:var(--red-lt);background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.3);
+  border-radius:var(--r-xs);padding:6px 7px}
+.lv-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:4px}
+.lv-cell{background:var(--bg-2);border:1px solid var(--bd-1);border-radius:var(--r-xs);padding:5px 6px;min-width:0}
+.lv-cell .l{font-size:7px;font-weight:800;letter-spacing:.4px;text-transform:uppercase;color:var(--tx-3)}
+.lv-cell .v{font-family:var(--font-mono);font-size:10px;font-weight:800;color:var(--tx-1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lv-cell .v.pos{color:var(--green-lt)}.lv-cell .v.neg{color:var(--red-lt)}
+.lv-switch{display:flex;align-items:center;gap:8px;font-size:10px;font-weight:800;color:var(--tx-1)}
+.lv-switch input{width:18px;height:18px}
+.lv-pos{padding:7px 8px;background:var(--bg-3);border:1px solid var(--bd-1);border-left:3px solid var(--bd-1);border-radius:var(--r-xs);margin-bottom:4px}
+.lv-pos.buy{border-left-color:#60a5fa}.lv-pos.sell{border-left-color:var(--red)}
+.lv-pos .a,.lv-pos .b{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.lv-pos .b{margin-top:3px;font-family:var(--font-mono);font-size:9px;color:var(--tx-3)}
+.ot-mode-tag.live{color:#fff;background:var(--amber);border-color:var(--amber)}
+.ot-mode-tag.live.real{background:var(--red);border-color:var(--red)}
+#lvModal .modal{max-width:380px}
+.lvm-line{display:flex;justify-content:space-between;gap:10px;font-size:11px;padding:5px 0;border-bottom:1px solid var(--bd-1);color:var(--tx-2)}
+.lvm-line b{color:var(--tx-1);font-family:var(--font-mono);text-align:right}
+.lvm-acct{font-size:11px;font-weight:800;padding:7px 9px;border-radius:var(--r-xs);margin-bottom:8px;text-align:center}
+.lvm-acct.demo{background:rgba(245,158,11,.14);color:var(--amber)}
+.lvm-acct.real{background:rgba(239,68,68,.16);color:var(--red-lt)}
+.lvm-btns{display:flex;gap:8px;margin-top:14px}
+.lvm-btns button{flex:1;padding:12px;border-radius:var(--r-sm);font-size:12px;font-weight:900;border:none;cursor:pointer}
+.lvm-cancel{background:var(--bg-3);color:var(--tx-1);border:1px solid var(--bd-2)!important}
+.lvm-ok{background:var(--green);color:#fff}.lvm-ok.sell,.lvm-ok.danger{background:var(--red)}
 /* MT5-style history rows (rebuilt from S.trades) */
 .hx-day{font-size:8px;font-weight:800;letter-spacing:.6px;text-transform:uppercase;color:var(--tx-3);padding:6px 2px 2px}
 .hx-row{padding:7px 8px;background:var(--bg-3);border:1px solid var(--bd-1);border-left:3px solid var(--bd-1);
@@ -861,7 +921,7 @@ kbd{
   .mobile-nav-btn:active{transform:scale(.97)}
 
   .modal-backdrop{align-items:flex-end;justify-content:center;padding:0 10px calc(var(--mobile-nav-h) + var(--safe-bottom) + 10px)}
-  .modal-backdrop#depositModal{align-items:center;padding:18px}
+  .modal-backdrop#depositModal,.modal-backdrop#lvModal{align-items:center;padding:18px}
   .modal{width:100%;max-width:420px;border-radius:22px;padding:20px}
   .modal-card{
     width:100%;max-width:460px!important;max-height:78dvh!important;border-radius:22px 22px 18px 18px;
@@ -1257,6 +1317,51 @@ kbd{
             <span class="ot-mode-txt" id="otModeTxt">Fills use live bid/ask. No broker connected.</span>
           </div>
 
+          <!-- MT5 live bridge -->
+          <div class="lv" id="lvCard">
+            <div class="lv-hdr" onclick="LIVE.toggleOpen()">
+              <span class="lv-dot" id="lvDot"></span>
+              <span class="lv-title">MT5 Live <span class="lv-sub" id="lvSub">· not set up</span></span>
+              <span class="lv-chev">▾</span>
+            </div>
+            <div class="lv-body">
+              <div class="lv-warn" id="lvWarn" style="display:none"></div>
+              <div id="lvSetup">
+                <div class="lv-note">Sends your ticket and ARIA trades to your own MetaTrader 5 account through the
+                  <b>PROTrader Bridge</b> Expert Advisor. MT5 must be open on your computer with the EA attached.</div>
+              </div>
+              <div>
+                <div class="lv-lbl" style="margin-bottom:3px">Bridge key (paste into the EA)</div>
+                <div class="lv-row">
+                  <input class="lv-inp" id="lvKey" readonly placeholder="No key yet"/>
+                  <button class="lv-btn" id="lvKeyCopy" onclick="LIVE.copyKey()">Copy</button>
+                  <button class="lv-btn" onclick="LIVE.newKey()">New</button>
+                </div>
+              </div>
+              <div class="lv-grid" id="lvAcct" style="display:none">
+                <div class="lv-cell"><div class="l">Balance</div><div class="v" id="lvBal">—</div></div>
+                <div class="lv-cell"><div class="l">Equity</div><div class="v" id="lvEq">—</div></div>
+                <div class="lv-cell"><div class="l">Free</div><div class="v" id="lvFree">—</div></div>
+                <div class="lv-cell"><div class="l">Today</div><div class="v" id="lvDay">—</div></div>
+              </div>
+              <div class="lv-note" id="lvLimits" style="display:none"></div>
+              <div>
+                <div class="lv-lbl" style="margin-bottom:3px">MT5 symbol for <span id="lvSymFor">this chart</span></div>
+                <div class="lv-row">
+                  <input class="lv-inp" id="lvSym" oninput="LIVE.onSymInput(this.value)" autocomplete="off" autocapitalize="off" spellcheck="false"/>
+                </div>
+                <div class="lv-note" id="lvSymNote" style="margin-top:3px"></div>
+              </div>
+              <label class="lv-switch">
+                <input type="checkbox" id="lvRoute" onchange="LIVE.setRouting(this.checked)"/>
+                <span>Send my orders to MT5</span>
+              </label>
+              <div class="lv-row">
+                <button class="lv-btn danger" id="lvKill" onclick="LIVE.closeAll()" style="flex:1">Close all MT5 positions</button>
+              </div>
+            </div>
+          </div>
+
           <!-- instrument header -->
           <div class="ot-hdr">
             <div class="ot-hdr-top">
@@ -1384,8 +1489,14 @@ kbd{
             <div class="ot-acct-i"><div class="ot-acct-l">Margin Lvl</div><div class="ot-acct-v" id="acLvl">—</div></div>
           </div>
 
+          <div id="lvBook" style="display:none;margin-top:2px">
+            <div class="section-hdr">MT5 Positions</div>
+            <div id="lvPositions"><div class="pos-empty">No open MT5 positions</div></div>
+            <div class="section-hdr" style="margin-top:6px">MT5 Pending Orders</div>
+            <div id="lvOrders"><div class="pos-empty">No pending MT5 orders</div></div>
+          </div>
           <div style="margin-top:2px">
-            <div class="section-hdr">Open Positions</div>
+            <div class="section-hdr" id="paperPosHdr">Open Positions</div>
             <div id="openPos"><div class="pos-empty">No open positions</div></div>
           </div>
           <div>
@@ -1411,7 +1522,13 @@ kbd{
             <div class="health-bar"><div class="health-fill" id="healthFill" style="width:100%"></div></div>
           </div>
         </div>
-        <div class="section-hdr" style="margin-top:4px">Trade History</div>
+        <div class="section-hdr" style="margin-top:4px;display:flex;justify-content:space-between;align-items:center">
+          <span>Trade History</span>
+          <span id="lvHistSwitch" style="display:none;gap:4px">
+            <button class="lv-btn" id="lvHistMt5" onclick="LIVE.setHistView('mt5')">MT5</button>
+            <button class="lv-btn" id="lvHistPaper" onclick="LIVE.setHistView('paper')">Paper</button>
+          </span>
+        </div>
         <div id="historyList"><div style="font-size:9px;color:var(--tx-3)">No trades yet.</div></div>
       </div>
 
@@ -1471,30 +1588,38 @@ kbd{
   <span id="voiceText">Listening…</span>
 </div>
 
-<!-- ── DEPOSIT MODAL ── -->
+<!-- ── MT5 LIVE CONFIRM MODAL ── -->
+<div class="modal-backdrop" id="lvModal">
+  <div class="modal">
+    <div class="modal-title" id="lvmTitle">Confirm</div>
+    <div class="lvm-acct" id="lvmAcct"></div>
+    <div id="lvmBody"></div>
+    <div class="lvm-btns">
+      <button class="lvm-cancel" onclick="LIVE._answer(false)">Cancel</button>
+      <button class="lvm-ok" id="lvmOk" onclick="LIVE._answer(true)">Confirm</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── ACCOUNT MODE (demo / live MT5) ── -->
 <div class="modal-backdrop" id="depositModal" onclick="if(event.target===this)closeDeposit()">
   <div class="modal">
-    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px">
       <div>
-        <div class="modal-title">💳 Fund Your Account</div>
-        <div class="modal-sub">Demo balance: <b style="color:var(--green-lt)">$<span id="depDemoBal">10,000.00</span></b></div>
+        <div class="modal-title">Trading account</div>
+        <div class="modal-sub" style="margin-bottom:0">Choose where your trades go.</div>
       </div>
-      <button onclick="closeDeposit()" style="font-size:18px;color:var(--tx-3);background:none;border:none;cursor:pointer;line-height:1">×</button>
+      <button onclick="closeDeposit()" aria-label="Close" style="font-size:18px;color:var(--tx-3);background:none;border:none;cursor:pointer;line-height:1">×</button>
     </div>
-    <div class="dep-methods">
-      <div class="dep-method selected" onclick="selDepMethod(this)"><div class="dep-icon">💳</div>Card</div>
-      <div class="dep-method" onclick="selDepMethod(this)"><div class="dep-icon">🏦</div>Bank</div>
-      <div class="dep-method" onclick="selDepMethod(this)"><div class="dep-icon">📱</div>Mobile</div>
-    </div>
-    <div style="font-size:8.5px;font-weight:700;color:var(--tx-3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">Select Amount</div>
-    <div class="dep-amounts">
-      <div class="dep-amt" onclick="selDepAmt(100,this)">$100</div>
-      <div class="dep-amt selected" onclick="selDepAmt(500,this)">$500</div>
-      <div class="dep-amt" onclick="selDepAmt(1000,this)">$1,000</div>
-      <div class="dep-amt" onclick="selDepAmt(2500,this)">$2,500</div>
-    </div>
-    <div class="dep-note">🔒 Secured by Flutterwave · 256-bit SSL · PCI DSS Compliant</div>
-    <button class="xbtn buy" onclick="initFlutterwave()">Proceed to Payment</button>
+    <button class="acct-opt" id="acctOptDemo" onclick="chooseAccount('demo')">
+      <span class="acct-opt-h"><span>Demo account</span><span class="acct-opt-tag" id="acctTagDemo"></span></span>
+      <span class="acct-opt-b">Practice with <b>$<span id="depDemoBal">10,000.00</span></b> of paper money at live prices. Nothing real is sent.</span>
+    </button>
+    <button class="acct-opt live" id="acctOptLive" onclick="chooseAccount('live')">
+      <span class="acct-opt-h"><span>Trade live on my MT5</span><span class="acct-opt-tag" id="acctTagLive"></span></span>
+      <span class="acct-opt-b" id="acctLiveTxt">Send trades to your own Deriv MT5 account through the PROTrader Bridge. Every order asks you to confirm first.</span>
+    </button>
+    <div class="dep-note" style="margin:10px 0 0">PROTrader never holds your money. Deposits and withdrawals stay inside Deriv.</div>
   </div>
 </div>
 
@@ -4582,7 +4707,10 @@ function otSpec(id) {
   const pip = p.market === 'forex'
     ? (dp >= 4 ? 0.0001 : dp === 3 ? 0.01 : tick)
     : tick;
-  return Object.assign({}, base, SPEC_OVERRIDE[id] || {}, {
+  // While orders are routed to MT5, lot limits and contract size come from
+  // the terminal itself — the paper defaults above do not apply there.
+  const live = (LIVE && LIVE.routing()) ? LIVE.specLimits(id) : null;
+  return Object.assign({}, base, SPEC_OVERRIDE[id] || {}, live || {}, {
     dp, tick, pip,
     isForex: p.market === 'forex',
     market: p.market || 'syn',
@@ -4722,6 +4850,499 @@ function otAccount() {
            level: used > 0 ? (equity / used) * 100 : null };
 }
 
+
+/* ════════════════════════════════════════════════════════════
+   MT5 LIVE BRIDGE
+   Deriv has no API for placing MT5 orders, so live trades travel:
+     this app → /api/bridge (relay) → PROTrader Bridge EA inside MT5.
+   The paper engine above is left untouched. When "Send my orders to
+   MT5" is on, the ticket is routed here INSTEAD of the paper broker —
+   never both, and never a silent fallback to paper.
+   The EA enforces the real risk limits; the checks here only give
+   earlier, friendlier feedback.
+════════════════════════════════════════════════════════════ */
+const LIVE_STORE_KEY = 'protrader.mt5bridge.v1';
+var LIVE = {
+  key: '', on: false, shown: false, route: false, open: false, symMap: {},
+  state: null, lastOk: 0, err: '', since: 0,
+  specs: {}, specAsk: {}, waiters: {}, seenResults: {},
+  _timer: null, _resolve: null, _histSig: '',
+
+  /* -- storage -- */
+  load() {
+    try {
+      const d = JSON.parse(localStorage.getItem(LIVE_STORE_KEY) || '{}');
+      if (typeof d.key === 'string') this.key = d.key;
+      this.shown = !!d.shown;                 // the user picked "Trade live" at some point
+      this.on = this.shown && !!this.key;
+      if (d.symMap && typeof d.symMap === 'object') this.symMap = d.symMap;
+      // Routing is deliberately NOT restored: every session starts on paper
+      // and sending real orders is switched on by hand.
+    } catch (_) {}
+  },
+  save() {
+    try { localStorage.setItem(LIVE_STORE_KEY, JSON.stringify({ key: this.key, shown: this.shown, symMap: this.symMap })); } catch (_) {}
+  },
+  init() {
+    this.load();
+    this.renderCard();
+    if (this.on) this.start();
+    document.addEventListener('visibilitychange', () => { if (!document.hidden && this.on) this.poll(); });
+  },
+
+  /* -- helpers -- */
+  esc(v) { return String(v == null ? '' : v).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); },
+  money(v) { return Number.isFinite(+v) ? otMoney(+v) : '—'; },
+  online() { return !!(this.state && this.state.online); },
+  snap() { return (this.state && this.state.snapshot) || null; },
+  acct() { const s = this.snap(); return (s && s.account) || null; },
+  limits() { const s = this.snap(); return (s && s.limits) || null; },
+  isReal() { const a = this.acct(); return !!a && a.mode === 'real'; },
+  routing() { return this.on && this.route; },
+  newId() {
+    const a = new Uint8Array(9); crypto.getRandomValues(a);
+    return 'c' + Array.from(a, b => b.toString(36).padStart(2, '0')).join('').slice(0, 17);
+  },
+
+  /* Best guess at the MT5 name for a chart instrument; the user can override it. */
+  guessSymbol(id) {
+    let m;
+    if ((m = /^R_(\d+)$/.exec(id))) return `Volatility ${m[1]} Index`;
+    if ((m = /^1HZ(\d+)V$/.exec(id))) return `Volatility ${m[1]} (1s) Index`;
+    if ((m = /^(CRASH|BOOM)(\d+)N?$/.exec(id))) return `${m[1] === 'CRASH' ? 'Crash' : 'Boom'} ${m[2]} Index`;
+    if ((m = /^JD(\d+)$/.exec(id))) return `Jump ${m[1]} Index`;
+    if (id === 'stpRNG') return 'Step Index';
+    if ((m = /^stpRNG(\d)$/.exec(id))) return `Step Index ${m[1]}00`;
+    if ((m = /^RB(\d+)$/.exec(id))) return `Range Break ${m[1]} Index`;
+    if ((m = /^(?:frx|cry)([A-Z]{6})$/.exec(id))) return m[1];
+    const p = PAIR_MAP[id];
+    return p ? p.label : id;
+  },
+  mt5Symbol(id) { return (this.symMap[id] || this.guessSymbol(id)).trim(); },
+
+  /* -- network -- */
+  async api(path, opts) {
+    const r = await fetch('/api/bridge' + path, Object.assign({ cache: 'no-store' }, opts || {}, {
+      headers: Object.assign({ 'X-Bridge-Key': this.key, 'Content-Type': 'application/json' }, (opts && opts.headers) || {}),
+    }));
+    let body = null;
+    try { body = await r.json(); } catch (_) {}
+    if (!r.ok) throw new Error((body && body.detail) || `Relay error ${r.status}`);
+    return body;
+  },
+  start() {
+    clearInterval(this._timer);
+    this._timer = setInterval(() => { if (!document.hidden) this.poll(); }, 1500);
+    this.poll();
+  },
+  stop() { clearInterval(this._timer); this._timer = null; this.state = null; },
+
+  async poll() {
+    if (!this.on || !this.key || this._polling) return;
+    this._polling = true;
+    try {
+      const st = await this.api('/state?since=' + encodeURIComponent(this.since));
+      this.state = st; this.lastOk = Date.now(); this.err = '';
+      (st.results || []).forEach(r => {
+        if (r._at > this.since) this.since = r._at;
+        if (this.seenResults[r.id]) return;
+        this.seenResults[r.id] = 1;
+        if (r.spec && r.ok) this.storeSpec(r);
+        const w = this.waiters[r.id];
+        if (w) { delete this.waiters[r.id]; w(r); }
+      });
+      this.ensureSpec();
+    } catch (e) {
+      this.err = e.message || 'Relay unreachable';
+      if (Date.now() - this.lastOk > 6000 && this.state) this.state.online = false;
+    } finally {
+      this._polling = false;
+      this.renderCard(); this.renderBook(); this.renderHistory();
+    }
+  },
+
+  send(cmd, waitMs) {
+    cmd.id = this.newId();
+    return new Promise(async resolve => {
+      let timer = null;
+      this.waiters[cmd.id] = r => { clearTimeout(timer); resolve(r); };
+      try {
+        await this.api('/cmd', { method: 'POST', body: JSON.stringify(cmd) });
+      } catch (e) {
+        delete this.waiters[cmd.id];
+        return resolve({ id: cmd.id, ok: false, msg: e.message || 'Could not reach the relay', notSent: true });
+      }
+      timer = setTimeout(() => {
+        delete this.waiters[cmd.id];
+        resolve({ id: cmd.id, ok: false, unknown: true,
+                  msg: 'No confirmation from MT5. The order may or may not have been placed — check MT5 before trying again.' });
+      }, waitMs || 22000);
+      // results normally arrive on the 1.5 s poll; nudge it while waiting
+      const nudge = setInterval(() => { if (!this.waiters[cmd.id]) return clearInterval(nudge); this.poll(); }, 700);
+    });
+  },
+
+  /* -- symbol specs from the terminal -- */
+  storeSpec(r) {
+    const want = Object.keys(this.specAsk).find(k => this.specAsk[k].id === r.id);
+    if (!want) return;
+    const appId = this.specAsk[want].appId;
+    this.specs[appId] = Object.assign({}, r.spec, { at: Date.now(), asked: want });
+  },
+  ensureSpec() {
+    if (!this.online()) return;
+    const appId = S.sym, name = this.mt5Symbol(appId);
+    const have = this.specs[appId];
+    const fresh = have && have.asked === name && Date.now() - have.at < 60000;
+    const ask = this.specAsk[name];
+    if (fresh || (ask && Date.now() - ask.at < 8000)) return;
+    const slot = this.specAsk[name] = { at: Date.now(), appId, id: null, failed: '' };
+    const cmd = { type: 'spec', symbol: name };
+    const p = this.send(cmd, 9000);
+    slot.id = cmd.id;                       // send() sets the id synchronously
+    p.then(r => {
+      if (r.ok) return;
+      slot.failed = r.msg || 'Not found';
+      if (this.specs[appId] && this.specs[appId].asked !== name) delete this.specs[appId];
+      this.renderCard();
+    });
+  },
+  specLimits(id) {
+    const sp = this.specs[id];
+    if (!sp || sp.asked !== this.mt5Symbol(id)) return null;
+    const o = {};
+    if (sp.volMin > 0) o.minLot = sp.volMin;
+    if (sp.volMax > 0) o.maxLot = sp.volMax;
+    if (sp.volStep > 0) o.lotStep = sp.volStep;
+    if (sp.contractSize > 0) o.contractSize = sp.contractSize;
+    return o;
+  },
+  riskAtStop(id, volume, entry, sl) {
+    const sp = this.specs[id];
+    if (!sp || !(sp.tickSize > 0) || !(sp.tickValue > 0) || !Number.isFinite(sl)) return null;
+    return Math.abs(entry - sl) / sp.tickSize * sp.tickValue * volume;
+  },
+
+  /* Early feedback only — the EA re-checks all of this and has the final say. */
+  validate(id, volume, entry) {
+    const e = {};
+    if (!this.online()) { e.general = 'MT5 bridge is offline — open MT5 and check the EA is running. Nothing will be sent.'; return e; }
+    const a = this.acct(), lim = this.limits();
+    if (a && a.canEnter === false) { e.general = 'MT5: ' + (a.blockReason || 'new entries are blocked'); return e; }
+    const name = this.mt5Symbol(id), sp = this.specs[id], ask = this.specAsk[name];
+    if (!sp || sp.asked !== name) {
+      e.general = ask && ask.failed ? `MT5: ${ask.failed}` : `Checking "${name}" with MT5…`;
+      return e;
+    }
+    const q = otQuote(id);
+    if (q.ok && sp.bid > 0 && Math.abs(sp.bid - q.last) / q.last > 0.01) {
+      e.general = `MT5 prices "${sp.symbol}" at ${sp.bid}, but this chart shows ${otFmtPx(id, q.last)}. Wrong MT5 symbol? Fix it in the MT5 Live panel.`;
+      return e;
+    }
+    const hasSl = TK.slOn && Number.isFinite(TK.sl);
+    if (lim && lim.requireSl && !hasSl) e.sl = 'The MT5 bridge rejects entries without a stop loss.';
+    if (hasSl && lim && lim.maxRisk > 0 && Number.isFinite(entry)) {
+      const risk = this.riskAtStop(id, volume, entry, TK.sl);
+      if (risk != null && risk > lim.maxRisk + 0.005) {
+        e.volume = `Risk at stop is ${otMoney(risk)} — above your EA cap of ${otMoney(lim.maxRisk)}. Reduce the lot or tighten the stop.`;
+      }
+    }
+    return e;
+  },
+
+  /* -- confirm modal -- */
+  confirm(title, rowsHtml, okText, okClass) {
+    const a = this.acct() || {};
+    const el = id => document.getElementById(id);
+    el('lvmTitle').textContent = title;
+    const real = a.mode === 'real';
+    el('lvmAcct').className = 'lvm-acct ' + (real ? 'real' : 'demo');
+    el('lvmAcct').textContent = (real ? 'REAL MONEY' : String(a.mode || 'demo').toUpperCase()) + ' · MT5 ' + (a.login || '') + (a.server ? ' · ' + a.server : '');
+    el('lvmBody').innerHTML = rowsHtml;
+    el('lvmOk').textContent = okText;
+    el('lvmOk').className = 'lvm-ok ' + (okClass || '');
+    el('lvModal').classList.add('open');
+    return new Promise(res => { this._resolve = res; });
+  },
+  _answer(v) {
+    document.getElementById('lvModal').classList.remove('open');
+    const r = this._resolve; this._resolve = null;
+    if (r) r(v);
+  },
+  line(k, v) { return `<div class="lvm-line"><span>${this.esc(k)}</span><b>${v}</b></div>`; },
+
+  /* -- placing an order (called by OT.submit in place of the paper broker) -- */
+  async place(order, ot) {
+    const id = order.symbol, name = this.mt5Symbol(id), sp = this.specs[id] || {};
+    const entry = order.orderType === 'market' ? ot.entryRef() : order.price;
+    const risk = order.stopLoss != null ? this.riskAtStop(id, order.volume, entry, order.stopLoss) : null;
+    const reward = order.takeProfit != null ? this.riskAtStop(id, order.volume, entry, order.takeProfit) : null;
+    const rows = this.line('Symbol', this.esc(sp.symbol || name))
+      + this.line('Order', this.esc(`${order.side.toUpperCase()} ${order.orderType.toUpperCase()}`))
+      + this.line('Lots', this.esc(order.volume))
+      + this.line(order.orderType === 'market' ? 'Price (approx.)' : 'Price', this.esc(otFmtPx(id, entry)))
+      + this.line('Stop loss', order.stopLoss != null ? this.esc(otFmtPx(id, order.stopLoss)) : '<span style="color:var(--red-lt)">none</span>')
+      + this.line('Take profit', order.takeProfit != null ? this.esc(otFmtPx(id, order.takeProfit)) : 'none')
+      + this.line('Risk at stop', risk != null ? `<span style="color:var(--red-lt)">${this.esc(otMoney(risk))}</span>` : '—')
+      + this.line('Reward at target', reward != null ? `<span style="color:var(--green-lt)">${this.esc(otMoney(reward))}</span>` : '—');
+    ot.status('Waiting for your confirmation…', 'pend');
+    const yes = await this.confirm('Send this order to MT5?', rows, `${order.side === 'buy' ? 'Buy' : 'Sell'} on MT5`, order.side);
+    if (!yes) { ot.status('Cancelled — nothing was sent.', ''); return; }
+    // The market can move while the sheet is open: re-validate before sending.
+    const again = ot.validate();
+    if (Object.keys(again).length) { ot.status(again.general || again.sl || again.volume || 'Order no longer valid — nothing was sent.', 'bad'); return; }
+
+    ot.status('Sending to MT5…', 'pend');
+    const r = await this.send({
+      type: order.orderType, symbol: name, side: order.side, volume: order.volume,
+      price: order.orderType === 'market' ? null : order.price, sl: order.stopLoss, tp: order.takeProfit,
+    });
+    if (r.ok) {
+      ot.status('MT5: ' + r.msg, 'ok'); showToast('✓ MT5 · ' + r.msg, 4200);
+      speak(`${order.side} order ${order.orderType === 'market' ? 'filled' : 'placed'} on M T 5.`);
+    } else {
+      ot.status((r.unknown ? '' : 'MT5 rejected — ') + r.msg, 'bad'); showToast('✕ ' + r.msg, 6000);
+    }
+    this.poll();
+  },
+
+  async closePosition(ticket) {
+    const p = ((this.snap() || {}).positions || []).find(x => x.ticket === String(ticket));
+    if (!p) return;
+    const rows = this.line('Position', this.esc(`${p.side.toUpperCase()} ${p.volume} ${p.symbol}`))
+      + this.line('Entry → now', this.esc(`${p.entry} → ${p.price}`))
+      + this.line('Floating P&L', `<span style="color:${p.profit >= 0 ? 'var(--green-lt)' : 'var(--red-lt)'}">${this.esc(otMoney(p.profit))}</span>`);
+    if (!(await this.confirm('Close this MT5 position?', rows, 'Close position', 'danger'))) return;
+    const r = await this.send({ type: 'close', ticket: String(ticket) });
+    showToast((r.ok ? '✓ MT5 · ' : '✕ ') + r.msg, r.ok ? 3800 : 6000);
+    this.poll();
+  },
+  async cancelOrder(ticket) {
+    const r = await this.send({ type: 'cancel', ticket: String(ticket) });
+    showToast((r.ok ? '✓ MT5 · ' : '✕ ') + r.msg, r.ok ? 3800 : 6000);
+    this.poll();
+  },
+  async closeAll() {
+    const s = this.snap() || {}, n = (s.positions || []).length, m = (s.orders || []).length;
+    if (!this.online()) { showToast('MT5 bridge is offline — close positions in MT5 directly.', 5000); return; }
+    const rows = this.line('Open positions', this.esc(n)) + this.line('Pending orders', this.esc(m))
+      + '<div class="lv-note" style="margin-top:8px">Closes every position and deletes every pending order on this MT5 account at market, including ones you opened by hand.</div>';
+    if (!(await this.confirm('Close everything on MT5?', rows, 'Close all', 'danger'))) return;
+    const r = await this.send({ type: 'closeall' }, 40000);
+    showToast((r.ok ? '✓ MT5 · ' : '✕ ') + r.msg, 6000);
+    this.poll();
+  },
+
+  /* -- demo / live choice (from the account sheet) -- */
+  goLive() {
+    this.shown = true; this.open = true; this.on = !!this.key;
+    this.save();
+    if (this.on) this.start();
+    this.renderCard(); this.renderBook();
+    if (typeof mobileSetView === 'function') mobileSetView('trade');
+    if (typeof setRTab === 'function') setRTab('trade', document.querySelector('.rtab[data-tab="trade"]'));
+    const card = document.getElementById('lvCard');
+    if (card && card.scrollIntoView) setTimeout(() => card.scrollIntoView({ block: 'start', behavior: 'smooth' }), 120);
+    if (this.online()) this.setRouting(true);
+    else showToast(this.key ? 'MT5 is offline — open MT5 with the bridge EA running, then tick "Send my orders to MT5".'
+                            : 'Set up the MT5 bridge: tap New to create your key.', 5200);
+  },
+  goDemo() {
+    const was = this.routing();
+    this.route = false; this.shown = false; this.on = false; this.open = false;
+    this.save(); this.stop();
+    this.renderCard(); this.renderBook(); this.renderHistory();
+    if (typeof OT !== 'undefined') { OT.render(); OT.renderHistory(); }
+    showToast(was ? 'Back on the demo account — nothing is sent to MT5.' : 'Demo account — paper money, nothing real is sent.', 3800);
+  },
+
+  /* -- settings -- */
+  toggleOpen() { this.open = !this.open; this.renderCard(); },
+  makeKey() {
+    const a = new Uint8Array(24); crypto.getRandomValues(a);
+    return btoa(String.fromCharCode.apply(null, a)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+  },
+  async newKey() {
+    if (this.key) {
+      const rows = '<div class="lv-note">The EA in MT5 will stop receiving orders until you paste the new key into it.</div>';
+      if (!(await this.confirm('Replace the bridge key?', rows, 'Make new key', 'danger'))) return;
+    }
+    this.key = this.makeKey(); this.on = true; this.route = false;
+    this.state = null; this.since = 0; this.specs = {}; this.specAsk = {};
+    this.save(); this.start(); this.renderCard();
+    showToast('New bridge key created — copy it into the EA inputs in MT5.', 5000);
+  },
+  async copyKey() {
+    if (!this.key) return;
+    try { await navigator.clipboard.writeText(this.key); showToast('Bridge key copied.', 2500); }
+    catch (_) { const i = document.getElementById('lvKey'); if (i) { i.type = 'text'; i.value = this.key; i.select(); } showToast('Select and copy the key shown.', 3500); }
+  },
+  setRouting(v) {
+    if (v && !this.online()) {
+      showToast('MT5 bridge is offline — connect the EA first.', 4000);
+      this.route = false;
+    } else this.route = !!v;
+    this.renderCard(); this.renderBook();
+    if (typeof OT !== 'undefined') { OT.render(); OT.renderHistory(); }
+    showToast(this.route ? (this.isReal() ? '⚠ Orders now go to your REAL MT5 account.' : 'Orders now go to your MT5 demo account.')
+                         : 'Back to paper trading — nothing is sent to MT5.', 4200);
+  },
+  onSymInput(v) {
+    const guess = this.guessSymbol(S.sym);
+    v = String(v || '').replace(/[|\r\n\t]/g, ' ').slice(0, 64);
+    if (!v.trim() || v.trim() === guess) delete this.symMap[S.sym]; else this.symMap[S.sym] = v;
+    this.save();
+    clearTimeout(this._symTimer);
+    this._symTimer = setTimeout(() => { this.ensureSpec(); this.renderCard(); }, 900);
+  },
+  onSymbolChange() { this.renderCard(); this.ensureSpec(); },
+
+  /* -- rendering -- */
+  renderCard() {
+    const el = id => document.getElementById(id);
+    const card = el('lvCard'); if (!card) return;
+    card.style.display = this.shown ? '' : 'none';      // hidden until the user chooses to trade live
+    const a = this.acct(), lim = this.limits(), online = this.online(), real = this.isReal();
+    card.className = 'lv' + (this.open ? ' open' : '') + (this.routing() ? ' routing' : '') + (this.routing() && real ? ' real' : '');
+    el('lvDot').className = 'lv-dot' + (!this.on ? '' : online ? ' on' : ' off');
+    el('lvSub').textContent = !this.key ? '· not set up'
+      : !online ? (this.err ? '· ' + this.err : '· waiting for MT5…')
+      : `· ${real ? 'REAL' : String((a && a.mode) || '').toUpperCase()} ${a ? a.login : ''} · ${this.routing() ? 'orders ON' : 'orders off'}`;
+
+    const keyInp = el('lvKey');
+    if (keyInp && document.activeElement !== keyInp) keyInp.value = this.key ? this.key.slice(0, 6) + '••••••••' + this.key.slice(-4) : '';
+    el('lvKeyCopy').disabled = !this.key;
+
+    el('lvAcct').style.display = a && online ? '' : 'none';
+    if (a) {
+      el('lvBal').textContent = this.money(a.balance);
+      el('lvEq').textContent = this.money(a.equity);
+      el('lvFree').textContent = this.money(a.free);
+      const d = el('lvDay'); d.textContent = this.money(a.dayPnl); d.className = 'v ' + (a.dayPnl >= 0 ? 'pos' : 'neg');
+    }
+    const L = el('lvLimits');
+    if (lim && online) {
+      L.style.display = '';
+      L.innerHTML = 'EA limits: '
+        + `<b>${lim.requireSl ? 'stop loss required' : 'stop loss optional'}</b> · max risk <b>${lim.maxRisk > 0 ? this.esc(otMoney(lim.maxRisk)) : 'off'}</b>`
+        + ` · daily loss lock <b>${lim.dailyLoss > 0 ? this.esc(otMoney(lim.dailyLoss)) : 'off'}</b>`
+        + ` · max positions <b>${lim.maxPositions > 0 ? this.esc(lim.maxPositions) : 'off'}</b>`
+        + ` · real account <b>${lim.allowReal ? 'allowed' : 'blocked'}</b>. Change these in the EA inputs in MT5.`;
+    } else L.style.display = 'none';
+
+    const warn = el('lvWarn'); let w = '';
+    if (this.key && online && a && a.canEnter === false) w = 'New entries are blocked by MT5: ' + this.esc(a.blockReason || '');
+    else if (this.routing() && !online) w = 'Bridge offline — orders will NOT be sent (and will not fall back to paper).';
+    warn.style.display = w ? '' : 'none'; warn.innerHTML = w;
+
+    el('lvSymFor').textContent = (PAIR_MAP[S.sym] || {}).label || S.sym;
+    const symInp = el('lvSym');
+    if (symInp && document.activeElement !== symInp) symInp.value = this.mt5Symbol(S.sym);
+    const name = this.mt5Symbol(S.sym), sp = this.specs[S.sym], ask = this.specAsk[name];
+    el('lvSymNote').innerHTML = !online ? 'Checked against MT5 once the bridge is connected.'
+      : sp && sp.asked === name ? `✓ Found in MT5 as <b>${this.esc(sp.symbol)}</b> · lots ${this.esc(sp.volMin)}–${this.esc(sp.volMax)} · MT5 bid ${this.esc(sp.bid)}`
+      : ask && ask.failed ? `<span style="color:var(--red-lt)">${this.esc(ask.failed)}</span>` : 'Checking with MT5…';
+
+    const route = el('lvRoute'); route.checked = this.route; route.disabled = !online && !this.route;
+    el('lvKill').disabled = !online;
+
+    // header badge follows the active account
+    const badge = el('balDisplay');
+    if (badge) {
+      if (this.routing() && a) badge.textContent = `MT5 ${otMoney(+a.balance)}`;
+      else if (typeof updateBalDisplay === 'function') updateBalDisplay();
+    }
+    const tag = el('otMode');
+    if (tag) {
+      tag.textContent = this.routing() ? (real ? 'Live · Real' : 'Live · Demo') : 'Paper';
+      tag.className = 'ot-mode-tag' + (this.routing() ? ' live' + (real ? ' real' : '') : '');
+    }
+  },
+
+  renderBook() {
+    const box = document.getElementById('lvBook'); if (!box) return;
+    const s = this.snap(), show = this.on && !!s;
+    box.style.display = show ? '' : 'none';
+    const ph = document.getElementById('paperPosHdr');
+    if (ph) ph.textContent = show ? 'Paper Positions' : 'Open Positions';
+    if (!show) return;
+    const stale = !this.online();
+    const pos = s.positions || [], ord = s.orders || [];
+    document.getElementById('lvPositions').innerHTML = pos.length ? pos.map(p => `
+      <div class="lv-pos ${p.side === 'buy' ? 'buy' : 'sell'}">
+        <div class="a"><span class="hx-sym">${this.esc(p.symbol)} <span class="hx-side ${p.side === 'buy' ? 'buy' : 'sell'}">${this.esc(p.side)} ${this.esc(p.volume)}</span></span>
+          <span class="hx-pnl ${p.profit >= 0 ? 'win' : 'loss'}">${this.esc(otMoney(p.profit))}</span></div>
+        <div class="b"><span>${this.esc(p.entry)} → ${this.esc(p.price)}</span>
+          <span>SL ${p.sl > 0 ? this.esc(p.sl) : '—'} · TP ${p.tp > 0 ? this.esc(p.tp) : '—'}</span></div>
+        <div class="a" style="margin-top:5px"><span class="lv-note">#${this.esc(p.ticket)}${p.mine ? '' : ' · opened in MT5'}</span>
+          <button class="lv-btn danger" ${stale ? 'disabled' : ''} onclick="LIVE.closePosition('${this.esc(p.ticket)}')">Close</button></div>
+      </div>`).join('') : `<div class="pos-empty">${stale ? 'Bridge offline — last known: none' : 'No open MT5 positions'}</div>`;
+    document.getElementById('lvOrders').innerHTML = ord.length ? ord.map(o => `
+      <div class="lv-pos ${o.side === 'buy' ? 'buy' : 'sell'}">
+        <div class="a"><span class="hx-sym">${this.esc(o.symbol)} <span class="hx-side ${o.side === 'buy' ? 'buy' : 'sell'}">${this.esc(o.side)} ${this.esc(o.kind)} ${this.esc(o.volume)}</span></span>
+          <span class="hx-pnl">@ ${this.esc(o.price)}</span></div>
+        <div class="a" style="margin-top:5px"><span class="lv-note">SL ${o.sl > 0 ? this.esc(o.sl) : '—'} · TP ${o.tp > 0 ? this.esc(o.tp) : '—'} · #${this.esc(o.ticket)}</span>
+          <button class="lv-btn" ${stale ? 'disabled' : ''} onclick="LIVE.cancelOrder('${this.esc(o.ticket)}')">Cancel</button></div>
+      </div>`).join('') : '<div class="pos-empty">No pending MT5 orders</div>';
+  },
+
+  /* Port tab: while the bridge is on, show the MT5 account history
+     (closed trades and balance operations). Returns true if it rendered. */
+  setHistView(v) {
+    this.histView = v === 'paper' ? 'paper' : 'mt5';
+    this._histSig = '';
+    const h = document.getElementById('historyList'); if (h) h.dataset.src = '';
+    if (typeof OT !== 'undefined') OT.renderHistory();
+  },
+  renderHistory() {
+    const h = document.getElementById('historyList');
+    const hist = this.state && this.state.history;
+    const have = this.on && !!hist && Array.isArray(hist.deals);
+    const sw = document.getElementById('lvHistSwitch');
+    if (sw) {
+      sw.style.display = have ? 'inline-flex' : 'none';
+      const view = this.histView || 'mt5';
+      const a = document.getElementById('lvHistMt5'), b = document.getElementById('lvHistPaper');
+      if (a) a.style.opacity = view === 'mt5' ? '1' : '.45';
+      if (b) b.style.opacity = view === 'paper' ? '1' : '.45';
+    }
+    if (!h || !have || this.histView === 'paper') {
+      // hand the list back to the paper journal if MT5 was showing
+      if (h && h.dataset.src === 'mt5') { h.dataset.src = ''; this._histSig = ''; if (typeof OT !== 'undefined') OT.renderHistory(); }
+      return false;
+    }
+    const off = ((this.snap() || {}).ea || {}).gmtOffset || 0;
+    const sig = JSON.stringify(hist.deals).length + ':' + (hist.deals[0] ? hist.deals[0].ticket + hist.deals[0].time : '') + ':' + hist.deals.length;
+    if (sig === this._histSig && h.dataset.src === 'mt5') return true;   // keep tapped-open rows open between polls
+    this._histSig = sig; h.dataset.src = 'mt5';
+    const p2 = n => String(n).padStart(2, '0');
+    const stamp = sec => { if (!sec) return '—'; const d = new Date((sec - off) * 1000); return `${d.getFullYear()}.${p2(d.getMonth() + 1)}.${p2(d.getDate())} ${p2(d.getHours())}:${p2(d.getMinutes())}:${p2(d.getSeconds())}`; };
+    const trades = hist.deals.filter(d => d.kind === 'trade');
+    const net = trades.reduce((a, d) => a + (+d.profit || 0), 0);
+    let html = `<div class="hx-sum"><span>MT5 account · last 14 days · ${trades.length} trade${trades.length === 1 ? '' : 's'}</span><span>Net ${this.esc(otMoney(net))}</span></div>`;
+    if (!hist.deals.length) html += '<div style="font-size:9px;color:var(--tx-3)">No MT5 history in the last 14 days.</div>';
+    let lastDay = '';
+    hist.deals.forEach(d => {
+      const day = new Date((d.time - off) * 1000).toDateString();
+      if (day !== lastDay) { html += `<div class="hx-day">${this.esc(day)}</div>`; lastDay = day; }
+      if (d.kind === 'balance') {
+        html += `<div class="hx-row"><div class="hx-l1"><span class="hx-sym">Balance</span><span class="hx-pnl ${d.amount >= 0 ? 'win' : 'loss'}">${this.esc(otMoney(+d.amount))}</span></div>
+          <div class="hx-l2"><span>${this.esc(d.note || '')}</span><span>${stamp(d.time)}</span></div></div>`;
+        return;
+      }
+      const cls = d.profit >= 0 ? 'win' : 'loss';
+      html += `<div class="hx-row ${cls}" onclick="this.classList.toggle('open')">
+        <div class="hx-l1"><span class="hx-sym">${this.esc(d.symbol)} <span class="hx-side ${d.side === 'buy' ? 'buy' : 'sell'}">${this.esc(d.side)} ${this.esc(d.volume)}</span></span>
+          <span class="hx-pnl ${cls}">${this.esc(otMoney(+d.profit))}</span></div>
+        <div class="hx-l2"><span>${d.entry > 0 ? this.esc(d.entry) : '…'} → ${this.esc(d.exit)}</span><span>${stamp(d.time)}</span></div>
+        <div class="hx-det"><span>Opened <b>${stamp(d.openTime)}</b></span><span>Closed by <b>${this.esc(d.reason)}</b></span>
+          <span>Position <b>#${this.esc(d.ticket)}</b></span><span>Source <b>MT5</b></span></div></div>`;
+    });
+    h.innerHTML = html;
+    return true;
+  },
+};
+
 /* ── Broker adapter ──────────────────────────────────────────
    Implement these four methods against a real venue to go live. The
    paper adapter never invents a price: every fill is the live bid or ask
@@ -4859,6 +5480,7 @@ const OT = {
   },
 
   onSymbolChange(initial) {
+    if (LIVE) LIVE.onSymbolChange();
     // resetHistory lives on the chart module, not the ticket
     if (typeof CH !== 'undefined' && CH.ready) CH.resetHistory();
     const s = otSpec(S.sym);
@@ -5019,6 +5641,12 @@ const OT = {
     if (!q.ok) e.general = 'No quote for this instrument yet.';
     else if (q.stale) e.general = 'Quote feed disconnected — execution disabled.';
     else if (otMarketOpen(id) === false) e.general = `${s.label} is closed for trading${otClosedNote(id)}.`;
+    else if (LIVE && LIVE.routing()) {
+      const le = LIVE.validate(id, v, entry);
+      if (le.sl && !e.sl) e.sl = le.sl;
+      if (le.volume && !e.volume) e.volume = le.volume;
+      if (le.general) e.general = le.general;
+    }
     else if (!e.volume && Number.isFinite(entry)) {
       const need = otMarginFor(id, v, entry);
       const acct = otAccount();
@@ -5057,6 +5685,7 @@ const OT = {
     };
 
     try {
+      if (LIVE && LIVE.routing()) { await LIVE.place(order, this); return; }
       const res = await Broker.submit(order);
       if (res.status === 'rejected') {
         this.status(`Rejected — ${res.reason}`, 'bad');
@@ -5257,7 +5886,8 @@ const OT = {
     const dur = ms => { const m = Math.round(ms / 60000); return m < 1 ? '<1m' : m < 60 ? m + 'm' : m < 1440 ? Math.floor(m/60) + 'h ' + (m%60) + 'm' : Math.floor(m/1440) + 'd ' + Math.floor((m%1440)/60) + 'h'; };
     const trades = S.trades.slice().sort((a, b) => (b.closeTime || 0) - (a.closeTime || 0));
 
-    const h = document.getElementById('historyList');
+    // Bridge on and "MT5" selected: the MT5 account history owns the list.
+    const h = (LIVE && LIVE.renderHistory()) ? null : document.getElementById('historyList');
     if (h) {
       if (!trades.length) {
         h.innerHTML = '<div style="font-size:9px;color:var(--tx-3)">No closed trades yet. Close a position and it will be listed here.</div>';
@@ -5462,7 +6092,7 @@ const OT = {
     const btn = el('otSubmit');
     if (btn) {
       btn.className = 'ot-submit ' + TK.side;
-      btn.textContent = TR.busy ? 'Working…' : verb;
+      btn.textContent = TR.busy ? 'Working…' : ((LIVE && LIVE.routing()) ? 'MT5 · ' + verb : verb);
       btn.disabled = TR.busy || Object.keys(errs).length > 0;
       btn.title = errs.general || '';
     }
@@ -5483,12 +6113,24 @@ const OT = {
       lvl.textContent = a.level == null ? '—' : (a.level > 9999 ? '>9999%' : a.level.toFixed(0) + '%');
       lvl.className = 'ot-acct-v' + (a.level != null && a.level < 100 ? ' neg' : '');
     }
+    // While orders go to MT5 the strip shows the MT5 account, not the paper one.
+    const la = (LIVE && LIVE.routing()) ? LIVE.acct() : null;
+    if (la) {
+      set('acBal', otMoney(+la.balance));
+      if (eqEl) { eqEl.textContent = otMoney(+la.equity); eqEl.title = 'MT5 equity'; eqEl.className = 'ot-acct-v' + (la.equity > la.balance ? ' pos' : la.equity < la.balance ? ' neg' : ''); }
+      set('acFree', otMoney(+la.free));
+      if (lvl) {
+        const ml = la.margin > 0 ? la.equity / la.margin * 100 : null;
+        lvl.textContent = ml == null ? '—' : (ml > 9999 ? '>9999%' : ml.toFixed(0) + '%');
+        lvl.className = 'ot-acct-v' + (ml != null && ml < 100 ? ' neg' : '');
+      }
+    }
     if (typeof CH !== 'undefined' && CH.ready) CH.refreshLevels();
 
     const modeTxt = el('otModeTxt');
-    if (modeTxt) modeTxt.textContent = Broker.mode === 'paper'
-      ? 'Fills use live bid/ask. No broker connected.'
-      : 'Live broker adapter connected.';
+    if (modeTxt) modeTxt.textContent = (LIVE && LIVE.routing())
+      ? 'Orders go to your MT5 account through the bridge.'
+      : 'Paper trading. Fills use live bid/ask; no real orders are sent.';
   },
 
   posRow(p) {
@@ -5552,7 +6194,7 @@ function updateOpenPos() { OT.renderBook(); }
 function updateBalDisplay() {
   const fmt = v => v.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
   const set = (id, v) => { const n = document.getElementById(id); if (n) n.textContent = v; };
-  set('balDisplay', fmt(S.balance));
+  if (!(LIVE && LIVE.routing())) set('balDisplay', fmt(S.balance));   // while live, the badge shows the MT5 balance
   set('portBal', fmt(S.balance));
   set('depDemoBal', fmt(S.balance));
 }
@@ -5687,18 +6329,23 @@ function pushSignal(type, price) {
 /* ════════════════════════════════════════════════════════════
    DEPOSIT / FLUTTERWAVE
 ════════════════════════════════════════════════════════════ */
-function openDeposit() { document.getElementById('depositModal').classList.add('open'); }
-function closeDeposit() { document.getElementById('depositModal').classList.remove('open'); }
-function selDepAmt(amt, el) {
-  S.depAmt = parseFloat(amt) || 500;
-  document.querySelectorAll('.dep-amt').forEach(b => b.classList.remove('selected'));
-  if (el) el.classList.add('selected');
-  document.getElementById('customDepAmt').value = S.depAmt;
+function openDeposit() {
+  const el = id => document.getElementById(id);
+  const live = LIVE.shown, routing = LIVE.routing();
+  el('acctOptDemo').classList.toggle('current', !routing);
+  el('acctOptLive').classList.toggle('current', routing);
+  el('acctTagDemo').textContent = routing ? '' : 'Active';
+  el('acctTagLive').textContent = routing ? 'Active' : (live && LIVE.online() ? 'Connected' : live && LIVE.key ? 'MT5 offline' : 'Set up');
+  const a = LIVE.acct();
+  el('acctLiveTxt').textContent = live && LIVE.online() && a
+    ? `MT5 ${a.login} (${a.mode === 'real' ? 'REAL' : a.mode}) is connected. Trades from the ticket and ARIA go to it; every order asks you to confirm first.`
+    : 'Send trades to your own Deriv MT5 account through the PROTrader Bridge. Every order asks you to confirm first.';
+  el('depositModal').classList.add('open');
 }
-function initFlutterwave() {
+function closeDeposit() { document.getElementById('depositModal').classList.remove('open'); }
+function chooseAccount(mode) {
   closeDeposit();
-  showToast('🔐 Redirecting to Flutterwave secure payment…', 4000);
-  speak('Redirecting to secure payment. Please complete your deposit.');
+  if (mode === 'live') LIVE.goLive(); else LIVE.goDemo();
 }
 
 /* ════════════════════════════════════════════════════════════
@@ -5880,6 +6527,7 @@ function init() {
   renderGarden();
   renderPortfolio();
   OT.init();
+  LIVE.init();
   buildTickerData();
 
   // Connect Deriv WebSocket for synthetic indices
