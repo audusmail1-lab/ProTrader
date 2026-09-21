@@ -45,6 +45,11 @@ async def _security_headers(request, call_next):
     return resp
 bot = TradingBot()
 
+# MT5 bridge relay (see mt5_bridge.py): moves orders between the web app and
+# the Expert Advisor running in the user's MetaTrader 5 terminal.
+from mt5_bridge import router as _mt5_bridge_router
+app.include_router(_mt5_bridge_router)
+
 # In-memory store
 history: deque = deque(maxlen=50)
 cache:   dict[str, dict] = {}
