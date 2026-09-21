@@ -48,7 +48,7 @@ CHANNEL_IDLE_S = 6 * 3600
 MAX_BODY = 96 * 1024
 MIN_KEY_LEN = 24
 
-CMD_TYPES = {"market", "limit", "stop", "close", "modify", "cancel", "closeall", "spec"}
+CMD_TYPES = {"market", "limit", "stop", "close", "modify", "cancel", "closeall", "spec", "trail"}
 _ID_RE = re.compile(r"^[A-Za-z0-9_-]{6,40}$")
 _KEY_RE = re.compile(r"^[A-Za-z0-9_-]{%d,128}$" % MIN_KEY_LEN)
 
@@ -164,6 +164,17 @@ async def queue_command(request: Request):
             if ctype == "modify":
                 cmd["sl"] = _num(body.get("sl"), "sl")
                 cmd["tp"] = _num(body.get("tp"), "tp")
+        elif ctype == "trail":
+            ticket = str(body.get("ticket", ""))
+            if not ticket.isdigit():
+                raise HTTPException(422, "ticket must be the MT5 ticket number")
+            cmd["ticket"] = ticket
+            # distance travels in the price field; 0 switches trailing off
+            dist = _num(body.get("distance"), "distance", required=True)
+            if dist < 0:
+                raise HTTPException(422, "distance cannot be negative")
+            cmd["price"] = dist
+            cmd["side"] = "be" if body.get("mode") == "be" else "now"
         elif ctype == "spec":
             cmd["symbol"] = _clean_text(body.get("symbol"))
             if not cmd["symbol"]:

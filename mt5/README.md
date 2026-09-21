@@ -66,6 +66,13 @@ entry price once the trade is in profit) and **SL / TP** (type new levels, with 
 outcome shown for each). Tightening a stop is always allowed; widening one adds risk, so
 the EA only accepts it if it still fits the limits above. A stop can never be removed.
 
+**Trailing stop.** **Trail** on a position sets a distance in price points; the stop then
+follows price at that distance and only ever tightens. Optionally it waits until it can
+sit at breakeven before it starts. It runs inside the EA once a second, so it works with
+the app closed and the relay down, and it survives an EA/MT5 restart - but MT5 itself must
+be open: unlike a normal stop loss, a trailing stop does not live on Deriv's server.
+Distance 0 turns it off and leaves the stop where it is.
+
 Closing positions is never blocked by these limits. **Close all MT5 positions** in
 the app flattens the whole account, including trades opened by hand.
 
