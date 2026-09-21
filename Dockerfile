@@ -27,7 +27,7 @@ COPY requirements.txt .
 RUN pip install --upgrade pip && pip install -r requirements.txt
 
 # App source. .dockerignore keeps logs, venv and pid files out.
-COPY dashboard.py mt5_bridge.py grok_quantum_bot.py protrader_mobile.html chart_lab.html ./
+COPY dashboard.py mt5_bridge.py grok_quantum_bot.py protrader_mobile.html landing.html chart_lab.html ./
 COPY vendor ./vendor
 COPY static ./static
 
