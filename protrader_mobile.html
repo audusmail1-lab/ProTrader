@@ -645,6 +645,8 @@ kbd{
   font-family:var(--font-mono);font-size:10px;padding:6px 7px}
 .lv-btn{background:var(--bg-2);border:1px solid var(--bd-2);border-radius:var(--r-xs);color:var(--tx-1);font-size:9px;font-weight:800;
   padding:6px 9px;cursor:pointer;white-space:nowrap}
+.lv-btn.trail-on{border-color:var(--amber);color:var(--amber)}
+.lvm-chips{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px}
 .lv-btn.danger{border-color:rgba(239,68,68,.5);color:var(--red-lt)}
 .lv-btn:disabled{opacity:.45;cursor:not-allowed}
 .lv-note{font-size:8.5px;line-height:1.45;color:var(--tx-3)}
@@ -5261,6 +5263,63 @@ var LIVE = {
     showToast((r.ok ? '✓ MT5 · ' : '✕ ') + r.msg, r.ok ? 4000 : 6500);
     this.poll();
   },
+  /* -- trailing stop (runs inside the EA, not here) -- */
+  async trailStop(ticket) {
+    const p = this.pos(ticket); if (!p) return;
+    if (p.trail === undefined) { showToast('Trailing stops need bridge EA v1.30 or newer — update the EA in MT5.', 5500); return; }
+    const dp = p.digits || 2, step = Math.pow(10, -dp), on = p.trail > 0;
+    const cur = p.sl > 0 ? Math.abs(p.price - p.sl) : null;
+    // ATR only applies if the chart is showing this same instrument
+    let atr = null;
+    try {
+      const sp = this.specs[S.sym];
+      if (sp && sp.symbol === p.symbol) { const a = getCachedATR(); const v = a && a[a.length - 1]; if (Number.isFinite(v) && v > 0) atr = v; }
+    } catch (_) {}
+    const chip = (label, v) => `<button class="lv-btn" type="button" onclick="LIVE._trailSet(${v.toFixed(dp)},'${this.esc(p.ticket)}')">${this.esc(label)}</button>`;
+    const chips = (cur ? chip('Current stop gap', cur) : '')
+      + (atr ? chip('1× ATR', atr) + chip('1.5× ATR', atr * 1.5) + chip('2× ATR', atr * 2) : '');
+    const rows = this.line('Position', this.esc(`${p.side.toUpperCase()} ${p.volume} ${p.symbol}`))
+      + this.line('Entry → now', this.esc(`${p.entry} → ${p.price}`))
+      + this.line('Stop loss now', p.sl > 0 ? this.esc(p.sl) : '<span style="color:var(--red-lt)">none</span>')
+      + `<div style="margin-top:10px"><div class="lv-lbl" style="margin-bottom:3px">Trail distance <span style="text-transform:none;font-weight:600">(price points behind the market)</span></div>
+           <input class="lv-inp" id="lvmTrail" type="number" inputmode="decimal" step="${step}" value="${on ? this.esc(p.trail) : (cur ? cur.toFixed(dp) : '')}" style="width:100%;font-size:14px;padding:10px" oninput="LIVE._trailPreview('${this.esc(p.ticket)}')"/>
+           <div class="lvm-chips">${chips}</div>
+           <div class="lv-note" id="lvmTrailNote" style="margin-top:6px"></div></div>
+         <label class="lv-switch" style="margin-top:10px;font-size:11px"><input type="checkbox" id="lvmTrailBE" ${p.trailBE ? 'checked' : ''} onchange="LIVE._trailPreview('${this.esc(p.ticket)}')"/>
+           <span>Wait until the stop can sit at breakeven</span></label>
+         <div class="lv-note" style="margin-top:8px">The stop follows price at this distance and <b>only ever tightens</b>. It runs inside MT5 on your computer, so it keeps working with this app closed — but MT5 must stay open.${on ? ' To stop trailing, set the distance to 0.' : ''}</div>`;
+    const asked = this.confirm(on ? 'Trailing stop (on)' : 'Add a trailing stop', rows, on ? 'Update trailing' : 'Start trailing', '');
+    this._trailPreview(ticket);
+    if (!(await asked)) return;
+    const v = parseFloat((document.getElementById('lvmTrail') || {}).value);
+    const distance = Number.isFinite(v) && v > 0 ? v : 0;
+    if (!on && distance === 0) { showToast('Enter a trail distance — nothing was changed.', 3500); return; }
+    const mode = (document.getElementById('lvmTrailBE') || {}).checked ? 'be' : 'now';
+    const r = await this.send({ type: 'trail', ticket: String(ticket), distance, mode });
+    showToast((r.ok ? '✓ MT5 · ' : '✕ ') + r.msg, r.ok ? 4500 : 6500);
+    this.poll();
+  },
+  _trailSet(v, ticket) { const i = document.getElementById('lvmTrail'); if (i) { i.value = v; this._trailPreview(ticket); } },
+  _trailPreview(ticket) {
+    const p = this.pos(ticket), n = document.getElementById('lvmTrailNote'); if (!p || !n) return;
+    const d = parseFloat((document.getElementById('lvmTrail') || {}).value);
+    if (!Number.isFinite(d) || d <= 0) { n.innerHTML = p.trail > 0 ? 'Distance 0 = <b>turn trailing off</b>. The stop stays where it is.' : ''; return; }
+    const dp = p.digits || 2, buy = p.side === 'buy';
+    const want = buy ? p.price - d : p.price + d;
+    const fromBE = (document.getElementById('lvmTrailBE') || {}).checked;
+    const tighter = !(p.sl > 0) || (buy ? want > p.sl : want < p.sl);
+    const protects = buy ? want >= p.entry : want <= p.entry;
+    const m = this.moneyAt(p, want), money = m == null ? '' : ` (<b style="color:${m >= 0 ? 'var(--green-lt)' : 'var(--red-lt)'}">${this.esc(otMoney(m))}</b> if hit)`;
+    if (fromBE && !protects) {
+      const need = buy ? p.entry + d : p.entry - d;
+      n.innerHTML = `Waits. Trailing begins once price reaches <b>${need.toFixed(dp)}</b>; until then your stop stays at ${p.sl > 0 ? this.esc(p.sl) : 'none'}.`;
+    } else if (tighter) {
+      n.innerHTML = `Stop moves to <b>${want.toFixed(dp)}</b> right away${money}, then follows price.`;
+    } else {
+      n.innerHTML = `Your current stop (${this.esc(p.sl)}) is already at or tighter than ${want.toFixed(dp)}, so nothing moves yet. It starts following once price is more than <b>${d.toFixed(dp)}</b> beyond it.`;
+    }
+  },
+
   _stopsPreview(ticket) {
     const p = this.pos(ticket); if (!p) return;
     const show = (inpId, noteId, label) => {
@@ -5434,11 +5493,12 @@ var LIVE = {
         <div class="a"><span class="hx-sym">${this.esc(p.symbol)} <span class="hx-side ${p.side === 'buy' ? 'buy' : 'sell'}">${this.esc(p.side)} ${this.esc(p.volume)}</span></span>
           <span class="hx-pnl ${p.profit >= 0 ? 'win' : 'loss'}">${this.esc(otMoney(p.profit))}</span></div>
         <div class="b"><span>${this.esc(p.entry)} → ${this.esc(p.price)}</span>
-          <span>SL ${p.sl > 0 ? this.esc(p.sl) : '—'} · TP ${p.tp > 0 ? this.esc(p.tp) : '—'}</span></div>
+          <span>SL ${p.sl > 0 ? this.esc(p.sl) : '—'}${p.trail > 0 ? ' <b style="color:var(--amber)">↟' + this.esc(p.trail) + (p.trailBE ? ' from BE' : '') + '</b>' : ''} · TP ${p.tp > 0 ? this.esc(p.tp) : '—'}</span></div>
         <div class="a" style="margin-top:5px"><span class="lv-note">#${this.esc(p.ticket)}${p.mine ? '' : ' · opened in MT5'}</span>
           <span style="display:flex;gap:4px">
-            <button class="lv-btn" ${stale || this.atBreakeven(p) ? 'disabled' : ''} onclick="LIVE.breakeven('${this.esc(p.ticket)}')">${this.atBreakeven(p) ? 'At BE' : 'Breakeven'}</button>
-            <button class="lv-btn" ${stale ? 'disabled' : ''} onclick="LIVE.editStops('${this.esc(p.ticket)}')">SL / TP</button>
+            <button class="lv-btn" ${stale || this.atBreakeven(p) ? 'disabled' : ''} onclick="LIVE.breakeven('${this.esc(p.ticket)}')">${this.atBreakeven(p) ? 'At BE' : 'BE'}</button>
+            <button class="lv-btn" ${stale ? 'disabled' : ''} onclick="LIVE.editStops('${this.esc(p.ticket)}')">SL/TP</button>
+            <button class="lv-btn${p.trail > 0 ? ' trail-on' : ''}" ${stale ? 'disabled' : ''} onclick="LIVE.trailStop('${this.esc(p.ticket)}')">${p.trail > 0 ? 'Trailing' : 'Trail'}</button>
             <button class="lv-btn danger" ${stale ? 'disabled' : ''} onclick="LIVE.closePosition('${this.esc(p.ticket)}')">Close</button>
           </span></div>
       </div>`).join('') : `<div class="pos-empty">${stale ? 'Bridge offline — last known: none' : 'No open MT5 positions'}</div>`;

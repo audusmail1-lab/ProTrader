@@ -12,7 +12,7 @@
 //|  any one chart, paste your Bridge Key, and turn on Algo Trading.  |
 //+------------------------------------------------------------------+
 #property copyright "PROTrader"
-#property version   "1.20"
+#property version   "1.30"
 #property description "Bridge between the PROTrader web app and this MT5 account."
 
 #include <Trade\Trade.mqh>
@@ -35,7 +35,7 @@ input group "Execution"
 input int    SlippagePoints       = 200;     // Max slippage in points
 input long   MagicNumber          = 770077;  // Tag for orders placed by this EA
 
-#define EA_VERSION     "1.20"
+#define EA_VERSION     "1.30"
 #define POLL_MS        1000
 #define HISTORY_EVERY  15        // seconds between history uploads
 #define HISTORY_DAYS   14
@@ -78,6 +78,7 @@ void OnTick() { }
 
 void OnTimer()
   {
+   RunTrailing();                           // runs here in MT5 whether or not the relay or the app is reachable
    if(g_skip > 0) { g_skip--; return; }     // back off while the relay is unreachable
    Sync();
    ShowStatus();
@@ -601,6 +602,98 @@ void ExecCancel(const string id, const ulong ticket)
       PushResult(id, false, "MT5 could not cancel #" + IntegerToString((long)ticket) + ": " + trade.ResultRetcodeDescription());
   }
 
+//+------------------------------------------------------------------+
+//| Trailing stops                                                    |
+//| Run inside this terminal once a second, so they keep working with |
+//| the app closed and the relay down. Settings live in terminal      |
+//| global variables, so they survive an EA or MT5 restart:           |
+//|   PTBT_<ticket> = trail distance in price units                   |
+//|   PTBA_<ticket> = 1 -> do nothing until the stop can sit at       |
+//|                        breakeven or better                        |
+//| A trailing stop only ever TIGHTENS. It never moves a stop away    |
+//| from price, so it can never add risk.                             |
+//+------------------------------------------------------------------+
+string TrailKey(const ulong ticket)     { return("PTBT_" + IntegerToString((long)ticket)); }
+string TrailModeKey(const ulong ticket) { return("PTBA_" + IntegerToString((long)ticket)); }
+double TrailDistance(const ulong ticket) { string k = TrailKey(ticket); return(GlobalVariableCheck(k) ? GlobalVariableGet(k) : 0.0); }
+bool   TrailFromBE(const ulong ticket)   { string k = TrailModeKey(ticket); return(GlobalVariableCheck(k) && GlobalVariableGet(k) > 0.5); }
+void   TrailClear(const ulong ticket)    { GlobalVariableDel(TrailKey(ticket)); GlobalVariableDel(TrailModeKey(ticket)); }
+
+datetime g_trailRetryAt = 0;
+
+void RunTrailing()
+  {
+   if(!TradingSwitchedOn()) return;
+   // forget settings whose position has closed
+   for(int i = GlobalVariablesTotal() - 1; i >= 0; i--)
+     {
+      string name = GlobalVariableName(i);
+      if(StringFind(name, "PTBT_") != 0) continue;
+      ulong t = (ulong)StringToInteger(StringSubstr(name, 5));
+      if(t == 0 || !PositionSelectByTicket(t)) TrailClear(t);
+     }
+   if(TimeLocal() < g_trailRetryAt) return;          // a modify just failed: do not hammer the server
+
+   for(int i = PositionsTotal() - 1; i >= 0; i--)
+     {
+      ulong t = PositionGetTicket(i);
+      if(t == 0) continue;
+      double dist = TrailDistance(t);
+      if(dist <= 0.0) continue;
+      string sym   = PositionGetString(POSITION_SYMBOL);
+      bool   isBuy = (PositionGetInteger(POSITION_TYPE) == POSITION_TYPE_BUY);
+      double entry = PositionGetDouble(POSITION_PRICE_OPEN);
+      double curSl = PositionGetDouble(POSITION_SL);
+      double curTp = PositionGetDouble(POSITION_TP);
+      MqlTick tk;
+      if(!SymbolInfoTick(sym, tk) || tk.bid <= 0.0 || tk.ask <= 0.0) continue;
+      double point   = SymbolInfoDouble(sym, SYMBOL_POINT);
+      double minDist = (double)SymbolInfoInteger(sym, SYMBOL_TRADE_STOPS_LEVEL) * point;
+      double gap     = MathMax(dist, minDist + point);             // never inside the broker's minimum distance
+      double want    = NormPrice(sym, isBuy ? tk.bid - gap : tk.ask + gap);
+      if(want <= 0.0) continue;
+      if(TrailFromBE(t) && (isBuy ? want < entry : want > entry)) continue;   // not yet able to protect the entry
+      // only ever tighten, and only in worthwhile steps (5% of the distance) so the server is not flooded
+      double step = MathMax(dist * 0.05, point);
+      bool better = (curSl <= 0.0) || (isBuy ? want >= curSl + step : want <= curSl - step);
+      if(!better) continue;
+      if(trade.PositionModify(t, want, curTp) && trade.ResultRetcode() == TRADE_RETCODE_DONE)
+        {
+         int dg = (int)SymbolInfoInteger(sym, SYMBOL_DIGITS);
+         g_lastAction = "TRAIL #" + IntegerToString((long)t) + " stop -> " + DoubleToString(want, dg);
+        }
+      else
+        {
+         g_trailRetryAt = TimeLocal() + 5;
+         Print("PROTrader Bridge: trailing stop on #", IntegerToString((long)t), " failed: ", trade.ResultRetcodeDescription());
+        }
+     }
+  }
+
+// distance > 0 turns trailing on (mode "be" = wait for breakeven), 0 turns it off
+void ExecTrail(const string id, const ulong ticket, const double distance, const string mode)
+  {
+   if(!PositionSelectByTicket(ticket)) { PushResult(id, false, "Position #" + IntegerToString((long)ticket) + " is not open"); return; }
+   string sym = PositionGetString(POSITION_SYMBOL);
+   int dg = (int)SymbolInfoInteger(sym, SYMBOL_DIGITS);
+   if(distance <= 0.0)
+     {
+      TrailClear(ticket);
+      PushResult(id, true, "Trailing stop OFF for #" + IntegerToString((long)ticket) + " - the stop stays where it is");
+      return;
+     }
+   double point   = SymbolInfoDouble(sym, SYMBOL_POINT);
+   double minDist = (double)SymbolInfoInteger(sym, SYMBOL_TRADE_STOPS_LEVEL) * point;
+   if(distance < minDist + point)
+     { PushResult(id, false, "Trail distance is closer than MT5 allows for " + sym + " (minimum " + DoubleToString(minDist + point, dg) + ")"); return; }
+   if(!TradingSwitchedOn()) { PushResult(id, false, "Algo Trading is off in MT5 - a trailing stop could not move"); return; }
+   GlobalVariableSet(TrailKey(ticket), distance);
+   if(mode == "be") GlobalVariableSet(TrailModeKey(ticket), 1.0); else GlobalVariableDel(TrailModeKey(ticket));
+   g_trailRetryAt = 0;
+   PushResult(id, true, "Trailing stop ON for #" + IntegerToString((long)ticket) + ": " + DoubleToString(distance, dg) + " behind price" +
+              (mode == "be" ? ", starting once it can sit at breakeven" : ""));
+  }
+
 // Kill switch: flatten every position and delete every pending order.
 void ExecCloseAll(const string id)
   {
@@ -659,6 +752,7 @@ void HandleLine(const string line)
    else if(type == "cancel")   ExecCancel(id, ticket);
    else if(type == "closeall") ExecCloseAll(id);
    else if(type == "spec")     ExecSpec(id, f[3]);
+   else if(type == "trail")    ExecTrail(id, ticket, price, f[4]);      // price field carries the distance, side field the mode
    else PushResult(id, false, "Unknown command '" + type + "'");
   }
 
@@ -688,7 +782,9 @@ string PositionsJson()
              ",\"profit\":" + JNum(PositionGetDouble(POSITION_PROFIT) + PositionGetDouble(POSITION_SWAP), 2) +
              ",\"time\":" + IntegerToString((long)PositionGetInteger(POSITION_TIME)) +
              ",\"digits\":" + IntegerToString(dg) +
-             ",\"mine\":" + JBool(PositionGetInteger(POSITION_MAGIC) == MagicNumber) + "}";
+             ",\"mine\":" + JBool(PositionGetInteger(POSITION_MAGIC) == MagicNumber) +
+             ",\"trail\":" + JNum(TrailDistance(t), dg) +
+             ",\"trailBE\":" + JBool(TrailFromBE(t)) + "}";
      }
    return(out + "]");
   }
