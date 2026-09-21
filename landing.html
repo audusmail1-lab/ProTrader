@@ -72,7 +72,8 @@ h1,h2{font-family:var(--heading);font-weight:600;text-transform:uppercase;margin
 .blueprint>.c::before{left:5px;top:0;width:1px;height:100%}
 .blueprint>.c::after{top:5px;left:0;width:100%;height:1px}
 .c.tl{top:-6px;left:-6px}.c.tr{top:-6px;right:-6px}.c.bl{bottom:-6px;left:-6px}.c.br{bottom:-6px;right:-6px}
-.tag{display:inline-flex;align-items:center;font-size:11px;letter-spacing:.02em;padding:3px 10px;background:var(--accent-100);color:var(--accent-800);white-space:nowrap}
+.tag{text-decoration:none;display:inline-flex;align-items:center;font-size:11px;letter-spacing:.02em;padding:3px 10px;background:var(--accent-100);color:var(--accent-800);white-space:nowrap}
+.tag[href]{min-height:28px;border-bottom:1px solid var(--accent)}.tag[href]:hover{background:#d6ebff}
 .tag.neutral{background:var(--n-100);color:var(--n-800)}
 
 /* hero */
@@ -227,14 +228,14 @@ footer .risk{flex-basis:100%;max-width:90ch;line-height:1.55}
       <span class="eyebrow">03 · Start here</span>
       <hr class="rule">
       <h2>The first four lessons</h2>
-      <p>Each one teaches a single idea and ends with an exercise on a practice chart or ticket. The point is understanding the screen, not memorising buttons.</p>
+      <p>Each one teaches a single idea and ends with an exercise on a practice chart or ticket. The tag beside each lesson opens the terminal on that screen.</p>
       <a class="btn btn-primary" href="https://protraderacademy.company/#start" style="margin-top:24px">Start lesson 1</a>
     </div>
     <ol class="lessons">
-      <li><span class="n">01</span><div><strong>Get oriented</strong><span class="d">What paper trading is, and where the chart, trade panel and journal live.</span></div><span class="tag">Terminal tour</span></li>
-      <li><span class="n">02</span><div><strong>Read and annotate a chart</strong><span class="d">Candles, timeframes, and marking one level you can explain.</span></div><span class="tag">Chart</span></li>
-      <li><span class="n">03</span><div><strong>Understand the practice ticket</strong><span class="d">Direction, size, stop loss and take profit — and what each changes.</span></div><span class="tag">Trade ticket</span></li>
-      <li><span class="n">04</span><div><strong>Interpret the app's analysis</strong><span class="d">Scanner, the nine-point setup check and Oracle. Information to examine, not predictions.</span></div><span class="tag">Setup check</span></li>
+      <li><span class="n">01</span><div><strong>Get oriented</strong><span class="d">What paper trading is, and where the chart, trade panel and journal live.</span></div><a class="tag" href="/app?lesson=1&tab=chart">Open the terminal</a></li>
+      <li><span class="n">02</span><div><strong>Read and annotate a chart</strong><span class="d">Candles, timeframes, and marking one level you can explain.</span></div><a class="tag" href="/app?sym=EURUSD&tf=15m&tab=chart&lesson=2">EUR/USD · 15M</a></li>
+      <li><span class="n">03</span><div><strong>Understand the practice ticket</strong><span class="d">Direction, size, stop loss and take profit — and what each changes.</span></div><a class="tag" href="/app?sym=EURUSD&tab=trade&lesson=3">Trade ticket</a></li>
+      <li><span class="n">04</span><div><strong>Interpret the app's analysis</strong><span class="d">Scanner, the nine-point setup check and Oracle. Information to examine, not predictions.</span></div><a class="tag" href="/app?sym=EURUSD&tf=1h&tab=aria&lesson=4">Setup check</a></li>
     </ol>
   </section>
 
