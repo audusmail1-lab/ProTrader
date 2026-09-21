@@ -6666,6 +6666,82 @@ function mobileSetView(view) {
 }
 
 /* ════════════════════════════════════════════════════════════
+   DEEP LINKS
+   /app?sym=EURUSD&tf=1h&tab=trade&lesson=3
+   Lets a lesson (or any link) open the terminal on a given market,
+   timeframe and panel. Every value is matched against a fixed list -
+   nothing from the URL is ever written into the page as HTML - and an
+   unknown value is simply ignored. The parameters are removed from the
+   address afterwards so a reload or a home-screen install starts clean.
+════════════════════════════════════════════════════════════ */
+const DEEPLINK_ALIASES = {
+  GOLD: 'frxXAUUSD', XAU: 'frxXAUUSD', SILVER: 'frxXAGUSD', NAS100: 'frxNAS100', NASDAQ: 'frxNAS100', US100: 'frxNAS100',
+  SPX500: 'frxSPX500', US500: 'frxSPX500', US30: 'frxUS30', DOW: 'frxUS30', BTC: 'cryBTCUSD', ETH: 'cryETHUSD',
+  STEP: 'stpRNG',
+};
+const DEEPLINK_LESSONS = {
+  1: 'Get oriented', 2: 'Read and annotate a chart', 3: 'Understand the practice ticket', 4: 'Interpret the app\u2019s analysis',
+  5: 'Complete a practice workflow', 6: 'Practice clinic', 7: 'Review and next steps',
+};
+function resolveDeepLinkSymbol(raw) {
+  const norm = v => String(v || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+  const want = norm(raw);
+  if (!want || want.length > 24) return null;
+  if (DEEPLINK_ALIASES[want]) return DEEPLINK_ALIASES[want];
+  let m;
+  if ((m = /^V(?:OL|OLATILITY)?(\d+)(1S)?$/.exec(want))) {            // V75, VOL75, V751S, VOLATILITY751S
+    const id = m[2] ? `1HZ${m[1]}V` : `R_${m[1]}`;
+    if (PAIR_MAP[id]) return id;
+  }
+  for (const id of Object.keys(PAIR_MAP)) {
+    const p = PAIR_MAP[id];
+    if (norm(id) === want || norm(id.replace(/^(frx|cry|OTC_)/, '')) === want || norm(p.label) === want || norm(p.sym) === want) return id;
+  }
+  return null;
+}
+function applyDeepLink() {
+  let q;
+  try { q = new URLSearchParams(location.search); } catch (_) { return; }
+  if (![...q.keys()].some(k => ['sym', 'tf', 'tab', 'lesson'].includes(k))) return;
+  const done = [];
+
+  const id = resolveDeepLinkSymbol(q.get('sym'));
+  if (id && id !== S.sym) { selectPair(id); done.push(PAIR_MAP[id].label); }
+  else if (id) done.push(PAIR_MAP[id].label);
+
+  const tf = String(q.get('tf') || '').toLowerCase();
+  if (TF_SEC[tf]) {
+    const btn = [...document.querySelectorAll('.tf-btn')].find(b => (b.getAttribute('onclick') || '').includes(`'${tf}'`));
+    if (tf !== S.tf) setTF(tf, btn || null);
+    done.push(tf.toUpperCase());
+  }
+
+  // tab: a right-hand panel, or the chart / market list on a phone
+  const tab = String(q.get('tab') || '').toLowerCase();
+  const panel = { aria: 'aria', check: 'aria', setup: 'aria', oracle: 'oracle', trade: 'trade', ticket: 'trade',
+                  port: 'portfolio', portfolio: 'portfolio', history: 'portfolio', mtf: 'mtf', laws: 'laws' }[tab];
+  // wait a beat so the chart and ticket have the new instrument before a panel slides over them
+  setTimeout(() => {
+    if (panel) {
+      if (window.innerWidth <= 820) openMobilePanel(panel);   // on a phone the panels live in a slide-up sheet
+      else setRTab(panel, null);
+    } else if (tab === 'chart') mobileSetView('chart');
+    else if (tab === 'markets') mobileSetView('markets');
+  }, 350);
+
+  const n = parseInt(q.get('lesson'), 10);
+  const title = DEEPLINK_LESSONS[n];
+  if (title) showToast(`Lesson ${n} \u00b7 ${title}${done.length ? ' \u2014 ' + done.join(' \u00b7 ') : ''}`, 5200);
+  else if (done.length) showToast(`Opened ${done.join(' \u00b7 ')}`, 2600);
+
+  try {
+    ['sym', 'tf', 'tab', 'lesson'].forEach(k => q.delete(k));
+    const rest = q.toString();
+    history.replaceState(null, '', location.pathname + (rest ? '?' + rest : '') + location.hash);
+  } catch (_) {}
+}
+
+/* ════════════════════════════════════════════════════════════
    PAIR MENU (toggles sidebar visibility on mobile)
 ════════════════════════════════════════════════════════════ */
 function togglePairMenu() {
@@ -6753,6 +6829,7 @@ function init() {
   renderPortfolio();
   OT.init();
   LIVE.init();
+  applyDeepLink();
   buildTickerData();
 
   // Connect Deriv WebSocket for synthetic indices
