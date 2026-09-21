@@ -1132,6 +1132,7 @@ def quotes(tickers: str = "") -> list:
 _STATIC_TYPES = {
     ".png": "image/png", ".webmanifest": "application/manifest+json",
     ".js": "application/javascript", ".svg": "image/svg+xml", ".ico": "image/x-icon",
+    ".woff2": "font/woff2", ".webp": "image/webp", ".jpg": "image/jpeg",
 }
 
 
@@ -1219,6 +1220,25 @@ def mobile_terminal(request: Request):
         raise HTTPException(status_code=404, detail=f"{MOBILE_HTML_FILE} not found next to dashboard.py")
     # FileResponse emits ETag/Last-Modified, so a reopen is a 304 unless the
     # file changed; no-cache means "revalidate", not "don't cache".
+    return _file_or_304(request, path, "text/html; charset=utf-8", "no-cache")
+
+
+@app.get("/app")
+def terminal_app(request: Request):
+    """Stable address for the terminal; the landing page links here."""
+    return mobile_terminal(request)
+
+
+LANDING_HTML_FILE = "landing.html"
+
+
+@app.get("/welcome")
+def landing(request: Request):
+    """Marketing page. Deliberately NOT at "/": the Academy, the Telegram bot
+    and installed copies all link to the root expecting the terminal."""
+    path = os.path.join(os.path.dirname(os.path.abspath(__file__)), LANDING_HTML_FILE)
+    if not os.path.isfile(path):
+        raise HTTPException(status_code=404, detail=f"{LANDING_HTML_FILE} not found next to dashboard.py")
     return _file_or_304(request, path, "text/html; charset=utf-8", "no-cache")
 
 
