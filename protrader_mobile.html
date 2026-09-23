@@ -702,9 +702,9 @@ kbd{
 
 /* ── PRICE TICKER BANNER ── */
 .ticker-wrap{
-  position:absolute;bottom:0;left:0;right:0;height:22px;
-  background:linear-gradient(90deg,var(--bg-1),rgba(6,12,24,.95));
-  border-top:1px solid var(--bd-1);overflow:hidden;z-index:10;
+  position:relative;height:22px;
+  background:var(--bg-2);
+  border-bottom:1px solid var(--bd-1);overflow:hidden;
   display:flex;align-items:center;
 }
 .ticker-scroll{
@@ -791,7 +791,7 @@ kbd{
 [data-theme="light"] .feed-status{border-color:rgba(59,130,246,.3);color:#1D4ED8;background:rgba(59,130,246,.08)}
 [data-theme="light"] .feed-status.stale{border-color:rgba(245,158,11,.4);color:#B45309;background:rgba(245,158,11,.1)}
 
-@media (max-width:820px),(max-height:520px) and (pointer:coarse){.app{grid-template-rows:54px 1fr}.topbar{height:54px}.live-price{font-size:16px}.bottom-strip{padding-bottom:44px}.rpanel-tabs{padding-inline:8px}.rtab{min-width:54px}.chart-toolbar{height:42px}.bstrip-body{height:122px}}
+@media (max-width:820px),(max-height:520px) and (pointer:coarse){.app{grid-template-rows:54px 1fr}.topbar{height:54px}.live-price{font-size:16px}.rpanel-tabs{padding-inline:8px}.rtab{min-width:54px}.chart-toolbar{height:42px}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.001ms!important;transition-duration:.001ms!important;scroll-behavior:auto!important}}
 
 /* ── MOBILE APP SHELL ── */
@@ -827,8 +827,7 @@ kbd{
     background:none!important;color:var(--tx-1)!important;-webkit-text-fill-color:var(--tx-1)!important;
   }
   .live-chg{grid-column:2;grid-row:2;justify-self:start;font-size:12px}
-  .feed-badge{grid-column:2;grid-row:2;justify-self:end;margin-right:6px}
-  .feed-badge .ws-badge{display:none}
+  .feed-badge{display:none}
   .topbar-right{grid-column:3;grid-row:1 / span 2;gap:5px;margin-left:0;justify-self:end}
   .topbar-divider,.topbar-stat,#updateTs,.voice-btn,.topbar-right .icon-btn[title^="Keyboard"],#feedHealth{display:none!important}
   .mkt-dot{width:8px;height:8px}
@@ -861,12 +860,12 @@ kbd{
     font-size:12px;padding:6px 9px;border-radius:13px;
     background:rgba(7,11,20,.72);backdrop-filter:blur(14px);
   }
-  .ticker-wrap{height:24px;bottom:0}
+  .ticker-wrap{height:24px}
   .ticker-scroll{font-size:12px}
   .price-tag{right:2px;font-size:12px;border-radius:999px;padding:3px 7px}
 
   .bottom-strip{
-    max-height:132px;overflow:hidden;border-top-color:rgba(148,163,184,.13);
+    max-height:none;overflow:hidden;border-top-color:rgba(148,163,184,.13);
     padding-bottom:0;background:rgba(13,19,32,.82);
   }
   .bstrip-tabs{height:32px;overflow-x:auto}
@@ -877,8 +876,9 @@ kbd{
     margin:3px 4px;
   }
   .bstab.active{background:rgba(79,140,255,.1);border-color:rgba(79,140,255,.28);color:var(--blue-lt)}
-  .bstrip-body{height:100px}
-  .bpane{padding:7px 9px}
+  .bstrip-body{height:auto;max-height:110px;overflow-y:auto}
+  .bpane{height:auto;padding:7px 9px 9px}
+  #journalPane.active,#signalsPane.active{max-height:96px;overflow-y:auto}
   .pattern-card{min-width:196px;flex-basis:196px;padding:7px 9px;border-radius:13px}
 
   .right-panel{
@@ -955,7 +955,7 @@ kbd{
   .ws-badge{display:none!important}
   .chart-toolbar{height:42px;padding-inline:8px}
   .tf-btn,.draw-btn,.ind-btn{min-height:30px;padding-inline:10px}
-  .bottom-strip{max-height:122px}.bstrip-body{height:90px}
+  .bstrip-body{max-height:100px}
   .mobile-nav{padding-inline:7px}
   .mobile-nav-btn{font-size:12px;border-radius:14px}
 }
@@ -1405,12 +1405,11 @@ svg.ico{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.7;st
         <div class="ohlc-item"><span class="ohlc-lbl">C</span><span id="oi-c">—</span></div>
         <div class="ohlc-item"><span class="ohlc-lbl">ATR</span><span id="oi-atr">—</span></div>
       </div>
-      <!-- Ticker bar inside chart wrap -->
-      <div class="ticker-wrap"><div class="ticker-scroll" id="tickerScroll"></div></div>
     </div>
 
     <!-- Bottom scanner strip -->
     <div class="bottom-strip">
+      <div class="ticker-wrap"><div class="ticker-scroll" id="tickerScroll"></div></div>
       <div class="bstrip-tabs">
         <button class="bstab active" onclick="setBTab('scanner',this)">Scanner</button>
         <button class="bstab" onclick="setBTab('positions',this)" id="bsPositions">Positions</button>
