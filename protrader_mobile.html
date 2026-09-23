@@ -60,7 +60,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg-1);color:var(--tx-1);f
 .workspace{display:grid;grid-template-columns:224px minmax(0,1fr) 320px;overflow:hidden;min-height:0;min-width:0}
 @media(max-width:1200px){.workspace{grid-template-columns:200px minmax(0,1fr) 300px}}
 @media(max-width:1100px){.workspace{grid-template-columns:190px minmax(0,1fr) 290px}}
-@media(max-width:820px){
+@media (max-width:820px),(max-height:520px) and (pointer:coarse){
   .workspace{grid-template-columns:1fr}
   .sidebar{display:none!important}
   /* Right panel becomes a slide-up bottom sheet */
@@ -100,7 +100,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg-1);color:var(--tx-1);f
   z-index:200;position:relative;
   backdrop-filter:blur(20px);
 }
-.logo{display:flex;align-items:center;gap:1px;flex-shrink:0;user-select:none;min-width:142px}
+.logo{display:flex;align-items:center;gap:1px;flex-shrink:0;user-select:none}
 .logo-icon{width:28px;height:28px;margin-right:6px;flex-shrink:0}
 .logo-pro{font-size:15px;font-weight:900;letter-spacing:-0.25px;color:var(--blue-lt)}
 .logo-trader{font-size:15px;font-weight:900;letter-spacing:-0.25px;color:var(--green-lt)}
@@ -118,7 +118,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg-1);color:var(--tx-1);f
 }
 .sym-chip:hover{border-color:var(--bd-3);background:var(--bg-4)}
 .sym-flag{font-size:13px}
-@media(max-width:820px){#menuBtn{display:flex!important}}
+@media (max-width:820px),(max-height:520px) and (pointer:coarse){#menuBtn{display:flex!important}}
 
 .live-price{
   font-family:var(--font-mono);font-size:16px;font-weight:900;
@@ -306,9 +306,10 @@ html,body{height:100%;overflow:hidden;background:var(--bg-1);color:var(--tx-1);f
 
 /* ── BOTTOM SCANNER ── */
 .bottom-strip{background:var(--bg-2);border-top:1px solid var(--bd-1);flex-shrink:0}
-.bstrip-tabs{display:flex;gap:0;border-bottom:1px solid var(--bd-1)}
+.bstrip-tabs{display:flex;gap:0;border-bottom:1px solid var(--bd-1);overflow-x:auto;scrollbar-width:none}
+.bstrip-tabs::-webkit-scrollbar{height:0}
 .bstab{
-  padding:5px 14px;font-size:12px;font-weight:800;cursor:pointer;
+  padding:5px 14px;font-size:12px;font-weight:800;cursor:pointer;white-space:nowrap;flex:0 0 auto;
   color:var(--tx-3);border-bottom:2px solid transparent;
   transition:all var(--t1);text-transform:uppercase;letter-spacing:.5px;
 }
@@ -322,8 +323,8 @@ html,body{height:100%;overflow:hidden;background:var(--bg-1);color:var(--tx-1);f
 
 .pattern-card{
   background:var(--bg-3);border:1px solid var(--bd-1);border-radius:var(--r-sm);
-  padding:5px 8px;display:flex;align-items:center;gap:6px;
-  min-width:160px;max-width:200px;flex:0 0 160px;
+  padding:6px 9px;display:flex;align-items:center;gap:8px;
+  min-width:196px;max-width:240px;flex:0 0 196px;
   transition:border-color var(--t1);
 }
 .pattern-card:hover{border-color:var(--bd-2)}
@@ -480,12 +481,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg-1);color:var(--tx-1);f
   border:1px solid rgba(59,130,246,.2);border-radius:var(--r-xl);
   padding:14px 12px;text-align:center;position:relative;overflow:hidden;
 }
-.port-orb::before{
-  content:'';position:absolute;inset:-50%;
-  background:radial-gradient(circle at 50% 50%,rgba(59,130,246,.05),transparent 60%);
-  animation:orbPulse 4s infinite;
-}
-@keyframes orbPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
+
 .port-bal-lbl{font-size:12px;color:var(--tx-3);text-transform:uppercase;letter-spacing:.8px;font-weight:700;margin-bottom:2px}
 .port-bal-num{font-family:var(--font-mono);font-size:22px;font-weight:900;color:var(--tx-1);letter-spacing:-0.5px;position:relative}
 .port-bal-cur{font-size:12px;color:var(--tx-3);margin-right:2px}
@@ -795,24 +791,24 @@ kbd{
 [data-theme="light"] .feed-status{border-color:rgba(59,130,246,.3);color:#1D4ED8;background:rgba(59,130,246,.08)}
 [data-theme="light"] .feed-status.stale{border-color:rgba(245,158,11,.4);color:#B45309;background:rgba(245,158,11,.1)}
 
-@media(max-width:820px){.app{grid-template-rows:54px 1fr}.topbar{height:54px}.live-price{font-size:16px}.bottom-strip{padding-bottom:44px}.rpanel-tabs{padding-inline:8px}.rtab{min-width:54px}.chart-toolbar{height:42px}.bstrip-body{height:122px}}
+@media (max-width:820px),(max-height:520px) and (pointer:coarse){.app{grid-template-rows:54px 1fr}.topbar{height:54px}.live-price{font-size:16px}.bottom-strip{padding-bottom:44px}.rpanel-tabs{padding-inline:8px}.rtab{min-width:54px}.chart-toolbar{height:42px}.bstrip-body{height:122px}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.001ms!important;transition-duration:.001ms!important;scroll-behavior:auto!important}}
 
 /* ── MOBILE APP SHELL ── */
-:root{--mobile-nav-h:72px;--safe-bottom:env(safe-area-inset-bottom,0px)}
+:root{--mobile-nav-h:72px;--hdr-h:76px;--safe-bottom:env(safe-area-inset-bottom,0px);--safe-top:env(safe-area-inset-top,0px)}
 .mobile-nav{display:none}
 .mobile-only{display:none}
 
-@media(max-width:820px){
+@media (max-width:820px),(max-height:520px) and (pointer:coarse){
   html,body{position:fixed;inset:0;width:100%;height:100%;overflow:hidden;touch-action:manipulation}
   body{background:#070B14}
-  .app{height:100dvh;grid-template-rows:76px 1fr}
-  .workspace{height:calc(100dvh - 76px);padding-bottom:calc(var(--mobile-nav-h) + var(--safe-bottom));background:var(--bg-1)}
+  .app{height:100dvh;grid-template-rows:calc(var(--hdr-h) + var(--safe-top)) minmax(0,1fr)}
+  .workspace{height:auto;min-height:0;padding-bottom:calc(var(--mobile-nav-h) + var(--safe-bottom));background:var(--bg-1)}
   .center{min-height:0;height:100%;background:var(--bg-1)}
 
   .topbar{
-    height:76px;padding:8px 12px 7px;gap:7px;
-    display:grid;grid-template-columns:auto 1fr auto;grid-template-rows:31px 24px;
+    height:calc(var(--hdr-h) + var(--safe-top));padding:calc(7px + var(--safe-top)) 12px 7px;gap:6px 7px;
+    display:grid;grid-template-columns:auto minmax(0,1fr) auto;grid-template-rows:32px 28px;
     align-items:center;border-bottom-color:rgba(148,163,184,.14);
     background:linear-gradient(180deg,rgba(13,19,32,.96),rgba(13,19,32,.78));
     box-shadow:0 12px 32px rgba(0,0,0,.2);z-index:260;
@@ -822,7 +818,7 @@ kbd{
   .logo-pro,.logo-trader{font-size:14px}
   .logo-badge,.logo-pro,.logo-trader{display:none}
   .sym-chip{
-    grid-column:1;grid-row:2;height:24px;min-width:96px;max-width:128px;
+    grid-column:1;grid-row:2;height:28px;min-width:96px;max-width:128px;
     padding:0 9px;border-radius:999px;font-size:12px;justify-content:center;
   }
   .live-price{
@@ -883,10 +879,10 @@ kbd{
   .bstab.active{background:rgba(79,140,255,.1);border-color:rgba(79,140,255,.28);color:var(--blue-lt)}
   .bstrip-body{height:100px}
   .bpane{padding:7px 9px}
-  .pattern-card{min-width:150px;flex-basis:150px;padding:7px 8px;border-radius:13px}
+  .pattern-card{min-width:196px;flex-basis:196px;padding:7px 9px;border-radius:13px}
 
   .right-panel{
-    bottom:calc(var(--mobile-nav-h) + var(--safe-bottom));height:72dvh;max-height:72dvh;
+    bottom:calc(var(--mobile-nav-h) + var(--safe-bottom));height:min(72dvh,calc(100dvh - var(--hdr-h) - var(--safe-top) - var(--mobile-nav-h) - var(--safe-bottom)));max-height:none;
     transform:translateY(100%);border-radius:22px 22px 0 0;
     border-top-color:rgba(148,163,184,.22);z-index:310;
   }
@@ -950,9 +946,8 @@ kbd{
 }
 
 @media(max-width:420px){
-  .app{grid-template-rows:72px 1fr}
-  .workspace{height:calc(100dvh - 72px)}
-  .topbar{height:72px;padding-inline:9px;grid-template-columns:auto minmax(86px,1fr) auto}
+  :root{--hdr-h:76px}
+  .topbar{padding-inline:9px;grid-template-columns:auto minmax(86px,1fr) auto}
   .logo-pro,.logo-trader{display:none}
   .sym-chip{max-width:112px}
   .live-price{font-size:18px!important}
@@ -961,7 +956,6 @@ kbd{
   .chart-toolbar{height:42px;padding-inline:8px}
   .tf-btn,.draw-btn,.ind-btn{min-height:30px;padding-inline:10px}
   .bottom-strip{max-height:122px}.bstrip-body{height:90px}
-  .right-panel{height:74dvh;max-height:74dvh}
   .mobile-nav{padding-inline:7px}
   .mobile-nav-btn{font-size:12px;border-radius:14px}
 }
@@ -1071,16 +1065,18 @@ kbd{
 .ot-acct-v.pos{color:var(--green-lt)}
 
 /* positions / orders rows (bottom strip + right panel) */
-.pos-row{display:flex;align-items:center;gap:6px;padding:5px 7px;background:var(--bg-3);border:1px solid var(--bd-1);border-radius:var(--r-sm);min-width:250px;flex-shrink:0}
+.pos-row{display:grid;grid-template-columns:auto minmax(0,1fr) auto;grid-template-areas:'side main pnl' 'acts acts acts';align-items:center;gap:4px 8px;padding:7px 9px;background:var(--bg-3);border:1px solid var(--bd-1);border-radius:var(--r-sm);min-width:0}
+.bpane .pos-row{min-width:280px;flex-shrink:0}
+.pos-side{grid-area:side}.pos-main{grid-area:main}.pos-pnl{grid-area:pnl}.pos-acts{grid-area:acts;justify-content:flex-end;flex-wrap:wrap}
 .rpane .pos-row{min-width:0;margin-bottom:4px}
 .pos-side{font-size:12px;font-weight:900;letter-spacing:.4px;padding:2px 5px;border-radius:var(--r-xs);flex-shrink:0}
 .pos-side.buy{color:var(--green-lt);background:rgba(16,185,129,.13)}
 .pos-side.sell{color:var(--red-lt);background:rgba(239,68,68,.13)}
 .pos-main{display:flex;flex-direction:column;gap:1px;min-width:0;flex:1}
-.pos-l1{display:flex;align-items:baseline;gap:5px}
+.pos-l1{display:flex;align-items:baseline;gap:5px;flex-wrap:wrap}
 .pos-sym{font-size:12px;font-weight:800;color:var(--tx-1);white-space:nowrap}
 .pos-lots{font-size:12px;font-family:var(--font-mono);color:var(--tx-2)}
-.pos-l2{font-size:12px;font-family:var(--font-mono);color:var(--tx-3);white-space:nowrap}
+.pos-l2{font-size:12px;font-family:var(--font-mono);color:var(--tx-3);white-space:normal;overflow-wrap:anywhere;line-height:1.4}
 .pos-pnl{font-family:var(--font-mono);font-size:12px;font-weight:800;text-align:right;flex-shrink:0;font-variant-numeric:tabular-nums}
 .pos-pnl.pos{color:var(--green-lt)}
 .pos-pnl.neg{color:var(--red-lt)}
@@ -1096,13 +1092,13 @@ kbd{
 .mod-row{display:grid;grid-template-columns:1fr 100px;gap:8px;align-items:center}
 .mod-lbl{font-size:12px;font-weight:700;color:var(--tx-2)}
 
-@media(max-width:820px){
+@media (max-width:820px),(max-height:520px) and (pointer:coarse){
   .ot-metrics{grid-template-columns:repeat(3,1fr)}
   .ot-q-val{font-size:12px}
 }
 
 /* ── Team sweep: mobile layout + theme fixes (appended: source order wins) ── */
-@media(max-width:820px){
+@media (max-width:820px),(max-height:520px) and (pointer:coarse){
   /* light theme: toolbar pills and panel tabs were hardcoded navy */
   /* the mobile block above marks its navy backgrounds !important, so match it */
   [data-theme="light"] .tf-btn,[data-theme="light"] .draw-btn,[data-theme="light"] .ind-btn,[data-theme="light"] .rtab{background:#fff!important;border-color:rgba(148,163,184,.28)!important;color:#475569!important}
@@ -1121,17 +1117,16 @@ kbd{
   #drawChip{width:34px!important;height:34px!important;font-size:14px!important}
 }
 /* short landscape phone: give the chart the height back */
-@media(max-width:820px) and (max-height:480px){
+@media (max-width:820px) and (max-height:480px),(max-height:480px) and (pointer:coarse){
   .bottom-strip,.ticker-wrap{display:none}
   .chart-toolbar{height:36px}
-  .right-panel{height:calc(100dvh - 76px - var(--mobile-nav-h) - var(--safe-bottom));max-height:none}
+  .right-panel{height:calc(100dvh - var(--hdr-h) - var(--safe-top) - var(--mobile-nav-h) - var(--safe-bottom));max-height:none}
 }
 /* legibility: the lot-limit hint and account labels were ~1.7:1 in dark */
 .ot-hint{color:var(--tx-3);font-size:12px}
 [data-theme="dark"]{--tx-4:#5B6B82}
 /* installed iPhone app: keep the topbar below the notch */
-:root{--safe-top:env(safe-area-inset-top,0px)}
-@media(max-width:820px){ .topbar{padding-top:var(--safe-top)} .app{grid-template-rows:calc(76px + var(--safe-top)) 1fr} .workspace{height:calc(100dvh - 76px - var(--safe-top))} }
+
 /* ══════════════════════════════════════════════════════════════
    REDESIGN COMPONENTS — see design/REDESIGN.md
 ══════════════════════════════════════════════════════════════ */
@@ -1150,7 +1145,7 @@ svg.ico{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.7;st
 .acct-chip .acct-bal{font-family:var(--font-mono);font-size:13px;color:var(--tx-1);letter-spacing:0;font-variant-numeric:tabular-nums}
 .acct-chip.demo{border-color:var(--blue);color:var(--blue-lt);background:var(--blue-glow)}
 .acct-chip.real{border-color:var(--red);color:var(--red-lt);background:rgba(240,86,79,.14)}
-@media(max-width:820px){
+@media (max-width:820px),(max-height:520px) and (pointer:coarse){
   .bal-badge{display:none}
   .ws-badge::before{content:''}
   #themeBtn{display:none!important}
@@ -1230,6 +1225,50 @@ svg.ico{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.7;st
 .rtab{font-size:var(--fs-1);letter-spacing:0;padding-inline:0}
 .rpanel-tabs{gap:2px}
 @media(max-width:1400px){#updateTs{display:none}}
+/* ══ responsive fit (audit pass) ══ */
+/* narrow desktops and tablets: the watchlist folds into the symbol chip, stats thin out */
+@media(max-width:1300px){.topbar-stat:nth-of-type(1),.topbar-stat:nth-of-type(2){display:none}}
+@media (min-width:821px) and (max-width:1100px) and (min-height:521px),(min-width:821px) and (max-width:1100px) and (max-height:520px) and (pointer:fine){
+  .workspace{grid-template-columns:minmax(0,1fr) 320px}
+  .sidebar{display:none}
+  .topbar-stat{display:none}
+  .topbar-divider{display:none}
+}
+@media(max-width:980px) and (min-width:821px){.voice-btn{display:none}}
+.topbar{min-width:0}.topbar-right{min-width:0}
+.chart-toolbar>*{flex:0 0 auto}
+.live-price{white-space:nowrap}
+/* finger-sized controls everywhere on touch layouts */
+@media (max-width:820px),(max-height:520px) and (pointer:coarse){
+  .ot-seg-btn{min-height:38px}
+  .chk-moretog{min-height:40px;padding:8px 0}
+  .stepper button{width:34px;height:32px}
+  .chart-toolbar .ind-btn{min-width:38px}
+  .modal button[aria-label="Close"]{width:36px;height:36px;display:inline-flex;align-items:center;justify-content:center;border-radius:10px}
+  .chk-engines button{min-height:38px}
+  .lv-btn{min-height:36px}
+  .ot-acct{grid-template-columns:repeat(2,1fr)}
+  .risk-row{grid-template-columns:1fr 1fr}
+}
+@media(max-width:360px){
+  .risk-row{grid-template-columns:1fr}
+  .ot-metrics{grid-template-columns:repeat(3,1fr)}
+  .ohlc-bar{gap:4px;padding-inline:6px}
+}
+/* tablets in portrait: the sheet can be taller */
+@media(min-width:600px) and (max-width:820px){.right-panel{height:min(78dvh,calc(100dvh - var(--hdr-h) - var(--safe-top) - var(--mobile-nav-h) - var(--safe-bottom)))}}
+.pane-back{display:inline-flex;align-items:center;gap:4px;min-height:36px;padding:0 4px;background:none;border:0;color:var(--blue-lt);font-size:12px;font-weight:600;cursor:pointer;text-align:left}
+/* landscape phones: one-row header, shorter nav */
+@media (max-height:520px) and (pointer:coarse){
+  :root{--hdr-h:52px;--mobile-nav-h:56px}
+  .topbar{grid-template-columns:auto auto minmax(0,1fr) auto;grid-template-rows:36px;gap:8px;padding-top:calc(8px + var(--safe-top))}
+  .logo{grid-column:1;grid-row:1}.sym-chip{grid-column:2;grid-row:1}.live-price{grid-column:3;grid-row:1}
+  .live-chg,.feed-badge{display:none!important}
+  .topbar-right{grid-column:4;grid-row:1}
+  .mobile-nav-btn{min-height:40px;flex-direction:row;gap:6px;padding:0 6px}
+  .right-panel{height:calc(100dvh - var(--hdr-h) - var(--safe-top) - var(--mobile-nav-h) - var(--safe-bottom))}
+  .rpanel-tabs{margin-top:10px;height:42px}
+}
 </style>
 </head>
 <body>
@@ -1293,7 +1332,7 @@ svg.ico{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.7;st
     <button class="voice-btn" id="voiceBtn" onclick="handleVoiceClick(event)" title="Click: listen for voice commands. Shift+click: toggle spoken responses (default off)." aria-label="Voice commands"><svg class="ico" viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0014 0M12 18v3"/></svg></button>
     <button class="icon-btn" onclick="toggleTheme()" id="themeBtn" title="Toggle light/dark mode" aria-label="Toggle light and dark mode"><svg class="ico" viewBox="0 0 24 24"><path d="M20 14.5A8 8 0 019.5 4a8 8 0 1010.5 10.5z"/></svg></button>
     <button class="icon-btn" onclick="toggleShortcutsHelp()" title="Keyboard shortcuts (press ?)" aria-label="Help and support" style="font-weight:800">?</button>
-    <button class="icon-btn" onclick="toggleShortcutsHelp()" title="Help and support" style="display:none;font-size:12px;font-weight:800" id="menuBtn" aria-label="Help and support">Help</button>
+    <button class="icon-btn" onclick="toggleShortcutsHelp()" title="Help and support" style="display:none;font-size:12px;font-weight:800" id="menuBtn" aria-label="Help and support">?</button>
   </div>
 </header>
 
@@ -1343,9 +1382,9 @@ svg.ico{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.7;st
       <button class="ind-btn active" id="ind-pat" onclick="togPatterns(this)" title="Pattern overlay on chart">Patterns</button>
       <div class="sep"></div>
       <!-- Zoom controls -->
-      <button class="ind-btn" onclick="chartZoomBy(0.8)" title="Zoom out (or pinch / Ctrl+scroll)" style="font-weight:900;min-width:24px">−</button>
-      <button class="ind-btn" onclick="chartZoomReset()" title="Reset zoom & pan" style="font-weight:800">⊡</button>
-      <button class="ind-btn" onclick="chartZoomBy(1.25)" title="Zoom in (or pinch / Ctrl+scroll)" style="font-weight:900;min-width:24px">+</button>
+      <button class="ind-btn" onclick="chartZoomBy(0.8)" title="Zoom out (or pinch / Ctrl+scroll)" style="font-weight:900" aria-label="Zoom out">−</button>
+      <button class="ind-btn" onclick="chartZoomReset()" title="Reset zoom & pan" style="font-weight:800" aria-label="Reset zoom">⊡</button>
+      <button class="ind-btn" onclick="chartZoomBy(1.25)" title="Zoom in (or pinch / Ctrl+scroll)" style="font-weight:900" aria-label="Zoom in">+</button>
     </div>
 
     <!-- Chart area -->
@@ -1398,8 +1437,6 @@ svg.ico{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.7;st
       <button class="rtab" data-tab="trade" onclick="setRTab('trade',this)">Trade</button>
       <button class="rtab" data-tab="portfolio" onclick="setRTab('portfolio',this)">Port</button>
       <button class="rtab" data-tab="mtf" onclick="setRTab('mtf',this)">MTF</button>
-      <button class="rtab" data-tab="aria" onclick="setRTab('aria',this)">ARIA</button>
-      <button class="rtab" data-tab="oracle" onclick="setRTab('oracle',this)">Oracle</button>
       <button class="rtab" data-tab="laws" onclick="setRTab('laws',this)">Laws</button>
     </div>
     <div class="rpanel-body">
@@ -1597,7 +1634,7 @@ svg.ico{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.7;st
           <!-- metrics -->
           <div class="ot-metrics">
             <div class="ot-metric">
-              <div class="ot-metric-lbl">Est. Margin</div>
+              <div class="ot-metric-lbl">Margin</div>
               <div class="ot-metric-val" id="otMargin">—</div>
             </div>
             <div class="ot-metric">
@@ -1619,8 +1656,8 @@ svg.ico{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.7;st
           <div class="ot-acct">
             <div class="ot-acct-i"><div class="ot-acct-l">Balance</div><div class="ot-acct-v" id="acBal">—</div></div>
             <div class="ot-acct-i"><div class="ot-acct-l">Equity</div><div class="ot-acct-v" id="acEq">—</div></div>
-            <div class="ot-acct-i"><div class="ot-acct-l">Free Margin</div><div class="ot-acct-v" id="acFree">—</div></div>
-            <div class="ot-acct-i"><div class="ot-acct-l">Margin Lvl</div><div class="ot-acct-v" id="acLvl">—</div></div>
+            <div class="ot-acct-i"><div class="ot-acct-l">Free</div><div class="ot-acct-v" id="acFree">—</div></div>
+            <div class="ot-acct-i"><div class="ot-acct-l">Margin %</div><div class="ot-acct-v" id="acLvl">—</div></div>
           </div>
 
           </div><!-- /otBefore -->
@@ -1764,6 +1801,9 @@ svg.ico{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.7;st
 ════════════════════════════════════════════════════════════════ */
 
 // ── STATE ──
+const MOBILE_MQ = '(max-width:820px),(max-height:520px) and (pointer:coarse)';
+function isMobile() { return window.matchMedia(MOBILE_MQ).matches; }
+
 const S = {
   sym: 'frxEURUSD', symLabel: 'EUR/USD', dp: 5,
   tf: '15m',
@@ -4310,6 +4350,7 @@ function renderARIA() {
   const liveLabel = pairPrices[S.sym]?.src || 'SIM';
 
   panel.innerHTML = `
+  <button class="pane-back" onclick="setRTab('check',null)">‹ Back to Setup Check</button>
   <div class="aria-learn">
     <span style="font-size:12px;font-weight:900;color:var(--blue-lt);letter-spacing:.4px">ARIA v7.0</span>
     <span style="color:var(--tx-3);font-size:12px">Sig: ${AM.totalSig}</span>
@@ -4552,7 +4593,7 @@ function reviewFromCheck() {
   applyARIA(+entry.slLevel.toFixed(S.dp), +entry.tp2.toFixed(S.dp), gates.dir);
   OT.setStage('before');
   OT.sizeToRisk(true);
-  if (window.innerWidth <= 820) openMobilePanel('trade');
+  if (isMobile()) openMobilePanel('trade');
 }
 
 function openTerm(name) {
@@ -4659,6 +4700,7 @@ function renderOracle() {
   if (reasons.length === 0) reasons.push('Insufficient confluence at this time');
 
   panel.innerHTML = `
+  <button class="pane-back" onclick="setRTab('check',null)">‹ Back to Setup Check</button>
   <div class="oracle-card">
     <div style="font-size:12px;font-weight:900;color:var(--purple-lt);text-transform:uppercase;letter-spacing:.8px;margin-bottom:3px">Oracle AI Advisor</div>
     <div class="oracle-score ${confidence>=70?'high':confidence>=50?'med':'low'}">${confidence}%</div>
@@ -4864,7 +4906,7 @@ function runPatternScanner() {
     const aligned = ariaDir && ((ariaDir==='buy'&&r.dir==='bull'&&r.conf>=75)||(ariaDir==='sell'&&r.dir==='bear'&&r.conf>=75));
     return `<div class="pattern-card" style="border-color:rgba(79,140,255,.4)">
       <div style="flex:1;min-width:0">
-        <div class="pat-name">${r.name} <span style="color:var(--neon-cyan);font-size:12px">●</span></div>
+        <div class="pat-name">${r.name}</div>
         <div class="pat-tf">${r.tf}</div>
       </div>
       <div style="display:flex;align-items:center;gap:4px;flex-shrink:0">
@@ -6857,12 +6899,13 @@ function setRTab(tab, btn) {
   if (btn) btn.classList.add('active');
   else document.querySelectorAll('.rtab').forEach(b => { if (b.dataset.tab === tab) b.classList.add('active'); });
   if (tab === 'check') renderCheck();
+  if (tab === 'aria') renderARIA();
   if (tab === 'trade') { OT.render(); renderLimits(); }
   if (tab === 'mtf') renderMTF();
   if (tab === 'laws') renderLaws();
   if (tab === 'oracle') renderOracle();
   if (tab === 'portfolio') renderPortfolio();
-  if (window.innerWidth <= 820) syncMobileNav(tab === 'trade' || tab === 'portfolio' ? tab : 'check');
+  if (isMobile()) syncMobileNav(tab === 'trade' || tab === 'portfolio' ? tab : 'check');
 }
 
 function setBTab(tab, btn) {
@@ -6969,12 +7012,12 @@ function toggleMobilePanel() {
   const rp = document.getElementById('rightPanel');
   const open = rp.classList.toggle('open');
   const btn = document.getElementById('menuBtn');
-  if (btn) btn.textContent = open ? '×' : 'AI';
+  if (btn) btn.textContent = open ? '×' : '?';
   syncMobileNav(open ? 'check' : 'chart');
 }
 
 function syncMobileNav(view) {
-  if (window.innerWidth > 820) return;
+  if (!isMobile()) return;
   document.querySelectorAll('.mobile-nav-btn').forEach(btn => {
     btn.classList.toggle('active', btn.dataset.mobileView === view);
   });
@@ -6993,11 +7036,11 @@ function closeMobilePanel() {
   const rp = document.getElementById('rightPanel');
   if (rp) rp.classList.remove('open');
   const btn = document.getElementById('menuBtn');
-  if (btn) btn.textContent = 'AI';
+  if (btn) btn.textContent = '?';
 }
 
 function mobileSetView(view) {
-  if (window.innerWidth > 820) return;
+  if (!isMobile()) return;
   if (view === 'chart') {
     closeMobilePanel();
     closeAllModals();
@@ -7074,7 +7117,7 @@ function applyDeepLink() {
   // wait a beat so the chart and ticket have the new instrument before a panel slides over them
   setTimeout(() => {
     if (panel) {
-      if (window.innerWidth <= 820) openMobilePanel(panel);   // on a phone the panels live in a slide-up sheet
+      if (isMobile()) openMobilePanel(panel);   // on a phone the panels live in a slide-up sheet
       else setRTab(panel, null);
     } else if (tab === 'chart') mobileSetView('chart');
     else if (tab === 'markets') mobileSetView('markets');
@@ -7097,7 +7140,7 @@ function applyDeepLink() {
 ════════════════════════════════════════════════════════════ */
 function togglePairMenu() {
   // On mobile, surface a quick-pick bottom sheet
-  if (window.innerWidth > 820) return;
+  if (!isMobile()) return;
   let sheet = document.getElementById('pairSheet');
   if (sheet) {
     const open = sheet.classList.toggle('open');
@@ -7305,7 +7348,7 @@ function toggleShortcutsHelp() {
 function closeAllModals() {
   document.querySelectorAll('.modal-backdrop.open').forEach(m => m.classList.remove('open'));
   document.getElementById('depositModal')?.classList.remove('open');
-  if (window.innerWidth <= 820) syncMobileNav(document.getElementById('rightPanel')?.classList.contains('open') ? 'aria' : 'chart');
+  if (isMobile()) syncMobileNav(document.getElementById('rightPanel')?.classList.contains('open') ? 'aria' : 'chart');
 }
 
 /* ════════════════════════════════════════════════════════════

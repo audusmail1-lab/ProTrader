@@ -110,3 +110,13 @@ nothing the app cannot do is on screen.
 2. Setup Check panel
 3. Trade split, risk-first sizing, limits meters, breakeven on paper
 4. (next) Port and journal restyle, first-run card, Academy lesson links
+
+## Responsive structure (audit pass, Sept 2026)
+
+- **One definition of "phone"**: CSS `@media (max-width:820px),(max-height:520px) and (pointer:coarse)` and JS `isMobile()` use the same query, so a landscape phone gets the phone layout (one-row header, 56px nav), never the desktop grid.
+- **Header height is a token**: `--hdr-h` (76px, 52px in landscape) plus `--safe-top`; the app grid, the top bar and the slide-up sheet all derive from it. `--safe-bottom` pads the nav. `viewport-fit=cover`, `html,body{position:fixed}` on phones, `100dvh` everywhere (never `100vh`).
+- **Grids never overflow their container**: `.app` and `.workspace` columns are `minmax(0,1fr)`; scrollers (`.chart-toolbar`, `.rpanel-tabs`, `.bstrip-tabs`) have `flex:0 0 auto` children so pills never squeeze.
+- **Desktop breakpoints**: ≥1301 full top-bar; ≤1300 High/Low hidden; ≤1100 watchlist folds into the symbol chip (two columns) and stats hide; ≤980 voice hidden. The panel is always 320px.
+- **Rows wrap instead of colliding**: position rows are a two-row grid (side · symbol · P&L / actions), pattern cards are 196px, labels are short enough for a 320px panel.
+- **Touch targets** ≥ 36px on phones (segmented controls, steppers, zoom, close buttons, "show more").
+- `scratchpad/t/audit.py` (in the working session) sweeps 14 viewports × 7 states for horizontal overflow, clipped text, overlapping text, off-screen text and small tap targets; run it after any layout change.
