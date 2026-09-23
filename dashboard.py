@@ -141,8 +141,13 @@ def _load_history(sym: str, interval: str) -> pd.DataFrame:
     period = MAX_PERIOD_MAP.get(interval, "60d")
     full = bot.fetch_data(sym, period=period, interval=interval)
     full = bot.calculate_indicators(full)
-    full["EMA_200"] = full["Close"].ewm(span=200, adjust=False).mean()
-    full["VWAP"] = _vwap_series(full)
+    # calculate_indicators() drops every row until all warm-up windows are
+    # satisfied (SMA_50 needs 50 bars) — a ticker with less history than that
+    # comes back empty. Skip building EMA_200/VWAP on it: _vwap_series does
+    # `.iloc[-1]`, which raises IndexError on an empty Series.
+    if not full.empty:
+        full["EMA_200"] = full["Close"].ewm(span=200, adjust=False).mean()
+        full["VWAP"] = _vwap_series(full)
     with _hist_lock:
         _hist_cache[key] = (time.time(), full)
         _hist_cache.move_to_end(key)
@@ -488,18 +493,26 @@ def chart_data(ticker: str,
     try:
         if before:
             full = _cut_before(_load_history(sym, interval), before)
-            if full.empty:
-                # Nothing older exists — tell the client to stop asking.
-                return {"labels": [], "time": [], "open": [], "high": [], "low": [],
-                        "price": [], "volume": [], "has_more": False}
         else:
             period = PERIOD_MAP.get(interval, "60d")
             # Fetch once — compute EMA 200 on full history, then tail for display
             full = bot.fetch_data(sym, period=period, interval=interval)
             full = bot.calculate_indicators(full)
-            full["EMA_200"] = full["Close"].ewm(span=200, adjust=False).mean()
-            # VWAP (cumulative over full fetch)
-            full["VWAP"] = _vwap_series(full)
+            # calculate_indicators() drops every row until its longest warm-up
+            # window (SMA_50: 50 bars) is satisfied — a newly-listed ticker
+            # with less history than that comes back empty here.
+            if not full.empty:
+                full["EMA_200"] = full["Close"].ewm(span=200, adjust=False).mean()
+                # VWAP (cumulative over full fetch)
+                full["VWAP"] = _vwap_series(full)
+
+        if full.empty:
+            # Nothing older exists (scroll-back), or the ticker doesn't have
+            # enough history yet for the indicator warm-up — either way there
+            # is nothing to chart. Tell the client instead of crashing below
+            # on the first `.iloc[-1]` of an empty series.
+            return {"labels": [], "time": [], "open": [], "high": [], "low": [],
+                    "price": [], "volume": [], "has_more": False}
 
         df  = full.tail(candles).copy()
         idx = df.index
