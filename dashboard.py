@@ -54,7 +54,10 @@ app.include_router(_mt5_bridge_router)
 history: deque = deque(maxlen=50)
 cache:   dict[str, dict] = {}
 _quote_cache: dict[str, dict] = {}   # ticker → last quote (see /api/quotes)
+_quote_cache_lock = threading.Lock()
 QUOTE_TTL_S = 5.0                    # batch-quote cache lifetime
+QUOTE_CACHE_MAX = 500                # /api/quotes?tickers= is free-form user input,
+                                      # so cap how many distinct labels we'll remember
 MOBILE_HTML_FILE = "protrader_mobile.html"
 alerts:  dict[str, dict] = {}   # id → alert dict
 fired_alerts: list[dict]  = []  # triggered alerts log (newest first, max 50)
@@ -1117,7 +1120,15 @@ def quotes(tickers: str = "") -> list:
                        "ok": False, "error": str(e)}
 
         row["_ts"] = now
-        _quote_cache[label] = row
+        with _quote_cache_lock:
+            _quote_cache[label] = row
+            if len(_quote_cache) > QUOTE_CACHE_MAX:
+                # Evict the stalest entries first so a stream of one-off,
+                # never-repeated ?tickers= labels can't grow this forever.
+                overflow = len(_quote_cache) - QUOTE_CACHE_MAX
+                stalest = sorted(_quote_cache, key=lambda k: _quote_cache[k]["_ts"])[:overflow]
+                for stale_label in stalest:
+                    _quote_cache.pop(stale_label, None)
         return row
 
     futures = {_executor.submit(_one, t): t for t in labels}
