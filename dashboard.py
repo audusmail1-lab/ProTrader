@@ -103,7 +103,7 @@ PERIOD_MAP: dict[str, str] = {
     "15m": "30d",   # 5d gave index charts ~80 bars; indices trade 6.5h/day
     "1h":  "60d",
     "4h":  "180d",
-    "1d":  "2y",
+    "1d":  "5y",    # weekly and monthly charts are built from daily bars in the app
 }
 
 
