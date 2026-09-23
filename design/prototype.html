@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<!-- Approved redesign prototype. Example prices, nothing live. See REDESIGN.md. -->
+<title>PROTrader Redesign</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+</head>
+<body>
+<style>
+/* Single-theme by design: this is the dark terminal itself. */
+:root{
+  color-scheme:dark;
+  --bg:#070B14;--s1:#0D1320;--s2:#131B2B;--s3:#1A2436;
+  --bd:rgba(160,178,204,.12);--bd2:rgba(160,178,204,.24);
+  --tx:#EEF2F7;--tx2:#A9B6C8;--tx3:#7D8CA3;
+  --up:#2FBF9B;--dn:#F0564F;--act:#4F8CFF;--act-soft:rgba(79,140,255,.13);
+  --paper:#F2B33D;--real:#F0564F;
+  --sans:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+  /* type scale: 12 / 14 / 16 / 20 / 28 — nothing that carries information goes below 12 */
+  --t1:12px;--t2:14px;--t3:16px;--t4:20px;--t5:28px;
+}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--tx);font:var(--t2)/1.45 var(--sans);-webkit-font-smoothing:antialiased;overflow-x:hidden}
+*{box-sizing:border-box}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;padding:0;text-align:left}
+button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid var(--act);outline-offset:2px}
+input{font:inherit;color:inherit;background:none;border:0;width:100%;min-width:0}
+svg.i{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.num{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.lbl{font-size:var(--t1);letter-spacing:.07em;text-transform:uppercase;color:var(--tx3);font-weight:600}
+.up{color:var(--up)}.dn{color:var(--dn)}.mut{color:var(--tx3)}
+h2{margin:0;font-size:var(--t4);font-weight:600;text-wrap:balance}
+p{margin:0}
+
+/* ── preview strip ── */
+.strip{display:flex;gap:10px;align-items:center;padding:8px 16px;background:var(--s2);border-bottom:1px solid var(--bd);font-size:var(--t1);color:var(--tx2)}
+.strip b{color:var(--tx);font-weight:600}
+.strip .dot{width:6px;height:6px;border-radius:50%;background:var(--paper)}
+
+/* ── shell ── */
+.app{display:flex;flex-direction:column;min-height:calc(100% - 34px);padding-bottom:calc(72px + env(safe-area-inset-bottom,0px))}
+@media(min-width:960px){.app{padding-bottom:0;height:calc(100% - 34px)}}
+header.top{display:flex;align-items:center;gap:12px;padding:10px 16px;border-bottom:1px solid var(--bd);position:sticky;top:env(safe-area-inset-top,0px);background:var(--bg);z-index:6}
+.brand{display:flex;align-items:center;gap:8px;font-weight:700;letter-spacing:.01em;font-size:var(--t3)}
+.brand i{width:26px;height:26px;border-radius:7px;background:linear-gradient(135deg,var(--act),#2FBF9B);display:inline-flex;align-items:center;justify-content:center;font-style:normal;font-size:13px;color:#fff}
+.brand em{font-style:normal;color:var(--up)}
+.acct{margin-left:auto;display:inline-flex;align-items:center;gap:8px;padding:6px 10px;border-radius:8px;border:1px solid var(--paper);color:var(--paper);font-size:var(--t1);font-weight:700;letter-spacing:.06em;text-transform:uppercase;white-space:nowrap}
+.acct .num{font-size:13px;color:var(--tx);letter-spacing:0}
+.acct.demo{border-color:var(--act);color:var(--act)}
+.acct.real{border-color:var(--real);color:var(--real);background:rgba(240,86,79,.12)}
+.acct .dot{width:7px;height:7px;border-radius:50%;background:currentColor}
+
+/* ── desktop grid ── */
+main{flex:1;min-height:0;display:grid;grid-template-columns:1fr}
+@media(min-width:960px){main{grid-template-columns:240px minmax(0,1fr) 400px}}
+.col{min-width:0}
+.left{display:none;border-right:1px solid var(--bd);padding:16px;flex-direction:column;gap:18px;overflow:auto}
+.right{display:none;border-left:1px solid var(--bd);overflow:auto}
+@media(min-width:960px){.left,.right{display:flex}.right{flex-direction:column}}
+.center{display:flex;flex-direction:column;min-width:0;overflow:auto}
+
+/* phone: screens */
+.screen{display:none}.screen.on{display:block}
+@media(min-width:960px){.screen{display:block}.screen.phoneonly{display:none}.vcard,.first{display:none}}
+
+/* ── watchlist ── */
+.wl{display:flex;flex-direction:column;gap:4px}
+.wrow{display:grid;grid-template-columns:1fr auto;gap:0 10px;padding:9px 10px;border-radius:8px;font-size:var(--t2);width:100%}
+.wrow.on{background:var(--s2)}
+.wrow b{font-weight:600}.wrow .num{text-align:right}.wrow small{font-size:var(--t1);color:var(--tx3);grid-column:1}
+.wrow .chg{font-size:var(--t1);text-align:right}
+
+/* ── symbol strip + chart ── */
+.sym{display:flex;align-items:baseline;gap:10px;padding:12px 16px 4px;flex-wrap:wrap}
+.sym b{font-size:var(--t4);font-weight:600}
+.sym .px{font-size:var(--t4)}
+.sym .chg{font-size:var(--t2)}
+.sym .feed{margin-left:auto;font-size:var(--t1);color:var(--tx3);display:inline-flex;align-items:center;gap:6px}
+.sym .feed i{width:6px;height:6px;border-radius:50%;background:var(--up);display:inline-block}
+.tfbar{display:flex;gap:4px;padding:6px 16px;align-items:center;overflow-x:auto;scrollbar-width:none}
+.tfbar::-webkit-scrollbar{display:none}
+.tfbar button{padding:6px 10px;border-radius:6px;font-size:var(--t1);font-weight:600;color:var(--tx3);letter-spacing:.04em}
+.tfbar button.on{background:var(--s2);color:var(--tx)}
+.tfbar .sp{flex:1}
+.tfbar .tool{color:var(--tx2);display:inline-flex;align-items:center;gap:6px;padding:6px 8px;border-radius:6px}
+.chartbox{position:relative;margin:0 0 0 0;padding:0 0 0 0}
+canvas#ch{width:100%;height:290px;display:block;touch-action:none}
+@media(min-width:960px){canvas#ch{height:100%;min-height:380px}.chartbox{flex:1;min-height:380px;display:flex}}
+.ohlc{position:absolute;left:16px;top:8px;font-size:var(--t1);color:var(--tx3);display:flex;gap:12px;pointer-events:none}
+.xh{position:absolute;right:16px;top:8px;font-size:var(--t1);color:var(--tx2);pointer-events:none;display:none}
+.xh.on{display:block}
+
+/* verdict card that sits under the chart on phone */
+.vcard{margin:8px 16px 16px;padding:14px;border-radius:12px;background:var(--s1);border:1px solid var(--bd2);display:grid;grid-template-columns:1fr auto;gap:4px 12px;align-items:center}
+.vcard .v{grid-column:1;font-size:var(--t4);font-weight:600}
+.vcard .v span{color:var(--dn)}
+.vcard .c{font-size:var(--t1);color:var(--tx3);grid-column:1}
+.vcard .go{grid-column:2;grid-row:1/3;padding:10px 14px;border-radius:9px;background:var(--act-soft);border:1px solid rgba(79,140,255,.5);font-weight:600;font-size:var(--t2);white-space:nowrap}
+
+/* first-run card */
+.first{margin:0 16px 12px;padding:14px;border-radius:12px;border:1px dashed var(--bd2);display:flex;gap:12px;align-items:flex-start;font-size:var(--t2);color:var(--tx2)}
+.first b{color:var(--tx);display:block;font-weight:600}
+.first .x{margin-left:auto;color:var(--tx3);font-size:var(--t4);line-height:1}
+
+/* ── bottom tabs inside center (desktop) ── */
+.btabs{display:flex;gap:2px;padding:0 16px;border-top:1px solid var(--bd);border-bottom:1px solid var(--bd)}
+.btabs button{padding:11px 12px;font-size:var(--t2);font-weight:600;color:var(--tx3);border-bottom:2px solid transparent}
+.btabs button.on{color:var(--tx);border-color:var(--act)}
+.empty{padding:20px 16px 24px;color:var(--tx2);font-size:var(--t2);max-width:60ch}
+.empty b{color:var(--tx);display:block;margin-bottom:4px;font-weight:600}
+
+/* ── panel (Check / Trade) ── */
+.panel{padding:16px;display:flex;flex-direction:column;gap:14px}
+.ptabs{display:flex;gap:4px;border:1px solid var(--bd2);border-radius:9px;padding:3px}
+.ptabs button{flex:1;padding:8px;border-radius:6px;text-align:center;font-weight:600;font-size:var(--t2);color:var(--tx3)}
+.ptabs button.on{background:var(--s2);color:var(--tx)}
+.verdict{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
+.verdict h1{margin:0;font-size:var(--t5);font-weight:600;letter-spacing:-.01em;line-height:1.15}
+.verdict h1 span{color:var(--dn)}
+.verdict .cnt{font-size:var(--t2);color:var(--tx2);white-space:nowrap}
+.bar{height:4px;background:var(--bd);border-radius:2px;overflow:hidden;display:flex;gap:2px}
+.bar i{flex:1;background:var(--up)}.bar i.f{background:var(--dn)}
+.sum{color:var(--tx2);font-size:var(--t2);max-width:48ch}
+.checks{display:flex;flex-direction:column;gap:6px}
+.chk{display:grid;grid-template-columns:20px 1fr auto;gap:10px;align-items:center;padding:10px 12px;border:1px solid var(--bd);border-radius:9px;font-size:var(--t2);width:100%}
+.chk:hover{border-color:var(--bd2)}
+.chk .box{width:18px;height:18px;border-radius:5px;border:1.5px solid var(--up);color:var(--up);display:inline-flex;align-items:center;justify-content:center}
+.chk .box svg{width:12px;height:12px}
+.chk.fail .box{border-color:var(--dn);color:var(--dn)}
+.chk .why{color:var(--tx3);font-size:var(--t1);display:block}
+.chk .les{color:var(--act);font-size:var(--t1);font-weight:600}
+.moretog{color:var(--act);font-size:var(--t2);font-weight:600;padding:2px 0}
+.hidden{display:none;flex-direction:column;gap:6px}.hidden.open{display:flex}
+.kv{display:grid;grid-template-columns:1fr auto;gap:8px 12px;padding-top:12px;border-top:1px solid var(--bd);font-size:var(--t2)}
+.kv span:nth-child(odd){color:var(--tx2)}.kv .num{text-align:right}
+.cta{display:flex;flex-direction:column;gap:8px;margin-top:4px}
+.review{width:100%;padding:14px;border-radius:10px;background:var(--act-soft);border:1px solid rgba(79,140,255,.5);color:var(--tx);font-size:var(--t3);font-weight:600;text-align:center}
+.review:hover{background:rgba(79,140,255,.22)}
+.cta small{color:var(--tx3);font-size:var(--t1);text-align:center}
+
+/* ── ticket (Before) ── */
+.side{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.side button{padding:11px;border-radius:9px;border:1px solid var(--bd2);text-align:center;font-weight:600;color:var(--tx3)}
+.side button.buy.on{border-color:var(--up);color:var(--up);background:rgba(47,191,155,.1)}
+.side button.sell.on{border-color:var(--dn);color:var(--dn);background:rgba(240,86,79,.1)}
+.field{display:grid;grid-template-columns:1fr auto;gap:2px 10px;padding:10px 12px;border:1px solid var(--bd);border-radius:9px;align-items:center}
+.field label{font-size:var(--t1);color:var(--tx3);letter-spacing:.06em;text-transform:uppercase;font-weight:600;grid-column:1/3}
+.field .in{display:flex;align-items:center;gap:6px}
+.field input{font-family:var(--mono);font-size:var(--t3);font-variant-numeric:tabular-nums}
+.field .aux{font-size:var(--t1);color:var(--tx3);text-align:right;font-family:var(--mono)}
+.stepper{display:inline-flex;border:1px solid var(--bd2);border-radius:7px;overflow:hidden}
+.stepper button{width:32px;height:30px;display:inline-flex;align-items:center;justify-content:center;color:var(--tx2)}
+.stepper button:hover{background:var(--s2)}
+.risk{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.risk .tile{padding:10px 12px;border-radius:9px;background:var(--s1);border:1px solid var(--bd)}
+.risk .tile .lbl{display:block;margin-bottom:2px}
+.risk .tile .num{font-size:var(--t3)}
+.risk .tile small{display:block;font-size:var(--t1);color:var(--tx3)}
+
+/* ── position (During) ── */
+.pos{padding:14px;border-radius:12px;background:var(--s1);border:1px solid var(--bd2);display:flex;flex-direction:column;gap:12px}
+.pos .hd{display:flex;align-items:baseline;gap:8px}
+.pos .hd b{font-size:var(--t3);font-weight:600}
+.pos .hd .pl{margin-left:auto;font-size:var(--t4)}
+.pos .tag{font-size:var(--t1);font-weight:700;letter-spacing:.06em;padding:2px 6px;border-radius:5px;background:rgba(240,86,79,.14);color:var(--dn)}
+.rail{position:relative;height:28px}
+.rail .ln{position:absolute;left:0;right:0;top:13px;height:2px;background:linear-gradient(90deg,var(--dn),var(--bd2) 40%,var(--bd2) 60%,var(--up))}
+.rail .pin{position:absolute;top:6px;width:16px;height:16px;border-radius:50%;background:var(--act);border:2px solid var(--bg);transform:translateX(-50%);transition:left .4s}
+.rail .e{position:absolute;top:9px;width:2px;height:10px;background:var(--tx3);transform:translateX(-50%)}
+.rl{display:grid;grid-template-columns:1fr 1fr 1fr;font-size:var(--t1);color:var(--tx3)}
+.rl span:nth-child(2){text-align:center}.rl span:nth-child(3){text-align:right}
+.acts{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.acts button{padding:10px 4px;border-radius:9px;border:1px solid var(--bd2);display:flex;flex-direction:column;align-items:center;gap:4px;font-size:var(--t1);font-weight:600;color:var(--tx2)}
+.acts button:hover{background:var(--s2)}
+.acts button.close{color:var(--dn);border-color:rgba(240,86,79,.4)}
+.limits{display:flex;flex-direction:column;gap:10px;padding:12px;border-radius:12px;border:1px solid var(--bd)}
+.lim{display:grid;grid-template-columns:1fr auto;gap:4px 10px;font-size:var(--t1)}
+.lim .lbl{letter-spacing:.05em}
+.lim .num{color:var(--tx2)}
+.lim .m{grid-column:1/3;height:4px;background:var(--bd);border-radius:2px;overflow:hidden}
+.lim .m i{display:block;height:100%;background:var(--tx2);border-radius:2px}
+.lim .m i.w{background:var(--paper)}
+
+/* ── portfolio / history ── */
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;padding:0 16px}
+.stats .tile{padding:10px 12px;border-radius:9px;background:var(--s1);border:1px solid var(--bd)}
+.stats .tile .lbl{display:block;margin-bottom:2px}.stats .tile .num{font-size:var(--t3)}
+.hist{display:flex;flex-direction:column}
+.hrow{display:grid;grid-template-columns:auto 1fr auto;gap:2px 12px;padding:11px 16px;border-bottom:1px solid var(--bd);font-size:var(--t2);align-items:center}
+.hrow .t{font-size:var(--t1);color:var(--tx3);grid-column:2}
+.hrow .pl{grid-row:1/3;text-align:right}
+.hrow .tag{font-size:var(--t1);font-weight:700;letter-spacing:.05em;padding:2px 6px;border-radius:5px;grid-row:1/3}
+.hrow .tag.s{background:rgba(240,86,79,.14);color:var(--dn)}.hrow .tag.b{background:rgba(47,191,155,.14);color:var(--up)}
+
+/* ── learn ── */
+.lessons{display:flex;flex-direction:column;gap:6px;padding:0 16px}
+.les{display:grid;grid-template-columns:auto 1fr auto;gap:2px 12px;padding:12px;border:1px solid var(--bd);border-radius:10px;align-items:center;font-size:var(--t2)}
+.les .n{font-family:var(--mono);color:var(--tx3);grid-row:1/3;font-size:var(--t1)}
+.les small{font-size:var(--t1);color:var(--tx3);grid-column:2}
+.les .go{grid-row:1/3;font-size:var(--t1);font-weight:600;color:var(--act);white-space:nowrap}
+
+/* ── bottom nav ── */
+nav.bottom{position:fixed;left:0;right:0;bottom:0;display:grid;grid-template-columns:repeat(5,1fr);border-top:1px solid var(--bd);background:var(--bg);padding:6px 8px calc(6px + env(safe-area-inset-bottom,0px));z-index:6}
+nav.bottom button{padding:8px 4px;border-radius:8px;font-size:var(--t1);font-weight:600;color:var(--tx3);display:flex;flex-direction:column;gap:3px;align-items:center}
+nav.bottom button.on{color:var(--tx)}
+nav.bottom button.on svg{color:var(--act)}
+@media(min-width:960px){nav.bottom{display:none}}
+
+/* ── sheets / toast ── */
+.dim{position:fixed;inset:0;background:rgba(3,6,12,.66);z-index:20;display:flex;align-items:flex-end;justify-content:center}
+@media(min-width:700px){.dim{align-items:center}}
+.sheet{position:relative;width:100%;max-width:440px;background:var(--s1);border:1px solid var(--bd2);border-radius:16px 16px 0 0;padding:18px 18px calc(18px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:12px;max-height:88vh;overflow:auto}
+@media(min-width:700px){.sheet{border-radius:16px}}
+.sheet p{color:var(--tx2);font-size:var(--t2)}
+.sheet .x{position:absolute;right:14px;top:12px;color:var(--tx3);font-size:22px;line-height:1;padding:4px}
+.sheet .row{display:flex;justify-content:space-between;gap:12px;font-size:var(--t2);padding:9px 0;border-bottom:1px solid var(--bd)}
+.sheet .row span:first-child{color:var(--tx2)}
+.btns{display:flex;gap:8px;margin-top:6px}
+.btns button{flex:1;padding:13px;border-radius:10px;font-size:var(--t2);font-weight:600;text-align:center}
+.b-cancel{background:var(--s2);border:1px solid var(--bd2)}
+.b-go{background:var(--dn);color:#fff}.b-go.buy{background:var(--up);color:#04110d}
+.b-link{background:var(--act-soft);border:1px solid rgba(79,140,255,.5)}
+.pill{align-self:flex-start;padding:4px 10px;border-radius:999px;font-size:var(--t1);font-weight:700;letter-spacing:.06em;text-transform:uppercase;border:1px solid var(--paper);color:var(--paper)}
+.pill.demo{border-color:var(--act);color:var(--act)}.pill.real{border-color:var(--real);color:var(--real)}
+.stack{display:flex;flex-direction:column;gap:6px}
+.opt{display:grid;grid-template-columns:1fr auto;gap:2px 10px;padding:12px;border:1px solid var(--bd2);border-radius:10px}
+.opt.on{border-color:var(--act);background:var(--act-soft)}
+.opt b{font-size:var(--t2);font-weight:600}.opt span{grid-column:1;font-size:var(--t1);color:var(--tx3)}.opt em{grid-row:1/3;align-self:center;font-style:normal;font-size:var(--t1);color:var(--tx3)}
+.toast{position:fixed;left:50%;bottom:calc(84px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--s3);border:1px solid var(--bd2);padding:10px 14px;border-radius:10px;font-size:var(--t2);z-index:30;max-width:min(90vw,440px);display:flex;gap:8px;align-items:center}
+@media(min-width:960px){.toast{bottom:24px}}
+@media(prefers-reduced-motion:no-preference){.sheet{animation:up .18s ease-out}@keyframes up{from{transform:translateY(18px);opacity:0}}.toast{animation:fade .18s ease-out}@keyframes fade{from{opacity:0}}}
+</style>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-chart" viewBox="0 0 24 24"><path d="M4 18l5-6 4 3 7-9"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12l4 4 10-10"/></symbol>
+  <symbol id="i-trade" viewBox="0 0 24 24"><path d="M7 4v16M7 8H4l3-4 3 4H7M17 20V4M17 16h3l-3 4-3-4h3"/></symbol>
+  <symbol id="i-port" viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 012-2h4a2 2 0 012 2v2M3 12h18"/></symbol>
+  <symbol id="i-learn" viewBox="0 0 24 24"><path d="M4 5h6a3 3 0 013 3v11a2 2 0 00-2-2H4zM20 5h-6a3 3 0 00-3 3v11a2 2 0 012-2h7z"/></symbol>
+  <symbol id="i-tick" viewBox="0 0 24 24"><path d="M5 12l4 4 10-10"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
+  <symbol id="i-be" viewBox="0 0 24 24"><path d="M4 12h16M12 4l4 4M12 20l4-4"/></symbol>
+  <symbol id="i-sltp" viewBox="0 0 24 24"><path d="M4 7h16M4 17h16M8 4v6M16 14v6"/></symbol>
+  <symbol id="i-trail" viewBox="0 0 24 24"><path d="M4 16l4-4 4 4 8-8M16 8h4v4"/></symbol>
+  <symbol id="i-close" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M9 9l6 6M15 9l-6 6"/></symbol>
+  <symbol id="i-draw" viewBox="0 0 24 24"><path d="M4 20l4-1 11-11-3-3L5 16z"/></symbol>
+  <symbol id="i-ind" viewBox="0 0 24 24"><path d="M4 14c3 0 3-6 6-6s3 8 6 8 3-4 4-4"/></symbol>
+  <symbol id="i-bulb" viewBox="0 0 24 24"><path d="M9 18h6M10 21h4M8 12a4 4 0 118 0c0 2-2 3-2 5h-4c0-2-2-3-2-5z"/></symbol>
+  <symbol id="i-minus" viewBox="0 0 24 24"><path d="M6 12h12"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 6v12M6 12h12"/></symbol>
+</svg>
+
+<div class="strip"><span class="dot"></span><span><b>Redesign preview</b> · example prices, nothing is live. Every button works.</span></div>
+
+<div class="app" id="app">
+<header class="top">
+  <div class="brand"><i>P</i>PRO<em>Trader</em></div>
+  <button class="acct" id="acct" onclick="openAcct()" aria-label="Account: paper, $10,000. Change account"><span class="dot"></span><span id="acctLbl">Paper</span><span class="num" id="acctBal">$10,000.00</span></button>
+</header>
+
+<main>
+  <!-- ── left: watchlist + limits (desktop) ── -->
+  <section class="col left">
+    <div>
+      <div class="lbl" style="margin-bottom:8px">Watchlist</div>
+      <div class="wl">
+        <button class="wrow on"><b>EUR/USD</b><span class="num">1.14674</span><small>Euro · US dollar</small><span class="chg dn">−0.10%</span></button>
+        <button class="wrow"><b>GBP/USD</b><span class="num">1.33692</span><small>Pound · US dollar</small><span class="chg up">+0.01%</span></button>
+        <button class="wrow"><b>Vol 75</b><span class="num">5457.49</span><small>Deriv synthetic</small><span class="chg dn">−0.88%</span></button>
+        <button class="wrow"><b>XAU/USD</b><span class="num">4347.92</span><small>Gold</small><span class="chg up">+0.01%</span></button>
+      </div>
+    </div>
+    <div class="limits" id="limitsL"></div>
+  </section>
+
+  <!-- ── center ── -->
+  <section class="col center">
+    <div class="screen on" id="sc-chart">
+      <div class="first" id="first"><svg class="i" style="color:var(--act)"><use href="#i-bulb"/></svg><div><b>Start with the check</b>Every chart comes with a Setup Check: one verdict, the evidence behind it, and a ticket already sized to 1% of your account.</div><button class="x" onclick="document.getElementById('first').remove()" aria-label="Dismiss">×</button></div>
+      <div class="sym"><b>EUR/USD</b><span class="px num" id="px">1.14674</span><span class="chg dn num">−0.10%</span><span class="feed"><i></i>Deriv feed</span></div>
+      <div class="tfbar">
+        <button>1M</button><button>5M</button><button class="on">15M</button><button>1H</button><button>4H</button><button>1D</button>
+        <span class="sp"></span>
+        <button class="tool" onclick="toast('Indicators stay: EMA 20 / 50 and RSI are on this chart.')"><svg class="i" style="width:16px;height:16px"><use href="#i-ind"/></svg>Indicators</button>
+        <button class="tool" onclick="toast('All 14 drawing tools stay, one tap away.')"><svg class="i" style="width:16px;height:16px"><use href="#i-draw"/></svg>Draw</button>
+      </div>
+      <div class="chartbox">
+        <canvas id="ch" role="img" aria-label="EUR/USD 15-minute candlestick chart in a downtrend with a double top; entry, stop and target lines drawn"></canvas>
+        <div class="ohlc num"><span>O 1.14720</span><span>H 1.14722</span><span>L 1.14669</span><span>C 1.14674</span></div>
+        <div class="xh num" id="xh"></div>
+      </div>
+      <div class="vcard" id="vcard">
+        <div class="v">Leaning <span>SELL</span></div>
+        <div class="c">8 of 9 checks · stop 20 pips · risk $100</div>
+        <button class="go" onclick="go('check')">See the check</button>
+      </div>
+      <div class="btabs" id="ctabs"><button class="on" onclick="ctab(this,'pos')">Positions · <span id="posCount">0</span></button><button onclick="ctab(this,'hist')">History</button><button onclick="ctab(this,'journal')">Journal</button></div>
+      <div id="cbody"><div class="empty"><b>No open positions.</b>When you place a trade it appears here with the checks you ran before entering.</div></div>
+    </div>
+
+    <div class="screen phoneonly" id="sc-check"></div>
+    <div class="screen phoneonly" id="sc-trade"></div>
+
+    <div class="screen phoneonly" id="sc-port">
+      <div style="padding:16px 16px 10px" class="lbl">Portfolio · <span id="portAcct">Paper</span></div>
+      <div class="stats">
+        <div class="tile"><span class="lbl">Balance</span><span class="num" id="stBal">$10,000.00</span></div>
+        <div class="tile"><span class="lbl">Equity</span><span class="num" id="stEq">$10,000.00</span></div>
+        <div class="tile"><span class="lbl">Today</span><span class="num" id="stDay">$0.00</span></div>
+      </div>
+      <div style="padding:18px 16px 8px" class="lbl">History</div>
+      <div class="hist" id="hist"></div>
+    </div>
+
+    <div class="screen phoneonly" id="sc-learn">
+      <div style="padding:16px 16px 10px" class="lbl">Academy · 7 lessons</div>
+      <div class="lessons">
+        <div class="les"><span class="n">01</span><b>What moves a price</b><small>Bids, asks, spread</small><span class="go">Read ↗</span></div>
+        <div class="les"><span class="n">02</span><b>Market structure</b><small>Highs, lows, trend</small><a class="go" href="#chart" onclick="go('chart');return false">Practise on chart ↗</a></div>
+        <div class="les"><span class="n">03</span><b>Risk and position size</b><small>The 1% rule, stops, R:R</small><a class="go" href="#trade" onclick="go('trade');return false">Open the ticket ↗</a></div>
+        <div class="les"><span class="n">04</span><b>Reading a setup</b><small>EMA, RSI, patterns</small><a class="go" href="#check" onclick="go('check');return false">See today's check ↗</a></div>
+        <div class="les"><span class="n">05</span><b>Managing a live trade</b><small>Breakeven, trailing</small><span class="go">Read ↗</span></div>
+        <div class="les"><span class="n">06</span><b>Journaling</b><small>Why you took it</small><span class="go">Read ↗</span></div>
+        <div class="les"><span class="n">07</span><b>Going live</b><small>Demo to real, safely</small><span class="go">Read ↗</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── right: Check / Trade panel (desktop) ── -->
+  <aside class="col right" id="rightPanel"></aside>
+</main>
+
+<nav class="bottom" id="nav">
+  <button class="on" data-s="chart" onclick="go('chart')"><svg class="i"><use href="#i-chart"/></svg>Chart</button>
+  <button data-s="check" onclick="go('check')"><svg class="i"><use href="#i-check"/></svg>Check</button>
+  <button data-s="trade" onclick="go('trade')"><svg class="i"><use href="#i-trade"/></svg>Trade</button>
+  <button data-s="port" onclick="go('port')"><svg class="i"><use href="#i-port"/></svg>Port</button>
+  <button data-s="learn" onclick="go('learn')"><svg class="i"><use href="#i-learn"/></svg>Learn</button>
+</nav>
+</div>
+<div id="overlay"></div>
+
+<script>
+/* ───────── state ───────── */
+const S={
+  acct:'paper', bal:{paper:10000,demo:10003.22,real:2450},
+  side:'sell', riskPct:1, entry:1.14674, stop:1.14874, tp:1.14174,
+  pos:null, // {side,lots,entry,stop,tp,pl,trail,be}
+  hist:[
+    {side:'b',sym:'XAU/USD',lots:0.02,t:'Yesterday 14:32 → 16:05',pl:+84.20},
+    {side:'s',sym:'Vol 75',lots:0.005,t:'Yesterday 10:10 → 10:41',pl:-96.50},
+    {side:'s',sym:'EUR/USD',lots:0.50,t:'Mon 09:12 → 11:48',pl:+142.00},
+  ],
+  dayLoss:0, losses:0, ptab:'check', tmode:'before', screen:'chart',
+};
+const CHECKS=[
+  {k:'trend',ok:1,t:'Trend is down',w:'EMA 20 below EMA 50',l:4},
+  {k:'rsi',ok:1,t:'Momentum agrees',w:'RSI 30',l:4},
+  {k:'structure',ok:1,t:'Lower highs, lower lows',w:'Structure since 06:00',l:2},
+  {k:'doubletop',ok:1,t:'Double top completed',w:'Neckline broken at 1.14690',l:4},
+  {k:'stoch',ok:0,t:'Stochastic is oversold',w:'A bounce is likely before it continues',l:4},
+  {k:'mtf',ok:1,t:'1-hour chart agrees',w:'Higher timeframe down',l:null},
+  {k:'session',ok:1,t:'London session is open',w:'Enough volume to move',l:null},
+  {k:'spring',ok:1,t:'The low held cleanly',w:'No Wyckoff spring',l:null},
+  {k:'atr',ok:1,t:'Stop clears the noise',w:'20 pips vs 1.5×ATR 14.7',l:3},
+];
+const TERMS={
+  trend:['Trend is down (EMA 20 < 50)','Two moving averages. The faster one (20 candles) sits below the slower (50): recent prices are lower than older ones. The check passes when that agrees with the direction of the trade.'],
+  rsi:['Momentum agrees (RSI 30)','RSI scores how hard price has been pushed, 0 to 100. At 30 sellers have been in control. For a sell that counts as agreement; it does not mean price cannot bounce.'],
+  structure:['Lower highs, lower lows','A downtrend leaves a staircase: each bounce tops out below the last, each drop goes further. A higher high would break that staircase and put the trend in question.'],
+  doubletop:['Double top','Price reached the same level twice and was rejected both times. The pattern only counts once price breaks the low between the two tops — which it did at 1.14690.'],
+  stoch:['Stochastic is oversold','The stochastic compares the close to its recent range. Below 20 price is at the bottom of that range, and selling there often meets a bounce first. This is the one check against you, and the verdict says so.'],
+  mtf:['1-hour chart agrees','The 1-hour chart is also in a downtrend, so this 15-minute sell goes with the bigger picture rather than against it.'],
+  session:['London session is open','Volume differs by time of day. London and New York hours move EUR/USD most; outside them setups are slower to play out.'],
+  spring:['The low held cleanly','A "spring" is a quick dip below a low that snaps back — a trap for sellers. This passes when the recent low held without one.'],
+  atr:['Stop clears the noise (ATR)','ATR is the average candle size over the last 14. A stop closer than 1.5× that gets hit by ordinary noise. Yours is 20 pips; 1.5× ATR here is 14.7.'],
+};
+const fmt=n=>(n<0?'−':'')+'$'+Math.abs(n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+const p5=n=>n.toFixed(5);
+const pips=(a,b)=>Math.abs(a-b)*10000;
+const bal=()=>S.bal[S.acct];
+const riskUsd=()=>Math.round(bal()*S.riskPct/100);
+const lots=()=>Math.max(0.01,Math.round(riskUsd()/(pips(S.entry,S.stop)*10)*100)/100);
+const rr=()=>(pips(S.entry,S.tp)/pips(S.entry,S.stop)).toFixed(1);
+const acctName=()=>({paper:'Paper',demo:'MT5 demo',real:'MT5 real'})[S.acct];
+
+/* ───────── navigation ───────── */
+function go(s){S.screen=s;document.querySelectorAll('.screen').forEach(e=>e.classList.toggle('on',e.id==='sc-'+s));
+  document.querySelectorAll('#nav button').forEach(b=>b.classList.toggle('on',b.dataset.s===s));
+  if(s==='check'){S.ptab='check';renderPanel();}
+  if(s==='trade'){S.ptab='trade';renderPanel();}
+  if(innerWidth>=960&&(s==='check'||s==='trade')){renderPanel();}
+  scrollTo({top:0});}
+function ctab(b,k){b.parentNode.querySelectorAll('button').forEach(x=>x.classList.remove('on'));b.classList.add('on');
+  const c=document.getElementById('cbody');
+  if(k==='pos')c.innerHTML=S.pos?posCard():'<div class="empty"><b>No open positions.</b>When you place a trade it appears here with the checks you ran before entering.</div>';
+  if(k==='hist')c.innerHTML='<div class="hist">'+S.hist.map(hrow).join('')+'</div>';
+  if(k==='journal')c.innerHTML='<div class="empty"><b>Nothing journaled yet.</b>Each trade you close asks one question: did you follow the check? Your answers collect here.</div>';}
+
+/* ───────── panel: Check / Trade ───────── */
+function renderPanel(){
+  const html=`<div class="panel">
+    <div class="ptabs" role="tablist"><button class="${S.ptab==='check'?'on':''}" onclick="S.ptab='check';renderPanel()">Setup check</button><button class="${S.ptab==='trade'?'on':''}" onclick="S.ptab='trade';renderPanel()">Trade${S.pos?' · 1 open':''}</button></div>
+    ${S.ptab==='check'?checkPanel():tradePanel()}
+  </div>`;
+  document.getElementById('rightPanel').innerHTML=html;
+  document.getElementById('sc-check').innerHTML=html;
+  document.getElementById('sc-trade').innerHTML=html;
+  renderLimits();
+}
+function checkPanel(){
+  const pass=CHECKS.filter(c=>c.ok).length;
+  const row=c=>`<button class="chk ${c.ok?'':'fail'}" onclick="openTerm('${c.k}')"><span class="box"><svg class="i"><use href="#${c.ok?'i-tick':'i-x'}"/></svg></span><span>${c.t}<span class="why">${c.w}</span></span><span class="les">${c.l?'Lesson '+c.l:''}</span></button>`;
+  return `
+    <div class="lbl">EUR/USD · 15M · ${new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}</div>
+    <div class="verdict"><h1>Leaning <span>SELL</span></h1><span class="cnt num">${pass} of ${CHECKS.length}</span></div>
+    <div class="bar">${CHECKS.map(c=>`<i class="${c.ok?'':'f'}"></i>`).join('')}</div>
+    <p class="sum">Trend, momentum and structure all point down, and the 1-hour chart agrees. One check is against you: the stochastic is oversold, so price may bounce before it continues.</p>
+    <div class="checks">${CHECKS.slice(0,5).map(row).join('')}
+      <div class="hidden" id="more">${CHECKS.slice(5).map(row).join('')}</div>
+      <button class="moretog" id="moretog" onclick="toggleMore()">Show ${CHECKS.length-5} more checks ▾</button></div>
+    <div class="kv"><span>Entry</span><span class="num">${p5(S.entry)}</span><span>Stop</span><span class="num">${p5(S.stop)} · ${pips(S.entry,S.stop).toFixed(0)} pips</span><span>Target</span><span class="num">${p5(S.tp)} · 1 : ${rr()}</span><span>Risk</span><span class="num"><b>${fmt(riskUsd())}</b> · ${S.riskPct}% of ${acctName().toLowerCase()}</span></div>
+    <div class="cta"><button class="review" onclick="S.ptab='trade';S.tmode='before';renderPanel();if(innerWidth<960)go('trade')">Review this trade</button><small>Opens the ticket pre-filled. Nothing is placed until you confirm.</small></div>`;
+}
+function tradePanel(){
+  const modes=`<div class="ptabs" style="border:0;padding:0;gap:6px"><button class="${S.tmode==='before'?'on':''}" style="border:1px solid var(--bd2)" onclick="S.tmode='before';renderPanel()">Before the trade</button><button class="${S.tmode==='during'?'on':''}" style="border:1px solid var(--bd2)" onclick="S.tmode='during';renderPanel()">Open · ${S.pos?1:0}</button></div>`;
+  if(S.tmode==='during')return modes+(S.pos?posCard():`<div class="empty" style="padding:24px 0"><b>Nothing open.</b>Place a trade from the ticket and manage it here: breakeven, stops, trailing, close.</div>`)+`<div class="limits" id="limitsR"></div>`;
+  const sellOn=S.side==='sell';
+  return modes+`
+    <div class="side"><button class="buy ${sellOn?'':'on'}" onclick="S.side='buy';renderPanel()">Buy</button><button class="sell ${sellOn?'on':''}" onclick="S.side='sell';renderPanel()">Sell</button></div>
+    <div class="risk">
+      <div class="tile"><span class="lbl">Risk this trade</span><span class="in" style="display:flex;align-items:center;gap:8px"><span class="num">${fmt(riskUsd())}</span><span class="stepper"><button onclick="S.riskPct=Math.max(.25,S.riskPct-.25);renderPanel()" aria-label="Less risk"><svg class="i" style="width:14px;height:14px"><use href="#i-minus"/></svg></button><button onclick="S.riskPct=Math.min(1,S.riskPct+.25);renderPanel()" aria-label="More risk"><svg class="i" style="width:14px;height:14px"><use href="#i-plus"/></svg></button></span></span><small>${S.riskPct}% of ${fmt(bal())} · limit 1%</small></div>
+      <div class="tile"><span class="lbl">Size</span><span class="num">${lots().toFixed(2)} lots</span><small>set from your risk and stop</small></div>
+    </div>
+    <div class="field"><label for="fEntry">Entry · market</label><div class="in"><input id="fEntry" class="num" value="${p5(S.entry)}" readonly></div><span class="aux">spread 0.6</span></div>
+    <div class="field"><label for="fStop">Stop loss</label><div class="in"><input id="fStop" class="num" value="${p5(S.stop)}" inputmode="decimal" onchange="S.stop=+this.value||S.stop;renderPanel()"></div><span class="aux dn">${pips(S.entry,S.stop).toFixed(0)} pips · −${fmt(riskUsd()).slice(1)}</span></div>
+    <div class="field"><label for="fTp">Take profit</label><div class="in"><input id="fTp" class="num" value="${p5(S.tp)}" inputmode="decimal" onchange="S.tp=+this.value||S.tp;renderPanel()"></div><span class="aux up">${pips(S.entry,S.tp).toFixed(0)} pips · +${fmt(riskUsd()*rr()).slice(1)} · 1:${rr()}</span></div>
+    <div class="kv" style="border:0;padding-top:0"><span>Margin</span><span class="num">${fmt(lots()*1000*S.entry/30)} · ${(lots()*1000*S.entry/30/bal()*100).toFixed(1)}% of account</span><span>Checks</span><span class="num">8 of 9 <a href="#check" onclick="S.ptab='check';renderPanel();if(innerWidth<960)go('check');return false" style="color:var(--act);text-decoration:none;font-family:var(--sans)">see</a></span></div>
+    <div class="cta"><button class="review" onclick="openConfirm()">Review ${S.side==='sell'?'sell':'buy'} · ${lots().toFixed(2)} EUR/USD</button><small>${S.acct==='real'?'Real money: the order goes to MT5 after you confirm.':S.acct==='demo'?'Goes to your MT5 demo after you confirm.':'Paper trade: nothing real is sent.'}</small></div>
+    <div class="limits" id="limitsR"></div>`;
+}
+function posCard(){const p=S.pos;const span=Math.abs(p.tp-p.stop);const pct=Math.min(100,Math.max(0,(p.side==='sell'?(p.stop-S.px):(S.px-p.stop))/span*100));
+  return `<div class="pos">
+    <div class="hd"><span class="tag" style="${p.side==='buy'?'background:rgba(47,191,155,.14);color:var(--up)':''}">${p.side.toUpperCase()}</span><b>${p.lots.toFixed(2)} EUR/USD</b><span class="num mut" style="font-size:var(--t1)">@ ${p5(p.entry)}</span><span class="pl num ${p.pl>=0?'up':'dn'}" id="posPl">${fmt(p.pl)}</span></div>
+    <div><div class="rail"><div class="ln"></div><div class="e" style="left:${(Math.abs(p.entry-p.stop)/span*100).toFixed(1)}%"></div><div class="pin" style="left:${pct.toFixed(1)}%"></div></div>
+    <div class="rl num"><span>Stop ${p5(p.stop)}${p.be?' · BE':''}</span><span>Entry</span><span>Target ${p5(p.tp)}</span></div></div>
+    <div class="acts">
+      <button onclick="breakeven()" ${p.be?'disabled style="opacity:.45"':''}><svg class="i"><use href="#i-be"/></svg>Breakeven</button>
+      <button onclick="openStops()"><svg class="i"><use href="#i-sltp"/></svg>SL · TP</button>
+      <button onclick="trail()" style="${p.trail?'border-color:var(--act);color:var(--act)':''}"><svg class="i"><use href="#i-trail"/></svg>${p.trail?'Trailing':'Trail'}</button>
+      <button class="close" onclick="openClose()"><svg class="i"><use href="#i-close"/></svg>Close</button>
+    </div>
+    <p style="font-size:var(--t1);color:var(--tx3)">${p.trail?'Trailing 20 pips behind price. It only ever tightens.':p.be?'Stop at entry: the worst case is now $0.':'Checks recorded at entry: 8 of 9.'}</p>
+  </div>`;}
+function hrow(h){return `<div class="hrow"><span class="tag ${h.side}">${h.side==='s'?'SELL':'BUY'}</span><b>${h.sym} · ${h.lots} lots</b><span class="t">${h.t}</span><span class="pl num ${h.pl>=0?'up':'dn'}">${fmt(h.pl)}</span></div>`;}
+function renderLimits(){
+  const openRisk=S.pos&&!S.pos.be?riskUsd():0;const b=bal();
+  const html=`<div class="lbl">Your limits · ${acctName()}</div>
+    <div class="lim"><span class="lbl">Risk per trade</span><span class="num">${fmt(riskUsd())} · 1%</span><span class="m"><i style="width:${S.riskPct*100}%"></i></span></div>
+    <div class="lim"><span class="lbl">Open risk</span><span class="num">${fmt(openRisk)} of ${fmt(b*.02)}</span><span class="m"><i style="width:${openRisk/(b*.02)*100}%"></i></span></div>
+    <div class="lim"><span class="lbl">Daily loss</span><span class="num">${fmt(S.dayLoss)} of ${fmt(b*.03)}</span><span class="m"><i class="${S.dayLoss/(b*.03)>.6?'w':''}" style="width:${S.dayLoss/(b*.03)*100}%"></i></span></div>
+    <div class="lim"><span class="lbl">Losing trades</span><span class="num">${S.losses} of 3</span><span class="m"><i class="${S.losses>=2?'w':''}" style="width:${S.losses/3*100}%"></i></span></div>`;
+  document.querySelectorAll('.limits').forEach(e=>{e.innerHTML=html;});
+  document.getElementById('hist').innerHTML=S.hist.map(hrow).join('');
+  document.getElementById('posCount').textContent=S.pos?1:0;
+  document.getElementById('portAcct').textContent=acctName();
+  document.getElementById('stBal').textContent=fmt(b);document.getElementById('stEq').textContent=fmt(b+(S.pos?S.pos.pl:0));
+  const d=document.getElementById('stDay');d.textContent=fmt(-S.dayLoss+(S.pos?S.pos.pl:0));d.className='num '+(-S.dayLoss+(S.pos?S.pos.pl:0)>=0?'up':'dn');
+}
+function toggleMore(){document.querySelectorAll('#more').forEach(m=>{m.classList.toggle('open');});document.querySelectorAll('#moretog').forEach(t=>t.textContent=t.textContent.startsWith('Show fewer')?`Show ${CHECKS.length-5} more checks ▾`:'Show fewer checks ▴');}
+
+/* ───────── sheets ───────── */
+function sheet(html){document.getElementById('overlay').innerHTML=`<div class="dim" onclick="if(event.target===this)closeSheet()"><div class="sheet" role="dialog"><button class="x" aria-label="Close" onclick="closeSheet()">×</button>${html}</div></div>`;}
+function closeSheet(){document.getElementById('overlay').innerHTML='';}
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeSheet();});
+let tt;function toast(t){let e=document.querySelector('.toast');if(!e){e=document.createElement('div');e.className='toast';document.body.appendChild(e);}e.textContent=t;clearTimeout(tt);tt=setTimeout(()=>e.remove(),3400);}
+function openTerm(k){const [t,b]=TERMS[k];const c=CHECKS.find(x=>x.k===k);sheet(`<h2>${t}</h2><p>${b}</p>${c.l?`<div class="btns"><button class="b-cancel" onclick="closeSheet()">Close</button><button class="b-link" onclick="closeSheet();toast('Would open Academy lesson ${c.l} at this section.')">Lesson ${c.l} ↗</button></div>`:`<p style="font-size:var(--t1);color:var(--tx3)">No Academy lesson covers this yet, so nothing is linked.</p><div class="btns"><button class="b-cancel" onclick="closeSheet()">Close</button></div>`}`);}
+function openAcct(){sheet(`<h2>Where do trades go?</h2><p>The chip in the header always shows the answer. Real money is never one tap away.</p><div class="stack">
+  ${[['paper','Paper','Recommended','$10,000 of paper money at live prices. Nothing is sent anywhere.'],['demo','MT5 demo','Bridge','Your own MetaTrader 5 demo through the Pro Trader Bridge.'],['real','MT5 real','Real money','Every order confirms first. Your limits are enforced inside MT5 too.']].map(([k,n,e,d])=>`<button class="opt ${S.acct===k?'on':''}" onclick="setAcct('${k}')"><b>${n}</b><em>${e}</em><span>${d}</span></button>`).join('')}
+  </div><p style="font-size:var(--t1);color:var(--tx3)">Pro Trader never holds your money.</p>`);}
+function setAcct(k){S.acct=k;const a=document.getElementById('acct');a.className='acct '+(k==='paper'?'':k);document.getElementById('acctLbl').textContent=acctName();document.getElementById('acctBal').textContent=fmt(bal());closeSheet();renderPanel();toast(k==='real'?'Orders now go to your real MT5 account. Risk $'+riskUsd()+' per trade.':acctName()+' selected.');}
+function openConfirm(){const real=S.acct==='real';const s=S.side;sheet(`
+  <span class="pill ${S.acct==='paper'?'':S.acct}">${real?'Real money · MT5':acctName()}</span>
+  <h2>${s==='sell'?'Sell':'Buy'} ${lots().toFixed(2)} EUR/USD</h2>
+  <div class="row"><span>Entry · market</span><span class="num">${p5(S.entry)}</span></div>
+  <div class="row"><span>Stop loss</span><span class="num">${p5(S.stop)} · <span class="dn">−${fmt(riskUsd()).slice(1)}</span></span></div>
+  <div class="row"><span>Take profit</span><span class="num">${p5(S.tp)} · <span class="up">+${fmt(riskUsd()*rr()).slice(1)}</span></span></div>
+  <div class="row"><span>Risk</span><span class="num">${fmt(riskUsd())} · ${S.riskPct}% of account</span></div>
+  <div class="row"><span>Checks passed</span><span class="num">8 of 9</span></div>
+  <div class="btns"><button class="b-cancel" onclick="closeSheet()">Cancel</button><button class="b-go ${s==='buy'?'buy':''}" onclick="place()">${real?'Send to MT5':s==='sell'?'Sell now':'Buy now'}</button></div>`);}
+function place(){S.pos={side:S.side,lots:lots(),entry:S.entry,stop:S.stop,tp:S.tp,pl:0,trail:false,be:false};closeSheet();S.tmode='during';renderPanel();ctab(document.querySelector('#ctabs button'),'pos');toast(S.acct==='real'?'Sent to MT5. It shows under Open when it fills.':'Placed. It is under Open with the 8 checks recorded.');tick();}
+function breakeven(){S.pos.stop=S.pos.entry;S.pos.be=true;renderPanel();ctab(document.querySelector('#ctabs button'),'pos');toast('Stop moved to entry '+p5(S.pos.entry)+'. Worst case is now $0.');}
+function trail(){S.pos.trail=!S.pos.trail;renderPanel();ctab(document.querySelector('#ctabs button'),'pos');toast(S.pos.trail?'Trailing 20 pips behind price. It only tightens, never widens.':'Trailing stopped. Your stop stays where it is.');}
+function openStops(){const p=S.pos;sheet(`<h2>Move stop or target</h2><p>Tightening is always allowed. Widening is checked against your 1% limit first.</p>
+  <div class="field"><label for="eStop">Stop loss</label><div class="in"><input id="eStop" class="num" value="${p5(p.stop)}" inputmode="decimal"></div><span class="aux">${p.side==='sell'?'must stay above':'must stay below'} price</span></div>
+  <div class="field"><label for="eTp">Take profit</label><div class="in"><input id="eTp" class="num" value="${p5(p.tp)}" inputmode="decimal"></div><span class="aux">1:${rr()}</span></div>
+  <div class="btns"><button class="b-cancel" onclick="closeSheet()">Cancel</button><button class="b-link" onclick="S.pos.stop=+document.getElementById('eStop').value||S.pos.stop;S.pos.tp=+document.getElementById('eTp').value||S.pos.tp;S.pos.be=false;closeSheet();renderPanel();ctab(document.querySelector('#ctabs button'),'pos');toast('Stop and target updated.')">Save</button></div>`);}
+function openClose(){const p=S.pos;sheet(`<h2>Close ${p.side} ${p.lots.toFixed(2)} EUR/USD?</h2><div class="row"><span>Result now</span><span class="num ${p.pl>=0?'up':'dn'}">${fmt(p.pl)}</span></div><p>Closing at market. One question after: did you follow the check?</p><div class="btns"><button class="b-cancel" onclick="closeSheet()">Keep it open</button><button class="b-go" onclick="closePos()">Close now</button></div>`);}
+function closePos(){const p=S.pos;S.hist.unshift({side:p.side[0],sym:'EUR/USD',lots:p.lots,t:'Today · just now',pl:p.pl});if(p.pl<0){S.dayLoss+=-p.pl;S.losses++;}S.bal[S.acct]+=p.pl;document.getElementById('acctBal').textContent=fmt(bal());S.pos=null;closeSheet();renderPanel();ctab(document.querySelector('#ctabs button'),'pos');toast('Closed '+fmt(p.pl)+'. Added to history and your daily limits.');}
+
+/* ───────── live-ish price + P&L ───────── */
+S.px=S.entry;let seed=11;const rnd=()=>{seed=(seed*9301+49297)%233280;return seed/233280-.5;};
+function tick(){S.px=+(S.px+rnd()*.00006-.000004).toFixed(5);document.getElementById('px').textContent=p5(S.px);
+  if(S.pos){const p=S.pos;const d=p.side==='sell'?p.entry-S.px:S.px-p.entry;p.pl=+(d*10000*p.lots*10).toFixed(2);if(p.trail&&p.side==='sell'){const want=+(S.px+.0020).toFixed(5);if(want<p.stop)p.stop=want;}
+    document.querySelectorAll('#posPl').forEach(e=>{e.textContent=fmt(p.pl);e.className='pl num '+(p.pl>=0?'up':'dn');});
+    document.querySelectorAll('.pin').forEach(pin=>{const span=Math.abs(p.tp-p.stop);const pct=Math.min(100,Math.max(0,(p.side==='sell'?(p.stop-S.px):(S.px-p.stop))/span*100));pin.style.left=pct.toFixed(1)+'%';});
+    renderLimits();}
+  draw();}
+setInterval(tick,1500);
+
+/* ───────── chart ───────── */
+const c=document.getElementById('ch');const dpr=devicePixelRatio||1;let bars=[];
+(function(){let p=1.1520,s=7;const r=()=>{s=(s*9301+49297)%233280;return s/233280-.5;};for(let i=0;i<64;i++){let drift=i<20?-.00004:i<26?.00012:i<30?-.0001:i<36?.00011:i<58?-.00013:-.00002;const o=p;p+=drift+r()*.00025;bars.push({o,c:p,h:Math.max(o,p)+Math.abs(r())*.0002,l:Math.min(o,p)-Math.abs(r())*.0002});}
+  const last=bars[bars.length-1];const shift=S.entry-last.c;bars=bars.map(b=>({o:b.o+shift,c:b.c+shift,h:b.h+shift,l:b.l+shift}));})();
+let cross=null;
+function draw(){
+  const W=c.clientWidth,H=c.clientHeight;if(!W)return;c.width=W*dpr;c.height=H*dpr;const x=c.getContext('2d');x.scale(dpr,dpr);x.clearRect(0,0,W,H);
+  bars[bars.length-1].c=S.px;const lb=bars[bars.length-1];lb.h=Math.max(lb.h,S.px);lb.l=Math.min(lb.l,S.px);
+  const hi=Math.max(...bars.map(b=>b.h),S.stop)+.0003,lo=Math.min(...bars.map(b=>b.l),S.tp)-.0003;const padR=70,padT=28,padB=12;
+  const Y=v=>padT+(hi-v)/(hi-lo)*(H-padT-padB);const bw=(W-padR-8)/bars.length;
+  x.strokeStyle='rgba(160,178,204,.07)';x.lineWidth=1;x.font='12px "IBM Plex Mono", monospace';x.fillStyle='#7D8CA3';
+  for(let i=0;i<=5;i++){const y=padT+i*(H-padT-padB)/5;x.beginPath();x.moveTo(0,y);x.lineTo(W-padR,y);x.stroke();const near=[S.stop,S.entry,S.tp,S.px].some(v=>Math.abs(Y(v)-y)<14);if(!near)x.fillText((hi-(hi-lo)*i/5).toFixed(5),W-padR+8,y+4);}
+  bars.forEach((b,i)=>{const cx=i*bw+bw/2,up=b.c>=b.o;x.strokeStyle=x.fillStyle=up?'#2FBF9B':'#F0564F';x.beginPath();x.moveTo(cx,Y(b.h));x.lineTo(cx,Y(b.l));x.stroke();const t=Y(Math.max(b.o,b.c)),h=Math.max(1.5,Math.abs(Y(b.o)-Y(b.c)));x.fillRect(cx-bw*.32,t,bw*.64,h);});
+  const t1=bars.slice(20,27).reduce((a,b,i)=>b.h>a.v?{v:b.h,i:20+i}:a,{v:0}),t2=bars.slice(30,37).reduce((a,b,i)=>b.h>a.v?{v:b.h,i:30+i}:a,{v:0});
+  x.setLineDash([4,4]);x.strokeStyle='rgba(240,86,79,.7)';x.beginPath();const ty=Y(Math.max(t1.v,t2.v))-5;x.moveTo(t1.i*bw-4,ty);x.lineTo(t2.i*bw+bw+4,ty);x.stroke();x.setLineDash([]);
+  x.fillStyle='#F0564F';x.font='600 12px "IBM Plex Sans", sans-serif';x.fillText('double top',t1.i*bw-4,ty-6);
+  const lines=S.pos?[[S.pos.stop,'#F0564F','stop'],[S.pos.entry,'#4F8CFF','entry'],[S.pos.tp,'#2FBF9B','target']]:[[S.stop,'#F0564F','stop'],[S.entry,'#4F8CFF','entry'],[S.tp,'#2FBF9B','target']];
+  lines.forEach(([v,col,l])=>{const y=Y(v);if(y<padT||y>H-padB)return;x.strokeStyle=col;x.setLineDash([2,4]);x.beginPath();x.moveTo(0,y);x.lineTo(W-padR,y);x.stroke();x.setLineDash([]);x.fillStyle=col;x.font='600 12px "IBM Plex Sans", sans-serif';x.fillText(l,8,y-4);
+    x.fillStyle=col;x.fillRect(W-padR,y-9,padR,18);x.fillStyle='#070B14';x.font='600 12px "IBM Plex Mono", monospace';x.fillText(v.toFixed(5),W-padR+6,y+4);});
+  /* live price tag */
+  const py=Y(S.px);x.fillStyle='#EEF2F7';x.fillRect(W-padR,py-9,padR,18);x.fillStyle='#070B14';x.font='600 12px "IBM Plex Mono", monospace';x.fillText(S.px.toFixed(5),W-padR+6,py+4);
+  if(cross){x.strokeStyle='rgba(238,242,247,.35)';x.setLineDash([3,3]);x.beginPath();x.moveTo(0,cross.y);x.lineTo(W-padR,cross.y);x.moveTo(cross.x,padT);x.lineTo(cross.x,H-padB);x.stroke();x.setLineDash([]);
+    const v=hi-(cross.y-padT)/(H-padT-padB)*(hi-lo);const xh=document.getElementById('xh');xh.classList.add('on');const d=(v-S.entry)*10000;xh.textContent=v.toFixed(5)+'  '+(d>=0?'+':'−')+Math.abs(d).toFixed(1)+' pips from entry';}
+  else document.getElementById('xh').classList.remove('on');
+}
+c.addEventListener('pointermove',e=>{const r=c.getBoundingClientRect();cross={x:e.clientX-r.left,y:e.clientY-r.top};draw();});
+c.addEventListener('pointerdown',e=>{const r=c.getBoundingClientRect();cross={x:e.clientX-r.left,y:e.clientY-r.top};draw();});
+c.addEventListener('pointerleave',()=>{cross=null;draw();});
+c.addEventListener('pointerup',()=>{setTimeout(()=>{cross=null;draw();},1200);});
+addEventListener('resize',draw);
+document.fonts&&document.fonts.ready.then(draw);
+
+/* ───────── boot ───────── */
+renderPanel();draw();
+</script>
+
+</body>
+</html>
