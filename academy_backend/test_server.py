@@ -46,6 +46,47 @@ class AcademyTests(unittest.TestCase):
         return self.request('/api/session')['user']['id']
     def approve(self,uid):
         self.request('/api/admission',{'student':uid,'status':'accepted','verified':True,'note':'Welcome to the class.'},cookie=self.teacher_cookie)
+    def test_acceptance_verification_and_repeat_saves(self):
+        self.teacher();uid=self.student()
+        payload={'student':uid,'status':'accepted'}
+        self.request('/api/admission',payload,cookie=self.teacher_cookie)
+        self.request('/api/admission',payload,cookie=self.teacher_cookie)
+        self.request('/api/classroom',expected=403)
+        with self.server.app.db() as db:
+            rows=db.execute("SELECT body FROM mail WHERE recipient='student@example.com'").fetchall()
+            self.assertEqual(len(rows),1)
+        token=rows[0]['body'].split('/#verify/')[1].split()[0]
+        self.request('/api/verify-email',{'token':token})
+        self.request('/api/classroom')
+        self.request('/api/verify-email',{'token':token},400)
+        self.assertTrue(self.request('/api/session')['user']['verified'])
+
+    def test_schedule_changes_notify_only_eligible_students_once(self):
+        self.teacher();uid=self.student();self.approve(uid)
+        other=self.student('pending@example.com')
+        schedule={'sessions':[{'lesson':1,'when':'3 October 2026 at 18:00 WAT','url':'https://example.com/class'}]}
+        self.assertEqual(self.request('/api/schedule',schedule,cookie=self.teacher_cookie)['notifications'],1)
+        self.assertEqual(self.request('/api/schedule',schedule,cookie=self.teacher_cookie)['notifications'],0)
+        schedule['sessions'][0]['when']='4 October 2026 at 18:00 WAT'
+        self.assertEqual(self.request('/api/schedule',schedule,cookie=self.teacher_cookie)['notifications'],1)
+        self.assertEqual(self.request('/api/schedule',{'sessions':[]},cookie=self.teacher_cookie)['notifications'],1)
+        with self.server.app.db() as db:
+            rows=db.execute("SELECT recipient,body FROM mail WHERE subject LIKE 'Academy class %'").fetchall()
+            self.assertEqual(len(rows),3)
+            self.assertTrue(all(r['recipient']=='student@example.com' for r in rows))
+            self.assertIn('Read and annotate a chart',rows[0]['body'])
+            self.assertIn('18:00 WAT',rows[0]['body'])
+
+    def test_many_students_can_be_accepted_without_manual_verification(self):
+        self.teacher()
+        with self.server.app.db() as db:
+            ids=[db.execute("INSERT INTO users(email,name,password,role,status,verified,created) VALUES(?,?,?,'student','pending',0,?)",(f'learner{i}@example.com','Learner','unused',time.time())).lastrowid for i in range(25)]
+        for uid in ids:
+            self.request('/api/admission',{'student':uid,'status':'accepted'},cookie=self.teacher_cookie)
+        with self.server.app.db() as db:
+            self.assertEqual(db.execute("SELECT count(*) FROM users WHERE role='student' AND status='accepted'").fetchone()[0],25)
+            self.assertEqual(db.execute("SELECT count(*) FROM users WHERE role='student' AND verified=1").fetchone()[0],0)
+
     def test_application_availability_matches_server_gate(self):
         self.assertFalse(self.request('/api/session')['enrollmentOpen'])
         self.teacher()
@@ -151,7 +192,8 @@ class AcademyTests(unittest.TestCase):
         self.request('/api/admin',expected=403)
         self.request('/api/classroom',expected=403)
         self.request('/api/admission',{'student':uid,'status':'accepted','verified':True},403)
-        self.request('/api/admission',{'student':uid,'status':'accepted'},400,cookie=self.teacher_cookie)
+        self.request('/api/admission',{'student':uid,'status':'accepted'},cookie=self.teacher_cookie)
+        self.request('/api/classroom',expected=403)
         self.approve(uid)
         self.assertEqual(len(self.request('/api/lessons')),7)
         self.assertIn('export function practice',self.request('/api/materials.js'))

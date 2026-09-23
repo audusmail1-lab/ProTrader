@@ -307,16 +307,24 @@ class Handler(BaseHTTPRequestHandler):
                     student=db.execute("SELECT * FROM users WHERE id=? AND role='student'",(data.get('student'),)).fetchone()
                     if not student: raise APIError(404,'Application not found.')
                     verified=bool(student['verified']) or data.get('verified') is True
-                    if status=='accepted' and not verified: raise APIError(400,'Verify the applicant’s email ownership through trusted contact, then confirm verification before accepting.')
+                    db.execute('BEGIN IMMEDIATE')
+                    previous_note=db.execute('SELECT value FROM settings WHERE key=?',('application_note:'+str(student['id']),)).fetchone()
+                    if status==student['status'] and verified==bool(student['verified']) and note==(json.loads(previous_note[0]) if previous_note else ''):
+                        return self.output({'ok':True,'message':'This decision is already saved. No duplicate email was sent.'})
                     db.execute('UPDATE users SET status=?,verified=? WHERE id=?',(status,int(verified),student['id']))
                     db.execute('INSERT INTO settings(key,value) VALUES(?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value',('application_note:'+str(student['id']),json.dumps(note)))
                     db.execute('INSERT INTO audit(actor,action,target,created) VALUES(?,?,?,?)',(user['id'],'admission:'+status,student['id'],time.time()))
-                    if status=='accepted':
+                    if status=='accepted' and not verified:
+                        raw=secrets.token_urlsafe(32)
+                        db.execute("DELETE FROM tokens WHERE user_id=? AND kind='verify'",(student['id'],))
+                        db.execute('INSERT INTO tokens VALUES(?,?,?,?)',(app.digest(raw),student['id'],'verify',time.time()+86400))
+                        app.enqueue(db,student['email'],'You are accepted — verify your academy email',f"Hello {student['name']},\nYour Academy application is accepted. Confirm ownership of this email address to open your classroom:\n{app.origin}/#verify/{raw}\nThis link expires in 24 hours.\n"+(note+'\n' if note else '')+'If you did not apply, ignore this email.')
+                    elif status=='accepted':
                         subject,body,html_body=acceptance_message(student['name'],note,app.origin,app.app_url,app.policy.get('contactEmail',''))
                         app.enqueue(db,student['email'],subject,body,html_body)
                     else:
                         app.enqueue(db,student['email'],'Academy application update',f'Your application status is now {status.replace("_"," ")}. '+(note+'\n' if note else '')+f'Check your account at {app.origin}/#account')
-                return self.output({'ok':True})
+                return self.output({'ok':True,'message':'Accepted. A verification link was emailed; classroom access opens after verification.' if status=='accepted' and not verified else 'Decision saved and email notification queued.'})
             if path=='/api/account':
                 user=self.user()
                 with app.db() as db: row=db.execute('SELECT value FROM settings WHERE key=?',('application_note:'+str(user['id']),)).fetchone()
@@ -337,9 +345,25 @@ class Handler(BaseHTTPRequestHandler):
                     if not isinstance(item,dict) or type(item.get('lesson'))!=int or not 0<=item['lesson']<7: raise APIError(400,'Invalid lesson.')
                     when=self.text(item,'when',1,100);url=self.text(item,'url',0,1000)
                     if url and (urlsplit(url).scheme!='https' or not urlsplit(url).netloc): raise APIError(400,'Joining links must use HTTPS.')
+                    if any(s['lesson']==item['lesson'] for s in clean): raise APIError(400,'Each lesson can appear only once in the schedule.')
                     clean.append({'lesson':item['lesson'],'when':when,'url':url})
-                with app.db() as db: db.execute("INSERT INTO settings VALUES('schedule',?) ON CONFLICT(key) DO UPDATE SET value=excluded.value",(json.dumps(clean),))
-                return self.output({'ok':True})
+                with app.db() as db:
+                    db.execute('BEGIN IMMEDIATE')
+                    previous=db.execute("SELECT value FROM settings WHERE key='schedule'").fetchone()
+                    old={x['lesson']:x for x in json.loads(previous[0])} if previous else {}
+                    new={x['lesson']:x for x in clean}
+                    changes=[('updated' if x['lesson'] in old else 'scheduled',x) for x in clean if old.get(x['lesson'])!=x]
+                    changes += [('cancelled',x) for key,x in old.items() if key not in new]
+                    db.execute("INSERT INTO settings VALUES('schedule',?) ON CONFLICT(key) DO UPDATE SET value=excluded.value",(json.dumps(clean),))
+                    students=db.execute("SELECT email,name FROM users WHERE role='student' AND status='accepted' AND verified=1").fetchall()
+                    for kind,session in changes:
+                        title=LESSONS[session['lesson']]['title']
+                        for student in students:
+                            body=f"Hello {student['name']},\n\nClass {kind}: {title}\nDate, time and time zone: {session['when']}\n"
+                            if kind!='cancelled': body+=('Join: '+session['url']+'\n') if session['url'] else 'Joining link to follow in your classroom.\n'
+                            body+=f"\nView your confirmed schedule: {app.origin}/#classroom"
+                            app.enqueue(db,student['email'],f'Academy class {kind}: {title}',body)
+                return self.output({'ok':True,'notifications':len(changes)*len(students)})
             if path=='/api/mail-test':
                 self.user(teacher=True)
                 if not app.mail_enabled: raise APIError(409,'Connect email delivery before sending a test.')
@@ -350,6 +374,26 @@ class Handler(BaseHTTPRequestHandler):
                 self.user(teacher=True)
                 with app.db() as db: db.execute("UPDATE mail SET status='queued',error='' WHERE id=? AND status='failed'",(data.get('id'),))
                 return self.output({'ok':True})
+            if path=='/api/verify-email':
+                if app.limited('verify:'+self.client_address[0],40,900): raise APIError(429,'Please wait before trying another verification link.')
+                raw=self.text(data,'token',20,200)
+                with app.db() as db:
+                    db.execute('BEGIN IMMEDIATE')
+                    row=db.execute("SELECT * FROM tokens WHERE token=? AND kind='verify' AND expires>?",(app.digest(raw),time.time())).fetchone()
+                    if not row: raise APIError(400,'This verification link is invalid or expired. Sign in and request a new one.')
+                    db.execute('UPDATE users SET verified=1 WHERE id=?',(row['user_id'],))
+                    db.execute("DELETE FROM tokens WHERE user_id=? AND kind='verify'",(row['user_id'],))
+                return self.output({'ok':True,'message':'Email verified. Sign in to open your classroom if your application is accepted.'})
+            if path=='/api/verification-request':
+                user=self.user()
+                if user['verified']: return self.output({'ok':True,'message':'Your email is already verified.'})
+                if app.limited('verify-send:'+str(user['id']),3,3600): raise APIError(429,'A verification email was recently requested. Check your inbox and spam folder before trying again.')
+                with app.db() as db:
+                    raw=secrets.token_urlsafe(32)
+                    db.execute("DELETE FROM tokens WHERE user_id=? AND kind='verify'",(user['id'],))
+                    db.execute('INSERT INTO tokens VALUES(?,?,?,?)',(app.digest(raw),user['id'],'verify',time.time()+86400))
+                    app.enqueue(db,user['email'],'Verify your academy email',f'Confirm your email address within 24 hours: {app.origin}/#verify/{raw}')
+                return self.output({'ok':True,'message':'A new verification link has been queued to your registered email.'})
             if path=='/api/reset-request':
                 email=self.email(data)
                 with app.db() as db:
