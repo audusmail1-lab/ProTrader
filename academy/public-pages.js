@@ -11,15 +11,19 @@ export function telegramLinks(telegram = {}, buttons = false) {
 
 export function contact(policy, enrolled, telegram = {}) {
   return page('Contact the academy.', 'Enrollment, account support or a general question—we’ll help you find the next step.', `
-    <h2>One address for help</h2>
-    <p>For academy support, partnerships and privacy requests, email ${emailLink(policy)}.</p>
-    ${policy.responseTarget ? `<p>${esc(policy.responseTarget)}</p>` : ''}
-    ${policy.contactEmail ? `<p><a class="button" href="mailto:${esc(policy.contactEmail)}?subject=Pro%20Trader%20Academy%20inquiry">Write an email ↗</a></p>` : ''}
-    <p>This opens your email app. Include your name, the email used for your academy account if you have one, and a short description of what you need. You can also copy the address into Gmail or another email service.</p>
-    <p>Please leave out passwords, broker keys, bank details and identity documents. If we need to confirm account ownership, we will explain a proportionate way to do that.</p>
-    ${telegramLinks(telegram) ? `<h2>Help and community on Telegram</h2><p>Use our private bot for app or enrollment support, follow official updates, or join the educational community. Telegram is optional; email remains available.</p><div class="actions">${telegramLinks(telegram, true)}</div><p>Support requests go privately to the academy operator. Group posts are visible to other members. Keep account information out of the community and read our <a href="#privacy">Privacy Policy</a> before sending a message.</p>` : ''}
+    <h2>Get help without leaving the website</h2>
+    <p>Ask about enrollment, your account or joining a class through our on-site support chat.</p>
+    <p><button type="button" class="button" data-open-support>Open support chat</button></p>
+    <p>Your message goes to the Academy team, and our reply appears in the same chat. You can also open it using <strong>Need help?</strong> on any page. Replies may not be immediate; leave your question and return to the conversation.</p>
+    <p>Sign in to keep support conversations with your Academy account. If you message as a guest, return in the same browser to see replies.</p>
     <h2>Questions about a lesson</h2>
-    <p>${enrolled ? '<a href="#questions">Use Questions & replies</a>' : '<a href="#login">Sign in to your academy account</a>'} to keep a lesson question and your instructor’s reply together. General support and privacy requests go to the email address above.</p>
+    <p>${enrolled ? '<a href="#questions">Use Questions &amp; replies</a>' : '<a href="#login">Sign in to your Academy account</a>'} to keep a lesson question and your instructor’s reply together.</p>
+    <h2>Prefer email?</h2>
+    <p>Email ${emailLink(policy)} for support, partnerships or privacy requests.</p>
+    ${policy.responseTarget ? `<p>${esc(policy.responseTarget)}</p>` : ''}
+    ${policy.contactEmail ? `<p><a class="button secondary" href="mailto:${esc(policy.contactEmail)}?subject=Pro%20Trader%20Academy%20inquiry">Write an email ↗</a></p>` : ''}
+    <p>Include a short description of what you need. Please leave out passwords, broker keys, bank details and identity documents.</p>
+    ${telegramLinks(telegram) ? `<h2>Telegram and community</h2><p>Prefer Telegram? Use our private support bot, follow official updates or join the educational community. Telegram is optional; you can get support here on the website.</p><div class="actions">${telegramLinks(telegram, true)}</div><p>Group posts are visible to other members. Keep account information out of the community.</p>` : ''}
     <h2>Your information</h2>
     <p>We use your email and message to respond and keep a record of the request. Read our <a href="#privacy">Privacy Policy</a> before sending personal information.</p>
     <h2>Free for now</h2>
