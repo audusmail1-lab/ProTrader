@@ -357,7 +357,8 @@ def _detect_divergence(df: pd.DataFrame) -> Optional[str]:
 
 
 @app.get("/api/analyze/{ticker}")
-def analyze(ticker: str, interval: str = "1h") -> dict:
+def analyze(ticker: str,
+            interval: str = Query("1h", pattern="^(1m|5m|15m|1h|4h|1d)$")) -> dict:
     """Run full analysis for a ticker and return signal + indicators."""
     label = ticker.upper().strip()
     if _is_deriv_synthetic(label):
@@ -823,7 +824,9 @@ def _check_alerts(ticker: str, price: float, rsi: float, signal: str) -> list[di
 
 
 @app.get("/api/backtest/{ticker}")
-def backtest(ticker: str, interval: str = "1h", period: str = "90d") -> dict:
+def backtest(ticker: str,
+             interval: str = Query("1h", pattern="^(1m|5m|15m|1h|4h|1d)$"),
+             period: str = Query("90d", pattern="^(1d|5d|7d|30d|60d|90d|180d|1mo|3mo|6mo|1y|2y|5y|10y|max)$")) -> dict:
     """
     Walk-forward backtest of the bot's signal strategy over historical data.
     Simulates BUY/SELL entries with 2×ATR stop-loss and 3×ATR take-profit,
