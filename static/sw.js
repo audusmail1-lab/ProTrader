@@ -2,7 +2,7 @@
    Caches the app shell (page + chart library + icons) so the terminal opens
    instantly and even offline; market data always goes to the network.
    Bump CACHE_VERSION whenever the shell changes to evict the old copy. */
-const CACHE_VERSION = 'protrader-shell-v16';
+const CACHE_VERSION = 'protrader-shell-v17';
 const VENDOR = '/vendor/lightweight-charts.standalone.production.js?v=5.0.9';
 const SHELL = ['/', '/mobile', '/app', VENDOR, '/static/manifest.webmanifest', '/static/icon-192.png', '/static/icon-512.png'];
 
@@ -35,8 +35,22 @@ self.addEventListener('fetch', e => {
     const cache = await caches.open(CACHE_VERSION);
     const key = e.request.mode === 'navigate' ? new Request(url.pathname) : e.request;
     const cached = await cache.match(key, { ignoreSearch: false });
-    const refresh = fetch(e.request, { cache: 'no-cache' }).then(res => {
-      if (res && res.ok) cache.put(key, res.clone());
+    const refresh = fetch(e.request, { cache: 'no-cache' }).then(async res => {
+      if (res && res.ok) {
+        // If the page itself changed since the copy we just served, tell the
+        // open tabs so they can offer a reload instead of waiting for the
+        // *next* launch to pick the deploy up.
+        if (cached && e.request.mode === 'navigate') {
+          try {
+            const [a, b] = await Promise.all([cached.clone().text(), res.clone().text()]);
+            if (a !== b) {
+              const cs = await self.clients.matchAll({ type: 'window' });
+              cs.forEach(c => c.postMessage({ type: 'shell-updated' }));
+            }
+          } catch (_) {}
+        }
+        cache.put(key, res.clone());
+      }
       return res;
     }).catch(() => null);
     if (cached) { e.waitUntil(refresh); return cached; }

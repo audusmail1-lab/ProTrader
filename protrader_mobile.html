@@ -7517,7 +7517,34 @@ init();
 // ── PWA: installable on phone/laptop, shell cached for instant opens ──
 if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js').catch(e => console.info('[pwa] sw not registered:', e.message));
+    navigator.serviceWorker.register('/sw.js', { updateViaCache: 'none' }).then(reg => {
+      // Look for a new worker every time the app comes to the foreground
+      // (iOS home-screen apps otherwise check at most once a day).
+      const check = () => { try { reg.update(); } catch (_) {} };
+      document.addEventListener('visibilitychange', () => { if (!document.hidden) check(); });
+      check();
+    }).catch(e => console.info('[pwa] sw not registered:', e.message));
+    // The worker serves the cached shell first and revalidates behind it;
+    // when it finds a newer deploy it says so, and we offer a one-tap reload.
+    navigator.serviceWorker.addEventListener('message', ev => {
+      if (!ev.data || ev.data.type !== 'shell-updated') return;
+      const t = document.createElement('button');
+      t.id = 'updateToast';
+      t.textContent = 'Update ready — tap to reload';
+      t.style.cssText = 'position:fixed;left:50%;transform:translateX(-50%);bottom:calc(var(--mobile-nav-h,0px) + var(--safe-bottom,0px) + 14px);z-index:500;padding:11px 16px;border-radius:999px;'
+        + 'border:1px solid rgba(79,140,255,.6);background:#131B2B;color:#EEF2F7;font:600 14px/1 inherit;box-shadow:0 8px 24px rgba(0,0,0,.4);cursor:pointer';
+      t.onclick = () => location.reload();
+      const old = document.getElementById('updateToast'); if (old) old.remove();
+      document.body.appendChild(t);
+    });
+    // A new worker took over (after a version bump): reload once so the page
+    // and the worker agree on the shell.
+    let _reloaded = false;
+    const _hadController = !!navigator.serviceWorker.controller;   // first install: no reload needed
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      if (_reloaded || !_hadController || !navigator.serviceWorker.controller) return;
+      _reloaded = true; location.reload();
+    });
   });
 }
 // Surface the browser's install prompt as an "Install app" chip when available.
