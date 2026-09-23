@@ -10,6 +10,7 @@ from mailer import SMTPConfig, safe_error
 from welcome import acceptance_message
 from invitations import class_message
 import support
+import teacher as teacher_dashboard
 from telegram_bot import public_links
 from contextlib import contextmanager
 from http.cookies import SimpleCookie
@@ -17,7 +18,7 @@ from urllib.parse import urlsplit
 
 ROOT = Path(__file__).resolve().parent.parent
 LESSONS = json.loads((ROOT / 'academy_backend/lessons.json').read_text())
-PUBLIC = {'support-chat.js','support-chat.css','homepage.js','homepage.css','landing-assets/barlow-400.woff2','landing-assets/barlow-500.woff2','landing-assets/barlow-700.woff2','landing-assets/barlow-condensed-600.woff2','landing-assets/landing-terminal-800.webp','landing-assets/landing-terminal.webp','styles.css','favicon.svg','live.js','live.css','public-content.js','public-intro.js','public-pages.js','video-player.js','video-library.js','intro-video.js','captions/intro.vtt','posters/intro-landscape.jpg','posters/intro-portrait.jpg'} | {f'captions/tutorial-{i}.vtt' for i in range(7)} | {f'posters/tutorial-{i}.jpg' for i in range(7)}
+PUBLIC = {'teacher.js','teacher.css','support-chat.js','support-chat.css','homepage.js','homepage.css','landing-assets/barlow-400.woff2','landing-assets/barlow-500.woff2','landing-assets/barlow-700.woff2','landing-assets/barlow-condensed-600.woff2','landing-assets/landing-terminal-800.webp','landing-assets/landing-terminal.webp','styles.css','favicon.svg','live.js','live.css','public-content.js','public-intro.js','public-pages.js','video-player.js','video-library.js','intro-video.js','captions/intro.vtt','posters/intro-landscape.jpg','posters/intro-portrait.jpg'} | {f'captions/tutorial-{i}.vtt' for i in range(7)} | {f'posters/tutorial-{i}.jpg' for i in range(7)}
 POLICY = json.loads((ROOT / 'academy_backend/public_policy.json').read_text())
 EMAIL = re.compile(r'^[^\s@]+@[^\s@]+\.[^\s@]+$')
 
@@ -133,6 +134,7 @@ class APIError(Exception):
 
 class Handler(BaseHTTPRequestHandler):
     api_error=APIError
+    lesson_titles=[x['title'] for x in LESSONS]
     server_version='Academy'
     def log_message(self,*args): pass # Avoid recording personal data and reset links.
     @property
@@ -191,6 +193,7 @@ class Handler(BaseHTTPRequestHandler):
     def do_GET(self):
         try:
             path=urlsplit(self.path).path
+            if path=='/api/teacher-overview': return teacher_dashboard.route(self,path)
             if path in ('/api/support','/api/support-admin'): return support.route(self,path)
             if path=='/healthz':
                 with self.app.db() as db: db.execute('SELECT 1').fetchone()
@@ -207,7 +210,7 @@ class Handler(BaseHTTPRequestHandler):
                 with self.app.db() as db:
                     progress=[dict(r) for r in db.execute('SELECT lesson,complete,notes FROM progress WHERE user_id=?',(user['id'],))]
                     schedule=json.loads((db.execute("SELECT value FROM settings WHERE key='schedule'").fetchone() or ['[]'])[0])
-                return self.output({'progress':progress,'schedule':schedule})
+                return self.output({'progress':progress,'schedule':[s for s in schedule if s.get('status')!='cancelled']})
             if path=='/api/questions':
                 user=self.user(accepted=True)
                 with self.app.db() as db:
@@ -238,6 +241,7 @@ class Handler(BaseHTTPRequestHandler):
     def do_POST(self):
         try:
             data=self.read_json(); path=urlsplit(self.path).path; app=self.app
+            if path in ('/api/class-save','/api/class-cancel'): return teacher_dashboard.route(self,path,data)
             if path.startswith('/api/support'): return support.route(self,path,data)
             if path in ('/api/setup','/api/register','/api/login','/api/reset-request','/api/reset'):
                 identity = str(data.get('email','')).strip().lower()
@@ -356,6 +360,7 @@ class Handler(BaseHTTPRequestHandler):
                 with app.db() as db:
                     db.execute('BEGIN IMMEDIATE')
                     previous=db.execute("SELECT value FROM settings WHERE key='schedule'").fetchone()
+                    if previous and any('id' in x for x in json.loads(previous[0])): raise APIError(409,'Refresh the teacher dashboard to use the updated class scheduler.')
                     old={x['lesson']:x for x in json.loads(previous[0])} if previous else {}
                     new={x['lesson']:x for x in clean}
                     changes=[('updated' if x['lesson'] in old else 'scheduled',x) for x in clean if old.get(x['lesson'])!=x]
