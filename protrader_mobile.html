@@ -832,7 +832,7 @@ kbd{
   }
   .live-chg{grid-column:2;grid-row:2;justify-self:start;font-size:12px}
   .feed-badge{grid-column:2;grid-row:2;justify-self:end;margin-right:6px}
-  .ws-badge::before{content:''}
+  .feed-badge .ws-badge{display:none}
   .topbar-right{grid-column:3;grid-row:1 / span 2;gap:5px;margin-left:0;justify-self:end}
   .topbar-divider,.topbar-stat,#updateTs,.voice-btn,.topbar-right .icon-btn[title^="Keyboard"],#feedHealth{display:none!important}
   .mkt-dot{width:8px;height:8px}
@@ -1152,7 +1152,11 @@ svg.ico{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.7;st
 .acct-chip.real{border-color:var(--red);color:var(--red-lt);background:rgba(240,86,79,.14)}
 @media(max-width:820px){
   .bal-badge{display:none}
-  .acct-chip{padding:5px 8px;gap:6px;height:34px;border-radius:10px}
+  .ws-badge::before{content:''}
+  #themeBtn{display:none!important}
+  .acct-chip{padding:4px 8px;gap:5px;height:34px;border-radius:10px;letter-spacing:.03em}
+  .acct-chip .acct-bal{font-size:12px}
+  .live-price{font-size:18px!important}
 }
 @media(max-width:360px){.acct-chip .acct-bal{display:none}}
 @media(max-width:420px){.feed-badge{display:none}}
