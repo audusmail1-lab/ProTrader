@@ -75,28 +75,35 @@ def acceptance_message(name, note, origin, app_url='', contact_email=''):
     support_html = f'<a href="{escape(contact, quote=True)}" style="color:#28552f;text-decoration:underline">Contact support</a>'
     if contact_email:
         support_html += f'<br><a href="mailto:{escape(contact_email, quote=True)}" style="color:#28552f;text-decoration:underline;overflow-wrap:anywhere">{escape(contact_email)}</a>'
-    html = f'''<!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>{escape(WELCOME_SUBJECT)}</title></head>
-<body style="margin:0;padding:0;background-color:#f3f4f0;color:#30372f;font-family:Arial,Helvetica,sans-serif;font-size:16px">
-<div style="display:none;max-height:0;overflow:hidden;mso-hide:all">Your classroom is ready. Here are your first steps at Pro Trader Academy.</div>
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f3f4f0"><tr><td align="center" style="padding:24px 12px">
-<table role="presentation" width="640" cellpadding="0" cellspacing="0" style="width:100%;max-width:640px;background-color:#ffffff;border:1px solid #e0e5da">
-<tr><td style="padding:32px 24px;background-color:#142019;color:#ffffff">
-<p style="margin:0 0 22px;color:#cbe88a;font-size:13px;font-weight:bold;letter-spacing:2px">PRO TRADER ACADEMY</p>
-<p style="margin:0 0 10px;color:#cbe88a;font-size:13px;letter-spacing:1px">APPLICATION ACCEPTED</p>
-<h1 style="margin:0;font-size:32px;line-height:1.2;color:#ffffff">Your learning journey<br>starts here.</h1>
-</td></tr>
-<tr><td style="padding:28px 24px">
-{paragraph('Hello ' + name + ',')}{paragraph(opening)}{paragraph(purpose)}
+    content = f'''{paragraph('Hello ' + name + ',')}{paragraph(opening)}{paragraph(purpose)}
 <table role="presentation" cellpadding="0" cellspacing="0" style="margin:6px 0 24px"><tr><td style="background-color:#cbe88a;border-radius:6px"><a href="{escape(classroom, quote=True)}" style="display:inline-block;padding:16px 22px;color:#142019;font-weight:bold;text-decoration:none">Open your classroom →</a></td></tr></table>
 {note_html}
 <h2 style="margin:28px 0 14px;font-size:19px;color:#1b3020">Your first steps</h2>
 <ol style="margin:0;padding-left:24px;line-height:1.65">{steps_html}</ol>
 {section('Your next class', schedule)}{app_html}{section('We’re here to help', help_copy)}
 <p style="margin:0 0 24px;line-height:1.7">{support_html}</p>
-{paragraph(closing)}<p style="margin:0;line-height:1.65">Warm regards,<br><strong>Pro Trader Academy</strong></p>
+{paragraph(closing)}<p style="margin:0;line-height:1.65">Warm regards,<br><strong>Pro Trader Academy</strong></p>'''
+    html = email_layout(WELCOME_SUBJECT, 'Your classroom is ready. Here are your first steps at Pro Trader Academy.', 'APPLICATION ACCEPTED', 'Your learning journey starts here.', content, origin)
+    return WELCOME_SUBJECT, body, html
+
+
+def email_layout(subject, preheader, label, headline, content, origin):
+    """Shared welcome/invitation frame; content is trusted, pre-escaped markup."""
+    disclaimer = 'Educational only; not investment advice. Trading involves risk, and results are never guaranteed.'
+    return f'''<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>{escape(subject)}</title></head>
+<body style="margin:0;padding:0;background-color:#f3f4f0;color:#30372f;font-family:Arial,Helvetica,sans-serif;font-size:16px">
+<div style="display:none;max-height:0;overflow:hidden;mso-hide:all">{escape(preheader)}</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f3f4f0"><tr><td align="center" style="padding:24px 12px">
+<table role="presentation" width="640" cellpadding="0" cellspacing="0" style="width:100%;max-width:640px;background-color:#ffffff;border:1px solid #e0e5da">
+<tr><td style="padding:32px 24px;background-color:#142019;color:#ffffff">
+<p style="margin:0 0 22px;color:#cbe88a;font-size:13px;font-weight:bold;letter-spacing:2px">PRO TRADER ACADEMY</p>
+<p style="margin:0 0 10px;color:#cbe88a;font-size:13px;letter-spacing:1px">{escape(label)}</p>
+<h1 style="margin:0;font-size:32px;line-height:1.2;color:#ffffff">{escape(headline)}</h1>
+</td></tr>
+<tr><td style="padding:28px 24px">
+{content}
 </td></tr>
 <tr><td style="padding:20px 24px;background-color:#f5f7f1;font-size:12px;line-height:1.65;color:#4e584d">{escape(disclaimer)}<br><a href="{escape(origin + '/#privacy', quote=True)}" style="color:#28552f">Privacy Policy</a> · <a href="{escape(origin + '/#terms', quote=True)}" style="color:#28552f">Terms of Use</a></td></tr>
 </table></td></tr></table>
 </body></html>'''
-    return WELCOME_SUBJECT, body, html

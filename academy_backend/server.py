@@ -8,6 +8,7 @@ from pathlib import Path
 import argparse, hashlib, hmac, json, os, re, secrets, sqlite3, threading, time
 from mailer import SMTPConfig, safe_error
 from welcome import acceptance_message
+from invitations import class_message
 import support
 from telegram_bot import public_links
 from contextlib import contextmanager
@@ -348,7 +349,7 @@ class Handler(BaseHTTPRequestHandler):
                 clean=[]
                 for item in sessions:
                     if not isinstance(item,dict) or type(item.get('lesson'))!=int or not 0<=item['lesson']<7: raise APIError(400,'Invalid lesson.')
-                    when=self.text(item,'when',1,100);url=self.text(item,'url',0,1000)
+                    when=self.text(item,'when',1,100);url=self.text(item,'url',1,1000)
                     if url and (urlsplit(url).scheme!='https' or not urlsplit(url).netloc): raise APIError(400,'Joining links must use HTTPS.')
                     if any(s['lesson']==item['lesson'] for s in clean): raise APIError(400,'Each lesson can appear only once in the schedule.')
                     clean.append({'lesson':item['lesson'],'when':when,'url':url})
@@ -364,10 +365,8 @@ class Handler(BaseHTTPRequestHandler):
                     for kind,session in changes:
                         title=LESSONS[session['lesson']]['title']
                         for student in students:
-                            body=f"Hello {student['name']},\n\nClass {kind}: {title}\nDate, time and time zone: {session['when']}\n"
-                            if kind!='cancelled': body+=('Join: '+session['url']+'\n') if session['url'] else 'Joining link to follow in your classroom.\n'
-                            body+=f"\nView your confirmed schedule: {app.origin}/#classroom"
-                            app.enqueue(db,student['email'],f'Academy class {kind}: {title}',body)
+                            subject,body,html_body=class_message(student['name'],title,session['when'],session['url'],app.origin,kind)
+                            app.enqueue(db,student['email'],subject,body,html_body)
                 return self.output({'ok':True,'notifications':len(changes)*len(students)})
             if path=='/api/mail-test':
                 self.user(teacher=True)

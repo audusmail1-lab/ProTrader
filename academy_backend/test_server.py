@@ -71,11 +71,27 @@ class AcademyTests(unittest.TestCase):
         self.assertEqual(self.request('/api/schedule',schedule,cookie=self.teacher_cookie)['notifications'],1)
         self.assertEqual(self.request('/api/schedule',{'sessions':[]},cookie=self.teacher_cookie)['notifications'],1)
         with self.server.app.db() as db:
-            rows=db.execute("SELECT recipient,body FROM mail WHERE subject LIKE 'Academy class %'").fetchall()
+            rows=db.execute("SELECT recipient,body,html_body FROM mail WHERE subject LIKE 'Academy class %'").fetchall()
             self.assertEqual(len(rows),3)
             self.assertTrue(all(r['recipient']=='student@example.com' for r in rows))
             self.assertIn('Read and annotate a chart',rows[0]['body'])
             self.assertIn('18:00 WAT',rows[0]['body'])
+            self.assertIn('Join class →',rows[0]['html_body'])
+            self.assertIn('https://example.com/class',rows[0]['html_body'])
+            self.assertIn('Your class has an update.',rows[1]['html_body'])
+            self.assertNotIn('https://example.com/class',rows[2]['html_body'])
+            self.assertNotIn('Join class →',rows[2]['html_body'])
+
+    def test_schedule_requires_link_and_teacher_without_partial_saves(self):
+        self.teacher();self.student()
+        valid={'sessions':[{'lesson':0,'when':'3 October 2026 at 18:00 WAT','url':'https://example.com/join'}]}
+        self.request('/api/schedule',valid,403)
+        invalid={'sessions':[valid['sessions'][0],{'lesson':1,'when':'4 October 2026 at 18:00 WAT','url':''}]}
+        self.request('/api/schedule',invalid,400,cookie=self.teacher_cookie)
+        with self.server.app.db() as db:
+            self.assertIsNone(db.execute("SELECT value FROM settings WHERE key='schedule'").fetchone())
+            self.assertEqual(db.execute("SELECT count(*) FROM mail WHERE subject LIKE 'Academy class %'").fetchone()[0],0)
+
 
     def test_many_students_can_be_accepted_without_manual_verification(self):
         self.teacher()
