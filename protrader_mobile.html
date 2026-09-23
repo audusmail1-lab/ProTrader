@@ -3604,11 +3604,13 @@ const DRAW = {
       }
       case 'fib': {
         if (!b || a.x == null || b.x == null) return false;
-        const top = Math.min(a.y, b.y), bot = Math.max(a.y, b.y), span = bot - top;
         const xa = Math.min(a.x, b.x), xb = Math.max(a.x, b.x);
         if (x < xa - HIT_TOL || x > xb + HIT_TOL) return false;
+        // Must track paint()'s draw-direction line positions (pts[0] -> pts[1]),
+        // not top/bot — the level set isn't symmetric under l -> 1-l, so the
+        // two orderings land on genuinely different y's, not just different labels.
         return [0, 0.236, 0.382, 0.5, 0.618, 0.786, 1]
-          .some(l => Math.abs(y - (bot - span * l)) <= HIT_TOL);
+          .some(l => Math.abs(y - (a.y + (b.y - a.y) * l)) <= HIT_TOL);
       }
     }
     return false;
@@ -3743,15 +3745,18 @@ const DRAW = {
       }
       case 'fib': {
         if (ax == null || bx == null) break;
-        const top = Math.min(a.y, b.y), bot = Math.max(a.y, b.y), span = bot - top;
-        const pTop = Math.max(d.pts[0].p, d.pts[1].p), pBot = Math.min(d.pts[0].p, d.pts[1].p);
+        // 0% anchors to the point the user drew *from* (pts[0]) and 100% to
+        // where they drew *to* (pts[1]) — same draw-direction convention the
+        // ruler tool uses below. A high-to-low draw (the natural gesture for
+        // a downtrend retracement) must show 0% at the high, not the low.
         const xa = Math.min(ax, bx), xb = Math.max(ax, bx);
+        const p0 = d.pts[0].p, p1 = d.pts[1].p;
         [0, 0.236, 0.382, 0.5, 0.618, 0.786, 1].forEach(l => {
-          const y = bot - span * l;
+          const y = a.y + (b.y - a.y) * l;
           ctx.setLineDash([3, 3]);
           ctx.beginPath(); ctx.moveTo(xa, y); ctx.lineTo(xb, y); ctx.stroke();
           ctx.setLineDash([]);
-          ctx.fillText(`${(l * 100).toFixed(1)}%  ${(pBot + (pTop - pBot) * l).toFixed(dp)}`, xa + 4, y - 3);
+          ctx.fillText(`${(l * 100).toFixed(1)}%  ${(p0 + (p1 - p0) * l).toFixed(dp)}`, xa + 4, y - 3);
         });
         break;
       }
