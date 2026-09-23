@@ -45,6 +45,11 @@ async def _security_headers(request, call_next):
     return resp
 bot = TradingBot()
 
+# MT5 bridge relay (see mt5_bridge.py): moves orders between the web app and
+# the Expert Advisor running in the user's MetaTrader 5 terminal.
+from mt5_bridge import router as _mt5_bridge_router
+app.include_router(_mt5_bridge_router)
+
 # In-memory store
 history: deque = deque(maxlen=50)
 cache:   dict[str, dict] = {}
@@ -98,7 +103,7 @@ PERIOD_MAP: dict[str, str] = {
     "15m": "30d",   # 5d gave index charts ~80 bars; indices trade 6.5h/day
     "1h":  "60d",
     "4h":  "180d",
-    "1d":  "2y",
+    "1d":  "5y",    # weekly and monthly charts are built from daily bars in the app
 }
 
 
@@ -1127,6 +1132,7 @@ def quotes(tickers: str = "") -> list:
 _STATIC_TYPES = {
     ".png": "image/png", ".webmanifest": "application/manifest+json",
     ".js": "application/javascript", ".svg": "image/svg+xml", ".ico": "image/x-icon",
+    ".woff2": "font/woff2", ".webp": "image/webp", ".jpg": "image/jpeg",
 }
 
 
@@ -1214,6 +1220,25 @@ def mobile_terminal(request: Request):
         raise HTTPException(status_code=404, detail=f"{MOBILE_HTML_FILE} not found next to dashboard.py")
     # FileResponse emits ETag/Last-Modified, so a reopen is a 304 unless the
     # file changed; no-cache means "revalidate", not "don't cache".
+    return _file_or_304(request, path, "text/html; charset=utf-8", "no-cache")
+
+
+@app.get("/app")
+def terminal_app(request: Request):
+    """Stable address for the terminal; the landing page links here."""
+    return mobile_terminal(request)
+
+
+LANDING_HTML_FILE = "landing.html"
+
+
+@app.get("/welcome")
+def landing(request: Request):
+    """Marketing page. Deliberately NOT at "/": the Academy, the Telegram bot
+    and installed copies all link to the root expecting the terminal."""
+    path = os.path.join(os.path.dirname(os.path.abspath(__file__)), LANDING_HTML_FILE)
+    if not os.path.isfile(path):
+        raise HTTPException(status_code=404, detail=f"{LANDING_HTML_FILE} not found next to dashboard.py")
     return _file_or_304(request, path, "text/html; charset=utf-8", "no-cache")
 
 
