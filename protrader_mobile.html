@@ -3718,9 +3718,9 @@ const DRAW = {
       }
       case 'channel': {
         if (!b || a.x == null || b.x == null) return false;
-        const off = (b.y - a.y) === 0 ? 20 : Math.abs(b.y - a.y) * 0.5;
+        const rail = this.channelRail(d, a, b);
         return this.distSeg(x, y, a.x, a.y, b.x, b.y) <= HIT_TOL
-            || this.distSeg(x, y, a.x, a.y + off, b.x, b.y + off) <= HIT_TOL;
+            || this.distSeg(x, y, a.x, rail.ay, b.x, rail.by) <= HIT_TOL;
       }
       case 'fib': {
         if (!b || a.x == null || b.x == null) return false;
@@ -3732,6 +3732,20 @@ const DRAW = {
       }
     }
     return false;
+  },
+
+  // Screen Y of the channel's parallel rail. A drawn 3rd point (pts[2])
+  // sets an explicit price offset from the trend line, so the rail's side
+  // and width are whatever the user dragged — not derived from the trend
+  // line's own slope. Older saved drawings without a 3rd point fall back
+  // to the original fixed-below pixel offset so they still render.
+  channelRail(d, a, b) {
+    if (d.pts[2] && Number.isFinite(d.pts[2].p)) {
+      const priceOff = d.pts[2].p - d.pts[1].p;
+      return { ay: this.Y(d.pts[0].p + priceOff), by: this.Y(d.pts[1].p + priceOff) };
+    }
+    const off = (b.y - a.y) === 0 ? 20 : Math.abs(b.y - a.y) * 0.5;
+    return { ay: a.y + off, by: b.y + off };
   },
 
   pick(x, y, W, H) {
@@ -3855,10 +3869,10 @@ const DRAW = {
       }
       case 'channel': {
         if (ax == null || bx == null) break;
-        const off = (b.y - a.y) === 0 ? 20 : Math.abs(b.y - a.y) * 0.5;
+        const rail = this.channelRail(d, a, b);
         ctx.beginPath(); ctx.moveTo(ax, a.y); ctx.lineTo(bx, b.y); ctx.stroke();
         ctx.globalAlpha *= 0.65;
-        ctx.beginPath(); ctx.moveTo(ax, a.y + off); ctx.lineTo(bx, b.y + off); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(ax, rail.ay); ctx.lineTo(bx, rail.by); ctx.stroke();
         break;
       }
       case 'fib': {
@@ -4077,6 +4091,20 @@ function updateDrawCursor() {
         && Math.hypot(s[1].x - s[0].x, s[1].y - s[0].y) < 4;
       DRAW.creating = null;
       if (!tiny) {
+        if (d.type === 'channel') {
+          // Seed a 3rd point so the parallel rail is an explicit, draggable
+          // price offset (handled generically by the existing handle-drag
+          // code) instead of a fixed pixel gap always below the line.
+          const p0 = d.pts[0].p, p1 = d.pts[1].p;
+          const midT = (d.pts[0].t + d.pts[1].t) / 2, midP = (p0 + p1) / 2;
+          let offAmt = Math.abs(p1 - p0) * 0.5;
+          if (!offAmt) {
+            const y0 = DRAW.Y(midP);
+            const pAt20 = Number.isFinite(y0) ? CH.fromY(y0 + 20) : null;
+            offAmt = Number.isFinite(pAt20) ? Math.abs(midP - pAt20) : (Math.abs(midP) * 0.001 || 1);
+          }
+          d.pts[2] = { t: midT, p: midP - offAmt };
+        }
         DRAW.list().push(d);
         DRAW.sel = d.id;
         DRAW.save();
