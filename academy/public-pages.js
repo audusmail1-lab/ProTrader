@@ -51,6 +51,7 @@ export function privacy(policy, telegram = {}) {
     <p>The academy uses an essential <code>academy_session</code> cookie to keep you signed in. It contains a random identifier, expires after 24 hours and is cleared when you sign out. Blocking it prevents account features from working. Password-reset links expire after 30 minutes and can be used once.</p>
     <p>Account and learning records are stored in a database on our hosted server. Access is restricted, connections use HTTPS, and private backups are access-controlled. No online service can promise absolute security.</p>
     <h2>5. Who receives information</h2>
+    <p><strong>ElevenLabs AI assistant:</strong> the optional voice and text assistant processes the messages and audio you choose to share with it through ElevenLabs. Microphone access requires your permission. Your Academy account records are not automatically sent to this assistant. You can also use the Academy support inbox to contact our team.</p>
     <p>The academy operator and authorized instructors handle applications and student conversations. Other students cannot see your account, notes or questions through the academy.</p>
     <ul><li><strong>Render:</strong> hosts the academy service and database in Frankfurt, Germany.</li>
     <li><strong>Resend:</strong> delivers account and teaching notifications using its configured Ireland sending region. It processes recipient addresses, message content and delivery records. Alerts direct you back to your private dashboard instead of including lesson questions or replies.</li>

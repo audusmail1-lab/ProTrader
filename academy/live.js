@@ -49,3 +49,14 @@ document.querySelector('.site-menu').onclick=()=>{const open=document.querySelec
 document.querySelector('.skip').onclick=e=>{e.preventDefault();main.focus()};window.addEventListener('hashchange',()=>{render();window.scrollTo(0,0)});try{await refresh();await render()}catch(e){main.innerHTML=`<section>${error(e)}</section>`}
 
 initSupport();
+
+// Public visitor assistant; no account information is sent to the widget.
+const visitorAssistant=document.createElement('elevenlabs-convai');
+visitorAssistant.setAttribute('agent-id','agent_4801m3by5dhceh5rwx83ynt33ra3');
+visitorAssistant.setAttribute('action-text','Ask the Academy AI');
+visitorAssistant.setAttribute('start-call-text','Talk to the Academy AI');
+document.body.append(visitorAssistant);
+const assistantScript=document.createElement('script');
+assistantScript.src='https://elevenlabs.io/convai-widget/index.js';
+assistantScript.async=true;
+document.body.append(assistantScript);

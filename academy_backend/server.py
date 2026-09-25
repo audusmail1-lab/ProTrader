@@ -146,7 +146,7 @@ class Handler(BaseHTTPRequestHandler):
         self.send_header('Content-Length',str(len(payload))); self.send_header('Cache-Control','no-store')
         self.send_header('X-Content-Type-Options','nosniff'); self.send_header('Referrer-Policy','no-referrer')
         self.send_header('X-Frame-Options','DENY')
-        self.send_header('Content-Security-Policy',"default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; media-src 'self' https://d2ol7oe51mr4n9.cloudfront.net; img-src 'self' data:; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'")
+        self.send_header('Content-Security-Policy',"default-src 'self'; script-src 'self' https://elevenlabs.io https://*.elevenlabs.io; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; media-src 'self' blob: https://*.elevenlabs.io https://d2ol7oe51mr4n9.cloudfront.net; img-src 'self' data: blob: https://*.elevenlabs.io https://storage.googleapis.com; connect-src 'self' https://elevenlabs.io https://*.elevenlabs.io wss://*.elevenlabs.io https://*.livekit.cloud wss://*.livekit.cloud; worker-src 'self' blob:; frame-ancestors 'none'; base-uri 'self'; form-action 'self'")
         if cookie: self.send_header('Set-Cookie',cookie)
         self.end_headers(); self.wfile.write(payload)
 
