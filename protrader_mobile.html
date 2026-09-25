@@ -1124,6 +1124,14 @@ kbd{
   .chart-toolbar{height:36px}
   .right-panel{height:calc(100dvh - var(--hdr-h) - var(--safe-top) - var(--mobile-nav-h) - var(--safe-bottom));max-height:none}
 }
+/* Keep support above the trading UI and clear of the mobile navigation. */
+#protraderSupport elevenlabs-convai{z-index:120}
+@media(max-width:820px){
+  #protraderSupport elevenlabs-convai{
+    bottom:calc(var(--mobile-nav-h) + var(--safe-bottom) + 8px);
+    right:8px;
+  }
+}
 /* legibility: the lot-limit hint and account labels were ~1.7:1 in dark */
 .ot-hint{color:var(--tx-3);font-size:12px}
 [data-theme="dark"]{--tx-4:#5B6B82}
@@ -1782,6 +1790,10 @@ svg.ico{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.7;st
     </div>
   </div>
 </div>
+
+<!-- ElevenLabs multimodal support is inserted here only when the server has
+     ELEVENLABS_AGENT_ID configured. The API key is never written into HTML. -->
+<div id="protraderSupport" aria-live="polite"></div>
 
 <!-- ── ACCOUNT MODE (demo / live MT5) ── -->
 <div class="modal-backdrop" id="depositModal" onclick="if(event.target===this)closeDeposit()">
@@ -7659,6 +7671,60 @@ window.addEventListener('beforeinstallprompt', e => {
   }
 });
 window.addEventListener('appinstalled', () => document.getElementById('installChip')?.remove());
+
+// ── ElevenLabs multimodal support (voice + text) ────────────────────────────
+async function initProTraderSupport() {
+  try {
+    const response = await fetch('/api/support/elevenlabs', {
+      headers: { 'Accept': 'application/json' },
+      cache: 'no-store',
+    });
+    if (!response.ok) throw new Error(`support config ${response.status}`);
+    const config = await response.json();
+    if (!config.enabled) return;
+
+    const mount = document.getElementById('protraderSupport');
+    if (!mount || mount.querySelector('elevenlabs-convai')) return;
+
+    const widget = document.createElement('elevenlabs-convai');
+    if (config.signedUrl) widget.setAttribute('signed-url', config.signedUrl);
+    else if (config.agentId) widget.setAttribute('agent-id', config.agentId);
+    else return;
+
+    widget.setAttribute('variant', 'compact');
+    widget.setAttribute('dismissible', 'true');
+    widget.setAttribute('action-text', 'Ask Pro Trader Support');
+    widget.setAttribute('start-call-text', 'Talk to support');
+    widget.setAttribute('end-call-text', 'End conversation');
+    widget.setAttribute('expand-text', 'Open support');
+    widget.setAttribute('listening-text', 'Listening…');
+    widget.setAttribute('speaking-text', 'Support is speaking');
+    widget.setAttribute('avatar-orb-color-1', '#2563EB');
+    widget.setAttribute('avatar-orb-color-2', '#10B981');
+    widget.setAttribute('markdown-link-allowed-hosts', location.hostname);
+    widget.setAttribute('dynamic-variables', JSON.stringify({
+      product: 'Pro Trader',
+      page: location.pathname,
+      market: S.symLabel || S.sym,
+      timeframe: S.tf,
+      account_mode: 'paper',
+    }));
+    mount.appendChild(widget);
+
+    if (!document.querySelector('script[data-elevenlabs-widget]')) {
+      const script = document.createElement('script');
+      script.src = 'https://elevenlabs.io/convai-widget/index.js';
+      script.async = true;
+      script.type = 'text/javascript';
+      script.dataset.elevenlabsWidget = 'true';
+      script.onerror = () => console.info('[support] ElevenLabs widget could not load');
+      document.body.appendChild(script);
+    }
+  } catch (error) {
+    console.info('[support] assistant unavailable:', error.message);
+  }
+}
+window.addEventListener('load', initProTraderSupport, { once: true });
 </script>
 </body>
 </html>

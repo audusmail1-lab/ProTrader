@@ -12,6 +12,8 @@ primary_region = "fra"       # nearest to your users
 
 [env]
   PORT = "8000"
+  # Set support credentials as secrets before deploying:
+  # fly secrets set ELEVENLABS_AGENT_ID=agent_... ELEVENLABS_API_KEY=sk_...
 
 [http_service]
   internal_port = 8000

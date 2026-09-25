@@ -59,6 +59,19 @@ MOBILE_HTML_FILE = "protrader_mobile.html"
 alerts:  dict[str, dict] = {}   # id → alert dict
 fired_alerts: list[dict]  = []  # triggered alerts log (newest first, max 50)
 
+# ElevenLabs support agent. The API key never leaves the server; browsers get
+# a short-lived signed conversation URL. If only an agent ID is configured,
+# the frontend falls back to ElevenLabs' public-agent widget mode.
+DEFAULT_ELEVENLABS_AGENT_ID = "agent_4801m3by5dhceh5rwx83ynt33ra3"
+ELEVENLABS_AGENT_ID = (
+    os.getenv("ELEVENLABS_AGENT_ID", DEFAULT_ELEVENLABS_AGENT_ID).strip()
+    or DEFAULT_ELEVENLABS_AGENT_ID
+)
+ELEVENLABS_API_KEY = os.getenv("ELEVENLABS_API_KEY", "").strip()
+_support_url_requests: dict[str, deque[float]] = {}
+_SUPPORT_RATE_WINDOW_S = 60.0
+_SUPPORT_RATE_LIMIT = 12
+
 
 class AlertCreate(BaseModel):
     ticker:    str
@@ -1127,6 +1140,63 @@ def quotes(tickers: str = "") -> list:
         results[row["ticker"]] = row
     return [{k: v for k, v in results[t].items() if k != "_ts"}
             for t in labels if t in results]
+
+
+def _support_request_allowed(client_key: str) -> bool:
+    """Small per-process guard against signed-URL farming and accidental loops."""
+    now = time.monotonic()
+    bucket = _support_url_requests.setdefault(client_key, deque())
+    while bucket and now - bucket[0] > _SUPPORT_RATE_WINDOW_S:
+        bucket.popleft()
+    if len(bucket) >= _SUPPORT_RATE_LIMIT:
+        return False
+    bucket.append(now)
+    return True
+
+
+def _request_elevenlabs_signed_url() -> str:
+    """Run the blocking ElevenLabs request in the shared worker pool."""
+    import requests
+
+    response = requests.get(
+        "https://api.elevenlabs.io/v1/convai/conversation/get-signed-url",
+        params={"agent_id": ELEVENLABS_AGENT_ID},
+        headers={"xi-api-key": ELEVENLABS_API_KEY},
+        timeout=10,
+    )
+    response.raise_for_status()
+    signed_url = response.json().get("signed_url", "")
+    if not isinstance(signed_url, str) or not signed_url.startswith("wss://"):
+        raise ValueError("ElevenLabs returned an invalid signed URL")
+    return signed_url
+
+
+@app.get("/api/support/elevenlabs")
+async def elevenlabs_support_config(request: Request):
+    """Return the browser-safe configuration for the support widget."""
+    if not ELEVENLABS_AGENT_ID:
+        return JSONResponse({"enabled": False}, headers={"Cache-Control": "no-store"})
+
+    client_key = request.client.host if request.client else "unknown"
+    if not _support_request_allowed(client_key):
+        raise HTTPException(status_code=429, detail="Too many support session requests")
+
+    if not ELEVENLABS_API_KEY:
+        return JSONResponse(
+            {"enabled": True, "agentId": ELEVENLABS_AGENT_ID, "auth": "public"},
+            headers={"Cache-Control": "no-store"},
+        )
+
+    try:
+        signed_url = await asyncio.to_thread(_request_elevenlabs_signed_url)
+    except Exception as exc:
+        print(f"ElevenLabs support session failed: {exc}")
+        raise HTTPException(status_code=502, detail="Support assistant is temporarily unavailable")
+
+    return JSONResponse(
+        {"enabled": True, "signedUrl": signed_url, "auth": "signed"},
+        headers={"Cache-Control": "no-store"},
+    )
 
 
 _STATIC_TYPES = {
