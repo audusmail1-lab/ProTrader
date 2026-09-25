@@ -843,7 +843,7 @@ kbd{
     height:44px;gap:6px;padding:5px 10px;scroll-snap-type:x proximity;
     background:rgba(13,19,32,.78);border-bottom-color:rgba(148,163,184,.12);
   }
-  .chart-toolbar .draw-btn:nth-of-type(n+10):not(:last-child){display:none}
+  .chart-toolbar .draw-btn:nth-of-type(n+10):not(:last-child):not(.position-tool){display:none}
   .tf-btn,.draw-btn,.ind-btn{
     min-height:32px;padding:6px 11px;font-size:12px;scroll-snap-align:start;
     border-radius:999px;border-color:var(--bd-1);
@@ -1381,8 +1381,10 @@ svg.ico{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.7;st
       <button class="draw-btn" onclick="setDraw('ray',this)" title="Ray">↗ Ray</button>
       <button class="draw-btn" onclick="setDraw('vline',this)" title="Vertical Line">| V-Line</button>
       <button class="draw-btn" onclick="setDraw('ruler',this)" title="Ruler">Ruler</button>
-      <button class="draw-btn" style="color:var(--red-lt)" onclick="clearDraw()" title="Clear All">✕ Clear</button>
-      <button class="draw-btn" onclick="setDraw('none',null)" title="Cursor Mode">↖ Cursor</button>
+      <button class="draw-btn position-tool" onclick="setDraw('long',this)" title="Long position measurement">Long</button>
+      <button class="draw-btn position-tool" onclick="setDraw('short',this)" title="Short position measurement">Short</button>
+      <button class="draw-btn position-tool" style="color:var(--red-lt)" onclick="clearDraw()" title="Clear All">✕ Clear</button>
+      <button class="draw-btn position-tool" onclick="setDraw('none',null)" title="Cursor Mode">↖ Cursor</button>
       <div class="sep"></div>
       <!-- Indicators -->
       <button class="ind-btn active" id="ind-ema" onclick="togInd('ema',this)">EMA</button>
@@ -1397,6 +1399,16 @@ svg.ico{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.7;st
       <button class="ind-btn" onclick="chartZoomBy(1.25)" title="Zoom in (or pinch / Ctrl+scroll)" style="font-weight:900" aria-label="Zoom in">+</button>
     </div>
 
+    <div id="positionMeasure" hidden style="padding:8px 12px;border-bottom:1px solid var(--bd-2);font-size:12px;flex-shrink:0">
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+        <strong id="positionMeasureTitle">Position estimate</strong>
+        <label>Risk budget <span id="positionMeasureCurrency">USD</span>
+          <input id="positionRisk" type="number" min="0.01" step="any" inputmode="decimal" value="100" aria-label="Position risk budget" style="width:85px;background:var(--bg-glass);color:inherit;border:1px solid var(--bd-2);border-radius:4px;padding:6px" oninput="DRAW.updatePositionRisk(this)">
+        </label>
+        <output id="positionMeasureStats" style="line-height:1.6"></output>
+      </div>
+      <div style="opacity:.7;font-size:11px;margin-top:4px">Drag Entry, SL or TP to adjust. Drag shaded zones to move; the right handle sets width. Estimate only, before fees and slippage.</div>
+    </div>
     <!-- Chart area -->
     <div class="chart-wrap" id="chartWrap">
       <div id="lwChart"></div>
@@ -3064,6 +3076,10 @@ const CH = {
     });
 
     this.bindScaleWatch(el);
+    this.overlayResizeObserver = new ResizeObserver(() => {
+      requestAnimationFrame(() => { this.syncOverlay(); this.watchScale(250); });
+    });
+    this.overlayResizeObserver.observe(el);
 
     this.candle = this.chart.addSeries(LWC.CandlestickSeries, {
       upColor: p.up, downColor: p.down,
@@ -3708,6 +3724,7 @@ const DRAW_COLORS = {
   hline: '#3B82F6', trend: '#10B981', fib: '#EAB308',
   rect: '#3B82F6', channel: '#8B5CF6', ray: '#06B6D4',
   vline: '#F59E0B', ruler: '#F59E0B',
+  long: '#10B981', short: '#EF5350',
 };
 const DRAW_PTS = { hline: 1, vline: 1, trend: 2, ray: 2, rect: 2, channel: 2, fib: 2, ruler: 2 };
 const HIT_TOL = 8;        // px — finger-friendly
@@ -3728,6 +3745,78 @@ const DRAW = {
   list() { return this.bySym[S.sym] || (this.bySym[S.sym] = []); },
   find(id) { return this.list().find(d => d.id === id) || null; },
   barSec() { return TF_SEC[S.tf] || 900; },
+
+  isPosition(d) { return d && (d.type === 'long' || d.type === 'short'); },
+  // Points: entry/left, stop/right, target/right, width handle/right.
+  newPosition(d, a, x, y, W) {
+    const sign = d.type === 'long' ? 1 : -1;
+    const tick = Math.pow(10, -(Number.isFinite(S.dp) ? S.dp : 4));
+    const entry = Math.max(tick * 3, Math.round(a.p / tick) * tick);
+    const span = Math.max(tick, Math.abs(CH.fromY(y + 45) - entry) || entry * .005);
+    const risk = Math.min(span, entry / 3);
+    const end = Math.max(a.t + this.barSec(), CH.fromX(Math.min(W - 70, x + 150)) ?? a.t + this.barSec() * 20);
+    d.pts = [{t:a.t,p:entry}, {t:end,p:entry-sign*risk},
+      {t:end,p:entry+sign*risk*2}, {t:end,p:entry}];
+    d.riskBudget = 100;
+    return d;
+  },
+  resizePosition(d, index, a) {
+    const tick = Math.pow(10, -(Number.isFinite(S.dp) ? S.dp : 4));
+    const sign = d.type === 'long' ? 1 : -1;
+    let price = Math.max(tick, Math.round(a.p / tick) * tick);
+    if (index === 3) {
+      if (Number.isFinite(a.t)) d.pts.slice(1).forEach(p => { p.t = Math.max(d.pts[0].t + this.barSec(), a.t); });
+    } else if (index === 0) {
+      const low = Math.min(d.pts[1].p, d.pts[2].p) + tick;
+      const high = Math.max(d.pts[1].p, d.pts[2].p) - tick;
+      d.pts[0].p = Math.max(low, Math.min(high, price));
+      d.pts[3].p = d.pts[0].p;
+    } else {
+      const entry = d.pts[0].p;
+      const direction = index === 1 ? -sign : sign;
+      d.pts[index].p = direction > 0 ? Math.max(entry + tick, price) : Math.min(entry - tick, price);
+    }
+  },
+  positionStats(d) {
+    const [entry, stop, target] = d.pts.map(p => p.p);
+    const distance = Math.abs(entry-stop), rewardDistance = Math.abs(target-entry);
+    const live = LIVE.routing();
+    const spec = otSpec(S.sym);
+    const matching = !live || !!LIVE.specLimits(S.sym);
+    const perLot = !matching ? null : live ? LIVE.riskAtStop(S.sym, 1, entry, stop)
+      : Math.abs(otPnl('buy', entry, stop, 1, S.sym) ?? NaN);
+    const currency = live ? (LIVE.acct()?.currency || 'account currency') : 'USD';
+    const budget = Number(d.riskBudget);
+    const step = spec.lotStep;
+    const available = Number.isFinite(perLot) && perLot > 0 && budget > 0 && step > 0;
+    let lots = available ? Math.floor((Math.min(budget/perLot, spec.maxLot) + step*1e-8)/step)*step : null;
+    if (lots != null) lots = lots + step*1e-8 < spec.minLot ? 0 : +lots.toFixed(8);
+    return { distance, rewardDistance, ratio:distance > 0 ? rewardDistance/distance : null,
+      lots, risk:lots == null ? null : lots*perLot,
+      reward:lots == null ? null : lots*perLot*rewardDistance/distance, currency };
+  },
+  updatePositionRisk(input) {
+    const d = this.find(this.sel), value = Number(input.value);
+    if (!this.isPosition(d)) return;
+    input.setCustomValidity(Number.isFinite(value) && value > 0 ? '' : 'Enter a risk budget greater than zero.');
+    d.riskBudget = Number.isFinite(value) && value > 0 ? value : null;
+    this.save(); CH.syncOverlay();
+  },
+  positionPanel() {
+    const panel = document.getElementById('positionMeasure');
+    if (!panel) return;
+    const d = this.find(this.sel);
+    panel.hidden = !this.isPosition(d);
+    if (panel.hidden) return;
+    const s = this.positionStats(d), input = document.getElementById('positionRisk');
+    document.getElementById('positionMeasureTitle').textContent = d.type === 'long' ? 'Long position' : 'Short position';
+    document.getElementById('positionMeasureCurrency').textContent = s.currency;
+    if (document.activeElement !== input) input.value = d.riskBudget ?? '';
+    const money = n => n == null ? '—' : n.toFixed(2);
+    document.getElementById('positionMeasureStats').textContent =
+      `Risk ${money(s.risk)} · Reward ${money(s.reward)} · Size ${s.lots == null ? '—' : s.lots} lots · R:R 1:${s.ratio?.toFixed(2) ?? '—'}`
+      + (s.lots === 0 ? ' · Budget below minimum lot' : s.lots == null ? ' · Set a budget; instrument pricing required' : '');
+  },
 
   /* ── persistence ───────────────────────────────────────── */
   save() {
@@ -3769,6 +3858,13 @@ const DRAW = {
   },
 
   hitHandle(d, x, y) {
+    if (this.isPosition(d)) {
+      const s = this.screen(d), left = s[0].x, right = s[1].x;
+      if (left == null || right == null || x < Math.min(left,right)-HIT_TOL || x > Math.max(left,right)+HIT_TOL) return -1;
+      if (this.sel === d.id && Math.hypot(x-s[3].x,y-s[3].y) <= HIT_TOL) return 3;
+      const candidates = [0,1,2].filter(i => s[i].y != null && Math.abs(y-s[i].y) <= HIT_TOL);
+      return candidates.sort((i,j) => Math.abs(y-s[i].y)-Math.abs(y-s[j].y))[0] ?? -1;
+    }
     if (this.sel !== d.id) return -1;
     const s = this.screen(d);
     for (let i = 0; i < s.length; i++) {
@@ -3782,6 +3878,11 @@ const DRAW = {
     const s = this.screen(d);
     const a = s[0], b = s[1];
     if (!a || a.y == null) return false;
+    if (this.isPosition(d)) {
+      return a.x != null && b?.x != null && s[2]?.y != null
+        && x >= Math.min(a.x,b.x)-HIT_TOL && x <= Math.max(a.x,b.x)+HIT_TOL
+        && y >= Math.min(b.y,s[2].y)-HIT_TOL && y <= Math.max(b.y,s[2].y)+HIT_TOL;
+    }
     switch (d.type) {
       case 'hline': return Math.abs(y - a.y) <= HIT_TOL;
       case 'vline': return a.x != null && Math.abs(x - a.x) <= HIT_TOL;
@@ -3850,6 +3951,7 @@ const DRAW = {
 
   /* ── the ✕ chip, so touch users can delete without a keyboard ── */
   chip() {
+    this.positionPanel();
     let el = document.getElementById('drawChip');
     const d = this.sel ? this.find(this.sel) : null;
     if (!d) { if (el) el.style.display = 'none'; return; }
@@ -3910,6 +4012,29 @@ const DRAW = {
 
     const ax = a.x, bx = b.x;
     switch (d.type) {
+      case 'long':
+      case 'short': {
+        if (ax == null || bx == null || s[2]?.y == null) break;
+        const left = Math.min(ax,bx), width = Math.abs(bx-ax);
+        ctx.font = '11px "JetBrains Mono", monospace';
+        ctx.beginPath(); ctx.rect(0,0,Math.max(0,W-60),Math.max(0,H-24)); ctx.clip();
+        ctx.fillStyle = 'rgba(16,185,129,.20)';
+        ctx.fillRect(left, Math.min(a.y,s[2].y), width, Math.abs(s[2].y-a.y));
+        ctx.fillStyle = 'rgba(239,83,80,.20)';
+        ctx.fillRect(left, Math.min(a.y,b.y), width, Math.abs(b.y-a.y));
+        const stats = this.positionStats(d);
+        const levels = [[2,'TP','#10B981'],[1,'SL','#EF5350'],[0,d.type === 'long' ? 'Long Entry' : 'Short Entry','#93C5FD']];
+        levels.forEach(([i,label,color]) => {
+          ctx.strokeStyle = color; ctx.fillStyle = color;
+          ctx.beginPath(); ctx.moveTo(left,s[i].y); ctx.lineTo(left+width,s[i].y); ctx.stroke();
+          const text = `${label} ${d.pts[i].p.toFixed(dp)}`, tx = Math.max(4,left+6);
+          ctx.fillStyle = '#0B1220'; ctx.fillRect(tx-3,s[i].y-20,ctx.measureText(text).width+6,17);
+          ctx.fillStyle = color; ctx.fillText(text,tx,s[i].y-7);
+        });
+        ctx.fillStyle = '#CBD5E1';
+        ctx.fillText(`R:R 1:${stats.ratio?.toFixed(2) ?? '—'} · ${stats.lots == null ? '—' : stats.lots} lots`, Math.max(4,left+6),a.y+14);
+        break;
+      }
       case 'hline':
         ctx.beginPath(); ctx.moveTo(0, a.y); ctx.lineTo(W, a.y); ctx.stroke();
         ctx.fillText(d.pts[0].p.toFixed(dp), 6, a.y - 4);
@@ -3999,6 +4124,7 @@ const DRAW = {
 
 /* ── tool arming ────────────────────────────────────────── */
 function setDraw(tool, btn) {
+  if (DRAW.mode !== 'idle') return;
   DRAW.armed = tool;
   S.drawTool = tool;
   document.querySelectorAll('.draw-btn').forEach(b => b.classList.remove('active'));
@@ -4060,22 +4186,26 @@ function updateDrawCursor() {
 
   // Capture phase on the wrapper: we see the pointer before the chart does.
   // Only when we actually take the gesture do we stop it reaching the chart.
-  const claim = e => { e.preventDefault(); e.stopPropagation(); try { wrap.setPointerCapture(e.pointerId); } catch (_) {} };
+  let activePointer = null, activeSymbol = null, activeDrawing = null;
+  const claim = e => { activePointer = e.pointerId; activeSymbol = S.sym; e.preventDefault(); e.stopPropagation(); try { wrap.setPointerCapture(e.pointerId); } catch (_) {} };
   wrap.addEventListener('pointerdown', e => {
+    if (activePointer != null || e.target.closest('button,input,select,textarea')) return;
     if (e.button != null && e.button !== 0) return;
     const p = posFrom(e);
     const W = wrap.clientWidth, H = wrap.clientHeight;
+    if (p.x >= W - 60 || p.y >= H - 24 || p.x < 0 || p.y < 0) return;
 
     // 1. a tool is armed → begin creating exactly one object
     if (DRAW.armed !== 'none') {
-      claim(e);
       const a = anchor(p);
-      if (a.p == null) return;
+      if (a.p == null || a.t == null) return;
+      claim(e);
       const n = DRAW_PTS[DRAW.armed] || 2;
       DRAW.creating = {
         id: DRAW.seq++, type: DRAW.armed, color: DRAW_COLORS[DRAW.armed] || '#3B82F6',
         pts: n === 1 ? [{ t: a.t, p: a.p }] : [{ t: a.t, p: a.p }, { t: a.t, p: a.p }],
       };
+      if (DRAW.isPosition(DRAW.creating)) DRAW.newPosition(DRAW.creating, a, p.x, p.y, W);
       DRAW.mode = 'creating';
       CH.syncOverlay();
       return;
@@ -4088,6 +4218,7 @@ function updateDrawCursor() {
       if (h >= 0) {
         claim(e);
         DRAW.mode = 'resizing'; DRAW.grabPt = h;
+        activeDrawing = sel;
         DRAW.dragFrom = { x: p.x, y: p.y, pts: sel.pts.map(q => ({ ...q })) };
         updateDrawCursor();
         return;
@@ -4099,7 +4230,10 @@ function updateDrawCursor() {
     if (target) {
       claim(e);
       DRAW.select(target.id);
-      DRAW.mode = 'moving';
+      activeDrawing = target;
+      const level = DRAW.isPosition(target) ? DRAW.hitHandle(target, p.x, p.y) : -1;
+      DRAW.mode = level >= 0 ? 'resizing' : 'moving';
+      DRAW.grabPt = level;
       DRAW.dragFrom = { x: p.x, y: p.y, pts: target.pts.map(q => ({ ...q })) };
       updateDrawCursor();
       return;
@@ -4109,7 +4243,8 @@ function updateDrawCursor() {
   }, { capture: true });
 
   window.addEventListener('pointermove', e => {
-    if (DRAW.mode === 'idle') return;
+    if (DRAW.mode === 'idle' || e.pointerId !== activePointer) return;
+    if (activeSymbol !== S.sym) { finish({pointerId:activePointer,type:'pointercancel'}); return; }
     e.preventDefault();
     const p = posFrom(e);
 
@@ -4117,7 +4252,9 @@ function updateDrawCursor() {
       const a = anchor(p);
       if (a.p == null) return;
       const d = DRAW.creating;
-      if (d.pts.length === 1) {
+      if (DRAW.isPosition(d)) {
+        if (Math.abs(p.x - DRAW.screen(d)[0].x) > 8) DRAW.resizePosition(d, 3, a);
+      } else if (d.pts.length === 1) {
         if (d.type === 'hline') d.pts[0].p = a.p;
         else d.pts[0].t = a.t;
       } else {
@@ -4133,7 +4270,18 @@ function updateDrawCursor() {
     if (DRAW.mode === 'resizing') {
       const a = anchor(p);
       if (a.p == null) return;
-      if (d.type === 'hline') d.pts[0].p = a.p;
+      if (DRAW.isPosition(d)) {
+        // Use a delta from the grabbed level, so selecting a marker (which
+        // opens its settings) or grabbing near a line never makes it jump.
+        const from = anchor({x:DRAW.dragFrom.x,y:DRAW.dragFrom.y});
+        const original = DRAW.dragFrom.pts[DRAW.grabPt];
+        if (from.p == null) return;
+        DRAW.resizePosition(d, DRAW.grabPt, {
+          p: original.p + a.p - from.p,
+          t: a.t != null && from.t != null ? original.t + a.t - from.t : original.t,
+        });
+      }
+      else if (d.type === 'hline') d.pts[0].p = a.p;
       else if (d.type === 'vline') d.pts[0].t = a.t;
       else d.pts[DRAW.grabPt] = { t: a.t, p: a.p };
       CH.syncOverlay();
@@ -4146,7 +4294,8 @@ function updateDrawCursor() {
       const from = anchor({ x: DRAW.dragFrom.x, y: DRAW.dragFrom.y });
       const to = anchor(p);
       if (to.p == null || from.p == null) return;
-      const dp = to.p - from.p;
+      let dp = to.p - from.p;
+      if (DRAW.isPosition(d)) dp = Math.max(Math.pow(10,-S.dp) - Math.min(...DRAW.dragFrom.pts.map(q => q.p)), dp);
       const dt = (to.t != null && from.t != null) ? to.t - from.t : 0;
       d.pts = DRAW.dragFrom.pts.map(q => ({
         t: d.type === 'hline' ? q.t : q.t + dt,
@@ -4156,7 +4305,19 @@ function updateDrawCursor() {
     }
   });
 
-  const finish = () => {
+  const finish = e => {
+    if (e && e.pointerId !== activePointer) return;
+    const cancelled = e?.type === 'pointercancel' || e?.type === 'lostpointercapture' || (activePointer != null && activeSymbol !== S.sym);
+    if (cancelled) {
+      if (DRAW.dragFrom && activeDrawing) activeDrawing.pts = DRAW.dragFrom.pts.map(p => ({...p}));
+      DRAW.creating = null;
+      DRAW.mode = 'idle'; DRAW.grabPt = -1; DRAW.dragFrom = null;
+      const pointer = activePointer; activePointer = null; activeDrawing = null;
+      if (pointer != null && wrap.hasPointerCapture(pointer)) wrap.releasePointerCapture(pointer);
+      updateDrawCursor(); CH.syncOverlay(); return;
+    }
+    const pointer = activePointer; activePointer = null; activeDrawing = null;
+    if (pointer != null && wrap.hasPointerCapture(pointer)) wrap.releasePointerCapture(pointer);
     if (DRAW.mode === 'creating' && DRAW.creating) {
       const d = DRAW.creating;
       const s = DRAW.screen(d);
@@ -4186,11 +4347,17 @@ function updateDrawCursor() {
   };
   window.addEventListener('pointerup', finish);
   window.addEventListener('pointercancel', finish);
+  wrap.addEventListener('lostpointercapture', e => { if (activePointer != null) finish(e); });
 
   document.addEventListener('keydown', e => {
     const typing = /^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement?.tagName || '');
     if (typing) return;
     if (e.key === 'Escape') {
+      if (DRAW.mode !== 'idle') {
+        finish({pointerId:activePointer,type:'pointercancel'});
+        setDraw('none',null);
+        return;
+      }
       if (DRAW.mode === 'creating') { DRAW.creating = null; DRAW.mode = 'idle'; setDraw('none', null); CH.syncOverlay(); }
       else if (DRAW.armed !== 'none') setDraw('none', null);
       else DRAW.deselect();
