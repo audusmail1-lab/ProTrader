@@ -2,3 +2,17 @@
 #academy-chat{left:16px;right:auto!important}
 #academy-chat #chat-window{left:0;right:auto}
 elevenlabs-convai{z-index:40}
+/* Compact phone support with scrollable messages and comfortable tap targets. */
+@media(max-width:700px){
+  #academy-chat{left:12px;bottom:calc(12px + env(safe-area-inset-bottom,0px))}
+  #chat-launch{padding:8px 14px;font-size:13px;gap:6px}
+  #academy-chat #chat-window{width:min(370px,calc(100vw - 24px));bottom:56px;max-height:min(560px,calc(100dvh - 112px - env(safe-area-inset-bottom,0px)));overflow:auto}
+  .chat-header{padding:10px 12px}.chat-header b{font-size:14px}
+  .chat-intro{padding:8px 12px}.chat-intro p{margin-bottom:4px}
+  #chat-messages{padding:8px;min-height:48px;max-height:28dvh;flex:1 1 auto;overflow:auto}
+  .chat-message{padding:8px 10px;margin-bottom:6px}.chat-message p{line-height:1.4;margin:4px 0 0}
+  #chat-form{padding:8px 12px 10px;flex-shrink:0}
+  #chat-body{min-height:44px;height:44px;max-height:88px;font-size:16px;padding:8px;margin:4px 0}
+  .chat-actions{gap:8px}.chat-actions button{padding:6px 10px;font-size:12px}
+  elevenlabs-convai{right:12px;bottom:calc(12px + env(safe-area-inset-bottom,0px));max-width:calc(100vw - 24px)}
+}

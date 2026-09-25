@@ -48,3 +48,7 @@ body.academy-public .app-screen{margin:0;min-width:0;border:1px solid #45523d;bo
 body.academy-public .app-roles{grid-column:1/-1;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:28px;border-top:1px solid var(--line);padding-top:28px}body.academy-public .app-roles span{font-size:10px;letter-spacing:1.5px;color:var(--green)}body.academy-public .app-roles h3{font-size:22px;margin:12px 0}body.academy-public .app-roles p{font-size:14px;line-height:1.6;margin:0}body.academy-public .app-boundary{grid-column:1/-1;font-size:12px;line-height:1.6;margin:0}
 @media(max-width:1050px){body.academy-public .app-showcase{grid-template-columns:1fr;padding:28px;gap:26px}body.academy-public .app-story p{max-width:650px}body.academy-public header{gap:16px}body.academy-public header nav{gap:16px}}
 @media(max-width:600px){body.academy-public .app-showcase{padding:22px 18px;margin:28px 0 45px}.app-screen-bar>span:last-child{display:none}body.academy-public .app-roles{grid-template-columns:1fr;gap:24px}body.academy-public .app-story .actions{align-items:stretch;flex-direction:column}body.academy-public .app-story .button{justify-content:space-between}}
+/* Vector play icons retain the same appearance on iOS and desktop. */
+.ui-icon{display:inline-block;width:18px;height:18px;vertical-align:middle;flex:none}
+.play .ui-icon{width:28px;height:28px}.video-image .ui-icon{width:24px;height:24px}
+@media(max-width:600px){body.academy-public .hero .button{min-height:44px;padding:12px 16px;font-size:14px;gap:10px}body.academy-public .hero .actions{gap:10px}}
