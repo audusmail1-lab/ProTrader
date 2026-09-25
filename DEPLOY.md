@@ -155,24 +155,3 @@ right call.
 **Updating.** Change code → `git push` → the host redeploys. The service
 worker picks up the new shell on the next open; bump `CACHE_VERSION` in
 `static/sw.js` if you want to force every device to refresh at once.
-
----
-
-## E. ElevenLabs voice + text support assistant
-
-Create an ElevenLabs Agent and enable both voice and text in **Channels → Widget → Interface**. Add your Pro Trader help content to its knowledge base, and keep its role limited to product education and support rather than financial advice or trade execution.
-
-Set these server-side environment variables:
-
-```text
-ELEVENLABS_AGENT_ID=agent_4801m3by5dhceh5rwx83ynt33ra3
-ELEVENLABS_API_KEY=...
-```
-
-On Render, add them under the service's **Environment** page (the Blueprint marks both as secret values). On Fly.io, run:
-
-```bash
-fly secrets set ELEVENLABS_AGENT_ID=agent_... ELEVENLABS_API_KEY=...
-```
-
-The supplied public agent `agent_4801m3by5dhceh5rwx83ynt33ra3` is built in as the default, so the widget works without additional configuration. The browser never receives the API key when one is configured: it requests a short-lived signed conversation URL from `/api/support/elevenlabs`. Set both variables when moving the agent to private authenticated sessions.
