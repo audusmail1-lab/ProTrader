@@ -54,6 +54,8 @@ initSupport();
 const visitorAssistant=document.createElement('elevenlabs-convai');
 visitorAssistant.setAttribute('agent-id','agent_4801m3by5dhceh5rwx83ynt33ra3');
 visitorAssistant.setAttribute('variant','compact');
+visitorAssistant.setAttribute('expandable','always');
+visitorAssistant.setAttribute('expand-text','Ask Alex');
 visitorAssistant.setAttribute('show-avatar-when-collapsed','false');
 visitorAssistant.setAttribute('action-text','Ask Alex');
 visitorAssistant.setAttribute('start-call-text','Ask Alex');
