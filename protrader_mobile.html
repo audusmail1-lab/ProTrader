@@ -1278,6 +1278,19 @@ svg.ico{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.7;st
 .chk-mtile small{font-size:var(--fs-1);color:var(--tx-3)}
 .chk-mtile .dn{color:var(--red-lt)}.chk-mtile .up{color:var(--green-lt)}
 .pos-l2 .pos{color:var(--green-lt)}.pos-l2 .neg{color:var(--red-lt)}
+/* Explicit button surfaces avoid native white buttons with pale labels. */
+.bstab,.rtab{appearance:none;background:var(--bg-3);color:var(--tx-1);border:1px solid var(--bd-2);min-height:36px}
+.bstab:hover,.rtab:hover{background:var(--bg-4);color:var(--tx-1)}
+.bstab:focus-visible,.rtab:focus-visible,#tradeDockGrip:focus-visible{outline:2px solid var(--blue-lt);outline-offset:-2px}
+.bstrip-tabs{height:auto;min-height:42px;padding:3px 6px;gap:4px;flex-shrink:0;align-items:center}
+#tradeDock{display:flex;flex-direction:column;min-height:0}
+#tradeDock .bstrip-body{height:var(--dock-height,110px);max-height:none;min-height:0;overflow:auto;flex:none}
+#tradeDock .bpane{height:100%;max-height:none;overflow:auto;box-sizing:border-box}
+#tradeDock #positionsPane.active,#tradeDock #ordersPane.active{flex-wrap:wrap;align-content:flex-start}
+#tradeDockGrip{height:16px;flex:none;cursor:ns-resize;touch-action:none;display:flex;align-items:center;justify-content:center;background:var(--bg-2)}
+#tradeDockGrip span{width:44px;height:4px;border-radius:3px;background:var(--tx-2)}
+#tradeDockGrip:hover span,#tradeDockGrip:focus span{background:var(--blue-lt)}
+@media(max-width:820px){#tradeDockGrip{height:22px}.bstab{min-height:36px;margin:0}}
 </style>
 </head>
 <body>
@@ -1430,7 +1443,8 @@ svg.ico{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.7;st
     </div>
 
     <!-- Bottom scanner strip -->
-    <div class="bottom-strip">
+    <div class="bottom-strip" id="tradeDock">
+      <div id="tradeDockGrip" role="separator" tabindex="0" aria-label="Resize trade management panel" aria-orientation="horizontal" title="Drag up for more room. Arrow keys resize; double-click resets."><span></span></div>
       <div class="ticker-wrap"><div class="ticker-scroll" id="tickerScroll"></div></div>
       <div class="bstrip-tabs">
         <button class="bstab active" onclick="setBTab('scanner',this)">Scanner</button>
@@ -4736,8 +4750,19 @@ function riskLots(id, entry, sl, balance) {
   return { lots: +Math.min(sp.maxLot, lots).toFixed(6), min: sp.minLot, riskPerLot };
 }
 
+const CHECK_UI = { expanded: false };
+function toggleMoreChecks() {
+  CHECK_UI.expanded = !CHECK_UI.expanded;
+  const more = document.getElementById('chkMore'), button = document.getElementById('chkMoreToggle');
+  more?.classList.toggle('open', CHECK_UI.expanded);
+  if (button) {
+    button.setAttribute('aria-expanded', String(CHECK_UI.expanded));
+    button.textContent = CHECK_UI.expanded ? 'Show fewer checks ▴' : 'Show 4 more checks ▾';
+  }
+}
 function renderCheck() {
   const panel = document.getElementById('check-panel'); if (!panel) return;
+  const toggleFocused = document.activeElement?.id === 'chkMoreToggle';
   const m = checkModel();
   if (!m) { panel.innerHTML = '<div class="pos-empty">Waiting for at least 30 candles before running the check…</div>'; return; }
   const { gates, verdict, entry, mcc, oracle } = m;
@@ -4781,8 +4806,8 @@ function renderCheck() {
       <button onclick="setRTab('oracle',null)" title="Open the Oracle advisor">Oracle <b>${oracle}%</b> confidence</button>
     </div>
     <div class="chk-list">${ordered.slice(0, 5).map(row).join('')}
-      <div class="chk-more" id="chkMore">${ordered.slice(5).map(row).join('')}</div>
-      <button class="chk-moretog" onclick="const m=document.getElementById('chkMore');m.classList.toggle('open');this.textContent=m.classList.contains('open')?'Show fewer checks ▴':'Show 4 more checks ▾'">Show 4 more checks ▾</button>
+      <div class="chk-more ${CHECK_UI.expanded ? 'open' : ''}" id="chkMore">${ordered.slice(5).map(row).join('')}</div>
+      <button class="chk-moretog" id="chkMoreToggle" aria-controls="chkMore" aria-expanded="${CHECK_UI.expanded}" onclick="toggleMoreChecks()">${CHECK_UI.expanded ? 'Show fewer checks ▴' : 'Show 4 more checks ▾'}</button>
     </div>
     <div class="chk-ctx"><span>Context</span><span>${mcc.label} · ${m.wyck.phase}${m.patternAlign ? ' · ' + m.patternAlign : ''}</span></div>
     ${(() => { const L = lot && lot.lots >= lot.min ? lot.lots : null;
@@ -4803,6 +4828,7 @@ function renderCheck() {
       <button class="review-btn" onclick="reviewFromCheck()">Review this trade</button>
       <small>${blocked ? 'The checks say stand aside. Reviewing only fills the ticket — nothing is placed until you confirm.' : 'Opens the ticket pre-filled and sized to your risk. Nothing is placed until you confirm.'}</small>
     </div>`;
+  if (toggleFocused) document.getElementById('chkMoreToggle')?.focus({preventScroll:true});
 }
 
 function reviewFromCheck() {
@@ -7171,6 +7197,7 @@ function setRTab(tab, btn) {
 }
 
 function setBTab(tab, btn) {
+  TRADE_DOCK.select(tab);
   document.querySelectorAll('.bstab').forEach(b => b.classList.remove('active'));
   document.querySelectorAll('.bpane').forEach(p => { p.classList.remove('active'); });
   if (btn) btn.classList.add('active');
@@ -7181,6 +7208,58 @@ function setBTab(tab, btn) {
   if (tab === 'scanner') runPatternScanner();
   if (tab === 'positions' || tab === 'orders') OT.renderBook();
 }
+
+const TRADE_DOCK = {
+  height: null, tab: 'scanner', drag: null,
+  limit(height) {
+    const main = document.getElementById('tradeDock').parentElement;
+    return Math.max(72, Math.min(height, Math.max(72, main.clientHeight - 240), 480));
+  },
+  apply(height) {
+    const value = this.limit(height);
+    document.getElementById('tradeDock').style.setProperty('--dock-height', value + 'px');
+    const grip = document.getElementById('tradeDockGrip');
+    grip.setAttribute('aria-valuemin','72');
+    grip.setAttribute('aria-valuemax',String(this.limit(480)));
+    grip.setAttribute('aria-valuenow',String(Math.round(value)));
+  },
+  select(tab) { this.tab = tab; this.apply(this.height ?? (tab === 'scanner' ? 110 : 230)); },
+  save() { try { localStorage.setItem('protrader.tradeDock.height',String(this.height)); } catch (_) {} },
+  init() {
+    const grip = document.getElementById('tradeDockGrip');
+    try { const n = Number(localStorage.getItem('protrader.tradeDock.height')); if (Number.isFinite(n) && n >= 72) this.height = n; } catch (_) {}
+    this.select('scanner');
+    grip.addEventListener('pointerdown', e => {
+      if (e.button !== 0 || this.drag) return;
+      e.preventDefault();
+      this.drag = {id:e.pointerId,y:e.clientY,height:document.querySelector('#tradeDock .bstrip-body').clientHeight,previous:this.height};
+      grip.setPointerCapture(e.pointerId);
+    });
+    grip.addEventListener('pointermove', e => {
+      if (!this.drag || this.drag.id !== e.pointerId) return;
+      this.height = this.limit(this.drag.height + this.drag.y - e.clientY);
+      this.apply(this.height);
+    });
+    const finish = e => {
+      if (!this.drag || this.drag.id !== e.pointerId) return;
+      if (e.type !== 'pointerup') this.height = this.drag.previous;
+      this.drag = null;
+      if (grip.hasPointerCapture(e.pointerId)) grip.releasePointerCapture(e.pointerId);
+      this.select(this.tab); this.save();
+    };
+    ['pointerup','pointercancel','lostpointercapture'].forEach(type => grip.addEventListener(type,finish));
+    grip.addEventListener('keydown', e => {
+      if (!['ArrowUp','ArrowDown','Home','End'].includes(e.key)) return;
+      e.preventDefault();
+      const current = document.querySelector('#tradeDock .bstrip-body').clientHeight;
+      this.height = this.limit(e.key === 'Home' ? 72 : e.key === 'End' ? 480 : current + (e.key === 'ArrowUp' ? 30 : -30));
+      this.apply(this.height); this.save();
+    });
+    grip.addEventListener('dblclick', () => { this.height = null; this.select(this.tab); this.save(); });
+    new ResizeObserver(() => this.select(this.tab)).observe(document.getElementById('tradeDock').parentElement);
+  },
+};
+TRADE_DOCK.init();
 
 /* ════════════════════════════════════════════════════════════
    SIGNALS
