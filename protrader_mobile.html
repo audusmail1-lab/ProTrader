@@ -1037,7 +1037,7 @@ kbd{
 .ot-rr-val{font-family:var(--font-mono);font-size:12px;font-weight:800;color:var(--tx-1)}
 
 /* metrics */
-.ot-metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:5px}
+.ot-metrics{display:grid;grid-template-columns:repeat(2,1fr);gap:5px}
 .ot-metric-val.pos{color:var(--green-lt)}
 .ot-metric{background:var(--bg-3);border:1px solid var(--bd-1);border-radius:var(--r-sm);padding:5px 6px;min-width:0}
 .ot-metric-lbl{font-size:12px;color:var(--tx-3);text-transform:uppercase;letter-spacing:.4px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -1278,6 +1278,18 @@ svg.ico{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.7;st
 .chk-mtile small{font-size:var(--fs-1);color:var(--tx-3)}
 .chk-mtile .dn{color:var(--red-lt)}.chk-mtile .up{color:var(--green-lt)}
 .pos-l2 .pos{color:var(--green-lt)}.pos-l2 .neg{color:var(--red-lt)}
+/* draggable stop / target handles */
+#lvlLayer{position:absolute;inset:0;z-index:5;pointer-events:none;overflow:hidden}
+.lvl{position:absolute;left:0;right:0;top:-14px;height:28px;display:flex;align-items:center;gap:6px;padding-left:6px;pointer-events:auto;cursor:ns-resize;touch-action:none;user-select:none;-webkit-user-select:none}
+.lvl-grip{width:26px;height:20px;border-radius:6px;background:var(--bg-3);border:1px solid var(--bd-2);display:inline-flex;flex-direction:column;justify-content:center;gap:3px;align-items:center;flex:none}
+.lvl-grip i{display:block;width:12px;height:1.5px;background:var(--tx-3);border-radius:1px}
+.lvl-tag{font-family:var(--font-mono);font-size:12px;font-weight:600;padding:2px 7px;border-radius:5px;background:rgba(13,19,32,.9);border:1px solid var(--bd-2);color:var(--tx-1);white-space:nowrap;pointer-events:none}
+.lvl.sl .lvl-grip{border-color:rgba(240,86,79,.6)}.lvl.sl .lvl-grip i{background:var(--red-lt)}
+.lvl.tp .lvl-grip{border-color:rgba(47,191,155,.6)}.lvl.tp .lvl-grip i{background:var(--green-lt)}
+.lvl.dragging .lvl-grip{background:var(--bg-5)}
+.lvl.dragging .lvl-tag{border-color:var(--blue);color:var(--tx-1)}
+.lvl.dragging::before{content:'';position:absolute;left:0;right:0;top:13px;height:2px;background:var(--blue);opacity:.7}
+@media (max-width:820px),(max-height:520px) and (pointer:coarse){.lvl{height:36px;top:-18px}.lvl-grip{width:34px;height:26px}.lvl.dragging::before{top:17px}}
 </style>
 </head>
 <body>
@@ -3423,6 +3435,7 @@ const CH = {
   refreshLevels() {
     if (!this.ready) return;
     const sym = S.sym;
+    if (typeof LEVELS !== 'undefined') { LEVELS.init(); LEVELS.sync(); }
 
     // Rebuilding price lines is cheap but not free, and this runs twice a
     // second. Skip when nothing about the levels has actually changed.
@@ -3636,6 +3649,7 @@ const CH = {
     ctx.setTransform(pw / w, 0, 0, ph / h, 0, 0);
     ctx.clearRect(0, 0, w, h);
     if (typeof DRAW !== 'undefined') DRAW.render(ctx, w, h);
+    if (typeof LEVELS !== 'undefined') LEVELS.sync();
   },
 
 };
@@ -4022,6 +4036,158 @@ function updateDrawCursor() {
     wrap.style.cursor = '';
   }
 }
+
+/* ════════════════════════════════════════════════════════════
+   DRAGGABLE LEVELS
+   Every stop and target on the chart — the ticket being composed, paper
+   positions and MT5 positions on this symbol — gets a grab handle. Drag it
+   to a new price: the ticket updates live; a position's stop/target is
+   applied on release (paper directly, MT5 after the usual confirm).
+════════════════════════════════════════════════════════════ */
+const LEVELS = {
+  layer: null, items: [], drag: null, _raf: 0,
+  init() {
+    const wrap = document.getElementById('chartWrap'); if (!wrap || this.layer) return;
+    const l = document.createElement('div'); l.id = 'lvlLayer'; wrap.appendChild(l); this.layer = l;
+  },
+  // what is on the chart right now
+  collect() {
+    const sym = S.sym, out = [];
+    const ticketActive = document.getElementById('tradePane')?.classList.contains('active');
+    if (typeof TK !== 'undefined' && ticketActive) {
+      if (TK.slOn && Number.isFinite(TK.sl)) out.push({ key: 'tk-sl', kind: 'ticket', which: 'sl', price: TK.sl, side: TK.side, vol: TK.volume, label: 'SL' });
+      if (TK.tpOn && Number.isFinite(TK.tp)) out.push({ key: 'tk-tp', kind: 'ticket', which: 'tp', price: TK.tp, side: TK.side, vol: TK.volume, label: 'TP' });
+    }
+    if (typeof TR !== 'undefined') TR.positions.filter(p => p.symbol === sym).forEach(p => {
+      if (p.sl != null) out.push({ key: 'pp-sl-' + p.id, kind: 'paper', which: 'sl', price: p.sl, side: p.side, vol: p.volume, id: p.id, entry: p.entry, label: 'SL' });
+      if (p.tp != null) out.push({ key: 'pp-tp-' + p.id, kind: 'paper', which: 'tp', price: p.tp, side: p.side, vol: p.volume, id: p.id, entry: p.entry, label: 'TP' });
+    });
+    if (typeof LIVE !== 'undefined' && LIVE.on) {
+      const name = LIVE.mt5Symbol(sym), s = LIVE.snap();
+      ((s && s.positions) || []).filter(p => p.symbol === name).forEach(p => {
+        if (p.sl > 0) out.push({ key: 'mt-sl-' + p.ticket, kind: 'mt5', which: 'sl', price: +p.sl, side: p.side, vol: +p.volume, ticket: p.ticket, entry: +p.entry, tp: +p.tp, label: 'MT5 SL' });
+        if (p.tp > 0) out.push({ key: 'mt-tp-' + p.ticket, kind: 'mt5', which: 'tp', price: +p.tp, side: p.side, vol: +p.volume, ticket: p.ticket, entry: +p.entry, sl: +p.sl, label: 'MT5 TP' });
+      });
+    }
+    return out;
+  },
+  money(it, price) {
+    // ticket: from the intended entry; position: from its entry
+    let entry = it.entry;
+    if (it.kind === 'ticket') entry = (typeof OT !== 'undefined') ? OT.entryRef() : NaN;
+    if (!Number.isFinite(entry)) return null;
+    if (it.kind === 'mt5') {
+      // the EA reports money on its own; approximate with the chart instrument's pip value
+      return otPnl(it.side, entry, price, it.vol, S.sym);
+    }
+    return otPnl(it.side, entry, price, it.vol, S.sym);
+  },
+  text(it, price) {
+    const m = this.money(it, price);
+    const sp = otSpec(S.sym);
+    const q = otQuote(S.sym);
+    const ref = Number.isFinite(it.entry) ? it.entry : (q.ok ? q.last : NaN);
+    const dist = Number.isFinite(ref) ? Math.abs(price - ref) : NaN;
+    const distTxt = Number.isFinite(dist) ? (sp.isForex ? (dist / sp.pip).toFixed(1) + 'p' : dist.toFixed(sp.dp)) : '';
+    return `${it.label} ${otFmtPx(S.sym, price)}${distTxt ? ' · ' + distTxt : ''}${m == null ? '' : ' · ' + (m > 0 ? '+' : '') + otMoney(m)}`;
+  },
+  sync() {
+    if (!this.layer || typeof CH === 'undefined' || !CH.ready) return;
+    if (this.drag) return;                       // the drag loop owns the layer while a finger is down
+    const items = this.collect();
+    const have = new Map([...this.layer.children].map(el => [el.dataset.key, el]));
+    const seen = new Set();
+    items.forEach(it => {
+      seen.add(it.key);
+      let el = have.get(it.key);
+      if (!el) {
+        el = document.createElement('div'); el.className = 'lvl ' + it.which; el.dataset.key = it.key;
+        el.innerHTML = `<span class="lvl-grip"><i></i><i></i><i></i></span><span class="lvl-tag"></span>`;
+        el.addEventListener('pointerdown', e => this.start(e, el), { passive: false });
+        this.layer.appendChild(el);
+      }
+      el._item = it;
+      const y = CH.toY(it.price);
+      if (y == null || y < 0 || y > this.layer.clientHeight) { el.style.display = 'none'; return; }
+      el.style.display = '';
+      el.style.transform = `translateY(${y}px)`;
+      el.querySelector('.lvl-tag').textContent = this.text(it, it.price);
+    });
+    have.forEach((el, k) => { if (!seen.has(k)) el.remove(); });
+  },
+  /* -- drag -- */
+  start(e, el) {
+    if (e.button != null && e.button !== 0) return;
+    e.preventDefault(); e.stopPropagation();
+    const it = el._item; if (!it) return;
+    this.drag = { el, it, price: it.price, startY: e.clientY, pid: e.pointerId };
+    el.classList.add('dragging'); el.setPointerCapture(e.pointerId);
+    const move = ev => this.move(ev), up = ev => this.end(ev, move, up);
+    el.addEventListener('pointermove', move); el.addEventListener('pointerup', up); el.addEventListener('pointercancel', up);
+    if (typeof CH.watchScale === 'function') CH.watchScale(200);
+  },
+  clamp(it, price) {
+    const sp = otSpec(S.sym), q = otQuote(S.sym);
+    const minDist = otMinDist(S.sym);
+    let ref = NaN;
+    if (it.kind === 'ticket') ref = OT.entryRef();
+    else ref = q.ok ? (it.side === 'buy' ? q.bid : q.ask) : it.entry;
+    if (!Number.isFinite(ref)) return price;
+    // a buy's stop stays below the reference, its target above; a sell the reverse
+    const below = (it.side === 'buy') === (it.which === 'sl');
+    if (below && price > ref - minDist) price = ref - minDist;
+    if (!below && price < ref + minDist) price = ref + minDist;
+    return +price.toFixed(sp.dp);
+  },
+  move(e) {
+    const d = this.drag; if (!d) return;
+    e.preventDefault();
+    const r = this.layer.getBoundingClientRect();
+    const y = Math.max(0, Math.min(r.height, e.clientY - r.top));
+    const raw = CH.fromY(y); if (!Number.isFinite(raw)) return;
+    const sp = otSpec(S.sym);
+    const price = this.clamp(d.it, Math.round(raw / sp.tick) * sp.tick);
+    d.price = price;
+    const yy = CH.toY(price); if (yy != null) d.el.style.transform = `translateY(${yy}px)`;
+    d.el.querySelector('.lvl-tag').textContent = this.text(d.it, price);
+    if (d.it.kind === 'ticket') {                 // the ticket follows the finger
+      if (d.it.which === 'sl') TK.sl = price; else TK.tp = price;
+      const inp = document.getElementById(d.it.which === 'sl' ? 'otSl' : 'otTp'); if (inp) inp.value = price.toFixed(sp.dp);
+      if (!this._raf) this._raf = requestAnimationFrame(() => { this._raf = 0; OT.render(); });
+    }
+  },
+  async end(e, move, up) {
+    const d = this.drag; if (!d) return;
+    d.el.removeEventListener('pointermove', move); d.el.removeEventListener('pointerup', up); d.el.removeEventListener('pointercancel', up);
+    try { d.el.releasePointerCapture(d.pid); } catch (_) {}
+    d.el.classList.remove('dragging');
+    this.drag = null;
+    const it = d.it, price = d.price, sp = otSpec(S.sym);
+    if (Math.abs(price - it.price) < sp.tick / 2) { this.sync(); return; }
+    if (it.kind === 'ticket') { OT.render(); this.sync(); return; }
+    if (it.kind === 'paper') {
+      const p = TR.positions.find(x => x.id === it.id); if (!p) { this.sync(); return; }
+      const sl = it.which === 'sl' ? price : p.sl, tp = it.which === 'tp' ? price : p.tp;
+      const res = await Broker.modify(p.id, sl, tp);
+      if (res.status !== 'modified') { showToast('Could not move the level.', 3000); this.sync(); return; }
+      p.sl = sl; p.tp = tp; if (it.which === 'sl') p.trail = 0;   // a hand-placed stop ends trailing
+      OT.save(); OT.renderBook(); CH.refreshLevels(); this.sync();
+      showToast(`${it.which === 'sl' ? 'Stop' : 'Target'} moved to ${otFmtPx(S.sym, price)}.`, 2600);
+      return;
+    }
+    if (it.kind === 'mt5') {
+      const p = LIVE.pos(it.ticket); if (!p) { this.sync(); return; }
+      const sl = it.which === 'sl' ? price : +p.sl, tp = it.which === 'tp' ? price : +p.tp;
+      const rows = LIVE.line('Position', LIVE.esc(`${p.side.toUpperCase()} ${p.volume} ${p.symbol}`))
+        + LIVE.line(it.which === 'sl' ? 'Stop loss' : 'Take profit', `${LIVE.esc(it.which === 'sl' ? p.sl : p.tp)} → <b>${LIVE.esc(price)}</b>`);
+      const yes = await LIVE.confirm(`Move ${it.which === 'sl' ? 'stop' : 'target'} on MT5?`, rows, 'Update on MT5', '');
+      if (!yes) { this.sync(); return; }
+      const r = await LIVE.send({ type: 'modify', ticket: String(it.ticket), sl, tp: tp > 0 ? tp : 0 });
+      showToast((r.ok ? '✓ MT5 · ' : '✕ ') + r.msg, r.ok ? 4000 : 6500);
+      LIVE.poll(); this.sync();
+    }
+  },
+};
 
 (function wireDrawing() {
   const wrap = document.getElementById('chartWrap');
