@@ -56,10 +56,8 @@ html,body{height:100%;overflow:hidden;background:var(--bg-1);color:var(--tx-1);f
 ::-webkit-scrollbar-thumb:hover{background:var(--tx-3)}
 
 /* ── LAYOUT ── */
-.app{display:grid;grid-template-rows:48px 1fr;grid-template-columns:minmax(0,1fr);height:100dvh;overflow:hidden}
-.workspace{display:grid;grid-template-columns:224px minmax(0,1fr) 320px;overflow:hidden;min-height:0;min-width:0}
-@media(max-width:1200px){.workspace{grid-template-columns:200px minmax(0,1fr) 300px}}
-@media(max-width:1100px){.workspace{grid-template-columns:190px minmax(0,1fr) 290px}}
+.app{display:grid;grid-template-rows:48px auto minmax(0,1fr);grid-template-columns:minmax(0,1fr);height:100dvh;overflow:hidden}
+.workspace{display:grid;grid-template-columns:var(--ws-left,224px) minmax(0,1fr) var(--ws-right,320px);overflow:hidden;min-height:0;min-width:0;position:relative}
 @media (max-width:820px),(max-height:520px) and (pointer:coarse){
   .workspace{grid-template-columns:1fr}
   .sidebar{display:none!important}
@@ -802,7 +800,7 @@ kbd{
 @media (max-width:820px),(max-height:520px) and (pointer:coarse){
   html,body{position:fixed;inset:0;width:100%;height:100%;overflow:hidden;touch-action:manipulation}
   body{background:#070B14}
-  .app{height:100dvh;grid-template-rows:calc(var(--hdr-h) + var(--safe-top)) minmax(0,1fr)}
+  .app{height:100dvh;grid-template-rows:calc(var(--hdr-h) + var(--safe-top)) 0 minmax(0,1fr)}
   .workspace{height:auto;min-height:0;padding-bottom:calc(var(--mobile-nav-h) + var(--safe-bottom));background:var(--bg-1)}
   .center{min-height:0;height:100%;background:var(--bg-1)}
 
@@ -843,7 +841,6 @@ kbd{
     height:44px;gap:6px;padding:5px 10px;scroll-snap-type:x proximity;
     background:rgba(13,19,32,.78);border-bottom-color:rgba(148,163,184,.12);
   }
-  .chart-toolbar .draw-btn:nth-of-type(n+10):not(:last-child):not(.position-tool){display:none}
   .tf-btn,.draw-btn,.ind-btn{
     min-height:32px;padding:6px 11px;font-size:12px;scroll-snap-align:start;
     border-radius:999px;border-color:var(--bd-1);
@@ -1149,6 +1146,7 @@ svg.ico{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.7;st
 .acct-chip.real{border-color:var(--red);color:var(--red-lt);background:rgba(240,86,79,.14)}
 @media (max-width:820px),(max-height:520px) and (pointer:coarse){
   .bal-badge{display:none}
+  .feed-badge{display:none!important}   /* no third header row on phones; feed state lives in the chart's LIVE/SIM tag */
   .ws-badge::before{content:''}
   #themeBtn{display:none!important}
   .acct-chip{padding:4px 8px;gap:5px;height:34px;border-radius:10px;letter-spacing:.03em}
@@ -1225,15 +1223,13 @@ svg.ico{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.7;st
 .mobile-nav-btn .ico{width:22px;height:22px}
 @media (max-width:820px),(max-height:520px) and (pointer:coarse){.mobile-nav{gap:6px}.mobile-nav-btn{min-height:0;gap:3px;border-radius:14px}}
 .mobile-nav-btn.active .ico{color:var(--blue-lt)}
-.rtab{font-size:var(--fs-1);letter-spacing:0;padding-inline:0}
+.rtab{font-size:var(--fs-1);letter-spacing:0;padding-inline:8px;flex:0 0 auto;text-transform:none;font-weight:600}
 .rpanel-tabs{gap:2px}
 @media(max-width:1400px){#updateTs{display:none}}
 /* ══ responsive fit (audit pass) ══ */
 /* narrow desktops and tablets: the watchlist folds into the symbol chip, stats thin out */
 @media(max-width:1300px){.topbar-stat:nth-of-type(1),.topbar-stat:nth-of-type(2){display:none}}
 @media (min-width:821px) and (max-width:1100px) and (min-height:521px),(min-width:821px) and (max-width:1100px) and (max-height:520px) and (pointer:fine){
-  .workspace{grid-template-columns:minmax(0,1fr) 320px}
-  .sidebar{display:none}
   .topbar-stat{display:none}
   .topbar-divider{display:none}
 }
@@ -1278,18 +1274,6 @@ svg.ico{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.7;st
 .chk-mtile small{font-size:var(--fs-1);color:var(--tx-3)}
 .chk-mtile .dn{color:var(--red-lt)}.chk-mtile .up{color:var(--green-lt)}
 .pos-l2 .pos{color:var(--green-lt)}.pos-l2 .neg{color:var(--red-lt)}
-/* draggable stop / target handles */
-#lvlLayer{position:absolute;inset:0;z-index:5;pointer-events:none;overflow:hidden}
-.lvl{position:absolute;left:0;right:0;top:-14px;height:28px;display:flex;align-items:center;gap:6px;padding-left:6px;pointer-events:auto;cursor:ns-resize;touch-action:none;user-select:none;-webkit-user-select:none}
-.lvl-grip{width:26px;height:20px;border-radius:6px;background:var(--bg-3);border:1px solid var(--bd-2);display:inline-flex;flex-direction:column;justify-content:center;gap:3px;align-items:center;flex:none}
-.lvl-grip i{display:block;width:12px;height:1.5px;background:var(--tx-3);border-radius:1px}
-.lvl-tag{font-family:var(--font-mono);font-size:12px;font-weight:600;padding:2px 7px;border-radius:5px;background:rgba(13,19,32,.9);border:1px solid var(--bd-2);color:var(--tx-1);white-space:nowrap;pointer-events:none}
-.lvl.sl .lvl-grip{border-color:rgba(240,86,79,.6)}.lvl.sl .lvl-grip i{background:var(--red-lt)}
-.lvl.tp .lvl-grip{border-color:rgba(47,191,155,.6)}.lvl.tp .lvl-grip i{background:var(--green-lt)}
-.lvl.dragging .lvl-grip{background:var(--bg-5)}
-.lvl.dragging .lvl-tag{border-color:var(--blue);color:var(--tx-1)}
-.lvl.dragging::before{content:'';position:absolute;left:0;right:0;top:13px;height:2px;background:var(--blue);opacity:.7}
-@media (max-width:820px),(max-height:520px) and (pointer:coarse){.lvl{height:36px;top:-18px}.lvl-grip{width:34px;height:26px}.lvl.dragging::before{top:17px}}
 /* Explicit button surfaces avoid native white buttons with pale labels. */
 .bstab,.rtab{appearance:none;background:var(--bg-3);color:var(--tx-1);border:1px solid var(--bd-2);min-height:36px}
 .bstab:hover,.rtab:hover{background:var(--bg-4);color:var(--tx-1)}
@@ -1303,6 +1287,127 @@ svg.ico{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.7;st
 #tradeDockGrip span{width:44px;height:4px;border-radius:3px;background:var(--tx-2)}
 #tradeDockGrip:hover span,#tradeDockGrip:focus span{background:var(--blue-lt)}
 @media(max-width:820px){#tradeDockGrip{height:22px}.bstab{min-height:36px;margin:0}}
+/* ══ workspace: chart-first layout (desktop); panels stay mounted when collapsed ══ */
+:root{--ws-left:224px;--ws-right:320px}
+.ws-bar{display:flex;align-items:center;gap:5px;padding:0 10px;background:var(--bg-2);border-bottom:1px solid var(--bd-1);min-width:0;min-height:36px;overflow-x:auto;scrollbar-width:none}
+.ws-bar::-webkit-scrollbar{display:none}
+.ws-bar button,.ws-button{font:500 var(--fs-1) var(--font-display);color:var(--tx-2);border:1px solid transparent;background:transparent;border-radius:6px;min-height:30px;padding:4px 10px;white-space:nowrap;cursor:pointer}
+.ws-bar button:hover,.ws-button:hover{background:var(--bg-4);color:var(--tx-1)}
+.ws-bar button[aria-pressed=true]{color:var(--tx-1);background:var(--bg-4);border-color:var(--bd-2)}
+.ws-brand{font-size:var(--fs-1);color:var(--tx-3);letter-spacing:.12em;text-transform:uppercase;padding-right:10px;white-space:nowrap}
+.ws-spacer{flex:1}
+.ws-watch-off{--ws-left:0px}.ws-analysis-off{--ws-right:0px}
+.ws-watch-off #sidebar,.ws-analysis-off #rightPanel{visibility:hidden;overflow:hidden;border:0;pointer-events:none}
+.ws-dock-off #tradeDock .bstrip-body,.ws-dock-off #tradeDockGrip{display:none!important}
+.ws-dock-off #tradeDock .bstrip-tabs{border-bottom:0}
+.ws-tools-off .ws-draw-menu{display:none}.ws-tools-off #positionMeasure{display:none!important}
+.ws-heading{height:36px;display:flex;align-items:center;justify-content:space-between;padding:0 10px;border-bottom:1px solid var(--bd-1);flex:none;color:var(--tx-2);font-size:var(--fs-1);font-weight:600;letter-spacing:.04em}
+.ws-heading button{background:none;border:0;color:var(--tx-3);font-size:16px;width:30px;height:30px;border-radius:6px;cursor:pointer}
+.ws-heading button:hover{background:var(--bg-4);color:var(--tx-1)}
+.ws-grip{position:absolute;top:0;bottom:0;width:7px;z-index:20;cursor:ew-resize;touch-action:none;background:transparent}
+.ws-grip:hover,.ws-grip:focus-visible{background:var(--blue);opacity:.6;outline:0}
+#wsLeftGrip{left:calc(var(--ws-left) - 4px)}#wsRightGrip{right:calc(var(--ws-right) - 4px)}
+.ws-watch-off #wsLeftGrip,.ws-analysis-off #wsRightGrip{display:none}
+.ws-summary{display:flex;align-items:center;gap:16px;min-height:34px;padding:4px 12px;border-bottom:1px solid var(--bd-1);font-size:var(--fs-1);overflow:auto;white-space:nowrap;scrollbar-width:none}
+.ws-summary span{color:var(--tx-3)}.ws-summary strong{color:var(--tx-1);font-weight:500;margin-left:6px;font-family:var(--font-mono);font-variant-numeric:tabular-nums}
+.ws-summary .ws-summary-mode{color:var(--amber);letter-spacing:.08em;font-weight:700}
+.ws-summary .ws-summary-mode.live{color:var(--blue-lt)}.ws-summary .ws-summary-mode.real{color:var(--red-lt)}
+.ws-summary .ws-button{margin-left:auto}
+/* toolbar menus */
+.chart-toolbar{position:relative;z-index:25}   /* keeps its own horizontal scroll; menus are position:fixed so they escape it */
+.ws-menu{position:relative;flex:none}
+.ws-menu summary{list-style:none;cursor:pointer;font-size:var(--fs-1);color:var(--tx-2);padding:6px 9px;border:1px solid var(--bd-1);border-radius:6px;white-space:nowrap;min-height:30px;display:inline-flex;align-items:center}
+.ws-menu summary::-webkit-details-marker{display:none}
+.ws-menu[open] summary{color:var(--blue-lt);border-color:var(--bd-3)}
+.ws-menu-body{position:fixed;z-index:1200;top:var(--menu-top,60px);left:var(--menu-left,10px);min-width:190px;padding:5px;display:grid;gap:2px;background:var(--bg-2);border:1px solid var(--bd-2);border-radius:8px;box-shadow:var(--sh-card);z-index:100}
+.ws-menu-body button{text-align:left;min-height:34px;border:0!important;color:var(--tx-2);background:transparent;border-radius:6px!important;justify-content:flex-start}
+.ws-menu-body button:hover{background:var(--bg-4)!important}
+.ws-menu-body .ind-btn.active,.ws-menu-body .draw-btn.active{color:var(--blue-lt);background:var(--bg-3)}
+/* dialogs */
+.ws-dialog{width:min(440px,calc(100vw - 24px));max-height:calc(100dvh - 40px);overflow:auto;margin:auto;border:1px solid var(--bd-2);border-radius:12px;padding:0;background:var(--bg-2);color:var(--tx-1);box-shadow:0 24px 100px rgba(0,0,0,.45);font-family:var(--font-display)}
+.ws-dialog::backdrop{background:rgba(2,6,13,.55);backdrop-filter:blur(3px)}
+.ws-dialog header{display:flex;align-items:center;justify-content:space-between;padding:16px 18px 12px}.ws-dialog h2{font-size:var(--fs-3);font-weight:600;margin:0}.ws-dialog p{font-size:var(--fs-1);color:var(--tx-3);line-height:1.6;margin:0 0 12px}
+.ws-dialog header .ws-button{font-size:18px;min-width:34px}
+.ws-tabs{display:flex;padding:0 18px;gap:18px;border-bottom:1px solid var(--bd-1)}.ws-tabs button{border:0;border-bottom:2px solid transparent;background:none;color:var(--tx-3);padding:10px 0;font:500 var(--fs-1) inherit;cursor:pointer}.ws-tabs button[aria-selected=true]{border-color:var(--blue);color:var(--tx-1)}
+.ws-fields{padding:16px 18px;display:grid;gap:12px}.ws-fields label{font-size:var(--fs-1);color:var(--tx-2);display:grid;grid-template-columns:1fr 160px;align-items:center;gap:12px}
+.ws-fields input,.ws-fields select{background:var(--bg-3);border:1px solid var(--bd-2);color:var(--tx-1);border-radius:6px;min-height:36px;padding:7px 10px;font:var(--fs-1) var(--font-mono);width:100%}
+.ws-fields input[type=checkbox]{width:18px;height:18px;min-height:0;justify-self:end}.ws-fields input[type=color]{padding:3px}.ws-fields input[type=range]{padding:0}
+.ws-fields [hidden],.ws-dialog [hidden]{display:none!important}.ws-dialog footer{display:flex;gap:8px;justify-content:flex-end;padding:12px 18px 18px}
+.ws-primary{background:var(--blue)!important;color:#fff!important;border:1px solid var(--blue)!important;min-height:36px!important}
+.ws-dialog .ws-error{color:var(--red-lt);padding:0 18px;font-size:var(--fs-1);min-height:1.2em}
+.ws-object{display:flex;gap:6px;align-items:center;padding:9px 0;border-bottom:1px solid var(--bd-1)}.ws-object .ws-button:first-child{flex:1;text-align:left}
+.ws-notice{padding:10px 12px;background:var(--bg-3);border-radius:6px;font-size:var(--fs-1);color:var(--tx-2);line-height:1.6}
+.ws-pill{font-size:var(--fs-1);border:1px solid var(--bd-2);border-radius:4px;padding:2px 6px;color:var(--blue-lt);letter-spacing:.06em;text-transform:uppercase;font-weight:600}
+#positionMeasure>div:first-child{gap:8px!important}
+/* position pills at the price axis — size · signed money · × — on the level's line */
+.ws-trade-label{position:absolute;right:calc(var(--axis-w,62px) + 3px);z-index:23;transform:translateY(-50%);display:flex;align-items:stretch;min-height:24px;padding:0;border:1px solid var(--bd-3);background:var(--bg-2);border-radius:3px;font:500 var(--fs-1) var(--font-mono);color:var(--tx-1);cursor:ns-resize;user-select:none;touch-action:none;overflow:hidden;white-space:nowrap}
+.ws-trade-label[hidden],.ws-trade-editor[hidden]{display:none!important}
+.ws-trade-label>*{display:flex;align-items:center;padding:0 9px}
+.ws-trade-label .c-qty{border-right:1px solid var(--bd-2)}
+.ws-trade-label .c-amt{font-weight:600;font-variant-numeric:tabular-nums}
+.ws-trade-label .c-x{border-left:1px solid var(--bd-2);padding:0 8px;color:var(--tx-2);font-size:var(--fs-2);cursor:pointer}
+.ws-trade-label .c-x:hover,.ws-trade-label .c-x:focus-visible{background:var(--bg-4);color:var(--tx-1);outline:none}
+.ws-trade-label.tp{border-color:var(--green);color:var(--green)}.ws-trade-label.tp .c-qty,.ws-trade-label.tp .c-x{border-color:var(--green)}
+.ws-trade-label.sl{border-color:var(--red);color:var(--red)}.ws-trade-label.sl .c-qty,.ws-trade-label.sl .c-x{border-color:var(--red)}
+.ws-trade-label.tp.is-negative .c-amt,.ws-trade-label.sl.is-positive .c-amt{color:var(--amber)}   /* a target that still loses, a stop that locks in profit */
+.ws-trade-label.entry{cursor:pointer}
+.ws-trade-label.entry.buy{border-color:var(--green)}.ws-trade-label.entry.buy .c-qty{background:var(--green);color:#06261d;border-color:var(--green)}
+.ws-trade-label.entry.sell{border-color:var(--red)}.ws-trade-label.entry.sell .c-qty{background:var(--red);color:#2a0705;border-color:var(--red)}
+.ws-trade-label.entry.is-positive .c-amt{color:var(--green)}.ws-trade-label.entry.is-negative .c-amt{color:var(--red)}
+.ws-trade-label.entry .c-x{border-color:inherit}
+.ws-trade-label.ticket{border-style:dashed;opacity:.9}
+.ws-trade-label.is-draft{border-style:dashed}.ws-trade-label.is-draft .c-amt::after{content:'draft';margin-left:6px;font-size:var(--fs-1);letter-spacing:.06em;text-transform:uppercase;color:var(--amber);font-weight:700}
+.ws-trade-label.is-selected{box-shadow:0 0 0 1px var(--blue)}
+.ws-trade-label.is-dragging{box-shadow:0 0 0 1px var(--blue)}
+.ws-trade-label.is-offscreen{opacity:.55}
+.ws-trade-label:focus-visible{outline:2px solid var(--blue-lt);outline-offset:2px}
+.ws-trade-label::before{content:'';position:absolute;right:-3px;top:calc(50% + var(--connector-offset,0px));width:2px;height:var(--connector,0px);border-right:1px solid var(--tx-3);pointer-events:none}
+.lvl-adds{padding:0 4px;gap:4px;border-left:1px solid var(--bd-2)}.lvl-adds:empty{display:none}
+.lvl-add{font:600 var(--fs-1) var(--font-mono);padding:2px 5px;border:1px dashed var(--bd-3);border-radius:3px;color:var(--tx-2);cursor:ns-resize;touch-action:none}
+.lvl-add.sl{border-color:var(--red);color:var(--red)}.lvl-add.tp{border-color:var(--green);color:var(--green)}
+.lvl-add:hover,.lvl-add:focus-visible{background:var(--bg-4);outline:none}
+.ws-trade-editor{position:absolute;z-index:28;left:12px;bottom:14px;width:min(400px,calc(100% - 24px));background:var(--bg-2);border:1px solid var(--bd-2);border-radius:10px;padding:12px;box-shadow:0 8px 28px rgba(0,0,0,.4);color:var(--tx-1)}
+.ws-edit-heading{display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:var(--fs-1)}.ws-edit-note{color:var(--tx-3)}
+.ws-edit-fields{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0}.ws-edit-fields label{display:grid;gap:5px;color:var(--tx-2);font-size:var(--fs-1)}
+.ws-edit-fields input{width:100%;min-width:0;border:1px solid var(--bd-2);background:var(--bg-3);border-radius:6px;color:var(--tx-1);padding:8px;font:var(--fs-2) var(--font-mono)}
+.ws-edit-fields output{font:var(--fs-1) var(--font-mono);color:var(--tx-2)}
+.ws-edit-risk{font:var(--fs-1) var(--font-mono);color:var(--tx-2);margin-bottom:9px}
+.ws-edit-footer{display:flex;gap:6px;align-items:center;flex-wrap:wrap}.ws-edit-footer>span{flex:1 1 140px;font-size:var(--fs-1);color:var(--tx-3);line-height:1.4}
+.ws-trade-editor .ws-button{border:1px solid var(--bd-2)}.ws-trade-editor button:disabled{opacity:.45;cursor:not-allowed}
+@media (max-width:820px),(max-height:520px) and (pointer:coarse){
+  .ws-bar,.ws-heading,.ws-grip{display:none!important}
+  :root{--ws-left:0px;--ws-right:0px}
+  .ws-summary{gap:12px;min-height:32px;padding:4px 10px}.ws-summary .ws-equity{display:none}
+  .ticker-wrap{display:none}.app>.workspace{grid-row:3}
+  .ws-menu-body{max-height:60dvh;overflow:auto;width:230px}
+  .ws-trade-label{min-height:30px}.ws-trade-label>*{padding:0 8px}
+  .ws-trade-editor{bottom:10px;padding:10px}.ws-edit-fields input{font-size:16px}.ws-edit-fields{margin:8px 0}.ws-edit-note{display:none}
+  .ws-fields label{grid-template-columns:1fr 140px}.ws-fields input{font-size:16px}
+}
+@media (min-width:821px){.ws-watch-off .sidebar,.ws-analysis-off .right-panel{min-width:0}}
+
+/* workspace: extra states */
+.ws-bar button.is-on{color:var(--tx-1);background:var(--bg-4);border-color:var(--bd-2)}
+.ws-grip.is-dragging{background:var(--blue)}
+.ws-summary-mode.is-paper{color:var(--amber)}.ws-summary-mode.is-live{color:var(--blue-lt)}.ws-summary-mode.is-real{color:var(--red-lt)}
+.ws-summary strong.up{color:var(--green-lt)}.ws-summary strong.dn{color:var(--red-lt)}
+.ws-check{grid-template-columns:auto 1fr!important;justify-items:start}.ws-check span{display:grid;gap:2px;color:var(--tx-1)}.ws-check small{color:var(--tx-3)}
+.ws-check input[type=checkbox]{justify-self:start!important;order:-1}
+.ws-tf{border:1px solid var(--bd-1);border-radius:8px;padding:8px 12px;display:flex;flex-wrap:wrap;gap:10px 14px}.ws-tf legend{font-size:var(--fs-1);color:var(--tx-3);padding:0 4px}
+.ws-tf label{display:flex!important;gap:6px;align-items:center;grid-template-columns:none!important;font:var(--fs-1) var(--font-mono)}.ws-tf input{width:16px;height:16px;min-height:0}
+.ws-tabs button.is-on{color:var(--tx-1);border-bottom-color:var(--blue)}
+.ws-object.is-selected .ws-object-name{color:var(--blue-lt)}.ws-object-name{flex:1;text-align:left;border:0;background:none;color:var(--tx-1);font:500 var(--fs-2) var(--font-display);cursor:pointer;min-width:0;overflow:hidden;text-overflow:ellipsis}
+.ws-object-meta{font:var(--fs-1) var(--font-mono);color:var(--tx-3)}
+.ws-dialog-body{display:contents}.ws-dialog .ws-object{padding:9px 18px}.ws-dialog .ws-notice{margin:0 18px 18px}
+#lvlLayer{position:absolute;inset:0;z-index:22;pointer-events:none}#lvlLayer>*{pointer-events:auto}
+
+/* favourites */
+.pair-row{position:relative}.pair-row>div:first-child{flex:1;min-width:0}
+.fav-btn{flex:none;margin-left:6px;width:30px;min-height:30px;border:0;border-radius:6px;background:transparent;color:var(--tx-3);font-size:var(--fs-3);line-height:1;cursor:pointer;padding:0}
+.fav-btn:hover,.fav-btn:focus-visible{background:var(--bg-4);color:var(--amber);outline:none}
+.fav-btn.on{color:var(--amber)}
+.group-lbl.fav{color:var(--amber)}
+#pairSheet .fav-btn{width:40px;min-height:40px}
 </style>
 </head>
 <body>
@@ -1370,11 +1475,25 @@ svg.ico{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.7;st
   </div>
 </header>
 
+<nav class="ws-bar" id="wsBar" aria-label="Workspace panels">
+  <span class="ws-brand">Workspace</span>
+  <button type="button" id="wsTogWatch" aria-controls="sidebar" onclick="WS.toggle('watch')">Markets</button>
+  <button type="button" id="wsTogAnalysis" aria-controls="rightPanel" onclick="WS.toggle('analysis')">Analysis / Trade</button>
+  <button type="button" id="wsTogDock" aria-controls="tradeDock" onclick="WS.toggle('dock')">Positions</button>
+  <button type="button" id="wsTogTools" aria-controls="chartTools" onclick="WS.toggle('tools')">Tools</button>
+  <span class="ws-spacer"></span>
+  <button type="button" id="wsFocus" onclick="WS.focus()">Focus chart</button>
+  <button type="button" onclick="WS.openSettings()">Settings</button>
+</nav>
+
 <!-- ════════════════════════════════════════════ WORKSPACE ═══ -->
 <div class="workspace">
+  <div id="wsLeftGrip" class="ws-grip" tabindex="0" role="separator" aria-orientation="vertical" aria-label="Resize markets panel"></div>
+  <div id="wsRightGrip" class="ws-grip" tabindex="0" role="separator" aria-orientation="vertical" aria-label="Resize analysis panel"></div>
 
   <!-- ══════════ SIDEBAR ══════════ -->
   <aside class="sidebar" id="sidebar">
+    <div class="ws-heading">Markets<button type="button" aria-label="Collapse markets" onclick="WS.toggle('watch')">−</button></div>
     <div class="sidebar-top">
       <div class="search-wrap">
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
@@ -1388,7 +1507,6 @@ svg.ico{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.7;st
   <main class="center">
     <!-- Chart toolbar -->
     <div class="chart-toolbar">
-      <!-- Timeframes -->
       <button class="tf-btn" onclick="setTF('1m',this)">1M</button>
       <button class="tf-btn" onclick="setTF('5m',this)">5M</button>
       <button class="tf-btn active" onclick="setTF('15m',this)">15M</button>
@@ -1396,8 +1514,7 @@ svg.ico{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.7;st
       <button class="tf-btn" onclick="setTF('4h',this)">4H</button>
       <button class="tf-btn" onclick="setTF('1d',this)">1D</button>
       <button class="tf-btn" onclick="setTF('1w',this)">1W</button>
-      <div class="sep"></div>
-      <!-- Drawing tools -->
+      <details class="ws-menu ws-draw-menu" id="chartTools"><summary>Drawing tools ▾</summary><div class="ws-menu-body">
       <button class="draw-btn" onclick="setDraw('hline',this)" title="Horizontal Line">— H-Line</button>
       <button class="draw-btn" onclick="setDraw('trend',this)" title="Trend Line">/ Trend</button>
       <button class="draw-btn" onclick="setDraw('fib',this)" title="Fibonacci">Fib</button>
@@ -1410,18 +1527,20 @@ svg.ico{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.7;st
       <button class="draw-btn position-tool" onclick="setDraw('short',this)" title="Short position measurement">Short</button>
       <button class="draw-btn position-tool" style="color:var(--red-lt)" onclick="clearDraw()" title="Clear All">✕ Clear</button>
       <button class="draw-btn position-tool" onclick="setDraw('none',null)" title="Cursor Mode">↖ Cursor</button>
-      <div class="sep"></div>
-      <!-- Indicators -->
+      </div></details>
+      <details class="ws-menu"><summary>Indicators ▾</summary><div class="ws-menu-body">
       <button class="ind-btn active" id="ind-ema" onclick="togInd('ema',this)">EMA</button>
       <button class="ind-btn active" id="ind-bb" onclick="togInd('bb',this)">BB</button>
       <button class="ind-btn active" id="ind-vol" onclick="togInd('vol',this)">Vol</button>
       <button class="ind-btn" id="ind-rsi" onclick="togInd('rsi',this)">RSI</button>
       <button class="ind-btn active" id="ind-pat" onclick="togPatterns(this)" title="Pattern overlay on chart">Patterns</button>
-      <div class="sep"></div>
-      <!-- Zoom controls -->
+      </div></details>
+      <details class="ws-menu"><summary>View ▾</summary><div class="ws-menu-body">
       <button class="ind-btn" onclick="chartZoomBy(0.8)" title="Zoom out (or pinch / Ctrl+scroll)" style="font-weight:900" aria-label="Zoom out">−</button>
       <button class="ind-btn" onclick="chartZoomReset()" title="Reset zoom & pan" style="font-weight:800" aria-label="Reset zoom">⊡</button>
       <button class="ind-btn" onclick="chartZoomBy(1.25)" title="Zoom in (or pinch / Ctrl+scroll)" style="font-weight:900" aria-label="Zoom in">+</button>
+      </div></details>
+      <button class="ws-button" type="button" onclick="WS.openObjects()">Objects</button>
     </div>
 
     <div id="positionMeasure" hidden style="padding:8px 12px;border-bottom:1px solid var(--bd-2);font-size:12px;flex-shrink:0">
@@ -1431,8 +1550,12 @@ svg.ico{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.7;st
           <input id="positionRisk" type="number" min="0.01" step="any" inputmode="decimal" value="100" aria-label="Position risk budget" style="width:85px;background:var(--bg-glass);color:inherit;border:1px solid var(--bd-2);border-radius:4px;padding:6px" oninput="DRAW.updatePositionRisk(this)">
         </label>
         <output id="positionMeasureStats" style="line-height:1.6"></output>
+        <span class="ws-spacer"></span>
+        <button type="button" class="ws-button" onclick="WS.openTool(DRAW.sel)">Settings</button>
+        <button type="button" class="ws-button" onclick="WS.usePlan()">Use in ticket</button>
+        <button type="button" class="ws-button" onclick="DRAW.deselect()">Deselect</button>
       </div>
-      <div style="opacity:.7;font-size:11px;margin-top:4px">Drag Entry, SL or TP to adjust. Drag shaded zones to move; the right handle sets width. Estimate only, before fees and slippage.</div>
+      <div style="opacity:.7;font-size:12px;margin-top:4px">Drag Entry, SL or TP to adjust. Drag shaded zones to move; the right handle sets width. Estimate only, before fees and slippage.</div>
     </div>
     <!-- Chart area -->
     <div class="chart-wrap" id="chartWrap">
@@ -1457,6 +1580,7 @@ svg.ico{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.7;st
     <!-- Bottom scanner strip -->
     <div class="bottom-strip" id="tradeDock">
       <div id="tradeDockGrip" role="separator" tabindex="0" aria-label="Resize trade management panel" aria-orientation="horizontal" title="Drag up for more room. Arrow keys resize; double-click resets."><span></span></div>
+      <div class="ws-summary" id="wsSummary"><span class="ws-summary-mode" id="wsMode">PAPER</span><span>Open<strong id="wsCount">0</strong></span><span>Floating P&amp;L<strong id="wsPnl">—</strong></span><span class="ws-equity">Equity<strong id="wsEquity">—</strong></span><button type="button" class="ws-button" id="wsDockBtn" onclick="WS.toggle('dock')">Collapse</button></div>
       <div class="ticker-wrap"><div class="ticker-scroll" id="tickerScroll"></div></div>
       <div class="bstrip-tabs">
         <button class="bstab active" onclick="setBTab('scanner',this)">Scanner</button>
@@ -1479,12 +1603,13 @@ svg.ico{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.7;st
 
   <!-- ══════════ RIGHT PANEL ══════════ -->
   <aside class="right-panel" id="rightPanel">
+    <div class="ws-heading">Analysis &amp; execution<button type="button" aria-label="Collapse analysis panel" onclick="WS.toggle('analysis')">−</button></div>
     <div class="rpanel-tabs">
-      <button class="rtab active" data-tab="check" onclick="setRTab('check',this)">Check</button>
+      <button class="rtab active" data-tab="check" onclick="setRTab('check',this)">Analysis</button>
       <button class="rtab" data-tab="trade" onclick="setRTab('trade',this)">Trade</button>
-      <button class="rtab" data-tab="portfolio" onclick="setRTab('portfolio',this)">Port</button>
-      <button class="rtab" data-tab="mtf" onclick="setRTab('mtf',this)">MTF</button>
-      <button class="rtab" data-tab="laws" onclick="setRTab('laws',this)">Laws</button>
+      <button class="rtab" data-tab="portfolio" onclick="setRTab('portfolio',this)">Portfolio</button>
+      <button class="rtab" data-tab="mtf" onclick="setRTab('mtf',this)">Timeframes</button>
+      <button class="rtab" data-tab="laws" onclick="setRTab('laws',this)">Rules</button>
     </div>
     <div class="rpanel-body">
 
@@ -1783,7 +1908,7 @@ svg.ico{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.7;st
     <svg class="ico" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6"/><path d="M20 20l-4-4"/></svg><span>Markets</span>
   </button>
   <button class="mobile-nav-btn" data-mobile-view="check" onclick="mobileSetView('check')" aria-label="Open the setup check">
-    <svg class="ico" viewBox="0 0 24 24"><path d="M5 12l4 4 10-10"/></svg><span>Check</span>
+    <svg class="ico" viewBox="0 0 24 24"><path d="M5 12l4 4 10-10"/></svg><span>Analysis</span>
   </button>
   <button class="mobile-nav-btn" data-mobile-view="trade" onclick="mobileSetView('trade')" aria-label="Open trade ticket">
     <svg class="ico" viewBox="0 0 24 24"><path d="M7 4v16M7 8H4l3-4 3 4H7M17 20V4M17 16h3l-3 4-3-4h3"/></svg><span>Trade</span>
@@ -3450,7 +3575,7 @@ const CH = {
     if (!Number.isFinite(price)) return;
     // The working ticket and a live position often hold the same SL/TP;
     // drawing both stacks identical labels on the axis.
-    const key = `${title}@${price.toFixed(Number.isFinite(S.dp) ? S.dp : 4)}`;
+    const key = `${title}|${color}@${price.toFixed(Number.isFinite(S.dp) ? S.dp : 4)}`;
     if (this._lineKeys.has(key)) return;
     this._lineKeys.add(key);
     this.lines.push(this.candle.createPriceLine({
@@ -3470,11 +3595,13 @@ const CH = {
     // Rebuilding price lines is cheap but not free, and this runs twice a
     // second. Skip when nothing about the levels has actually changed.
     const tk = (typeof TK !== 'undefined') ? TK : {};
-    const ticketActive = document.getElementById('tradePane')?.classList.contains('active');
+    const ticketActive = typeof OT !== 'undefined' && OT.ticketVisible();
     const sig = JSON.stringify([
       sym, ticketActive, tk.side, tk.type, tk.price, tk.slOn && tk.sl, tk.tpOn && tk.tp,
       (typeof TR !== 'undefined' ? TR.positions.filter(p => p.symbol === sym).map(p => [p.id, p.entry, p.sl, p.tp, p.volume]) : []),
       (typeof TR !== 'undefined' ? TR.orders.filter(o => o.symbol === sym).map(o => [o.id, o.price, o.volume]) : []),
+      (typeof LIVE !== 'undefined' && LIVE.on && LIVE.snap() ? (LIVE.snap().positions || []).filter(p => p.symbol === LIVE.mt5Symbol(sym)).map(p => [p.ticket, p.entry, p.sl, p.tp, p.volume]) : []),
+      (typeof LEVELS !== 'undefined' && LEVELS.draft ? [LEVELS.draft.key, LEVELS.draft.sl, LEVELS.draft.tp] : null),
       (S.showPatterns && S.activePatterns || []).map(x => [x.name, x.conf, x.tEnd]),
     ]);
     if (sig === this._levelSig) return;
@@ -3483,12 +3610,25 @@ const CH = {
     this.clearLines();
 
     const marks = [];
+    // one position = entry line (solid, side colour) + stop (red) + target
+    // (green); a draft level is drawn dashed at its draft price instead of the
+    // saved one, so the line follows the finger. The pill beside the axis
+    // carries size, money and the × — the line itself stays untitled.
+    const levelLines = (key, side, entry, sl, tp) => {
+      const d = (typeof LEVELS !== 'undefined' && LEVELS.draft && LEVELS.draft.key === key) ? LEVELS.draft : null;
+      const eff = (f, saved) => d ? (d[f].intent === 'remove' ? null : d[f].intent === 'set' ? d[f].price : saved) : saved;
+      const eSl = eff('sl', sl), eTp = eff('tp', tp);
+      this.addLine(entry, side === 'buy' ? 'rgba(47,191,155,.95)' : 'rgba(240,86,79,.95)', '', LWC.LineStyle.Solid);
+      if (eSl != null) this.addLine(eSl, 'rgba(240,86,79,.85)', '', d && d.sl.intent === 'set' ? LWC.LineStyle.Dashed : LWC.LineStyle.Solid);
+      if (eTp != null) this.addLine(eTp, 'rgba(47,191,155,.85)', '', d && d.tp.intent === 'set' ? LWC.LineStyle.Dashed : LWC.LineStyle.Solid);
+    };
+    if (typeof LIVE !== 'undefined' && LIVE.on && LIVE.snap()) {
+      const name = LIVE.mt5Symbol(sym);
+      (LIVE.snap().positions || []).filter(p => p.symbol === name).forEach(p => levelLines('mt5:' + p.ticket, p.side, +p.entry, p.sl > 0 ? +p.sl : null, p.tp > 0 ? +p.tp : null));
+    }
     if (typeof TR !== 'undefined') {
       TR.positions.filter(p => p.symbol === sym).forEach(p => {
-        const c = p.side === 'buy' ? 'rgba(16,185,129,.95)' : 'rgba(239,68,68,.95)';
-        this.addLine(p.entry, c, `${p.side.toUpperCase()} ${p.volume}`, LWC.LineStyle.Solid);
-        if (p.sl != null) this.addLine(p.sl, 'rgba(239,68,68,.75)', 'SL');
-        if (p.tp != null) this.addLine(p.tp, 'rgba(16,185,129,.75)', 'TP');
+        levelLines('paper:' + p.id, p.side, p.entry, p.sl, p.tp);
         marks.push({
           time: this.nearestBarTime(p.openTime / 1000),
           position: p.side === 'buy' ? 'belowBar' : 'aboveBar',
@@ -3509,8 +3649,8 @@ const CH = {
       if (TK.type !== 'market' && Number.isFinite(TK.price)) {
         this.addLine(TK.price, 'rgba(59,130,246,.9)', `${TK.side === 'buy' ? 'BUY' : 'SELL'} ${TK.type.toUpperCase()}`);
       }
-      if (TK.slOn && Number.isFinite(TK.sl)) this.addLine(TK.sl, 'rgba(239,68,68,.9)', 'SL');
-      if (TK.tpOn && Number.isFinite(TK.tp)) this.addLine(TK.tp, 'rgba(16,185,129,.9)', 'TP');
+      if (TK.slOn && Number.isFinite(TK.sl)) this.addLine(TK.sl, 'rgba(240,86,79,.7)', '');
+      if (TK.tpOn && Number.isFinite(TK.tp)) this.addLine(TK.tp, 'rgba(47,191,155,.7)', '');
     }
 
     // detected patterns, as markers rather than drawn geometry
@@ -4044,7 +4184,7 @@ const DRAW = {
       case 'short': {
         if (ax == null || bx == null || s[2]?.y == null) break;
         const left = Math.min(ax,bx), width = Math.abs(bx-ax);
-        ctx.font = '11px "JetBrains Mono", monospace';
+        ctx.font = '12px "JetBrains Mono", monospace';
         ctx.beginPath(); ctx.rect(0,0,Math.max(0,W-60),Math.max(0,H-24)); ctx.clip();
         ctx.fillStyle = 'rgba(16,185,129,.20)';
         ctx.fillRect(left, Math.min(a.y,s[2].y), width, Math.abs(s[2].y-a.y));
@@ -4178,154 +4318,350 @@ function updateDrawCursor() {
 }
 
 /* ════════════════════════════════════════════════════════════
-   DRAGGABLE LEVELS
-   Every stop and target on the chart — the ticket being composed, paper
-   positions and MT5 positions on this symbol — gets a grab handle. Drag it
-   to a new price: the ticket updates live; a position's stop/target is
-   applied on release (paper directly, MT5 after the usual confirm).
+   POSITION MANAGEMENT ON THE CHART
+   A position is a group of independent objects: its entry, an optional
+   stop, an optional target, and (while editing) a draft. Absent levels are
+   drag-to-add handles beside the entry label — never a line at a made-up
+   price. Every stop/target field carries one of three intents: unchanged,
+   set to a price, or remove. Nothing reaches the broker until Confirm; the
+   paper broker and the MT5 bridge get the same command model. The ticket
+   being composed is different: its levels follow the finger live.
 ════════════════════════════════════════════════════════════ */
 const LEVELS = {
-  layer: null, items: [], drag: null, _raf: 0,
+  layer: null, editor: null, els: new Map(), drag: null, draft: null, selected: null, _raf: 0, _lastSym: null,
+
   init() {
     const wrap = document.getElementById('chartWrap'); if (!wrap || this.layer) return;
     const l = document.createElement('div'); l.id = 'lvlLayer'; wrap.appendChild(l); this.layer = l;
+    const ed = document.createElement('section'); ed.id = 'lvlEditor'; ed.className = 'ws-trade-editor'; ed.hidden = true; ed.setAttribute('aria-label', 'Edit stop and target');
+    ed.innerHTML = `<div class="ws-edit-heading"><span class="ws-pill">Draft</span><strong id="lvlName"></strong><span class="ws-edit-note" id="lvlNote">Estimated · before costs</span></div>
+      <div class="ws-edit-fields">
+        <label>Stop loss<input id="lvlSl" type="number" inputmode="decimal" aria-label="Stop loss price"><output id="lvlSlOut"></output></label>
+        <label>Take profit<input id="lvlTp" type="number" inputmode="decimal" aria-label="Take profit price"><output id="lvlTpOut"></output></label>
+      </div>
+      <div class="ws-edit-risk" id="lvlRisk"></div>
+      <div class="ws-edit-footer"><span id="lvlErr" role="status"></span><button type="button" class="ws-button" id="lvlDiscard">Discard</button><button type="button" class="ws-button ws-primary" id="lvlConfirm">Confirm</button></div>`;
+    wrap.appendChild(ed); this.editor = ed;
+    ed.addEventListener('pointerdown', e => e.stopPropagation());
+    document.getElementById('lvlDiscard').onclick = () => this.discard();
+    document.getElementById('lvlConfirm').onclick = () => this.confirm();
+    ['lvlSl', 'lvlTp'].forEach(id => document.getElementById(id).addEventListener('input', e => {
+      const d = this.draft; if (!d) return; const f = id === 'lvlSl' ? 'sl' : 'tp';
+      const v = e.target.value === '' ? null : parseFloat(e.target.value);
+      d[f] = { intent: v == null ? 'remove' : 'set', price: v };
+      this.renderEditor(); this.schedule();
+    }));
+    document.addEventListener('keydown', e => { if (e.key === 'Escape' && this.draft) { this.discard(); e.preventDefault(); } });
   },
-  // what is on the chart right now
-  collect() {
+
+  /* ── the groups on the chart ── */
+  groups() {
     const sym = S.sym, out = [];
-    const ticketActive = document.getElementById('tradePane')?.classList.contains('active');
-    if (typeof TK !== 'undefined' && ticketActive) {
-      if (TK.slOn && Number.isFinite(TK.sl)) out.push({ key: 'tk-sl', kind: 'ticket', which: 'sl', price: TK.sl, side: TK.side, vol: TK.volume, label: 'SL' });
-      if (TK.tpOn && Number.isFinite(TK.tp)) out.push({ key: 'tk-tp', kind: 'ticket', which: 'tp', price: TK.tp, side: TK.side, vol: TK.volume, label: 'TP' });
-    }
-    if (typeof TR !== 'undefined') TR.positions.filter(p => p.symbol === sym).forEach(p => {
-      if (p.sl != null) out.push({ key: 'pp-sl-' + p.id, kind: 'paper', which: 'sl', price: p.sl, side: p.side, vol: p.volume, id: p.id, entry: p.entry, label: 'SL' });
-      if (p.tp != null) out.push({ key: 'pp-tp-' + p.id, kind: 'paper', which: 'tp', price: p.tp, side: p.side, vol: p.volume, id: p.id, entry: p.entry, label: 'TP' });
-    });
+    if (typeof TR !== 'undefined') TR.positions.filter(p => p.symbol === sym).forEach(p => out.push({
+      key: 'paper:' + p.id, kind: 'paper', id: p.id, side: p.side, vol: p.volume, entry: p.entry, sl: p.sl, tp: p.tp, trail: p.trail > 0, label: p.label || S.symLabel,
+    }));
     if (typeof LIVE !== 'undefined' && LIVE.on) {
       const name = LIVE.mt5Symbol(sym), s = LIVE.snap();
-      ((s && s.positions) || []).filter(p => p.symbol === name).forEach(p => {
-        if (p.sl > 0) out.push({ key: 'mt-sl-' + p.ticket, kind: 'mt5', which: 'sl', price: +p.sl, side: p.side, vol: +p.volume, ticket: p.ticket, entry: +p.entry, tp: +p.tp, label: 'MT5 SL' });
-        if (p.tp > 0) out.push({ key: 'mt-tp-' + p.ticket, kind: 'mt5', which: 'tp', price: +p.tp, side: p.side, vol: +p.volume, ticket: p.ticket, entry: +p.entry, sl: +p.sl, label: 'MT5 TP' });
-      });
+      ((s && s.positions) || []).filter(p => p.symbol === name).forEach(p => out.push({
+        key: 'mt5:' + p.ticket, kind: 'mt5', ticket: String(p.ticket), side: p.side, vol: +p.volume, entry: +p.entry, sl: p.sl > 0 ? +p.sl : null, tp: p.tp > 0 ? +p.tp : null, trail: p.trail > 0, label: p.symbol, profit: +p.profit,
+      }));
     }
     return out;
   },
-  money(it, price) {
-    // ticket: from the intended entry; position: from its entry
-    let entry = it.entry;
-    if (it.kind === 'ticket') entry = (typeof OT !== 'undefined') ? OT.entryRef() : NaN;
-    if (!Number.isFinite(entry)) return null;
-    if (it.kind === 'mt5') {
-      // the EA reports money on its own; approximate with the chart instrument's pip value
-      return otPnl(it.side, entry, price, it.vol, S.sym);
-    }
-    return otPnl(it.side, entry, price, it.vol, S.sym);
+  ticketLevels() {
+    if (typeof TK === 'undefined' || !OT.ticketVisible()) return [];
+    const out = [];
+    if (TK.slOn && Number.isFinite(TK.sl)) out.push({ key: 'tk:sl', which: 'sl', price: TK.sl });
+    if (TK.tpOn && Number.isFinite(TK.tp)) out.push({ key: 'tk:tp', which: 'tp', price: TK.tp });
+    return out;
   },
-  text(it, price) {
-    const m = this.money(it, price);
-    const sp = otSpec(S.sym);
-    const q = otQuote(S.sym);
-    const ref = Number.isFinite(it.entry) ? it.entry : (q.ok ? q.last : NaN);
-    const dist = Number.isFinite(ref) ? Math.abs(price - ref) : NaN;
-    const distTxt = Number.isFinite(dist) ? (sp.isForex ? (dist / sp.pip).toFixed(1) + 'p' : dist.toFixed(sp.dp)) : '';
-    return `${it.label} ${otFmtPx(S.sym, price)}${distTxt ? ' · ' + distTxt : ''}${m == null ? '' : ' · ' + (m > 0 ? '+' : '') + otMoney(m)}`;
+  money(g, price) {
+    if (!Number.isFinite(price) || !Number.isFinite(g.entry)) return null;
+    if (g.kind === 'mt5' && LIVE.moneyAt) { const p = LIVE.pos(g.ticket); if (p) { const m = LIVE.moneyAt(p, price); if (m != null) return m; } }
+    return otPnl(g.side, g.entry, price, g.vol, S.sym);
   },
-  sync() {
+  floating(g) {
+    if (g.kind === 'mt5') return Number.isFinite(g.profit) ? g.profit : null;
+    const q = otQuote(S.sym); if (!q.ok) return null;
+    return otPnl(g.side, g.entry, g.side === 'buy' ? q.bid : q.ask, g.vol, S.sym);
+  },
+  ccy() { const a = (typeof LIVE !== 'undefined' && LIVE.routing && LIVE.routing()) ? LIVE.acct() : null; return (a && a.currency) || 'USD'; },
+  /* "+2.29 USD" / "−2.32 USD": sign always shown, thousands grouped, currency as a code */
+  /* money if the conversion is known, else the distance in pips/points — never a blank pill */
+  outcome(side, entry, price, vol) {
+    const m = otPnl(side, entry, price, vol, S.sym); if (m != null) return this.fmt(m);
+    if (!Number.isFinite(entry) || !Number.isFinite(price)) return '—';
+    const sp = otSpec(S.sym), d = (price - entry) * (side === 'buy' ? 1 : -1), unit = sp.isForex ? sp.pip : sp.tick;
+    return (d < 0 ? '−' : '+') + Math.abs(d / unit).toFixed(1) + (sp.isForex ? ' pips' : ' pts');
+  },
+  fmt(v) { if (v == null || !Number.isFinite(v)) return '—'; if (Math.abs(v) < 0.005) v = 0; const n = Math.abs(v).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ','); return (v < 0 ? '−' : '+') + n + ' ' + this.ccy(); },
+  /* effective level of a field, honouring the draft */
+  eff(g, f) {
+    const d = this.draft; if (d && d.key === g.key) { const i = d[f]; if (i.intent === 'remove') return null; if (i.intent === 'set') return i.price; }
+    return g[f];
+  },
+
+  /* ── rendering ── */
+  schedule() { if (!this._raf) this._raf = requestAnimationFrame(() => { this._raf = 0; this.render(); }); },
+  sync() { this.schedule(); },
+  el(key, cls, html, setup) {
+    let e = this.els.get(key);
+    if (!e) { e = document.createElement('button'); e.type = 'button'; e.className = cls; e.dataset.key = key; e.innerHTML = html; this.layer.appendChild(e); this.els.set(key, e); setup && setup(e); }
+    e._seen = true; return e;
+  },
+  render() {
     if (!this.layer || typeof CH === 'undefined' || !CH.ready) return;
-    if (this.drag) return;                       // the drag loop owns the layer while a finger is down
-    const items = this.collect();
-    const have = new Map([...this.layer.children].map(el => [el.dataset.key, el]));
-    const seen = new Set();
-    items.forEach(it => {
-      seen.add(it.key);
-      let el = have.get(it.key);
-      if (!el) {
-        el = document.createElement('div'); el.className = 'lvl ' + it.which; el.dataset.key = it.key;
-        el.innerHTML = `<span class="lvl-grip"><i></i><i></i><i></i></span><span class="lvl-tag"></span>`;
-        el.addEventListener('pointerdown', e => this.start(e, el), { passive: false });
-        this.layer.appendChild(el);
-      }
-      el._item = it;
-      const y = CH.toY(it.price);
-      if (y == null || y < 0 || y > this.layer.clientHeight) { el.style.display = 'none'; return; }
-      el.style.display = '';
-      el.style.transform = `translateY(${y}px)`;
-      el.querySelector('.lvl-tag').textContent = this.text(it, it.price);
+    if (S.sym !== this._lastSym) { this._lastSym = S.sym; if (this.draft) this.discard(true); }
+    this.els.forEach(e => e._seen = false);
+    const H = this.layer.clientHeight, placed = [];
+    try { const w = CH.chart.priceScale('right').width(); if (w) this.layer.style.setProperty('--axis-w', Math.round(w) + 'px'); } catch (_) {}
+    const put = (e, y, extra) => { e.hidden = false; const c = Math.max(16, Math.min(H - 20, y)); e.classList.toggle('is-offscreen', y !== c); placed.push({ e, y: c, want: y }); Object.assign(e.dataset, extra || {}); };
+    // the ticket being composed
+    this.ticketLevels().forEach(t => {
+      const e = this.el(t.key, 'ws-trade-label ticket ' + t.which, `<span class="c-qty"></span><strong class="c-amt"></strong>`, el => this.bindDrag(el));
+      e._item = { kind: 'ticket', which: t.which, price: t.price };
+      const y = CH.toY(t.price); if (y == null) { e.hidden = true; return; }
+      const entry = OT.entryRef(), m = Number.isFinite(entry) ? otPnl(TK.side, entry, t.price, TK.volume, S.sym) : null;
+      e.querySelector('.c-qty').textContent = TK.volume;
+      e.querySelector('.c-amt').textContent = Number.isFinite(entry) ? this.outcome(TK.side, entry, t.price, TK.volume) : '—';
+      e.classList.toggle('is-positive', m != null && m >= 0); e.classList.toggle('is-negative', m != null && m < 0);
+      e.title = `Ticket ${t.which === 'sl' ? 'stop' : 'target'} · drag to move`; e.setAttribute('aria-label', e.title + ' ' + otFmtPx(S.sym, t.price));
+      put(e, y);
     });
-    have.forEach((el, k) => { if (!seen.has(k)) el.remove(); });
+    // positions
+    this.groups().forEach(g => {
+      const isSel = this.selected === g.key, d = this.draft && this.draft.key === g.key ? this.draft : null;
+      // entry label: side · size · floating P&L · × close · add-handles for absent levels
+      const ent = this.el(g.key + ':entry', 'ws-trade-label entry', `<span class="c-qty"></span><strong class="c-amt"></strong><span class="lvl-adds"></span><span class="lvl-x c-x" role="button" tabindex="0" title="Close position" aria-label="Close position">×</span>`, el => {
+        el.addEventListener('click', ev => { if (ev.target.closest('.lvl-x') || ev.target.closest('.lvl-add')) return; this.select(el._g.key); });
+        el.querySelector('.lvl-x').addEventListener('pointerdown', ev => ev.stopPropagation());
+        el.querySelector('.lvl-x').addEventListener('click', ev => { ev.stopPropagation(); this.closeAsk(el._g); });
+        el.querySelector('.lvl-x').addEventListener('keydown', ev => { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); this.closeAsk(el._g); } });
+      });
+      ent._g = g; ent.dataset.field = 'entry';
+      const fl = this.floating(g);
+      ent.querySelector('.c-qty').textContent = g.vol;
+      ent.querySelector('.c-amt').textContent = this.fmt(fl);
+      ent.classList.toggle('buy', g.side === 'buy'); ent.classList.toggle('sell', g.side !== 'buy');
+      ent.classList.toggle('is-positive', fl != null && fl >= 0); ent.classList.toggle('is-negative', fl != null && fl < 0); ent.classList.toggle('is-selected', isSel);
+      ent.title = `${g.side.toUpperCase()} ${g.vol} ${g.label} at ${otFmtPx(S.sym, g.entry)} · floating ${this.fmt(fl)} · click to select`;
+      // drag-to-add handles for absent levels
+      const adds = ent.querySelector('.lvl-adds'); adds.innerHTML = '';
+      ['tp', 'sl'].forEach(f => {
+        if (this.eff(g, f) != null) return;
+        const h = document.createElement('span'); h.className = 'lvl-add ' + f; h.setAttribute('role', 'button'); h.tabIndex = 0;
+        h.textContent = f === 'sl' ? '+SL' : '+TP'; h.title = `Drag to add ${f === 'sl' ? 'stop loss' : 'take profit'}`; h.setAttribute('aria-label', h.title);
+        h.addEventListener('pointerdown', ev => { ev.stopPropagation(); ev.preventDefault(); this.startAdd(ev, g, f, h); });
+        h.addEventListener('keydown', ev => { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); this.addByKey(g, f); } });
+        adds.appendChild(h);
+      });
+      const ey = CH.toY(g.entry); if (ey == null) ent.hidden = true; else put(ent, ey);
+      // stop and target labels
+      ['sl', 'tp'].forEach(f => {
+        const price = this.eff(g, f);
+        const key = g.key + ':' + f;
+        if (price == null) return;
+        const e = this.el(key, 'ws-trade-label ' + f, `<span class="c-qty"></span><strong class="c-amt"></strong><span class="lvl-x c-x" role="button" tabindex="0">×</span>`, el => {
+          this.bindDrag(el);
+          el.querySelector('.lvl-x').addEventListener('pointerdown', ev => ev.stopPropagation());
+          el.querySelector('.lvl-x').addEventListener('click', ev => { ev.stopPropagation(); this.remove(el._item.g, el._item.which); });
+          el.querySelector('.lvl-x').addEventListener('keydown', ev => { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); this.remove(el._item.g, el._item.which); } });
+        });
+        e._item = { kind: g.kind, which: f, price, g };
+        const y = CH.toY(price); if (y == null) { e.hidden = true; return; }
+        const m = this.money(g, price), drafted = d && d[f].intent === 'set';
+        e.querySelector('.c-qty').textContent = (g.trail && f === 'sl' && !drafted ? '↟ ' : '') + g.vol;
+        e.querySelector('.c-amt').textContent = m != null ? this.fmt(m) : this.outcome(g.side, g.entry, price, g.vol);
+        e.classList.toggle('is-draft', !!drafted); e.classList.toggle('is-selected', isSel);
+        e.classList.toggle('is-positive', m != null && m >= 0); e.classList.toggle('is-negative', m != null && m < 0);
+        const x = e.querySelector('.lvl-x'); x.title = f === 'sl' ? 'Remove stop loss' : 'Remove take profit'; x.setAttribute('aria-label', x.title);
+        e.title = `${f === 'sl' ? 'Stop' : 'Target'} ${otFmtPx(S.sym, price)} · ${this.fmt(m)} if hit${m != null && ((f === 'tp' && m < 0) || (f === 'sl' && m > 0)) ? ' (' + (f === 'tp' ? 'a target below entry still loses' : 'a stop past entry locks in profit') + ')' : ''} · drag or use arrow keys`;
+        e.setAttribute('aria-label', e.title);
+        put(e, y);
+      });
+    });
+    // keep labels apart; connectors show where the real line is
+    placed.sort((a, b) => a.y - b.y);
+    let bottom = -100; placed.forEach(p => { p.top = Math.max(p.y, bottom + 32); bottom = p.top; });
+    let ceil = H - 16; [...placed].reverse().forEach(p => { p.top = Math.min(p.top, ceil); ceil = p.top - 32; });
+    placed.forEach(p => { p.e.style.top = p.top + 'px'; p.e.style.setProperty('--connector', Math.abs(p.want - p.top).toFixed(0) + 'px'); p.e.style.setProperty('--connector-offset', Math.min(0, p.want - p.top).toFixed(0) + 'px'); });
+    this.els.forEach((e, k) => { if (!e._seen) { e.remove(); this.els.delete(k); } });
+    this.renderEditor(); if (typeof WS !== 'undefined' && WS.summary) WS.summary();
   },
-  /* -- drag -- */
+
+  /* ── selection and drafts ── */
+  select(key) { this.selected = key; this.schedule(); },
+  begin(g) {
+    if (this.draft && this.draft.key !== g.key) { showToast('Confirm or discard the current draft first.', 2400); return null; }
+    if (!this.draft) this.draft = { key: g.key, g, sl: { intent: 'unchanged', price: g.sl }, tp: { intent: 'unchanged', price: g.tp } };
+    this.selected = g.key; this.editor.hidden = false; this.renderEditor(); this.schedule(); return this.draft;
+  },
+  discard(silent) { this.draft = null; this.editor.hidden = true; this.schedule(); if (!silent) showToast('Draft discarded. Saved levels unchanged.', 2200); },
+  remove(g, f) {
+    const d = this.begin(g); if (!d) return;
+    d[f] = { intent: 'remove', price: null };
+    this.renderEditor(); this.schedule();
+  },
+  addByKey(g, f) {
+    const d = this.begin(g); if (!d) return;
+    const q = otQuote(S.sym), sp = otSpec(S.sym); if (!q.ok) return;
+    const dist = Math.max(otMinDist(S.sym) * 3, Math.abs(g.entry - (g.sl ?? g.tp ?? g.entry)) || g.entry * 0.003);
+    const dir = (g.side === 'buy') === (f === 'sl') ? -1 : 1;
+    d[f] = { intent: 'set', price: this.clamp(g, f, +(g.entry + dir * dist).toFixed(sp.dp)) };
+    this.renderEditor(); this.schedule();
+    document.getElementById(f === 'sl' ? 'lvlSl' : 'lvlTp').focus();
+  },
+  /* validation of a whole resulting position, against market and account rules */
+  /* only fields being SET are checked against the market: a saved level that has
+     drifted inside the broker's distance is the broker's to reject, not a reason
+     to block editing the other one */
+  check(g, sl, tp, d) {
+    const q = otQuote(S.sym), sp = otSpec(S.sym), minDist = otMinDist(S.sym);
+    if (!q.ok || q.stale) return 'A current quote is required.';
+    const ref = g.side === 'buy' ? q.bid : q.ask, setting = f => !d || d[f].intent === 'set';
+    if (setting('sl') && sl != null && (g.side === 'buy' ? sl > ref - minDist : sl < ref + minDist)) return `A ${g.side} stop must stay ${g.side === 'buy' ? 'below' : 'above'} the market by at least ${sp.isForex ? (minDist / sp.pip).toFixed(1) + ' pips' : minDist.toFixed(sp.dp)}.`;
+    if (setting('tp') && tp != null && (g.side === 'buy' ? tp < ref + minDist : tp > ref - minDist)) return `A ${g.side} target must stay ${g.side === 'buy' ? 'above' : 'below'} the market by at least ${sp.isForex ? (minDist / sp.pip).toFixed(1) + ' pips' : minDist.toFixed(sp.dp)}.`;
+    if (g.kind === 'mt5') { const lim = LIVE.limits(); if (lim && lim.requireSl && sl == null) return 'Your MT5 bridge requires a stop loss on every position, so the stop can be moved but not removed.'; }
+    return '';
+  },
+  clamp(g, f, price) {
+    const q = otQuote(S.sym), sp = otSpec(S.sym), minDist = otMinDist(S.sym);
+    if (!q.ok) return price;
+    const ref = g.side === 'buy' ? q.bid : q.ask;
+    const below = (g.side === 'buy') === (f === 'sl');
+    if (below && price > ref - minDist) price = ref - minDist;
+    if (!below && price < ref + minDist) price = ref + minDist;
+    return +(Math.round(price / sp.tick) * sp.tick).toFixed(sp.dp);
+  },
+  renderEditor() {
+    const d = this.draft; if (!d || !this.editor || this.editor.hidden) return;
+    const g = d.g, sp = otSpec(S.sym);
+    document.getElementById('lvlName').textContent = `${g.side === 'buy' ? 'Buy' : 'Sell'} ${g.vol} ${g.label}${g.kind === 'mt5' ? ' · MT5' : ' · paper'}`;
+    const sl = this.eff(g, 'sl'), tp = this.eff(g, 'tp');
+    [['lvlSl', sl], ['lvlTp', tp]].forEach(([id, v]) => { const i = document.getElementById(id); i.step = sp.tick; if (document.activeElement !== i) i.value = v == null ? '' : v.toFixed(sp.dp); });
+    const ms = this.money(g, sl), mt = this.money(g, tp);
+    document.getElementById('lvlSlOut').textContent = sl == null ? (d.sl.intent === 'remove' ? 'removed' : 'none') : this.fmt(ms) + (ms != null && ms > 0 ? ' · locks in profit' : '');
+    document.getElementById('lvlTpOut').textContent = tp == null ? (d.tp.intent === 'remove' ? 'removed' : 'none') : this.fmt(mt) + (mt != null && mt < 0 ? ' · below entry: still a loss' : '');
+    const risk = ms == null ? null : Math.max(0, -ms);
+    document.getElementById('lvlRisk').textContent = risk != null && mt != null && risk > 0 ? `Risk ${otMoney(risk)} · R:R 1 : ${(Math.max(0, mt) / risk).toFixed(2)}` : sl == null ? 'No stop: the position is unprotected.' : 'Entry and size stay fixed.';
+    const err = this.check(g, sl, tp, d), changed = d.sl.intent !== 'unchanged' || d.tp.intent !== 'unchanged';
+    document.getElementById('lvlErr').textContent = err || (changed ? 'Confirm sends the change; Discard restores the saved levels.' : 'Drag a level, type a price, or use × to remove one.');
+    document.getElementById('lvlConfirm').disabled = !!err || !changed || d.busy;
+    document.getElementById('lvlConfirm').textContent = d.busy ? 'Sending…' : g.kind === 'mt5' ? 'Update on MT5' : 'Confirm';
+  },
+  async confirm() {
+    const d = this.draft; if (!d || d.busy) return;
+    const g = d.g, sl = this.eff(g, 'sl'), tp = this.eff(g, 'tp');
+    const err = this.check(g, sl, tp, d); if (err) { this.renderEditor(); return; }
+    d.busy = true; this.renderEditor();
+    try {
+      if (g.kind === 'paper') {
+        const p = TR.positions.find(x => x.id === g.id); if (!p) throw new Error('Position no longer open.');
+        const res = await Broker.modify(p.id, sl, tp);
+        if (res.status !== 'modified') throw new Error('The paper broker rejected the change.');
+        p.sl = sl; p.tp = tp; if (d.sl.intent !== 'unchanged') p.trail = 0;
+        OT.save(); OT.renderBook(); CH.refreshLevels();
+        showToast('Levels updated.', 2200);
+      } else {
+        const r = await LIVE.send({ type: 'modify', ticket: g.ticket, sl: sl == null ? 0 : sl, tp: tp == null ? 0 : tp });
+        showToast((r.ok ? '✓ MT5 · ' : '✕ ') + r.msg, r.ok ? 4000 : 6500);
+        if (!r.ok) throw new Error(r.msg);
+        LIVE.poll();
+      }
+      this.draft = null; this.editor.hidden = true; this.schedule();
+    } catch (e) {
+      d.busy = false; this.renderEditor(); document.getElementById('lvlErr').textContent = e.message || 'Not applied.';
+    }
+  },
+  async closeAsk(g) {
+    const fl = this.floating(g);
+    if (g.kind === 'paper') {
+      const ok = await this.reviewSheet(`Close ${g.side} ${g.vol} ${g.label}?`, `Closes at market for ${this.fmt(fl)}. Its stop and target go with it.`, 'Close position');
+      if (ok) OT.closePosition(g.id, null, 'Manual');
+    } else LIVE.closePosition(g.ticket);      // the bridge flow already confirms
+  },
+  reviewSheet(title, body, okText) {
+    return new Promise(res => {
+      const d = document.createElement('dialog'); d.className = 'ws-dialog';
+      d.innerHTML = `<header><h2></h2><button type="button" class="ws-button" aria-label="Cancel">×</button></header><p style="padding:0 18px"></p><footer><button type="button" class="ws-button" data-no>Keep it open</button><button type="button" class="ws-button ws-primary" data-yes></button></footer>`;
+      d.querySelector('h2').textContent = title; d.querySelector('p').textContent = body; d.querySelector('[data-yes]').textContent = okText;
+      d.querySelector('header button').onclick = d.querySelector('[data-no]').onclick = () => { d.close(); res(false); };
+      d.querySelector('[data-yes]').onclick = () => { d.close(); res(true); };
+      d.addEventListener('close', () => d.remove()); document.body.appendChild(d); d.showModal();
+    });
+  },
+
+  /* ── dragging ── */
+  bindDrag(el) {
+    el.addEventListener('pointerdown', e => this.start(e, el), { passive: false });
+    el.addEventListener('keydown', e => {
+      if (!['ArrowUp', 'ArrowDown'].includes(e.key)) return;
+      e.preventDefault(); e.stopPropagation();
+      const it = el._item, sp = otSpec(S.sym), step = sp.tick * (e.shiftKey ? 10 : 1) * (e.key === 'ArrowUp' ? 1 : -1);
+      if (it.kind === 'ticket') { this.setTicket(it.which, +((it.which === 'sl' ? TK.sl : TK.tp) + step).toFixed(sp.dp)); return; }
+      const d = this.begin(it.g); if (!d) return;
+      d[it.which] = { intent: 'set', price: this.clamp(it.g, it.which, (this.eff(it.g, it.which) ?? it.price) + step) };
+      this.renderEditor(); this.schedule();
+    });
+  },
   start(e, el) {
     if (e.button != null && e.button !== 0) return;
-    e.preventDefault(); e.stopPropagation();
+    if (e.target.closest('.lvl-x') || e.target.closest('.lvl-add')) return;
     const it = el._item; if (!it) return;
-    this.drag = { el, it, price: it.price, startY: e.clientY, pid: e.pointerId };
-    el.classList.add('dragging'); el.setPointerCapture(e.pointerId);
+    e.preventDefault(); e.stopPropagation();
+    if (it.kind !== 'ticket' && !this.begin(it.g)) return;
+    this.drag = { el, it, y0: e.clientY, p0: it.kind === 'ticket' ? it.price : (this.eff(it.g, it.which) ?? it.price), pid: e.pointerId, moved: false };
+    el.classList.add('is-dragging'); el.setPointerCapture(e.pointerId);
     const move = ev => this.move(ev), up = ev => this.end(ev, move, up);
     el.addEventListener('pointermove', move); el.addEventListener('pointerup', up); el.addEventListener('pointercancel', up);
     if (typeof CH.watchScale === 'function') CH.watchScale(200);
   },
-  clamp(it, price) {
-    const sp = otSpec(S.sym), q = otQuote(S.sym);
-    const minDist = otMinDist(S.sym);
-    let ref = NaN;
-    if (it.kind === 'ticket') ref = OT.entryRef();
-    else ref = q.ok ? (it.side === 'buy' ? q.bid : q.ask) : it.entry;
-    if (!Number.isFinite(ref)) return price;
-    // a buy's stop stays below the reference, its target above; a sell the reverse
-    const below = (it.side === 'buy') === (it.which === 'sl');
-    if (below && price > ref - minDist) price = ref - minDist;
-    if (!below && price < ref + minDist) price = ref + minDist;
-    return +price.toFixed(sp.dp);
+  startAdd(e, g, f, handle) {
+    const d = this.begin(g); if (!d) return;
+    const q = otQuote(S.sym), sp = otSpec(S.sym); if (!q.ok) return;
+    d[f] = { intent: 'set', price: this.clamp(g, f, g.entry) };
+    this.schedule();
+    // hand the drag to the freshly created level label on the next frame
+    requestAnimationFrame(() => { const el = this.els.get(g.key + ':' + f); if (!el) return; this.drag = { el, it: el._item, y0: e.clientY, p0: d[f].price, pid: e.pointerId, moved: false, fromHandle: true };
+      try { el.setPointerCapture(e.pointerId); } catch (_) { handle.setPointerCapture(e.pointerId); }
+      const src = el.hasPointerCapture && el.hasPointerCapture(e.pointerId) ? el : handle;
+      const move = ev => this.move(ev), up = ev => this.end(ev, move, up, src);
+      src.addEventListener('pointermove', move); src.addEventListener('pointerup', up); src.addEventListener('pointercancel', up); });
+  },
+  setTicket(which, price) {
+    const sp = otSpec(S.sym), entry = OT.entryRef(), minDist = otMinDist(S.sym);
+    if (Number.isFinite(entry)) {
+      const below = (TK.side === 'buy') === (which === 'sl');
+      if (below && price > entry - minDist) price = entry - minDist;
+      if (!below && price < entry + minDist) price = entry + minDist;
+    }
+    price = +price.toFixed(sp.dp);
+    if (which === 'sl') TK.sl = price; else TK.tp = price;
+    const inp = document.getElementById(which === 'sl' ? 'otSl' : 'otTp'); if (inp) inp.value = price.toFixed(sp.dp);
+    if (!this._tk) this._tk = requestAnimationFrame(() => { this._tk = 0; OT.render(); });
   },
   move(e) {
     const d = this.drag; if (!d) return;
     e.preventDefault();
-    const r = this.layer.getBoundingClientRect();
-    const y = Math.max(0, Math.min(r.height, e.clientY - r.top));
-    const raw = CH.fromY(y); if (!Number.isFinite(raw)) return;
-    const sp = otSpec(S.sym);
-    const price = this.clamp(d.it, Math.round(raw / sp.tick) * sp.tick);
-    d.price = price;
-    const yy = CH.toY(price); if (yy != null) d.el.style.transform = `translateY(${yy}px)`;
-    d.el.querySelector('.lvl-tag').textContent = this.text(d.it, price);
-    if (d.it.kind === 'ticket') {                 // the ticket follows the finger
-      if (d.it.which === 'sl') TK.sl = price; else TK.tp = price;
-      const inp = document.getElementById(d.it.which === 'sl' ? 'otSl' : 'otTp'); if (inp) inp.value = price.toFixed(sp.dp);
-      if (!this._raf) this._raf = requestAnimationFrame(() => { this._raf = 0; OT.render(); });
-    }
+    const a = CH.fromY(d.y0 - this.layer.getBoundingClientRect().top), z = CH.fromY(e.clientY - this.layer.getBoundingClientRect().top);
+    if (!Number.isFinite(a) || !Number.isFinite(z)) return;
+    const sp = otSpec(S.sym); let price = Math.round((d.p0 + z - a) / sp.tick) * sp.tick;
+    d.moved = d.moved || Math.abs(e.clientY - d.y0) > 2;
+    if (d.it.kind === 'ticket') { this.setTicket(d.it.which, price); d.it.price = price; this.schedule(); return; }
+    const dr = this.draft; if (!dr) return;
+    dr[d.it.which] = { intent: 'set', price: this.clamp(d.it.g, d.it.which, price) };
+    this.renderEditor(); this.schedule();
   },
-  async end(e, move, up) {
+  end(e, move, up, src) {
     const d = this.drag; if (!d) return;
-    d.el.removeEventListener('pointermove', move); d.el.removeEventListener('pointerup', up); d.el.removeEventListener('pointercancel', up);
-    try { d.el.releasePointerCapture(d.pid); } catch (_) {}
-    d.el.classList.remove('dragging');
+    const el = src || d.el;
+    el.removeEventListener('pointermove', move); el.removeEventListener('pointerup', up); el.removeEventListener('pointercancel', up);
+    try { el.releasePointerCapture(d.pid); } catch (_) {}
+    d.el.classList.remove('is-dragging');
     this.drag = null;
-    const it = d.it, price = d.price, sp = otSpec(S.sym);
-    if (Math.abs(price - it.price) < sp.tick / 2) { this.sync(); return; }
-    if (it.kind === 'ticket') { OT.render(); this.sync(); return; }
-    if (it.kind === 'paper') {
-      const p = TR.positions.find(x => x.id === it.id); if (!p) { this.sync(); return; }
-      const sl = it.which === 'sl' ? price : p.sl, tp = it.which === 'tp' ? price : p.tp;
-      const res = await Broker.modify(p.id, sl, tp);
-      if (res.status !== 'modified') { showToast('Could not move the level.', 3000); this.sync(); return; }
-      p.sl = sl; p.tp = tp; if (it.which === 'sl') p.trail = 0;   // a hand-placed stop ends trailing
-      OT.save(); OT.renderBook(); CH.refreshLevels(); this.sync();
-      showToast(`${it.which === 'sl' ? 'Stop' : 'Target'} moved to ${otFmtPx(S.sym, price)}.`, 2600);
-      return;
-    }
-    if (it.kind === 'mt5') {
-      const p = LIVE.pos(it.ticket); if (!p) { this.sync(); return; }
-      const sl = it.which === 'sl' ? price : +p.sl, tp = it.which === 'tp' ? price : +p.tp;
-      const rows = LIVE.line('Position', LIVE.esc(`${p.side.toUpperCase()} ${p.volume} ${p.symbol}`))
-        + LIVE.line(it.which === 'sl' ? 'Stop loss' : 'Take profit', `${LIVE.esc(it.which === 'sl' ? p.sl : p.tp)} → <b>${LIVE.esc(price)}</b>`);
-      const yes = await LIVE.confirm(`Move ${it.which === 'sl' ? 'stop' : 'target'} on MT5?`, rows, 'Update on MT5', '');
-      if (!yes) { this.sync(); return; }
-      const r = await LIVE.send({ type: 'modify', ticket: String(it.ticket), sl, tp: tp > 0 ? tp : 0 });
-      showToast((r.ok ? '✓ MT5 · ' : '✕ ') + r.msg, r.ok ? 4000 : 6500);
-      LIVE.poll(); this.sync();
-    }
+    if (d.it.kind === 'ticket') { OT.render(); this.schedule(); return; }
+    if (e.type !== 'pointerup' && this.draft) { this.draft[d.it.which] = { intent: d.fromHandle ? 'unchanged' : 'set', price: d.fromHandle ? d.it.g[d.it.which] : d.p0 }; }
+    this.renderEditor(); this.schedule();
   },
 };
 
@@ -4741,7 +5077,7 @@ function renderARIA() {
   const liveLabel = pairPrices[S.sym]?.src || 'SIM';
 
   panel.innerHTML = `
-  <button class="pane-back" onclick="setRTab('check',null)">‹ Back to Setup Check</button>
+  <button class="pane-back" onclick="setRTab('check',null)">‹ Back to Analysis</button>
   <div class="aria-learn">
     <span style="font-size:12px;font-weight:900;color:var(--blue-lt);letter-spacing:.4px">ARIA v7.0</span>
     <span style="color:var(--tx-3);font-size:12px">Sig: ${AM.totalSig}</span>
@@ -5110,7 +5446,7 @@ function renderOracle() {
   if (reasons.length === 0) reasons.push('Insufficient confluence at this time');
 
   panel.innerHTML = `
-  <button class="pane-back" onclick="setRTab('check',null)">‹ Back to Setup Check</button>
+  <button class="pane-back" onclick="setRTab('check',null)">‹ Back to Analysis</button>
   <div class="oracle-card">
     <div style="font-size:12px;font-weight:900;color:var(--purple-lt);text-transform:uppercase;letter-spacing:.8px;margin-bottom:3px">Oracle AI Advisor</div>
     <div class="oracle-score ${confidence>=70?'high':confidence>=50?'med':'low'}">${confidence}%</div>
@@ -7153,8 +7489,18 @@ const OT = {
       : 'Paper trading. Fills use live bid/ask; no real orders are sent.';
   },
 
+  /* The ticket's own levels belong on the chart only while the trader can see
+     the ticket: Trade tab, "Before the trade" stage, and on phones the sheet
+     actually open. Otherwise they only duplicate a position's pills. */
+  ticketVisible() {
+    const pane = document.getElementById('tradePane'); if (!pane || !pane.classList.contains('active')) return false;
+    if ((this.stage || 'before') !== 'before') return false;
+    if (isMobile()) { const rp = document.getElementById('rightPanel'); if (!rp || !rp.classList.contains('open')) return false; }
+    return true;
+  },
   setStage(st) {
     this.stage = st === 'during' ? 'during' : 'before';
+    if (typeof CH !== 'undefined' && CH.ready) CH.refreshLevels();
     const b = document.getElementById('otBefore'), d = document.getElementById('otDuring');
     if (b) b.style.display = this.stage === 'before' ? '' : 'none';
     if (d) d.style.display = this.stage === 'during' ? '' : 'none';
@@ -7196,8 +7542,14 @@ const OT = {
     if (el('otRiskNote')) el('otRiskNote').textContent = r ? (Math.abs(r.lots - TK.volume) <= (otSpec(S.sym).lotStep || 0.01) + 1e-9 ? 'ticket matches' : 'tap to apply') : 'needs a stop loss';
   },
 
+  canBreakeven(p) {
+    const q = otQuote(p.symbol); if (!q.ok) return false;
+    const minDist = otMinDist(p.symbol);
+    return p.side === 'buy' ? q.bid > p.entry + minDist : q.ask < p.entry - minDist;
+  },
   async breakeven(id) {
     const p = TR.positions.find(x => x.id === id); if (!p) return;
+    if (!this.canBreakeven(p)) { showToast('Breakeven needs price beyond your entry first — a stop at entry would be hit by the spread.', 4200); return; }
     const res = await Broker.modify(id, p.entry, p.tp);
     if (res.status !== 'modified') { showToast('Could not move the stop.', 3000); return; }
     p.sl = p.entry; p.trail = 0;
@@ -7222,7 +7574,7 @@ const OT = {
       </span>
       <span class="pos-pnl ${cls}">${pnl == null ? '—' : otMoney(pnl)}</span>
       <span class="pos-acts">
-        <button class="pos-act" ${p.sl != null && Math.abs(p.sl - p.entry) < 1e-9 ? 'disabled title="Already at breakeven"' : ''} onclick="OT.breakeven(${p.id})">BE</button>
+        <button class="pos-act" ${p.sl != null && Math.abs(p.sl - p.entry) < 1e-9 ? 'disabled title="Already at breakeven"' : !this.canBreakeven(p) ? 'disabled title="Price is not beyond entry yet"' : ''} onclick="OT.breakeven(${p.id})">BE</button>
         <button class="pos-act${p.trail > 0 ? ' on' : ''}" onclick="OT.trailStop(${p.id})" title="${p.trail > 0 ? 'Stop trailing' : 'Trail the stop behind price'}">${p.trail > 0 ? 'Trailing' : 'Trail'}</button>
         <button class="pos-act" onclick="OT.openModify('position',${p.id})">SL·TP</button>
         <button class="pos-act" onclick="OT.closeHalf(${p.id})">½</button>
@@ -7375,6 +7727,211 @@ function setBTab(tab, btn) {
   if (tab === 'positions' || tab === 'orders') OT.renderBook();
 }
 
+
+/* ════════════════════════════════════════════════════════════
+   WORKSPACE — panels, splitters, focus mode, settings, objects
+   Desktop only; phones keep the bottom nav and full-screen chart.
+   State persists in localStorage ('protrader.workspace.v1').
+════════════════════════════════════════════════════════════ */
+const WS = {
+  KEY: 'protrader.workspace.v1',
+  BOUNDS: { left: [160, 280], right: [280, 420] },
+  st: { watch: true, analysis: true, dock: true, tools: true, left: 224, right: 320, rTab: 'check', bTab: 'scanner' },
+  saved: null, _timer: 0,
+
+  init() {
+    try { const raw = localStorage.getItem(this.KEY); if (raw) Object.assign(this.st, JSON.parse(raw)); else if (window.innerWidth < 1100) this.st.watch = false; } catch (_) {}
+    this.apply();
+    this.splitters();
+    this.wrapTabs();
+    this.menus();
+    this.visibilityWrap();
+    const wrap = document.getElementById('interactLayer');
+    if (wrap) wrap.addEventListener('dblclick', e => { if (DRAW.sel) { e.preventDefault(); this.openTool(DRAW.sel); } });
+    window.addEventListener('resize', () => this.apply());
+    this.summary(); setInterval(() => this.summary(), 1500);
+  },
+  save() { try { localStorage.setItem(this.KEY, JSON.stringify(this.st)); } catch (_) {} },
+  clampW(k, v) { const [a, b] = this.BOUNDS[k]; return Math.max(a, Math.min(b, Math.round(v))); },
+  apply() {
+    const s = this.st, b = document.body, root = document.documentElement;
+    if (isMobile()) { ['ws-watch-off', 'ws-analysis-off', 'ws-dock-off', 'ws-tools-off'].forEach(c => b.classList.remove(c)); root.style.removeProperty('--ws-left'); root.style.removeProperty('--ws-right'); return; }
+    b.classList.toggle('ws-watch-off', !s.watch); b.classList.toggle('ws-analysis-off', !s.analysis);
+    b.classList.toggle('ws-dock-off', !s.dock); b.classList.toggle('ws-tools-off', !s.tools);
+    root.style.setProperty('--ws-left', this.clampW('left', s.left) + 'px'); root.style.setProperty('--ws-right', this.clampW('right', s.right) + 'px');
+    const set = (id, on) => { const el = document.getElementById(id); if (el) { el.classList.toggle('is-on', on); el.setAttribute('aria-pressed', String(on)); } };
+    set('wsTogWatch', s.watch); set('wsTogAnalysis', s.analysis); set('wsTogDock', s.dock); set('wsTogTools', s.tools);
+    const f = document.getElementById('wsFocus'); if (f) { const focused = !s.watch && !s.analysis && !s.dock; f.classList.toggle('is-on', focused); f.setAttribute('aria-pressed', String(focused)); f.textContent = focused ? 'Exit focus' : 'Focus chart'; }
+    const db = document.getElementById('wsDockBtn'); if (db) db.textContent = s.dock ? 'Collapse' : 'Expand';
+    if (typeof CH !== 'undefined' && CH.ready) requestAnimationFrame(() => { CH.resize && CH.resize(); requestChartRedraw(); });
+  },
+  toggle(k) {
+    if (isMobile()) {
+      if (k === 'watch') return togglePairMenu();
+      if (k === 'analysis') return openMobilePanel(this.st.rTab || 'check');
+      if (k === 'dock') { this.st.dock = !this.st.dock; document.body.classList.toggle('ws-dock-off', !this.st.dock); const db = document.getElementById('wsDockBtn'); if (db) db.textContent = this.st.dock ? 'Collapse' : 'Expand'; this.save(); requestChartRedraw(); return; }
+      return;
+    }
+    this.st[k] = !this.st[k]; this.saved = null; this.apply(); this.save();
+    if (k === 'analysis' && this.st.analysis) setRTab(this.st.rTab || 'check', null);
+    if (k === 'dock' && this.st.dock) setBTab(this.st.bTab || 'scanner', document.querySelector(`.bstab[data-tab="${this.st.bTab || 'scanner'}"]`));
+  },
+  focus() {
+    const s = this.st;
+    if (!s.watch && !s.analysis && !s.dock) { Object.assign(s, this.saved || { watch: true, analysis: true, dock: true }); this.saved = null; }
+    else { this.saved = { watch: s.watch, analysis: s.analysis, dock: s.dock }; s.watch = s.analysis = s.dock = false; }
+    this.apply(); this.save();
+  },
+  restore() { Object.assign(this.st, { watch: true, analysis: true, dock: true, tools: true, left: 224, right: 320 }); this.saved = null; this.apply(); this.save(); },
+  wrapTabs() {
+    const r = window.setRTab, b = window.setBTab;
+    window.setRTab = (tab, btn) => { r(tab, btn); this.st.rTab = tab; this.save(); };
+    window.setBTab = (tab, btn) => { b(tab, btn); this.st.bTab = tab; this.save(); };
+  },
+  splitters() {
+    const mk = (id, k, sign) => {
+      const g = document.getElementById(id); if (!g) return;
+      g.addEventListener('pointerdown', e => {
+        e.preventDefault(); const x0 = e.clientX, w0 = this.clampW(k, this.st[k]); g.setPointerCapture(e.pointerId); g.classList.add('is-dragging');
+        const mv = ev => { this.st[k] = this.clampW(k, w0 + sign * (ev.clientX - x0)); document.documentElement.style.setProperty('--ws-' + k, this.st[k] + 'px'); };
+        const up = () => { g.removeEventListener('pointermove', mv); g.removeEventListener('pointerup', up); g.classList.remove('is-dragging'); this.save(); this.apply(); };
+        g.addEventListener('pointermove', mv); g.addEventListener('pointerup', up);
+      });
+      g.addEventListener('keydown', e => { const d = e.key === 'ArrowLeft' ? -16 : e.key === 'ArrowRight' ? 16 : 0; if (!d) return; e.preventDefault(); this.st[k] = this.clampW(k, this.st[k] + sign * d); this.apply(); this.save(); });
+      g.addEventListener('dblclick', () => { this.st[k] = k === 'left' ? 224 : 320; this.apply(); this.save(); });
+    };
+    mk('wsLeftGrip', 'left', 1); mk('wsRightGrip', 'right', -1);
+  },
+  /* Menus render through a portal on <body>: the toolbar scrolls horizontally
+     (overflow clips) and a backdrop-filter ancestor would otherwise become the
+     containing block for a fixed body. */
+  menus() {
+    document.addEventListener('pointerdown', e => { document.querySelectorAll('details.ws-menu[open]').forEach(m => { if (!m.contains(e.target) && !(m._body && m._body.contains(e.target))) m.open = false; }); });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') document.querySelectorAll('details.ws-menu[open]').forEach(m => m.open = false); });
+    document.querySelectorAll('details.ws-menu').forEach(m => {
+      const body = m.querySelector('.ws-menu-body'); if (!body) return; m._body = body;
+      m.addEventListener('toggle', () => {
+        if (!m.open) { if (body.parentElement === document.body) { body.classList.remove('is-portal'); m.appendChild(body); } return; }
+        document.querySelectorAll('details.ws-menu[open]').forEach(o => { if (o !== m) o.open = false; });
+        document.body.appendChild(body); body.classList.add('is-portal');
+        const r = m.querySelector('summary').getBoundingClientRect(), w = body.offsetWidth || 200, h = body.offsetHeight || 200;
+        body.style.setProperty('--menu-top', Math.round(Math.min(r.bottom + 6, window.innerHeight - h - 8)) + 'px');
+        body.style.setProperty('--menu-left', Math.round(Math.max(8, Math.min(r.left, window.innerWidth - w - 8))) + 'px');
+      });
+      body.addEventListener('click', e => { if (e.target.closest('button')) setTimeout(() => { m.open = false; }, 60); });
+    });
+  },
+  summary() {
+    const mode = document.getElementById('wsMode'); if (!mode) return;
+    const live = typeof LIVE !== 'undefined' && LIVE.routing && LIVE.routing();
+    mode.textContent = live ? (LIVE.isReal && LIVE.isReal() ? 'MT5 REAL' : 'MT5 DEMO') : 'PAPER';
+    mode.className = 'ws-summary-mode ' + (live ? (LIVE.isReal && LIVE.isReal() ? 'is-real' : 'is-live') : 'is-paper');
+    let n, pnl, eq;
+    if (live) { const s = LIVE.snap(), a = LIVE.acct() || {}; n = ((s && s.positions) || []).length; pnl = ((s && s.positions) || []).reduce((t, p) => t + (+p.profit || 0), 0); eq = +a.equity || null; }
+    else { const a = otAccount(); n = TR.positions.length; pnl = a.upl; eq = a.equity; }
+    document.getElementById('wsCount').textContent = n;
+    const p = document.getElementById('wsPnl'); p.textContent = n ? (pnl > 0 ? '+' : '') + otMoney(pnl) : '—'; p.className = n ? (pnl >= 0 ? 'up' : 'dn') : '';
+    document.getElementById('wsEquity').textContent = eq == null ? '—' : otMoney(eq);
+  },
+
+  /* ── dialogs ── */
+  dialog(title, body) {
+    document.querySelectorAll('dialog.ws-dialog').forEach(d => d.remove());
+    const d = document.createElement('dialog'); d.className = 'ws-dialog';
+    d.innerHTML = `<header><h2></h2><button type="button" class="ws-button" aria-label="Close dialog">×</button></header><div class="ws-dialog-body"></div>`;
+    d.querySelector('h2').textContent = title; d.querySelector('header button').onclick = () => d.close();
+    const bodyEl = d.querySelector('.ws-dialog-body'); if (typeof body === 'string') bodyEl.innerHTML = body; else bodyEl.appendChild(body);
+    d.addEventListener('close', () => d.remove()); document.body.appendChild(d); d.showModal(); return d;
+  },
+  openSettings() {
+    const s = this.st, cb = (k, label, hint) => `<label class="ws-check"><input type="checkbox" data-k="${k}" ${s[k] ? 'checked' : ''}><span>${label}<small>${hint}</small></span></label>`;
+    const d = this.dialog('Workspace', `<div class="ws-fields">
+      ${cb('watch', 'Markets panel', 'Watchlist and scanner on the left')}
+      ${cb('analysis', 'Analysis & execution', 'Setup check, ticket, portfolio on the right')}
+      ${cb('dock', 'Bottom dock', 'Scanner, positions, orders, journal')}
+      ${cb('tools', 'Drawing tools', 'Tool menu and the position estimate strip')}
+      <label class="ws-check"><input type="checkbox" data-theme ${S.theme === 'light' ? 'checked' : ''}><span>Light theme<small>Switches the whole terminal</small></span></label>
+      </div><footer><button type="button" class="ws-button" data-restore>Restore default layout</button><button type="button" class="ws-button ws-primary" data-done>Done</button></footer>`);
+    d.querySelectorAll('input[data-k]').forEach(i => i.addEventListener('change', () => { s[i.dataset.k] = i.checked; this.saved = null; this.apply(); this.save(); }));
+    d.querySelector('[data-theme]').addEventListener('change', () => toggleTheme());
+    d.querySelector('[data-restore]').onclick = () => { this.restore(); d.querySelectorAll('input[data-k]').forEach(i => i.checked = true); };
+    d.querySelector('[data-done]').onclick = () => d.close();
+  },
+  openObjects() {
+    const list = DRAW.list(), wrap = document.createElement('div');
+    if (!list.length) wrap.innerHTML = `<p class="ws-notice">No drawings on ${S.symLabel || S.sym} yet. Pick a tool from Drawing tools and draw on the chart; each object will appear here with its settings.</p>`;
+    list.forEach(o => {
+      const row = document.createElement('div'); row.className = 'ws-object' + (o.id === DRAW.sel ? ' is-selected' : '');
+      row.innerHTML = `<button type="button" class="ws-object-name"></button><span class="ws-object-meta"></span><button type="button" class="ws-button" data-eye aria-label="Toggle visibility">${o.hidden ? 'Hidden' : 'Visible'}</button><button type="button" class="ws-button" data-lock aria-label="Toggle lock">${o.locked ? 'Locked' : 'Unlocked'}</button><button type="button" class="ws-button" data-set>Settings</button>`;
+      row.querySelector('.ws-object-name').textContent = o.name || this.typeName(o);
+      row.querySelector('.ws-object-meta').textContent = o.pts && o.pts[0] ? otFmtPx(S.sym, o.pts[0].p) : '';
+      row.querySelector('.ws-object-name').onclick = () => { DRAW.select(o.id); d.close(); };
+      row.querySelector('[data-eye]').onclick = e => { o.hidden = !o.hidden; e.target.textContent = o.hidden ? 'Hidden' : 'Visible'; DRAW.save(); requestChartRedraw(); };
+      row.querySelector('[data-lock]').onclick = e => { o.locked = !o.locked; e.target.textContent = o.locked ? 'Locked' : 'Unlocked'; DRAW.save(); };
+      row.querySelector('[data-set]').onclick = () => { d.close(); this.openTool(o.id); };
+      wrap.appendChild(row);
+    });
+    if (list.length) { const f = document.createElement('footer'); f.innerHTML = `<button type="button" class="ws-button" data-clear>Remove all on this symbol</button>`; f.querySelector('[data-clear]').onclick = async () => { if (await LEVELS.reviewSheet('Remove all drawings?', `${list.length} object${list.length > 1 ? 's' : ''} on ${S.symLabel || S.sym} will be removed. This cannot be undone.`, 'Remove all')) { DRAW.clear ? DRAW.clear() : (DRAW.bySym[S.sym] = [], DRAW.save(), DRAW.deselect()); d.close(); } }; wrap.appendChild(f); }
+    const d = this.dialog('Objects · ' + (S.symLabel || S.sym), wrap);
+  },
+  typeName(o) { return { hline: 'Horizontal line', trend: 'Trend line', ray: 'Ray', rect: 'Rectangle', fib: 'Fibonacci', long: 'Long position', short: 'Short position', text: 'Text' }[o.type] || (o.type || 'Object'); },
+  openTool(id) {
+    const o = id && DRAW.find(id); if (!o) { showToast('Select a drawing first.', 2000); return; }
+    const TFS = ['1m', '5m', '15m', '30m', '1h', '4h', '1d', '1w'];
+    o.vis = o.vis || {}; const visTf = o.vis.tf || null;
+    const wrap = document.createElement('div');
+    wrap.innerHTML = `<div class="ws-tabs" role="tablist"><button type="button" class="is-on" data-t="in">Inputs</button><button type="button" data-t="ap">Appearance</button><button type="button" data-t="vi">Visibility</button></div>
+      <section data-p="in" class="ws-fields">
+        <label>Name<input type="text" data-name value=""></label>
+        ${(o.pts || []).map((p, i) => `<label>${DRAW.isPosition(o) ? ['Entry', 'Stop', 'Target'][i] : 'Point ' + (i + 1)} price<input type="number" step="any" inputmode="decimal" data-pt="${i}" value="${Number.isFinite(p.p) ? p.p.toFixed(S.dp || 4) : ''}"></label>`).join('')}
+        ${DRAW.isPosition(o) ? `<p class="ws-notice">Position estimates use the ticket's risk budget. Use "Use in ticket" to carry entry, stop and target across.</p>` : ''}
+      </section>
+      <section data-p="ap" class="ws-fields" hidden>
+        <label>Colour<input type="color" data-color value="${/^#[0-9a-f]{6}$/i.test(o.color || '') ? o.color : '#3B82F6'}"></label>
+        <label>Line width<input type="range" min="1" max="4" step="0.5" data-width value="${o.width || 1.4}"></label>
+        <label>Style<select data-style><option value="solid">Solid</option><option value="dashed">Dashed</option><option value="dotted">Dotted</option></select></label>
+        <label class="ws-check"><input type="checkbox" data-label ${o.showLabel === false ? '' : 'checked'}><span>Show label</span></label>
+      </section>
+      <section data-p="vi" class="ws-fields" hidden>
+        <label class="ws-check"><input type="checkbox" data-hidden ${o.hidden ? 'checked' : ''}><span>Hide this object</span></label>
+        <label class="ws-check"><input type="checkbox" data-locked ${o.locked ? 'checked' : ''}><span>Lock (no dragging)</span></label>
+        <fieldset class="ws-tf"><legend>Show on timeframes</legend>${TFS.map(t => `<label><input type="checkbox" data-tf="${t}" ${!visTf || visTf.includes(t) ? 'checked' : ''}>${t}</label>`).join('')}</fieldset>
+      </section>
+      <footer><button type="button" class="ws-button" data-del>Delete</button><span class="ws-spacer"></span><button type="button" class="ws-button ws-primary" data-done>Done</button></footer>`;
+    wrap.querySelector('[data-name]').value = o.name || '';
+    wrap.querySelector('[data-style]').value = o.style || 'solid';
+    const d = this.dialog(this.typeName(o), wrap), redraw = () => { DRAW.save(); requestChartRedraw(); };
+    wrap.querySelectorAll('.ws-tabs button').forEach(b => b.onclick = () => { wrap.querySelectorAll('.ws-tabs button').forEach(x => x.classList.toggle('is-on', x === b)); wrap.querySelectorAll('section[data-p]').forEach(s => s.hidden = s.dataset.p !== b.dataset.t); });
+    wrap.querySelector('[data-name]').oninput = e => { o.name = e.target.value; DRAW.save(); };
+    wrap.querySelectorAll('[data-pt]').forEach(i => i.oninput = () => { const v = parseFloat(i.value); if (Number.isFinite(v)) { o.pts[+i.dataset.pt].p = v; redraw(); DRAW.chip && DRAW.chip(); } });
+    wrap.querySelector('[data-color]').oninput = e => { o.color = e.target.value; redraw(); };
+    wrap.querySelector('[data-width]').oninput = e => { o.width = +e.target.value; redraw(); };
+    wrap.querySelector('[data-style]').onchange = e => { o.style = e.target.value; redraw(); };
+    wrap.querySelector('[data-label]').onchange = e => { o.showLabel = e.target.checked; redraw(); };
+    wrap.querySelector('[data-hidden]').onchange = e => { o.hidden = e.target.checked; redraw(); };
+    wrap.querySelector('[data-locked]').onchange = e => { o.locked = e.target.checked; DRAW.save(); };
+    wrap.querySelectorAll('[data-tf]').forEach(i => i.onchange = () => { const on = [...wrap.querySelectorAll('[data-tf]')].filter(x => x.checked).map(x => x.dataset.tf); o.vis.tf = on.length === TFS.length ? null : on; redraw(); });
+    wrap.querySelector('[data-del]').onclick = () => { const arr = DRAW.list(), i = arr.findIndex(x => x.id === o.id); if (i >= 0) arr.splice(i, 1); DRAW.deselect(); DRAW.save(); requestChartRedraw(); d.close(); };
+    wrap.querySelector('[data-done]').onclick = () => d.close();
+  },
+  /* an object is visible when not hidden and its timeframe filter allows the current tf */
+  visible(o) { return o && !o.hidden && !(o.vis && o.vis.tf && !o.vis.tf.includes(S.tf)); },
+  visibilityWrap() {
+    const paint = DRAW.paint.bind(DRAW), hit = DRAW.hit.bind(DRAW), hitHandle = DRAW.hitHandle.bind(DRAW);
+    DRAW.paint = (ctx, d, W, H, preview) => { if (!preview && !this.visible(d)) return; if (d.style && d.style !== 'solid') ctx.setLineDash(d.style === 'dashed' ? [8, 5] : [2, 4]); if (d.width) { const lw = ctx.lineWidth; paint(ctx, d, W, H, preview); ctx.lineWidth = lw; } else paint(ctx, d, W, H, preview); ctx.setLineDash([]); };
+    DRAW.hit = (d, x, y, W, H) => this.visible(d) && hit(d, x, y, W, H);
+    DRAW.hitHandle = (d, x, y) => (!this.visible(d) || d.locked) ? -1 : hitHandle(d, x, y);
+  },
+  usePlan() {
+    const o = DRAW.sel && DRAW.find(DRAW.sel); if (!o || !DRAW.isPosition(o)) { showToast('Select a long or short position drawing first.', 2400); return; }
+    const [entry, sl, tp] = o.pts.map(p => p.p);
+    applyARIA(sl, tp, o.type === 'long' ? 'buy' : 'sell');
+    if (typeof OT.sizeToRisk === 'function') OT.sizeToRisk(true);
+    if (isMobile()) openMobilePanel('trade'); else { if (!this.st.analysis) this.toggle('analysis'); setRTab('trade', null); }
+    showToast(`Ticket set from the ${o.type} plan: entry ${otFmtPx(S.sym, entry)}, stop ${otFmtPx(S.sym, sl)}, target ${otFmtPx(S.sym, tp)}.`, 4200);
+  },
+};
+
 const TRADE_DOCK = {
   height: null, tab: 'scanner', drag: null,
   limit(height) {
@@ -7426,6 +7983,7 @@ const TRADE_DOCK = {
   },
 };
 TRADE_DOCK.init();
+WS.init();
 
 /* ════════════════════════════════════════════════════════════
    SIGNALS
@@ -7536,12 +8094,14 @@ function openMobilePanel(tab) {
   const btn = document.getElementById('menuBtn');
   if (btn) btn.textContent = '×';
   setRTab(tab, null);
+  if (typeof CH !== 'undefined' && CH.ready) CH.refreshLevels();
   syncMobileNav(tab === 'trade' || tab === 'portfolio' ? tab : 'check');
 }
 
 function closeMobilePanel() {
   const rp = document.getElementById('rightPanel');
   if (rp) rp.classList.remove('open');
+  if (typeof CH !== 'undefined' && CH.ready) CH.refreshLevels();
   const btn = document.getElementById('menuBtn');
   if (btn) btn.textContent = '?';
 }
@@ -7677,10 +8237,10 @@ function renderPairSheet(filter) {
   const list = document.getElementById('pairSheetList'); if (!list) return;
   const f = String(filter ?? document.getElementById('pairSheetSearch')?.value ?? '').trim().toLowerCase();
   let html = '', shown = 0;
-  PAIRS.forEach(g => {
+  FAV.groups().forEach(g => {
     const items = g.items.filter(p => !f || p.label.toLowerCase().includes(f) || p.id.toLowerCase().includes(f) || g.g.toLowerCase().includes(f));
     if (!items.length) return;
-    html += `<div class="group-lbl" style="margin-top:8px">${g.g}</div>`;
+    html += `<div class="group-lbl ${g.fav ? 'fav' : ''}" style="margin-top:8px">${g.fav ? '★ ' : ''}${g.g}</div>`;
     items.forEach(p => {
       shown++;
       const q = pairPrices[p.id], live = q && q.ts;
@@ -7696,6 +8256,7 @@ function renderPairSheet(filter) {
           <div class="pprice">${px}</div>
           <div class="pchg ${chg == null ? '' : chg >= 0 ? 'up' : 'dn'}">${chg == null ? '<span style="color:var(--tx-3)">no quote</span>' : (chg >= 0 ? '+' : '') + chg.toFixed(2) + '%'}</div>
         </div>
+        ${FAV.star(p.id)}
       </div>`;
     });
   });
@@ -7885,7 +8446,35 @@ function subscribeHistory(id){if(!isDerivStreamSymbol(id))return;const tfSec=TF_
 connectWS=function(){try{if(ws&&(ws.readyState===WebSocket.OPEN||ws.readyState===WebSocket.CONNECTING))return;ws=new WebSocket(DERIV_WS_URL);ws.onopen=()=>{S.wsConnected=true;wsRetry=0;setWsBadge(true);updateFeedBadge();DERIV_STREAM_SYMBOLS.forEach((id,i)=>setTimeout(()=>subscribeTick(id),i*80));subscribeHistory(S.sym);clearInterval(NEXUS.wsHeartbeat);NEXUS.wsHeartbeat=setInterval(()=>sendWS({ping:1}),25000)};ws.onmessage=e=>{let d;try{d=JSON.parse(e.data)}catch(_){return}if(d.subscription?.id&&d.echo_req){const key=d.echo_req.ticks||d.echo_req.ticks_history;if(key)NEXUS.activeSubs.set(`${key}:${d.msg_type}:${d.echo_req.granularity||'tick'}`,d.subscription.id)}if(d.error){const key=d.echo_req?.ticks||d.echo_req?.ticks_history||'feed';NEXUS.errors.set(key,d.error.message||'Feed error');updateFeedBadge();return}if(d.msg_type==='tick'&&d.tick){putQuote(d.tick.symbol,+d.tick.quote,null,'Deriv',true)}const _hs=d.echo_req&&d.echo_req.ticks_history,_hOk=_hs&&appSym(_hs)===S.sym&&(!d.echo_req.granularity||d.echo_req.granularity===_histGran);if(d.msg_type==='ohlc'&&d.ohlc&&_hOk){const o=d.ohlc;mergeLiveCandle({time:+o.open_time,open:+o.open,high:+o.high,low:+o.low,close:+o.close,vol:0})}if(d.msg_type==='candles'&&d.candles&&_hOk){S.candles=aggregateCandles(d.candles.map(c=>({time:+c.epoch,open:+c.open,high:+c.high,low:+c.low,close:+c.close,vol:0})),S.tf);const last=S.candles[S.candles.length-1];if(last)putQuote(S.sym,last.close,null,'Deriv',true);drawChart();renderARIA();renderMTF();runPatternScanner()}};ws.onclose=()=>{S.wsConnected=false;setWsBadge(false);updateFeedBadge();clearInterval(NEXUS.wsHeartbeat);wsRetry++;setTimeout(connectWS,Math.min(30000,1200*Math.pow(1.7,wsRetry)))};ws.onerror=()=>{try{ws.close()}catch(e){}}}catch(e){S.wsConnected=false;setWsBadge(false);setTimeout(connectWS,5000)}};
 subscribeWS=function(sym){if(!isDerivStreamSymbol(sym))return;clearDerivSubs();subscribeTick(sym);subscribeHistory(sym)};
 selectPair=function(id){const p=PAIR_MAP[id];if(!p)return;S.sym=id;S.symLabel=p.label;S.dp=p.dp;chartOffset=0;S.candles=[];S.activePatterns=[];const chip=safeEl('symChip');if(chip){chip.innerHTML=`<span class="sym-flag">${p.flag}</span><span id="symLabel">${p.label}</span>`;const accent=document.documentElement.getAttribute('data-theme')==='light'?'#3B82F6':'var(--neon-cyan)';chip.style.borderColor=accent;setTimeout(()=>chip.style.borderColor='',700)}if(pairPrices[id]?.price)SEEDS[id]=pairPrices[id].price;seedCandles(200);buildPairList(safeEl('pairSearch')?.value||'');updateFeedBadge();if(isDerivStreamSymbol(id))subscribeWS(id);setTimeout(()=>{renderARIA();renderMTF();runPatternScanner();requestChartRedraw()},80)};
-buildPairList=function(filter=''){const el=safeEl('pairList');if(!el)return;const f=String(filter).toLowerCase();let h='';PAIRS.forEach(g=>{const items=g.items.filter(p=>!f||p.label.toLowerCase().includes(f)||p.sym.toLowerCase().includes(f)||p.id.toLowerCase().includes(f)||g.g.toLowerCase().includes(f));if(!items.length)return;h+=`<div class="group-lbl">${g.g}</div>`;items.forEach(p=>{const pp=pairPrices[p.id]||{},age=pp.ts?Date.now()-pp.ts:Infinity,stale=age>NEXUS.staleMs,px=(pp.ts&&Number.isFinite(pp.price))?pp.price.toFixed(p.dp):'—',chg=normalizeChg(p.id,Number.isFinite(pp.chg)?pp.chg:0),chgStr=pp.ts?formatPct(p.id,chg,2):'<span style="color:var(--tx-3)">no quote</span>',srcCls=stale?'sim':(pp.src==='Deriv'?'deriv':pp.live?'live':'sim');h+=`<div class="pair-row ${p.id===S.sym?'active':''}" onclick="selectPair('${p.id}')" title="${pp.src||'Waiting'} ${pp.ts?('· '+Math.round(age/1000)+'s ago'):''}"><div><div class="pname">${p.flag} ${p.label}</div><div class="psym">${p.sym} ${stale&&pp.ts?'<span class="feed-status stale">STALE</span>':''}</div></div><div style="text-align:right"><div class="pprice">${px}</div><div class="pchg ${chg>=0?'up':'dn'}">${chgStr} <span class="ws-indicator ${srcCls}" style="display:inline-block"></span></div></div></div>`})});el.innerHTML=h||'<div style="padding:16px;color:var(--tx-3);font-size:12px">No instruments found.</div>'};
+
+/* ── Favourites: a starred set of instruments, shown as the first group of
+   every instrument list (desktop watchlist and the phone sheet). ── */
+const FAV = {
+  KEY: 'protrader.favorites.v1', ids: [],
+  load() { try { this.ids = JSON.parse(localStorage.getItem(this.KEY) || '[]').filter(id => PAIRS.some(g => g.items.some(p => p.id === id))); } catch (_) { this.ids = []; } },
+  save() { try { localStorage.setItem(this.KEY, JSON.stringify(this.ids)); } catch (_) {} },
+  has(id) { return this.ids.includes(id); },
+  toggle(id, ev) {
+    if (ev) { ev.stopPropagation(); ev.preventDefault(); }
+    const i = this.ids.indexOf(id);
+    if (i >= 0) this.ids.splice(i, 1); else this.ids.push(id);
+    this.save(); this.refresh();
+    const p = PAIRS.flatMap(g => g.items).find(x => x.id === id);
+    showToast(i >= 0 ? `${p ? p.label : id} removed from favourites.` : `${p ? p.label : id} added to favourites.`, 1800);
+  },
+  /* groups to render: Favourites first (in the order they were starred), then the catalogue */
+  groups() {
+    const items = this.ids.map(id => PAIRS.flatMap(g => g.items).find(p => p.id === id)).filter(Boolean);
+    return items.length ? [{ g: 'Favourites', fav: true, items }, ...PAIRS] : PAIRS;
+  },
+  star(id) { const on = this.has(id); return `<button type="button" class="fav-btn ${on ? 'on' : ''}" onclick="FAV.toggle('${id}', event)" title="${on ? 'Remove from favourites' : 'Add to favourites'}" aria-label="${on ? 'Remove from favourites' : 'Add to favourites'}" aria-pressed="${on}">${on ? '★' : '☆'}</button>`; },
+  refresh() {
+    const s = document.getElementById('pairSearch'); if (typeof buildPairList === 'function') buildPairList(s ? s.value : '');
+    if (typeof renderPairSheet === 'function' && document.getElementById('pairSheetList')) renderPairSheet();
+  },
+};
+FAV.load();
+buildPairList=function(filter=''){const el=safeEl('pairList');if(!el)return;const f=String(filter).toLowerCase();let h='';FAV.groups().forEach(g=>{const items=g.items.filter(p=>!f||p.label.toLowerCase().includes(f)||p.sym.toLowerCase().includes(f)||p.id.toLowerCase().includes(f)||g.g.toLowerCase().includes(f));if(!items.length)return;h+=`<div class="group-lbl ${g.fav?'fav':''}">${g.fav?'★ ':''}${g.g}</div>`;items.forEach(p=>{const pp=pairPrices[p.id]||{},age=pp.ts?Date.now()-pp.ts:Infinity,stale=age>NEXUS.staleMs,px=(pp.ts&&Number.isFinite(pp.price))?pp.price.toFixed(p.dp):'—',chg=normalizeChg(p.id,Number.isFinite(pp.chg)?pp.chg:0),chgStr=pp.ts?formatPct(p.id,chg,2):'<span style="color:var(--tx-3)">no quote</span>',srcCls=stale?'sim':(pp.src==='Deriv'?'deriv':pp.live?'live':'sim');h+=`<div class="pair-row ${p.id===S.sym?'active':''}" onclick="selectPair('${p.id}')" title="${pp.src||'Waiting'} ${pp.ts?('· '+Math.round(age/1000)+'s ago'):''}"><div><div class="pname">${p.flag} ${p.label}</div><div class="psym">${p.sym} ${stale&&pp.ts?'<span class="feed-status stale">STALE</span>':''}</div></div><div style="text-align:right"><div class="pprice">${px}</div><div class="pchg ${chg>=0?'up':'dn'}">${chgStr} <span class="ws-indicator ${srcCls}" style="display:inline-block"></span></div></div>${FAV.star(p.id)}</div>`})});el.innerHTML=h||'<div style="padding:16px;color:var(--tx-3);font-size:12px">No instruments found.</div>'};
 buildTickerData=function(){tickerItems=[];['frxEURUSD','frxGBPUSD','frxUSDJPY','frxXAUUSD','cryBTCUSD','cryETHUSD','frxNAS100','R_50','1HZ50V','CRASH500','BOOM500'].forEach(id=>{const p=PAIR_MAP[id],pp=pairPrices[id];if(!p||!pp||!pp.ts||!Number.isFinite(pp.price))return;tickerItems.push({id,name:p.label,price:pp.price.toFixed(p.dp),chg:normalizeChg(id,pp.chg||0)})});renderTicker()};
 const _seedCandlesOriginal=seedCandles;seedCandles=function(count){_seedCandlesOriginal(count);updateFeedBadge()};
 const _simTickOriginal=simTick;simTick=function(){const q=pairPrices[S.sym];if(q?.live&&Date.now()-q.ts<NEXUS.staleMs)return;_simTickOriginal();updateFeedBadge()};
