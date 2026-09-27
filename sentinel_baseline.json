@@ -1,10 +1,10 @@
 {
- "generated": 1790540366,
+ "generated": 1790542173,
  "period": [
   "2025-09-25",
   "2026-09-27"
  ],
- "notes": "Replay of the live Sentinel rules on Deriv history. Estimated spreads, no slippage, news-week block off. 'exec' = 8+/9 gates.",
+ "notes": "Replay of the live Sentinel rules on Deriv history. Estimated spreads, no slippage, news-week block off. 'exec' = 8+/9 gates on real markets.",
  "all": {
   "n": 10619,
   "wins": 2712,
@@ -42,6 +42,78 @@
   "verdict": "negative edge (95% interval below zero)"
  },
  "by_slice": {
+  "1HZ75V 15m": {
+   "n": 841,
+   "wins": 219,
+   "win_rate": 0.2604,
+   "breakeven_win_rate": 0.2857,
+   "expectancy_r": -0.059,
+   "ci95_r": [
+    -0.1629,
+    0.0448
+   ],
+   "total_r": -49.65,
+   "profit_factor": 0.919,
+   "max_drawdown_r": 68.28,
+   "avg_cost_r": 0.0213,
+   "timeouts": 26,
+   "p_vs_breakeven": 0.8675,
+   "verdict": "no proven edge yet (interval includes zero)"
+  },
+  "1HZ75V 1h": {
+   "n": 193,
+   "wins": 56,
+   "win_rate": 0.2902,
+   "breakeven_win_rate": 0.2857,
+   "expectancy_r": 0.051,
+   "ci95_r": [
+    -0.1731,
+    0.2751
+   ],
+   "total_r": 9.85,
+   "profit_factor": 1.074,
+   "max_drawdown_r": 18.98,
+   "avg_cost_r": 0.0105,
+   "timeouts": 6,
+   "p_vs_breakeven": 0.3649,
+   "verdict": "no proven edge yet (interval includes zero)"
+  },
+  "R_75 15m": {
+   "n": 852,
+   "wins": 240,
+   "win_rate": 0.2817,
+   "breakeven_win_rate": 0.2857,
+   "expectancy_r": 0.0217,
+   "ci95_r": [
+    -0.0842,
+    0.1275
+   ],
+   "total_r": 18.45,
+   "profit_factor": 1.031,
+   "max_drawdown_r": 32.27,
+   "avg_cost_r": 0.0215,
+   "timeouts": 30,
+   "p_vs_breakeven": 0.3582,
+   "verdict": "no proven edge yet (interval includes zero)"
+  },
+  "R_75 1h": {
+   "n": 208,
+   "wins": 54,
+   "win_rate": 0.2596,
+   "breakeven_win_rate": 0.2857,
+   "expectancy_r": -0.05,
+   "ci95_r": [
+    -0.2592,
+    0.1592
+   ],
+   "total_r": -10.4,
+   "profit_factor": 0.93,
+   "max_drawdown_r": 29.01,
+   "avg_cost_r": 0.0106,
+   "timeouts": 6,
+   "p_vs_breakeven": 0.7421,
+   "verdict": "no proven edge yet (interval includes zero)"
+  },
   "cryBTCUSD 15m": {
    "n": 845,
    "wins": 226,
@@ -315,7 +387,7 @@
    "verdict": "no proven edge yet (interval includes zero)"
   }
  },
- "research": {
+ "synthetic": {
   "n": 4872,
   "wins": 1339,
   "win_rate": 0.2748,

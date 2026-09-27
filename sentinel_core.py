@@ -2,7 +2,7 @@
 Sentinel core — shared by the live scanner (sentinel.py) and the historical
 replay (sentinel_replay.py), so a replay measures exactly what goes live.
 
-  * MARKETS      which instruments Sentinel watches, and in which mode
+  * CATALOGUE    every instrument Sentinel can read (the focus list picks)
   * fetch_candles closed candles from Deriv's public feed (same venue the
                   terminal quotes)
   * PaperBook    turns ARIA verdicts into paper positions and scores them in R
@@ -43,26 +43,127 @@ class Market:
     id: str            # terminal id (what the chart uses)
     deriv: str         # Deriv feed symbol
     label: str
-    mode: str          # "live-eligible" | "research"
+    group: str         # the terminal's market group, e.g. "Forex Major", "Boom"
+    mode: str          # "real" | "synthetic"
     spread: float      # estimated round-trip cost in price units (abs) …
-    spread_pct: float = 0.0   # … or as a fraction of price (synthetics)
+    spread_pct: float = 0.0   # … or as a fraction of price
 
 
+# Every instrument the terminal lists and Deriv's public feed serves (89,
+# checked 27 Sep 2026). Sentinel reads only the trader's FOCUS list from
+# these — see sentinel.py — capped so each 15-minute cycle stays fast.
+#
 # Spreads are ESTIMATES for Deriv MT5 and err on the wide side. Replace them
 # with the real contract specs from the MT5 bridge ("spec" command) before
-# trusting any small edge.
-MARKETS: list[Market] = [
-    Market("frxNAS100", "OTC_NDX",   "US Tech 100", "live-eligible", 1.8),
-    Market("cryBTCUSD", "cryBTCUSD", "BTC/USD",     "live-eligible", 30.0),
-    Market("frxXAUUSD", "frxXAUUSD", "XAU/USD",     "live-eligible", 0.40),
-    Market("frxEURUSD", "frxEURUSD", "EUR/USD",     "live-eligible", 0.00012),
-    Market("frxGBPUSD", "frxGBPUSD", "GBP/USD",     "live-eligible", 0.00018),
-    Market("frxUSDJPY", "frxUSDJPY", "USD/JPY",     "live-eligible", 0.018),
-    # Synthetics: earlier validation found no directional edge on these, so
-    # Sentinel only collects evidence on them. They never alert as tradeable.
-    Market("R_75",   "R_75",   "Vol 75",      "research", 0.0, 0.0002),
-    Market("1HZ75V", "1HZ75V", "Vol 75 (1s)", "research", 0.0, 0.0002),
+# trusting any small edge. Synthetic indices get full signals but carry a
+# "Synthetic" label: earlier validation and the replay found ~0R on them.
+CATALOGUE: list[Market] = [
+    # Forex Major
+    Market("frxEURUSD", "frxEURUSD", "EUR/USD", "Forex Major", "real", 0.00012),
+    Market("frxGBPUSD", "frxGBPUSD", "GBP/USD", "Forex Major", "real", 0.00018),
+    Market("frxUSDJPY", "frxUSDJPY", "USD/JPY", "Forex Major", "real", 0.018),
+    Market("frxAUDUSD", "frxAUDUSD", "AUD/USD", "Forex Major", "real", 0.0, 0.00012),
+    Market("frxUSDCAD", "frxUSDCAD", "USD/CAD", "Forex Major", "real", 0.0, 0.00012),
+    Market("frxUSDCHF", "frxUSDCHF", "USD/CHF", "Forex Major", "real", 0.0, 0.00012),
+    Market("frxEURGBP", "frxEURGBP", "EUR/GBP", "Forex Major", "real", 0.0, 0.00012),
+    Market("frxEURJPY", "frxEURJPY", "EUR/JPY", "Forex Major", "real", 0.0, 0.00012),
+    Market("frxGBPJPY", "frxGBPJPY", "GBP/JPY", "Forex Major", "real", 0.0, 0.00012),
+    Market("frxAUDJPY", "frxAUDJPY", "AUD/JPY", "Forex Major", "real", 0.0, 0.00012),
+    Market("frxEURAUD", "frxEURAUD", "EUR/AUD", "Forex Major", "real", 0.0, 0.00012),
+    Market("frxEURCAD", "frxEURCAD", "EUR/CAD", "Forex Major", "real", 0.0, 0.00012),
+    Market("frxEURCHF", "frxEURCHF", "EUR/CHF", "Forex Major", "real", 0.0, 0.00012),
+    Market("frxGBPAUD", "frxGBPAUD", "GBP/AUD", "Forex Major", "real", 0.0, 0.00012),
+    # Forex Minor
+    Market("frxAUDCAD", "frxAUDCAD", "AUD/CAD", "Forex Minor", "real", 0.0, 0.0002),
+    Market("frxAUDCHF", "frxAUDCHF", "AUD/CHF", "Forex Minor", "real", 0.0, 0.0002),
+    Market("frxAUDNZD", "frxAUDNZD", "AUD/NZD", "Forex Minor", "real", 0.0, 0.0002),
+    Market("frxEURNZD", "frxEURNZD", "EUR/NZD", "Forex Minor", "real", 0.0, 0.0002),
+    Market("frxGBPCAD", "frxGBPCAD", "GBP/CAD", "Forex Minor", "real", 0.0, 0.0002),
+    Market("frxGBPCHF", "frxGBPCHF", "GBP/CHF", "Forex Minor", "real", 0.0, 0.0002),
+    Market("frxGBPNZD", "frxGBPNZD", "GBP/NZD", "Forex Minor", "real", 0.0, 0.0002),
+    Market("frxNZDJPY", "frxNZDJPY", "NZD/JPY", "Forex Minor", "real", 0.0, 0.0002),
+    Market("frxNZDUSD", "frxNZDUSD", "NZD/USD", "Forex Minor", "real", 0.0, 0.0002),
+    Market("frxUSDMXN", "frxUSDMXN", "USD/MXN", "Forex Minor", "real", 0.0, 0.0003),
+    Market("frxUSDPLN", "frxUSDPLN", "USD/PLN", "Forex Minor", "real", 0.0, 0.0003),
+    # Metals
+    Market("frxXAUUSD", "frxXAUUSD", "XAU/USD", "Metals", "real", 0.4),
+    Market("frxXAGUSD", "frxXAGUSD", "XAG/USD", "Metals", "real", 0.0, 0.0005),
+    Market("frxXPTUSD", "frxXPTUSD", "XPT/USD", "Metals", "real", 0.0, 0.0005),
+    Market("frxXPDUSD", "frxXPDUSD", "XPD/USD", "Metals", "real", 0.0, 0.0005),
+    # Crypto
+    Market("cryBTCUSD", "cryBTCUSD", "BTC/USD", "Crypto", "real", 30.0),
+    Market("cryETHUSD", "cryETHUSD", "ETH/USD", "Crypto", "real", 0.0, 0.0005),
+    # Indices
+    Market("frxNAS100", "OTC_NDX", "US Tech 100", "Indices", "real", 1.8),
+    Market("frxSPX500", "OTC_SPC", "US 500", "Indices", "real", 0.0, 0.0001),
+    Market("frxUS30", "OTC_DJI", "Wall Street 30", "Indices", "real", 0.0, 0.0001),
+    Market("OTC_FTSE", "OTC_FTSE", "UK 100", "Indices", "real", 0.0, 0.0001),
+    Market("OTC_GDAXI", "OTC_GDAXI", "Germany 40", "Indices", "real", 0.0, 0.0001),
+    Market("OTC_FCHI", "OTC_FCHI", "France 40", "Indices", "real", 0.0, 0.0001),
+    Market("OTC_SX5E", "OTC_SX5E", "Euro 50", "Indices", "real", 0.0, 0.0001),
+    Market("OTC_AEX", "OTC_AEX", "Netherlands 25", "Indices", "real", 0.0, 0.0001),
+    Market("OTC_SSMI", "OTC_SSMI", "Swiss 20", "Indices", "real", 0.0, 0.0001),
+    Market("OTC_N225", "OTC_N225", "Japan 225", "Indices", "real", 0.0, 0.0001),
+    Market("OTC_HSI", "OTC_HSI", "Hong Kong 50", "Indices", "real", 0.0, 0.0001),
+    Market("OTC_AS51", "OTC_AS51", "Australia 200", "Indices", "real", 0.0, 0.0001),
+    # Volatility
+    Market("R_10", "R_10", "Vol 10", "Volatility", "synthetic", 0.0, 0.0002),
+    Market("R_25", "R_25", "Vol 25", "Volatility", "synthetic", 0.0, 0.0002),
+    Market("R_50", "R_50", "Vol 50", "Volatility", "synthetic", 0.0, 0.0002),
+    Market("R_75", "R_75", "Vol 75", "Volatility", "synthetic", 0.0, 0.0002),
+    Market("R_100", "R_100", "Vol 100", "Volatility", "synthetic", 0.0, 0.0002),
+    # Volatility (1s)
+    Market("1HZ10V", "1HZ10V", "Vol 10 (1s)", "Volatility (1s)", "synthetic", 0.0, 0.0002),
+    Market("1HZ15V", "1HZ15V", "Vol 15 (1s)", "Volatility (1s)", "synthetic", 0.0, 0.0002),
+    Market("1HZ25V", "1HZ25V", "Vol 25 (1s)", "Volatility (1s)", "synthetic", 0.0, 0.0002),
+    Market("1HZ30V", "1HZ30V", "Vol 30 (1s)", "Volatility (1s)", "synthetic", 0.0, 0.0002),
+    Market("1HZ50V", "1HZ50V", "Vol 50 (1s)", "Volatility (1s)", "synthetic", 0.0, 0.0002),
+    Market("1HZ75V", "1HZ75V", "Vol 75 (1s)", "Volatility (1s)", "synthetic", 0.0, 0.0002),
+    Market("1HZ90V", "1HZ90V", "Vol 90 (1s)", "Volatility (1s)", "synthetic", 0.0, 0.0002),
+    Market("1HZ100V", "1HZ100V", "Vol 100 (1s)", "Volatility (1s)", "synthetic", 0.0, 0.0002),
+    # Crash
+    Market("CRASH50", "CRASH50", "Crash 50", "Crash", "synthetic", 0.0, 0.0003),
+    Market("CRASH150N", "CRASH150N", "Crash 150", "Crash", "synthetic", 0.0, 0.0003),
+    Market("CRASH300N", "CRASH300N", "Crash 300", "Crash", "synthetic", 0.0, 0.0003),
+    Market("CRASH500", "CRASH500", "Crash 500", "Crash", "synthetic", 0.0, 0.0003),
+    Market("CRASH600", "CRASH600", "Crash 600", "Crash", "synthetic", 0.0, 0.0003),
+    Market("CRASH900", "CRASH900", "Crash 900", "Crash", "synthetic", 0.0, 0.0003),
+    Market("CRASH1000", "CRASH1000", "Crash 1000", "Crash", "synthetic", 0.0, 0.0003),
+    # Boom
+    Market("BOOM50", "BOOM50", "Boom 50", "Boom", "synthetic", 0.0, 0.0003),
+    Market("BOOM150N", "BOOM150N", "Boom 150", "Boom", "synthetic", 0.0, 0.0003),
+    Market("BOOM300N", "BOOM300N", "Boom 300", "Boom", "synthetic", 0.0, 0.0003),
+    Market("BOOM500", "BOOM500", "Boom 500", "Boom", "synthetic", 0.0, 0.0003),
+    Market("BOOM600", "BOOM600", "Boom 600", "Boom", "synthetic", 0.0, 0.0003),
+    Market("BOOM900", "BOOM900", "Boom 900", "Boom", "synthetic", 0.0, 0.0003),
+    Market("BOOM1000", "BOOM1000", "Boom 1000", "Boom", "synthetic", 0.0, 0.0003),
+    # Jump
+    Market("JD10", "JD10", "Jump 10", "Jump", "synthetic", 0.0, 0.0002),
+    Market("JD25", "JD25", "Jump 25", "Jump", "synthetic", 0.0, 0.0002),
+    Market("JD50", "JD50", "Jump 50", "Jump", "synthetic", 0.0, 0.0002),
+    Market("JD75", "JD75", "Jump 75", "Jump", "synthetic", 0.0, 0.0002),
+    Market("JD100", "JD100", "Jump 100", "Jump", "synthetic", 0.0, 0.0002),
+    # Step
+    Market("stpRNG", "stpRNG", "Step 100", "Step", "synthetic", 0.0, 0.0002),
+    Market("stpRNG2", "stpRNG2", "Step 200", "Step", "synthetic", 0.0, 0.0002),
+    Market("stpRNG3", "stpRNG3", "Step 300", "Step", "synthetic", 0.0, 0.0002),
+    Market("stpRNG4", "stpRNG4", "Step 400", "Step", "synthetic", 0.0, 0.0002),
+    Market("stpRNG5", "stpRNG5", "Step 500", "Step", "synthetic", 0.0, 0.0002),
+    # Range Break
+    Market("RB100", "RB100", "Range Break 100", "Range Break", "synthetic", 0.0, 0.0002),
+    Market("RB200", "RB200", "Range Break 200", "Range Break", "synthetic", 0.0, 0.0002),
+    # Daily Reset
+    Market("RDBULL", "RDBULL", "Bull Market", "Daily Reset", "synthetic", 0.0, 0.0002),
+    Market("RDBEAR", "RDBEAR", "Bear Market", "Daily Reset", "synthetic", 0.0, 0.0002),
+    # Baskets
+    Market("WLDUSD", "WLDUSD", "USD Basket", "Baskets", "synthetic", 0.0, 0.0002),
+    Market("WLDEUR", "WLDEUR", "EUR Basket", "Baskets", "synthetic", 0.0, 0.0002),
+    Market("WLDGBP", "WLDGBP", "GBP Basket", "Baskets", "synthetic", 0.0, 0.0002),
+    Market("WLDAUD", "WLDAUD", "AUD Basket", "Baskets", "synthetic", 0.0, 0.0002),
+    Market("WLDXAU", "WLDXAU", "Gold Basket", "Baskets", "synthetic", 0.0, 0.0002),
 ]
+MARKETS = CATALOGUE   # backwards-compatible name
+DEFAULT_FOCUS = ["frxNAS100", "cryBTCUSD", "frxXAUUSD", "frxEURUSD", "frxGBPUSD", "frxUSDJPY", "R_75", "1HZ75V"]
 MARKET_BY_ID = {m.id: m for m in MARKETS}
 
 

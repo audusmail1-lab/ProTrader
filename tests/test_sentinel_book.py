@@ -6,7 +6,7 @@ import sentinel_core as core
 
 def trade(dir_="buy", entry=100.0, sl_dist=2.0, cost_r=0.1):
     s = 1 if dir_ == "buy" else -1
-    return core.Trade(id="t", market="frxXAUUSD", tf="15m", mode="live-eligible", tier="exec", dir=dir_,
+    return core.Trade(id="t", market="frxXAUUSD", tf="15m", mode="real", tier="exec", dir=dir_,
                       opened_at=900, entry=entry, sl=entry - s * sl_dist, tp1=entry + s * sl_dist * 1.5,
                       tp2=entry + s * sl_dist * 2.5, sl_dist=sl_dist, cost_r=cost_r, score=8, gates=[True] * 9,
                       mcc="TREND_UP", wyckoff="MARKUP", pattern=None, rsi=60, last_bar=0)

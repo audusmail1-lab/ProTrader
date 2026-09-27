@@ -59,8 +59,9 @@ async def _load(markets, tfs, pages):
 
 def write_baseline(trades: list[dict], bars_info: dict, path: str) -> None:
     """Compact summary the live Sentinel shows next to its own journal."""
-    live = [t for t in trades if t["mode"] == "live-eligible"]
-    ex = [t for t in live if t["tier"] == "exec"]
+    live = [t for t in trades if t["mode"] == "real"]
+    ex = [t for t in live if t["tier"] == "exec"]            # headline: real markets
+    ex_all = [t for t in trades if t["tier"] == "exec"]      # per-market evidence: everything
     starts = [v[0] for v in bars_info.values()]
     ends = [v[1] for v in bars_info.values()]
     fmt_d = lambda e: time.strftime("%Y-%m-%d", time.gmtime(e))
@@ -68,12 +69,12 @@ def write_baseline(trades: list[dict], bars_info: dict, path: str) -> None:
         "generated": int(time.time()),
         "period": [fmt_d(min(starts)), fmt_d(max(ends))] if starts else None,
         "notes": ("Replay of the live Sentinel rules on Deriv history. Estimated spreads, "
-                  "no slippage, news-week block off. 'exec' = 8+/9 gates."),
+                  "no slippage, news-week block off. 'exec' = 8+/9 gates on real markets."),
         "all": core.summarise(live),
         "exec": core.summarise(ex),
-        "by_slice": core.group_stats(ex, lambda t: f"{t['market']} {t['tf']}"),
+        "by_slice": core.group_stats(ex_all, lambda t: f"{t['market']} {t['tf']}"),
         "by_score": core.group_stats(live, lambda t: f"{t['score']}/9"),
-        "research": core.summarise([t for t in trades if t["mode"] == "research"]),
+        "synthetic": core.summarise([t for t in trades if t["mode"] == "synthetic"]),
         "gate_pass_rate": {name: round(sum(1 for t in live if t["gates"][i]) / len(live), 3)
                            for i, name in enumerate(core.eng.GATE_NAMES)} if live else {},
     }
@@ -94,12 +95,12 @@ def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--pages", type=int, default=18, help="extra 1000-bar pages of history to load")
     ap.add_argument("--tf", action="append", choices=list(core.TF_SEC), help="timeframe(s); default 15m and 1h")
-    ap.add_argument("--market", action="append", help="terminal id(s), e.g. frxXAUUSD")
+    ap.add_argument("--market", action="append", help="terminal id(s), e.g. frxXAUUSD (default: the default focus list)")
     ap.add_argument("--out", help="write every trade and the summaries to this JSON file")
     ap.add_argument("--baseline", help="write the compact baseline the Sentinel pane shows")
     a = ap.parse_args()
     tfs = a.tf or ["15m", "1h"]
-    markets = [core.MARKET_BY_ID[x] for x in a.market] if a.market else core.MARKETS
+    markets = [core.MARKET_BY_ID[x] for x in (a.market or core.DEFAULT_FOCUS)]
 
     t0 = time.time()
     data = asyncio.run(_load(markets, tfs, a.pages))
@@ -114,15 +115,15 @@ def main() -> None:
 
     print(f"\nSentinel replay · {len(trades)} paper trades · {time.time()-t0:.0f}s")
     print(f"Target 2.5R → break-even win rate before costs {core.BREAKEVEN_WINRATE*100:.1f}%")
-    live = [t for t in trades if t["mode"] == "live-eligible"]
-    res = [t for t in trades if t["mode"] == "research"]
-    show("ALL live-eligible markets", {"all": core.summarise(live)})
-    show("Synthetics (research only)", {"all": core.summarise(res)})
-    show("By tier (live-eligible)", core.group_stats(live, lambda t: t["tier"]))
+    live = [t for t in trades if t["mode"] == "real"]
+    res = [t for t in trades if t["mode"] == "synthetic"]
+    show("ALL real markets", {"all": core.summarise(live)})
+    show("Synthetic indices", {"all": core.summarise(res)})
+    show("By tier (real markets)", core.group_stats(live, lambda t: t["tier"]))
     show("By market × timeframe", core.group_stats(trades, lambda t: f"{t['market']} {t['tf']}"))
-    show("By gate score (live-eligible)", core.group_stats(live, lambda t: f"{t['score']}/9"))
-    show("By MCC (live-eligible)", core.group_stats(live, lambda t: t["mcc"]))
-    show("By direction (live-eligible)", core.group_stats(live, lambda t: t["dir"]))
+    show("By gate score (real markets)", core.group_stats(live, lambda t: f"{t['score']}/9"))
+    show("By MCC (real markets)", core.group_stats(live, lambda t: t["mcc"]))
+    show("By direction (real markets)", core.group_stats(live, lambda t: t["dir"]))
     # Which gates carry information? Compare trades where a gate passed vs failed.
     by_gate = {}
     for gi, name in enumerate(core.eng.GATE_NAMES):
@@ -130,7 +131,7 @@ def main() -> None:
         failed = [t for t in live if not t["gates"][gi]]
         by_gate[f"{name} pass"] = core.summarise(passed)
         by_gate[f"{name} FAIL"] = core.summarise(failed)
-    show("Per gate (live-eligible; FAIL rows = trades taken with that gate failing)", by_gate)
+    show("Per gate (real markets; FAIL rows = trades taken with that gate failing)", by_gate)
 
     bars_info = {f"{k[0]} {k[1]}": [v[0]["time"], v[-1]["time"], len(v)] for k, v in data.items() if v}
     if a.baseline:

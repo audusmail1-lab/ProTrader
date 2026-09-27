@@ -2,7 +2,9 @@
 ARIA Sentinel — the always-on scanner behind PROTrader's Sentinel pane.
 
 What it does, every time a 15m / 1h bar closes:
-  1. pulls the closed candles for each Sentinel market from Deriv
+  1. pulls the closed candles for each market in the FOCUS list from Deriv
+     (Sentinel can read all 89 terminal instruments; the owner picks up to
+     SENTINEL_MAX_MARKETS of them)
   2. runs ARIA v7 on them (sentinel_engine — identical to the terminal)
   3. opens a PAPER trade when ARIA says QUALIFIED (7/9) or EXECUTION READY
      (8+/9), and scores every open paper trade against the new bar
@@ -12,7 +14,9 @@ What it never does: place an order. Sentinel prepares, the trader confirms —
 the terminal's "Load setup" button only fills the trade ticket.
 
 Endpoints (all read-only except config):
-  GET  /api/sentinel/status   scanner health, markets, news-week flag
+  GET  /api/sentinel/status   scanner health, focus markets, news-week flag
+  GET  /api/sentinel/markets  every market Sentinel can read + the focus list
+  POST /api/sentinel/focus    {"markets": [ids]} up to the cap (needs X-Sentinel-Key)
   GET  /api/sentinel/board    latest ARIA read for every market × timeframe
   GET  /api/sentinel/feed     open paper trades + recent results
   GET  /api/sentinel/stats    journal statistics + one-year replay baseline
@@ -24,7 +28,8 @@ Environment:
                               Render, point this at a persistent disk or the
                               journal resets on every deploy.
   SENTINEL_TFS=15m,1h         timeframes to scan
-  SENTINEL_ADMIN_KEY=…        enables POST /config
+  SENTINEL_MAX_MARKETS=12     how many markets the focus list may hold
+  SENTINEL_ADMIN_KEY=…        owner key: enables POST /focus and /config
   TELEGRAM_BOT_TOKEN / TELEGRAM_CHAT_ID   optional alerts
 """
 
@@ -53,6 +58,11 @@ TFS = [t for t in os.getenv("SENTINEL_TFS", "15m,1h").split(",") if t in core.TF
 BASELINE_FILE = os.path.join(HERE, "sentinel_baseline.json")
 EVIDENCE_MIN_N = 100     # trades before a slice can be called "proven"
 FRESH_S = 150            # a bar older than this is judged but never entered
+# Sentinel can read every market in core.CATALOGUE, but scans only the
+# trader's focus list, capped so one cycle stays well inside 15 minutes and
+# the public Deriv feed isn't hammered.
+MAX_MARKETS = max(1, min(40, int(os.getenv("SENTINEL_MAX_MARKETS", "12"))))
+LEGACY_MODE = {"live-eligible": "real", "research": "synthetic"}
 
 _lock = threading.Lock()
 _state: dict[str, Any] = {
@@ -101,6 +111,7 @@ def _load_trades(where: str = "", args: tuple = (), limit: int = 5000) -> list[d
 def _restore_book() -> core.PaperBook:
     book = core.PaperBook(news_week=bool(_meta_get("news_week", False)))
     for d in _load_trades("WHERE status='open'"):
+        d["mode"] = LEGACY_MODE.get(d.get("mode"), d.get("mode"))
         t = core.Trade(**d)
         book.open[(t.market, t.tf)] = t
     return book
@@ -126,11 +137,11 @@ def _telegram(text: str) -> None:
 
 def _alert_open(t: core.Trade) -> None:
     m = core.MARKET_BY_ID[t.market]
-    if m.mode == "research" or t.tier != "exec":
+    if t.tier != "exec":
         return
     ev = _evidence().get(f"{t.market} {t.tf}", {}).get("status", "unproven")
     _telegram(
-        f"ARIA Sentinel · {m.label} {t.tf} · {t.dir.upper()} {t.score}/9\n"
+        f"ARIA Sentinel · {m.label}{' (synthetic)' if m.mode == 'synthetic' else ''} {t.tf} · {t.dir.upper()} {t.score}/9\n"
         f"Entry {_fmt_px(t.entry)} · SL {_fmt_px(t.sl)} · TP {_fmt_px(t.tp2)}\n"
         f"MCC {t.mcc} · {t.wyckoff}{' · ' + t.pattern if t.pattern else ''}\n"
         f"Evidence: {ev}. Paper signal — confirm on the chart before trading.")
@@ -138,14 +149,20 @@ def _alert_open(t: core.Trade) -> None:
 
 def _alert_close(t: core.Trade) -> None:
     m = core.MARKET_BY_ID[t.market]
-    if m.mode == "research" or t.tier != "exec":
+    if t.tier != "exec":
         return
     _telegram(f"ARIA Sentinel · {m.label} {t.tf} paper {t.dir} closed: {t.status.upper()} {t.r:+.2f}R")
 
 
 # ── Scanner ──────────────────────────────────────────────────────────────────
 
-async def _scan_one(m: core.Market, tf: str) -> None:
+def _focus() -> list[str]:
+    ids = _meta_get("focus", None) or core.DEFAULT_FOCUS
+    return [i for i in ids if i in core.MARKET_BY_ID][:MAX_MARKETS]
+
+
+async def _scan_one(m: core.Market, tf: str, focused: bool = True) -> None:
+    """Score open paper trades; if the market is in focus, judge the new bar."""
     key = f"{m.id} {tf}"
     bars = await core.fetch_candles(m.deriv, tf, core.WINDOW + 10)
     if len(bars) < core.WINDOW // 2:
@@ -154,6 +171,12 @@ async def _scan_one(m: core.Market, tf: str) -> None:
         _save_trade(t)
         _alert_close(t)
     last = bars[-1]
+    if not focused:          # dropped from focus: only finish its open trade
+        t = _book.open.get((m.id, tf))
+        if t:
+            _save_trade(t)
+        _state["board"].pop(key, None)
+        return
     seen = _state["board"].get(key, {}).get("bar")
     evaluated = _meta_get(f"eval:{key}", 0)
     # Only enter on a bar that closed moments ago. After a restart or an
@@ -186,26 +209,44 @@ async def _scan_one(m: core.Market, tf: str) -> None:
         _alert_open(new)
 
 
+_wake: Optional[asyncio.Event] = None
+
+
 async def _loop() -> None:
-    global _book
+    global _book, _wake
     _book = _restore_book()
+    _wake = asyncio.Event()
     _state.update(running=True, started_at=time.time())
-    log.info("Sentinel started: %d markets × %s", len(core.MARKETS), TFS)
+    log.info("Sentinel started: focus %s × %s", _focus(), TFS)
     while True:
         cycle_start = time.time()
-        for m in core.MARKETS:
+        focus = _focus()
+        # Markets dropped from focus keep being read until their paper
+        # trade finishes, so no result is lost by editing the list.
+        extra = sorted({mk for (mk, _tf) in _book.open} - set(focus))
+        for mid in focus + extra:
+            m = core.MARKET_BY_ID.get(mid)
+            if not m:
+                continue
             for tf in TFS:
                 try:
-                    await _scan_one(m, tf)
+                    await _scan_one(m, tf, focused=mid in focus)
                 except Exception as e:
                     _state["last_error"] = f"{time.strftime('%H:%M:%S', time.gmtime())} {m.id} {tf}: {e}"
                     log.warning("sentinel %s %s: %s", m.id, tf, e)
                 await asyncio.sleep(0.3)   # be gentle with the public feed
+        for key in [k for k in _state["board"] if k.split(" ")[0] not in focus]:
+            _state["board"].pop(key, None)
         _state["last_cycle"] = time.time()
         _state["cycles"] += 1
-        # Wake shortly after the next 15-minute close.
+        # Wake shortly after the next 15-minute close, or at once when the
+        # focus list changes so new markets appear on the board.
         nxt = (int(cycle_start // 900) + 1) * 900 + 8
-        await asyncio.sleep(max(20.0, nxt - time.time()))
+        _wake.clear()
+        try:
+            await asyncio.wait_for(_wake.wait(), timeout=max(20.0, nxt - time.time()))
+        except asyncio.TimeoutError:
+            pass
 
 
 def start() -> None:
@@ -254,49 +295,90 @@ def _evidence() -> dict[str, dict]:
     A market × timeframe is "proven" only when the one-year replay AND the
     live paper journal both show a 95% interval above zero on enough trades.
     Until then Sentinel's signals are labelled unproven, whatever the score.
+    Markets without a replay can only become proven after a replay is run.
     """
     base = _baseline().get("by_slice", {})
     live = core.group_stats([t for t in _load_trades() if t["tier"] == "exec"],
                             lambda t: f"{t['market']} {t['tf']}")
+    ok = lambda s: s.get("n", 0) >= EVIDENCE_MIN_N and (s.get("ci95_r") or [0])[0] > 0
+    neg = lambda s: s.get("n", 0) >= EVIDENCE_MIN_N and (s.get("ci95_r") or [0, 0])[1] < 0
     out = {}
-    for m in core.MARKETS:
+    for mid in _focus():
         for tf in TFS:
-            k = f"{m.id} {tf}"
+            k = f"{mid} {tf}"
             b, l = base.get(k, {}), live.get(k, {})
-            ok = lambda s: s.get("n", 0) >= EVIDENCE_MIN_N and (s.get("ci95_r") or [0])[0] > 0
-            neg = lambda s: s.get("n", 0) >= EVIDENCE_MIN_N and (s.get("ci95_r") or [0, 0])[1] < 0
-            status = ("research only" if m.mode == "research"
-                      else "proven" if ok(b) and ok(l)
+            status = ("proven" if ok(b) and ok(l)
                       else "negative" if neg(b) or neg(l)
                       else "unproven")
             out[k] = {"status": status, "replay": b, "live": l}
     return out
 
 
+def _check_key(request: Request) -> None:
+    key = os.getenv("SENTINEL_ADMIN_KEY", "")
+    given = request.headers.get("x-sentinel-key", "")
+    if not key:
+        raise HTTPException(403, "Owner key is not set on this server (SENTINEL_ADMIN_KEY)")
+    if not hmac.compare_digest(key, given):
+        raise HTTPException(403, "Wrong owner key")
+
+
 # ── API ──────────────────────────────────────────────────────────────────────
 
 @router.get("/status")
 def status() -> dict:
+    focus = _focus()
     return {
         "enabled": os.getenv("SENTINEL_ENABLED", "1") != "0",
         "running": _state["running"], "started_at": _state["started_at"],
         "last_cycle": _state["last_cycle"], "cycles": _state["cycles"],
         "last_error": _state["last_error"], "timeframes": TFS,
         "news_week": bool(_book.news_week) if _book else bool(_meta_get("news_week", False)),
-        "markets": [{"id": m.id, "label": m.label, "mode": m.mode} for m in core.MARKETS],
+        "markets": [{"id": i, "label": core.MARKET_BY_ID[i].label, "mode": core.MARKET_BY_ID[i].mode} for i in focus],
+        "max_markets": MAX_MARKETS,
         "open_trades": len(_book.open) if _book else 0,
         "alerts": bool(os.getenv("TELEGRAM_BOT_TOKEN") and os.getenv("TELEGRAM_CHAT_ID")),
+        "owner_key_set": bool(os.getenv("SENTINEL_ADMIN_KEY")),
     }
+
+
+@router.get("/markets")
+def markets() -> dict:
+    """Everything Sentinel can read, grouped as in the terminal, plus the focus."""
+    groups: dict[str, list] = {}
+    for m in core.CATALOGUE:
+        groups.setdefault(m.group, []).append({"id": m.id, "label": m.label, "mode": m.mode})
+    return {"groups": [{"name": g, "markets": ms} for g, ms in groups.items()],
+            "focus": _focus(), "max": MAX_MARKETS, "total": len(core.CATALOGUE)}
+
+
+@router.post("/focus")
+async def set_focus(request: Request) -> dict:
+    _check_key(request)
+    body = await request.json()
+    ids = body.get("markets") if isinstance(body, dict) else None
+    if not isinstance(ids, list) or not ids:
+        raise HTTPException(400, "Send {\"markets\": [ids…]} with at least one market")
+    unknown = [i for i in ids if i not in core.MARKET_BY_ID]
+    if unknown:
+        raise HTTPException(400, f"Unknown market(s): {', '.join(map(str, unknown[:5]))}")
+    clean = list(dict.fromkeys(ids))
+    if len(clean) > MAX_MARKETS:
+        raise HTTPException(400, f"Sentinel reads at most {MAX_MARKETS} markets at a time")
+    _meta_set("focus", clean)
+    if _wake:
+        _wake.set()
+    return markets()
 
 
 @router.get("/board")
 def board() -> dict:
     ev = _evidence()
-    rows = []
-    for k, b in _state["board"].items():
-        rows.append({**b, "evidence": ev.get(k, {}).get("status", "unproven")})
+    focus = set(_focus())
+    rows = [{**b, "evidence": ev.get(k, {}).get("status", "unproven")}
+            for k, b in _state["board"].items() if b["market"] in focus]
     order = {"EXEC_READY": 0, "QUALIFIED": 1, "WAITING": 2, "BLOCKED": 3, "OBSERVER": 4}
-    rows.sort(key=lambda r: (r["mode"] != "live-eligible", order.get(r["verdict"], 9), -r["score"]))
+    rows.sort(key=lambda r: (order.get(r["verdict"], 9), -r["score"], r["mode"] != "real"))
     return {"updated": _state["last_cycle"], "rows": rows}
 
 
@@ -306,22 +388,29 @@ def feed(limit: int = 40) -> dict:
     open_ = _load_trades("WHERE status='open'")
     closed = _load_trades("WHERE status!='open'", limit=limit)
     closed.sort(key=lambda t: t.get("closed_at") or 0, reverse=True)
+    for t in open_ + closed:
+        t["mode"] = LEGACY_MODE.get(t.get("mode"), t.get("mode"))
     return {"open": open_, "closed": closed}
 
 
 @router.get("/stats")
 def stats() -> dict:
     trades = _load_trades()
-    live = [t for t in trades if t["mode"] == "live-eligible"]
+    for t in trades:
+        t["mode"] = LEGACY_MODE.get(t.get("mode"), t.get("mode"))
+    real = [t for t in trades if t["mode"] == "real"]
+    syn = [t for t in trades if t["mode"] == "synthetic"]
     base = _baseline()
     return {
         "journal": {
-            "all": core.summarise(live),
-            "exec": core.summarise([t for t in live if t["tier"] == "exec"]),
-            "by_slice": core.group_stats(live, lambda t: f"{t['market']} {t['tf']}"),
-            "research": core.summarise([t for t in trades if t["mode"] == "research"]),
+            "all": core.summarise(trades),
+            "exec": core.summarise([t for t in trades if t["tier"] == "exec"]),
+            "real": core.summarise(real),
+            "synthetic": core.summarise(syn),
+            "by_slice": core.group_stats(trades, lambda t: f"{t['market']} {t['tf']}"),
         },
-        "baseline": {k: base.get(k) for k in ("generated", "period", "notes", "all", "exec", "by_slice", "by_score", "gate_pass_rate")},
+        "baseline": {k: base.get(k) for k in ("generated", "period", "notes", "all", "exec", "by_slice",
+                                             "by_score", "synthetic", "gate_pass_rate")},
         "evidence": {k: v["status"] for k, v in _evidence().items()},
         "model": {"target_r": core.TARGET_R, "breakeven_win_rate": round(core.BREAKEVEN_WINRATE, 4),
                   "max_bars": core.MAX_BARS, "evidence_min_trades": EVIDENCE_MIN_N},
@@ -330,10 +419,7 @@ def stats() -> dict:
 
 @router.post("/config")
 async def config(request: Request) -> dict:
-    key = os.getenv("SENTINEL_ADMIN_KEY", "")
-    given = request.headers.get("x-sentinel-key", "")
-    if not key or not hmac.compare_digest(key, given):
-        raise HTTPException(403, "Sentinel config is locked")
+    _check_key(request)
     body = await request.json()
     if "news_week" in body:
         nw = bool(body["news_week"])

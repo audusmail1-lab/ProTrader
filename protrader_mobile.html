@@ -1427,7 +1427,7 @@ svg.ico{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.7;st
 .sn-chip.sell{color:var(--red);border-color:var(--red)}
 .sn-chip.ev-proven{color:var(--green);border-color:var(--green)}
 .sn-chip.ev-negative{color:var(--red);border-color:var(--red)}
-.sn-chip.ev-unproven,.sn-chip.ev-research{color:var(--amber);border-color:var(--amber)}
+.sn-chip.ev-unproven{color:var(--amber);border-color:var(--amber)}
 .sn-lv{display:grid;grid-template-columns:repeat(3,1fr);gap:4px}
 .sn-lv div{background:var(--bg-2);border-radius:6px;padding:4px 6px}
 .sn-lv span{display:block;font-size:10px;color:var(--tx-3)}
@@ -1447,6 +1447,15 @@ svg.ico{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.7;st
 .sn .sn-pos{color:var(--green)} .sn .sn-neg{color:var(--red)}
 .sn details summary{cursor:pointer;color:var(--tx-2);font-weight:700;padding:4px 0}
 .sn-empty{color:var(--tx-3);padding:6px 2px}
+.sn-btn-2{background:transparent;border-color:var(--bd-2);color:var(--tx-2)}
+.sn-focus .sn-meta{line-height:1.5}
+.sn-grp{border-top:1px solid var(--bd-1);padding-top:4px}
+.sn-grp summary{font-size:12px}
+.sn-picks{display:flex;flex-wrap:wrap;gap:6px;padding:6px 0 4px}
+.sn-pick{appearance:none;border:1px solid var(--bd-2);background:var(--bg-2);color:var(--tx-2);border-radius:999px;padding:7px 11px;font-size:12px;font-weight:600;cursor:pointer;min-height:34px}
+.sn-pick.on{border-color:var(--blue);background:rgba(79,140,255,.14);color:var(--blue-lt)}
+.sn-pick[disabled]{opacity:.35;cursor:not-allowed}
+.sn-key{width:100%;background:var(--bg-2);color:var(--tx-1);border:1px solid var(--bd-2);border-radius:8px;padding:9px 10px;font-size:16px}
 </style>
 </head>
 <body>
@@ -7781,12 +7790,14 @@ function renderLaws() {
    ticket. Nothing here places an order.
 ════════════════════════════════════════════════════════════ */
 const SENT = (() => {
-  let timer = null, busy = false, last = null;
-  const EV_LABEL = { proven:'Proven edge', negative:'Negative edge', unproven:'Unproven', 'research only':'Research only' };
-  const EV_CLS = { proven:'ev-proven', negative:'ev-negative', unproven:'ev-unproven', 'research only':'ev-research' };
+  let timer = null, busy = false, last = null, cat = null, pick = null, saving = false, pickErr = '';
+  const KEY_STORE = 'protrader.sentinelKey';
+  const ownerKey = () => { try { return localStorage.getItem(KEY_STORE) || ''; } catch (_) { return ''; } };
+  const EV_LABEL = { proven:'Proven edge', negative:'Negative edge', unproven:'Unproven' };
+  const EV_CLS = { proven:'ev-proven', negative:'ev-negative', unproven:'ev-unproven' };
   const V_LABEL = { EXEC_READY:'Exec ready', QUALIFIED:'Qualified', WAITING:'Waiting', OBSERVER:'Observer', BLOCKED:'Blocked' };
   const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-  const label = id => PAIR_MAP[id]?.label || id;
+  const label = id => PAIR_MAP[id]?.label || cat?.byId?.[id]?.label || id;
   const dp = id => PAIR_MAP[id]?.dp ?? 2;
   const px = (id, v) => Number.isFinite(v) ? Number(v).toFixed(dp(id)) : '—';
   const r = v => Number.isFinite(v) ? `<span class="${v >= 0 ? 'sn-pos' : 'sn-neg'}">${v >= 0 ? '+' : ''}${v.toFixed(2)}R</span>` : '—';
@@ -7814,16 +7825,15 @@ const SENT = (() => {
   }
 
   function tradeCard(t, ev) {
-    const d = drift(t), research = t.mode === 'research';
-    const warn = research ? 'Synthetic index — collected for research, not a trade signal.'
-      : d?.dead ? 'Price has already moved past the stop or target. This setup is no longer valid.'
+    const d = drift(t), syn = t.mode === 'synthetic';
+    const warn = d?.dead ? 'Price has already moved past the stop or target. This setup is no longer valid.'
       : d && Math.abs(d.moved) > 0.5 ? `Price has moved ${d.moved >= 0 ? '+' : ''}${d.moved.toFixed(2)}R from the signal entry. Re-check before trading.`
       : '';
     return `<div class="sn-card">
       <div class="sn-row">
         <span class="sn-mk">${esc(label(t.market))}</span><span class="sn-chip">${esc(t.tf)}</span>
         <span class="sn-chip ${t.dir}">${t.dir === 'buy' ? 'BUY' : 'SELL'}</span>
-        <span class="sn-chip">${t.score}/9</span>${evChip(ev)}
+        <span class="sn-chip">${t.score}/9</span>${evChip(ev)}${syn ? '<span class="sn-chip">Synthetic</span>' : ''}
       </div>
       <div class="sn-lv">
         <div><span>Entry</span><b>${px(t.market, t.entry)}</b></div>
@@ -7832,9 +7842,89 @@ const SENT = (() => {
       </div>
       <div class="sn-meta">${esc(t.mcc)} · ${esc(t.wyckoff)}${t.pattern ? ' · ' + esc(t.pattern) : ''} · signal ${ago(t.opened_at)} · ${t.bars} bar${t.bars === 1 ? '' : 's'} · best ${t.mfe_r.toFixed(2)}R${d ? ` · now ${px(t.market, d.now)}` : ''}</div>
       ${warn ? `<div class="sn-warn">${esc(warn)}</div>` : ''}
-      <button class="sn-btn" ${research || d?.dead ? 'disabled' : ''} onclick="SENT.load('${esc(t.id)}')">Load setup on chart</button>
+      <button class="sn-btn" ${d?.dead ? 'disabled' : ''} onclick="SENT.load('${esc(t.id)}')">Load setup on chart</button>
     </div>`;
   }
+
+  // ── Focus list: Sentinel can read every market; the owner picks which
+  // ones (up to the server's cap) it spends each 15-minute cycle on.
+  function focusBlock(status) {
+    const n = status.markets.length, max = status.max_markets || n;
+    if (!pick) {
+      const names = status.markets.map(m => esc(label(m.id))).join(' · ');
+      return `<div class="sn-card sn-focus">
+        <div class="sn-row"><span class="sn-mk" style="font-size:12px">Focus · ${n} of ${max}</span>
+          <span class="sn-meta" style="margin-left:auto">${cat ? cat.total : '89'} markets available</span></div>
+        <div class="sn-meta">${names}</div>
+        <button class="sn-btn sn-btn-2" onclick="SENT.editFocus()">Choose markets</button></div>`;
+    }
+    const chosen = pick.size, full = chosen >= max;
+    const groups = (cat?.groups || []).map(g => {
+      const on = g.markets.filter(m => pick.has(m.id)).length;
+      return `<details class="sn-grp" ${on ? 'open' : ''}><summary>${esc(g.name)} <span class="sn-meta">${on ? on + ' selected' : g.markets.length}</span></summary>
+        <div class="sn-picks">${g.markets.map(m => {
+          const sel = pick.has(m.id);
+          return `<button class="sn-pick ${sel ? 'on' : ''}" ${!sel && full ? 'disabled' : ''} onclick="SENT.toggle('${esc(m.id)}')">${esc(m.label)}</button>`;
+        }).join('')}</div></details>`;
+    }).join('');
+    const needKey = !ownerKey() || /owner key/i.test(pickErr);
+    return `<div class="sn-card sn-focus">
+      <div class="sn-row"><span class="sn-mk" style="font-size:12px">Choose up to ${max} markets</span>
+        <span class="sn-chip ${full ? 'ev-unproven' : ''}" style="margin-left:auto">${chosen} / ${max}</span></div>
+      <div class="sn-meta">Sentinel can read all ${cat ? cat.total : ''} markets but scans only these, every 15-minute close on ${status.timeframes.join(' + ')}. Markets you remove keep their open paper trade until it finishes.</div>
+      ${groups}
+      ${needKey ? `<label class="sn-meta" for="snKey">Owner key (set as SENTINEL_ADMIN_KEY on the server)</label>
+        <input id="snKey" class="sn-key" type="password" autocomplete="off" value="${esc(ownerKey())}" placeholder="Owner key">` : ''}
+      ${pickErr ? `<div class="sn-warn">${esc(pickErr)}</div>` : ''}
+      <div class="sn-row"><button class="sn-btn" style="flex:1" ${chosen && !saving ? '' : 'disabled'} onclick="SENT.saveFocus()">${saving ? 'Saving…' : 'Save focus'}</button>
+        <button class="sn-btn sn-btn-2" onclick="SENT.cancelFocus()">Cancel</button></div>
+    </div>`;
+  }
+
+  async function editFocus() {
+    pickErr = '';
+    if (!cat) {
+      try {
+        cat = await get('markets');
+        cat.byId = {};
+        cat.groups.forEach(g => g.markets.forEach(m => { cat.byId[m.id] = m; }));
+      } catch (e) { return showToast('Could not load the market list.', 2600); }
+    }
+    pick = new Set(last.status.markets.map(m => m.id));
+    render();
+  }
+
+  function toggle(id) {
+    if (!pick) return;
+    const max = last?.status?.max_markets || 12;
+    if (pick.has(id)) pick.delete(id);
+    else if (pick.size < max) pick.add(id);
+    render();
+  }
+
+  async function saveFocus() {
+    if (!pick || saving) return;
+    const input = document.getElementById('snKey');
+    if (input) { try { localStorage.setItem(KEY_STORE, input.value.trim()); } catch (_) {} }
+    saving = true; pickErr = ''; render();
+    try {
+      const res = await fetch(`${BOT_BASE}/api/sentinel/focus`, {
+        method:'POST', cache:'no-store', signal: AbortSignal.timeout(15000),
+        headers:{ 'Content-Type':'application/json', 'X-Sentinel-Key': ownerKey() },
+        body: JSON.stringify({ markets: [...pick] }),
+      });
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(body.detail || ('HTTP ' + res.status));
+      cat.focus = body.focus; pick = null;
+      showToast(`Sentinel now reads ${body.focus.length} markets. New ones appear within a minute.`, 3600);
+      setTimeout(refresh, 20000);
+      await refresh();
+    } catch (e) {
+      pickErr = e.message;
+    } finally { saving = false; render(); }
+  }
+
+  function cancelFocus() { pick = null; pickErr = ''; render(); }
 
   function render() {
     const el = document.getElementById('sentinel-panel');
@@ -7843,10 +7933,10 @@ const SENT = (() => {
     const ev = stats.evidence || {};
     const base = stats.baseline || {}, bx = base.exec || {};
     const live = stats.journal?.exec || {};
-    const proven = Object.values(ev).filter(v => v === 'proven').length;
+    const proven = new Set(Object.entries(ev).filter(([, v]) => v === 'proven').map(([k]) => k.split(' ')[0])).size;
     const running = status.running && status.last_cycle && (Date.now() / 1000 - status.last_cycle) < 1800;
-    const open = (feed.open || []).slice().sort((a, b) => (a.mode === 'research') - (b.mode === 'research') || b.opened_at - a.opened_at);
-    const closed = (feed.closed || []).filter(t => t.mode !== 'research').slice(0, 8);
+    const open = (feed.open || []).slice().sort((a, b) => b.opened_at - a.opened_at);
+    const closed = (feed.closed || []).slice(0, 8);
 
     const baseTxt = bx.n
       ? `One-year replay (${esc(base.period?.[0])} → ${esc(base.period?.[1])}): <b>${bx.n.toLocaleString()}</b> signals at 8+/9 gates averaged <b>${bx.expectancy_r >= 0 ? '+' : ''}${bx.expectancy_r.toFixed(2)}R</b> each after estimated spreads (win rate ${(bx.win_rate * 100).toFixed(1)}% vs ${(stats.model.breakeven_win_rate * 100).toFixed(1)}% break-even).`
@@ -7859,9 +7949,11 @@ const SENT = (() => {
       <div class="sn-hd">
         <span class="sn-dot ${running ? 'on' : status.enabled ? 'warn' : ''}"></span>
         <span class="sn-title">ARIA SENTINEL</span>
-        <span class="sn-sub">${running ? `Scanning ${status.markets.length} markets · ${status.timeframes.join(' + ')}<br>last scan ${ago(status.last_cycle)}` : status.enabled ? 'Starting up…' : 'Scanner is off on this server'}</span>
+        <span class="sn-sub">${running ? `Reading ${status.markets.length} of ${cat ? cat.total : 89} markets · ${status.timeframes.join(' + ')}<br>last scan ${ago(status.last_cycle)}` : status.enabled ? 'Starting up…' : 'Scanner is off on this server'}</span>
       </div>
       <div class="sn-note">Paper only — Sentinel prepares, you confirm. ${evTxt}<br>${baseTxt}${status.news_week ? '<br><b>News Week is ON:</b> NAS100 shorts are blocked.' : ''}</div>
+
+      ${focusBlock(status)}
 
       <div class="sn-h">Open setups · ${open.length}</div>
       ${open.length ? open.map(t => tradeCard(t, ev[`${t.market} ${t.tf}`])).join('') : '<div class="sn-empty">No open setups. Sentinel checks every market at each 15-minute close.</div>'}
@@ -7869,14 +7961,14 @@ const SENT = (() => {
       <div class="sn-h">Market board</div>
       <table class="sn-tbl"><thead><tr><th>Market</th><th>ARIA</th><th>Score</th><th>Bias</th><th>Evidence</th></tr></thead><tbody>
       ${(board.rows || []).map(b => `<tr class="go" onclick="SENT.chart('${esc(b.market)}','${esc(b.tf)}')" title="${esc(b.mcc)} · ${esc(b.wyckoff)}">
-        <td><b style="color:var(--tx-1)">${esc(label(b.market))}</b> <span style="color:var(--tx-3)">${esc(b.tf)}</span></td>
+        <td><b style="color:var(--tx-1)">${esc(label(b.market))}</b> <span style="color:var(--tx-3)">${esc(b.tf)}${b.mode === 'synthetic' ? ' · syn' : ''}</span></td>
         <td class="sn-v-${esc(b.verdict)}">${V_LABEL[b.verdict] || esc(b.verdict)}</td>
         <td>${b.score}/9</td>
         <td class="${b.dir === 'buy' ? 'sn-pos' : 'sn-neg'}">${b.dir === 'buy' ? 'Long' : 'Short'}</td>
         <td>${evChip(b.evidence)}</td></tr>`).join('') || '<tr><td colspan="5" class="sn-empty">Waiting for the first scan…</td></tr>'}
       </tbody></table>
 
-      <div class="sn-h">Paper results · 8+/9</div>
+      <div class="sn-h">Paper results · 8+/9 · all focus markets</div>
       <div class="sn-card"><div class="sn-meta">${live.n
         ? `${live.n} closed · win ${(live.win_rate * 100).toFixed(1)}% · average ${r(live.expectancy_r)} · total ${r(live.total_r)} · ${esc(live.verdict)}`
         : 'No closed paper trades yet. Results appear here as Sentinel’s setups hit their stop or target.'}</div>
@@ -7900,6 +7992,7 @@ const SENT = (() => {
     busy = true;
     try {
       const [status, board, feed, stats] = await Promise.all([get('status'), get('board'), get('feed?limit=30'), get('stats')]);
+      if (!cat) get('markets').then(c => { c.byId = {}; c.groups.forEach(g => g.markets.forEach(m => { c.byId[m.id] = m; })); cat = cat || c; render(); }).catch(() => {});
       last = { status, board, feed, stats };
       render();
     } catch (e) {
@@ -7930,12 +8023,12 @@ const SENT = (() => {
     const t = (last?.feed?.open || []).find(x => x.id === id);
     if (!t) return showToast('That setup has closed — refreshing Sentinel.', 2600), refresh();
     const d = drift(t);
-    if (t.mode === 'research' || d?.dead) return;
+    if (d?.dead) return;
     chart(t.market, t.tf);
     applyARIA(t.sl, t.tp2, t.dir);   // fills the ticket and opens the Trade tab; the trader still decides
   }
 
-  return { open, refresh, load, chart };
+  return { open, refresh, load, chart, editFocus, toggle, saveFocus, cancelFocus };
 })();
 
 /* ════════════════════════════════════════════════════════════
