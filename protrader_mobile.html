@@ -2465,6 +2465,7 @@ function selectPair(id) {
   const p = PAIR_MAP[id];
   if (!p) return;
   S.sym = id; S.symLabel = p.label; S.dp = p.dp;
+  VIEW.save();
   const chip = document.getElementById('symChip');
   chip.innerHTML = `<span class="sym-flag">${p.flag}</span><span id="symLabel">${p.label}</span>`;
   chip.style.borderColor = 'var(--blue)';
@@ -4370,9 +4371,11 @@ const LEVELS = {
   },
   ticketLevels() {
     if (typeof TK === 'undefined' || !OT.ticketVisible()) return [];
+    const taken = new Set(this.groups().flatMap(g => [g.entry, g.sl, g.tp]).filter(Number.isFinite).map(v => v.toFixed(S.dp || 4)));
+    const dup = v => taken.has(v.toFixed(S.dp || 4));
     const out = [];
-    if (TK.slOn && Number.isFinite(TK.sl)) out.push({ key: 'tk:sl', which: 'sl', price: TK.sl });
-    if (TK.tpOn && Number.isFinite(TK.tp)) out.push({ key: 'tk:tp', which: 'tp', price: TK.tp });
+    if (TK.slOn && Number.isFinite(TK.sl) && !dup(TK.sl)) out.push({ key: 'tk:sl', which: 'sl', price: TK.sl });
+    if (TK.tpOn && Number.isFinite(TK.tp) && !dup(TK.tp)) out.push({ key: 'tk:tp', which: 'tp', price: TK.tp });
     return out;
   },
   money(g, price) {
@@ -4568,6 +4571,8 @@ const LEVELS = {
         if (!r.ok) throw new Error(r.msg);
         LIVE.poll();
       }
+      // a second drag can land while the first is in flight: send it too rather than dropping it
+      if (this.draft === d && (this.eff(g, 'sl') !== sl || this.eff(g, 'tp') !== tp)) { d.busy = false; d.g = this.groups().find(x => x.key === g.key) || g; return this.confirm(toast); }
       this.draft = null; this.editor.hidden = true; this.schedule();
     } catch (e) {
       d.busy = false; this.renderEditor(); document.getElementById('lvlErr').textContent = e.message || 'Not applied.';
@@ -4682,6 +4687,7 @@ const LEVELS = {
       if (!ok) { this.discard(true); return; }
     }
     const label = (which === 'sl' ? 'Stop' : 'Target') + ' moved to ' + otFmtPx(S.sym, which === 'sl' ? sl : tp) + ' · ' + this.fmt(this.money(g, which === 'sl' ? sl : tp)) + ' if hit';
+    if (d.busy) return;   // in flight: confirm() re-sends the newer levels when it completes
     await this.confirm(label);
   },
 };
@@ -6312,7 +6318,7 @@ var LIVE = {
       price: order.orderType === 'market' ? null : order.price, sl: order.stopLoss, tp: order.takeProfit,
     });
     if (r.ok) {
-      ot.status('MT5: ' + r.msg, 'ok'); showToast('✓ MT5 · ' + r.msg, 4200);
+      ot.status('MT5: ' + r.msg, 'ok'); showToast('✓ MT5 · ' + r.msg, 4200); ot.consumeLevels && ot.consumeLevels();
       speak(`${order.side} order ${order.orderType === 'market' ? 'filled' : 'placed'} on M T 5.`);
     } else {
       ot.status((r.unknown ? '' : 'MT5 rejected — ') + r.msg, 'bad'); showToast('✕ ' + r.msg, 6000);
@@ -7028,8 +7034,10 @@ const OT = {
       } else if (res.status === 'filled') {
         this.openPosition(order, res.fillPrice);
         this.status(`Filled at ${otFmtPx(order.symbol, res.fillPrice)}`, 'ok');
+        this.consumeLevels();
       } else {
         this.placePending(order);
+        this.consumeLevels();
         this.status(`${order.orderType === 'limit' ? 'Limit' : 'Stop'} order working at ${otFmtPx(order.symbol, order.price)}`, 'pend');
       }
     } catch (err) {
@@ -7040,6 +7048,14 @@ const OT = {
     }
   },
 
+  /* The stop and target typed into the ticket now live on the position, so
+     the ticket stops drawing them — otherwise every fill leaves a dashed
+     twin of each level on the chart until the page is reloaded. */
+  consumeLevels() {
+    TK.slOn = false; TK.tpOn = false; TK.sl = null; TK.tp = null;
+    ['otSl', 'otTp'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+    this.render(); if (typeof CH !== 'undefined' && CH.ready) CH.refreshLevels();
+  },
   openPosition(order, fill) {
     const margin = otMarginFor(order.symbol, order.volume, fill) || 0;
     const pos = {
@@ -8057,7 +8073,7 @@ function chooseAccount(mode) {
    TIMEFRAME & INDICATOR
 ════════════════════════════════════════════════════════════ */
 function setTF(tf, btn) {
-  S.tf = tf;
+  S.tf = tf; VIEW.save();
   document.querySelectorAll('.tf-btn').forEach(b => b.classList.remove('active'));
   if (btn) btn.classList.add('active');
   chartOffset = 0; S.candles = [];
@@ -8181,6 +8197,22 @@ function resolveDeepLinkSymbol(raw) {
   }
   return null;
 }
+/* Last charted instrument and timeframe survive a reload. A deep link still
+   wins, and an instrument that no longer exists falls back to the default. */
+const VIEW = {
+  KEY: 'protrader.view.v1',
+  save() { try { localStorage.setItem(this.KEY, JSON.stringify({ sym: S.sym, tf: S.tf })); } catch (_) {} },
+  restore() {
+    let v = null; try { v = JSON.parse(localStorage.getItem(this.KEY) || 'null'); } catch (_) {}
+    if (!v) return;
+    let q = null; try { q = new URLSearchParams(location.search); } catch (_) {}
+    if (v.tf && TF_SEC[v.tf] && v.tf !== S.tf && !(q && q.get('tf'))) {
+      const btn = [...document.querySelectorAll('.tf-btn')].find(b => (b.getAttribute('onclick') || '').includes(`'${v.tf}'`));
+      setTF(v.tf, btn || null);
+    }
+    if (v.sym && PAIR_MAP[v.sym] && v.sym !== S.sym && !(q && q.get('sym'))) selectPair(v.sym);
+  },
+};
 function applyDeepLink() {
   let q;
   try { q = new URLSearchParams(location.search); } catch (_) { return; }
@@ -8313,6 +8345,7 @@ function init() {
   renderPortfolio();
   OT.init();
   LIVE.init();
+  VIEW.restore();
   applyDeepLink();
   buildTickerData();
 
