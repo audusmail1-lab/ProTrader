@@ -34,6 +34,9 @@ COPY static ./static
 
 # Run as a non-root user.
 RUN useradd --create-home --shell /usr/sbin/nologin app && chown -R app:app /app
+# Mount point for a persistent disk (Sentinel journal). Owned by the app user
+# so the journal is writable when the host mounts a disk here.
+RUN mkdir -p /var/data && chown app:app /var/data
 USER app
 
 EXPOSE 8000

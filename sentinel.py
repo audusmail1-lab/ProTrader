@@ -24,9 +24,10 @@ Endpoints (all read-only except config):
 
 Environment:
   SENTINEL_ENABLED=0          switch the scanner off (API still answers)
-  SENTINEL_DB=path            SQLite journal (default ./sentinel.db). On
-                              Render, point this at a persistent disk or the
-                              journal resets on every deploy.
+  SENTINEL_DB=path            SQLite journal. On Render attach a disk at
+                              /var/data and set /var/data/sentinel.db, or the
+                              journal resets on every deploy. /status shows
+                              whether the journal is persistent.
   SENTINEL_TFS=15m,1h         timeframes to scan
   SENTINEL_MAX_MARKETS=12     how many markets the focus list may hold
   SENTINEL_ADMIN_KEY=…        owner key: enables POST /focus and /config
@@ -53,7 +54,32 @@ log = logging.getLogger("sentinel")
 router = APIRouter(prefix="/api/sentinel", tags=["sentinel"])
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-DB_PATH = os.getenv("SENTINEL_DB", os.path.join(HERE, "sentinel.db"))
+
+
+def _pick_db_path() -> tuple[str, bool, Optional[str]]:
+    """
+    Where the journal lives. SENTINEL_DB should point at a persistent disk
+    (e.g. /var/data/sentinel.db on Render). If that location can't be
+    written — disk not attached, wrong permissions — fall back to the app
+    folder so the scanner keeps running, and say so in /status.
+    """
+    fallback = os.path.join(HERE, "sentinel.db")
+    want = os.getenv("SENTINEL_DB", "").strip()
+    if not want:
+        return fallback, False, "SENTINEL_DB is not set: the journal resets on every deploy"
+    try:
+        d = os.path.dirname(os.path.abspath(want))
+        os.makedirs(d, exist_ok=True)
+        probe = os.path.join(d, ".sentinel-write-test")
+        with open(probe, "w") as f:
+            f.write("ok")
+        os.remove(probe)
+        return want, True, None
+    except OSError as e:
+        return fallback, False, f"cannot write {want} ({e.strerror or e}); using a temporary journal"
+
+
+DB_PATH, DB_PERSISTENT, DB_WARNING = _pick_db_path()
 TFS = [t for t in os.getenv("SENTINEL_TFS", "15m,1h").split(",") if t in core.TF_SEC]
 BASELINE_FILE = os.path.join(HERE, "sentinel_baseline.json")
 EVIDENCE_MIN_N = 100     # trades before a slice can be called "proven"
@@ -339,7 +365,17 @@ def status() -> dict:
         "open_trades": len(_book.open) if _book else 0,
         "alerts": bool(os.getenv("TELEGRAM_BOT_TOKEN") and os.getenv("TELEGRAM_CHAT_ID")),
         "owner_key_set": bool(os.getenv("SENTINEL_ADMIN_KEY")),
+        "journal": {"path": DB_PATH, "persistent": DB_PERSISTENT, "warning": DB_WARNING,
+                    "trades": _count_trades()},
     }
+
+
+def _count_trades() -> int:
+    try:
+        with _lock, _db() as con:
+            return con.execute("SELECT COUNT(*) FROM trades").fetchone()[0]
+    except sqlite3.Error:
+        return -1
 
 
 @router.get("/markets")

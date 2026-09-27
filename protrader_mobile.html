@@ -7951,6 +7951,7 @@ const SENT = (() => {
         <span class="sn-title">ARIA SENTINEL</span>
         <span class="sn-sub">${running ? `Reading ${status.markets.length} of ${cat ? cat.total : 89} markets · ${status.timeframes.join(' + ')}<br>last scan ${ago(status.last_cycle)}` : status.enabled ? 'Starting up…' : 'Scanner is off on this server'}</span>
       </div>
+      ${status.journal && !status.journal.persistent ? `<div class="sn-warn">Journal is temporary: ${esc(status.journal.warning || 'it resets on every deploy')}.</div>` : ''}
       <div class="sn-note">Paper only — Sentinel prepares, you confirm. ${evTxt}<br>${baseTxt}${status.news_week ? '<br><b>News Week is ON:</b> NAS100 shorts are blocked.' : ''}</div>
 
       ${focusBlock(status)}
