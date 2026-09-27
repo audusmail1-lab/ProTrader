@@ -8,9 +8,9 @@ test('check expansion survives repeated market renders and closes only on toggle
   const context=vm.createContext({document:{activeElement:null,getElementById:id=>({
     'check-panel':panel,chkMoreToggle:button,chkMore:{classList:{toggle(){}}}
   }[id])},S:{dp:5,sym:'EURUSD',symLabel:'EUR/USD',tf:'15m',balance:10000,riskPct:1},
-  CHECK_TERMS:{},LIVE:{routing:()=>false},otMoney:n=>n.toFixed(2),otPnl:()=>100,
+  CHECK_TERMS:{},ARIA_GATE_COUNT:10,LIVE:{routing:()=>false},otMoney:n=>n.toFixed(2),otPnl:()=>100,
   riskLots:()=>({lots:.1,min:.01}),otSpec:()=>({isForex:true,pip:.0001}),
-  checkModel:()=>({gates:{dir:'buy',score:7,gates:Array.from({length:9},(_,i)=>({name:'gate'+i,detail:'Updated',pass:i<7}))},
+  checkModel:()=>({gates:{dir:'buy',score:7,gates:Array.from({length:10},(_,i)=>({name:'gate'+i,detail:'Updated',pass:i<7}))},
     verdict:{v:'QUALIFIED',msg:'Ready'},entry:{entry:1.1,slLevel:1.09,tp2:1.12},mcc:{code:'TREND',label:'Trend'},oracle:78,
     session:{label:'London'},wyck:{phase:'MARKUP'},patternAlign:''})});
   vm.runInContext(html.slice(html.indexOf('const CHECK_UI'),html.indexOf('function reviewFromCheck')),context);

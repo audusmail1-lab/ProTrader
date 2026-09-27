@@ -224,7 +224,7 @@ class Trade:
     market: str
     tf: str
     mode: str
-    tier: str              # "exec" (≥8/9) | "qualified" (7/9)
+    tier: str              # "exec" (≥9/10) | "qualified" (8/10) under ARIA 7.1
     dir: str
     opened_at: int         # epoch of the signal bar's close
     entry: float
@@ -248,6 +248,11 @@ class Trade:
     mfe_r: float = 0.0
     mae_r: float = 0.0
     last_bar: int = 0
+    engine: str = "7.0"            # ARIA rule version that produced the signal
+    fib_r: Optional[float] = None  # Fibonacci retracement of the last swing (when the gate passed)
+    atr_ratio: Optional[float] = None
+    elliott: Optional[str] = None  # soft Elliott label, context only
+    ew_aligned: Optional[bool] = None  # Elliott direction agrees with the trade
 
     def to_dict(self) -> dict:
         return asdict(self)
@@ -315,6 +320,10 @@ class PaperBook:
             sl=read["sl"], tp1=read["tp1"], tp2=read["tp2"], sl_dist=read["sl_dist"],
             cost_r=round(cost, 4), score=read["score"], gates=read["gates"], mcc=read["mcc"],
             wyckoff=read["wyckoff"], pattern=read["pattern"], rsi=read["rsi"], last_bar=last["time"],
+            engine=read["engine"], fib_r=read["fib_r"], atr_ratio=round(read["atr_ratio"], 3),
+            elliott=read["elliott"]["label"],
+            ew_aligned=(None if not read["elliott"]["dir"]
+                        else read["elliott"]["dir"] == ("up" if read["dir"] == "buy" else "down")),
         )
         self.open[(m.id, tf)] = t
         return read, t
@@ -358,6 +367,7 @@ def summarise(trades: list[dict]) -> dict[str, Any]:
         "n": n, "wins": wins, "win_rate": round(wins / n, 4),
         "breakeven_win_rate": round(BREAKEVEN_WINRATE, 4),
         "expectancy_r": round(exp, 4), "ci95_r": [round(exp - 1.96 * se, 4), round(exp + 1.96 * se, 4)] if n > 1 else None,
+        "se_r": round(se, 5) if n > 1 else None,
         "total_r": round(sum(rs), 2), "profit_factor": round(gains / losses, 3) if losses else None,
         "max_drawdown_r": round(dd, 2), "avg_cost_r": round(sum(t["cost_r"] for t in done) / n, 4),
         "timeouts": sum(1 for t in done if t["status"] == "timeout"),
@@ -383,3 +393,24 @@ def group_stats(trades: list[dict], key) -> dict[str, dict]:
     for t in trades:
         groups.setdefault(str(key(t)), []).append(t)
     return {k: summarise(v) for k, v in sorted(groups.items())}
+
+
+def z_for(tests: int, alpha: float = 0.05) -> float:
+    """Two-sided critical value with a Bonferroni correction for `tests` slices.
+    1 slice → 1.96; 12 → 2.87; 24 → 3.08. Testing many markets at once makes
+    a lucky streak likely somewhere, so each one must clear a higher bar."""
+    from statistics import NormalDist
+    return NormalDist().inv_cdf(1 - alpha / (2 * max(1, tests)))
+
+
+def edge_status(s: dict, tests: int, min_n: int) -> str:
+    """proven / negative / unproven for one slice, corrected for `tests` slices."""
+    n, se = s.get("n", 0), s.get("se_r")
+    if n < min_n or not se:
+        return "unproven"
+    z = z_for(tests)
+    if s["expectancy_r"] - z * se > 0:
+        return "proven"
+    if s["expectancy_r"] + z * se < 0:
+        return "negative"
+    return "unproven"

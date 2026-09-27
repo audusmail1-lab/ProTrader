@@ -69,12 +69,14 @@ def write_baseline(trades: list[dict], bars_info: dict, path: str) -> None:
         "generated": int(time.time()),
         "period": [fmt_d(min(starts)), fmt_d(max(ends))] if starts else None,
         "notes": ("Replay of the live Sentinel rules on Deriv history. Estimated spreads, "
-                  "no slippage, news-week block off. 'exec' = 8+/9 gates on real markets."),
+                  "no slippage, news-week block off. 'exec' = execution-ready (9+/10 gates, ARIA 7.1) on real markets."),
         "all": core.summarise(live),
         "exec": core.summarise(ex),
         "by_slice": core.group_stats(ex_all, lambda t: f"{t['market']} {t['tf']}"),
-        "by_score": core.group_stats(live, lambda t: f"{t['score']}/9"),
+        "by_score": core.group_stats(live, lambda t: f"{t['score']}/{core.eng.GATE_COUNT}"),
         "synthetic": core.summarise([t for t in trades if t["mode"] == "synthetic"]),
+        "engine": core.eng.ENGINE_VERSION,
+        "by_elliott": core.group_stats(ex, lambda t: t.get("elliott") or "no count"),
         "gate_pass_rate": {name: round(sum(1 for t in live if t["gates"][i]) / len(live), 3)
                            for i, name in enumerate(core.eng.GATE_NAMES)} if live else {},
     }
@@ -121,9 +123,13 @@ def main() -> None:
     show("Synthetic indices", {"all": core.summarise(res)})
     show("By tier (real markets)", core.group_stats(live, lambda t: t["tier"]))
     show("By market × timeframe", core.group_stats(trades, lambda t: f"{t['market']} {t['tf']}"))
-    show("By gate score (real markets)", core.group_stats(live, lambda t: f"{t['score']}/9"))
+    show("By gate score (real markets)", core.group_stats(live, lambda t: f"{t['score']}/{core.eng.GATE_COUNT}"))
     show("By MCC (real markets)", core.group_stats(live, lambda t: t["mcc"]))
     show("By direction (real markets)", core.group_stats(live, lambda t: t["dir"]))
+    ex_live = [t for t in live if t["tier"] == "exec"]
+    show("Exec-ready by Elliott label (soft layer, real markets)", core.group_stats(ex_live, lambda t: t.get("elliott") or "no count"))
+    show("Exec-ready by Elliott alignment (real markets)",
+         core.group_stats(ex_live, lambda t: {True: "aligned", False: "against", None: "no count"}[t.get("ew_aligned")]))
     # Which gates carry information? Compare trades where a gate passed vs failed.
     by_gate = {}
     for gi, name in enumerate(core.eng.GATE_NAMES):

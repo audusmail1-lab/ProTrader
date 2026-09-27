@@ -1455,6 +1455,9 @@ svg.ico{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.7;st
 .sn-pick{appearance:none;border:1px solid var(--bd-2);background:var(--bg-2);color:var(--tx-2);border-radius:999px;padding:7px 11px;font-size:12px;font-weight:600;cursor:pointer;min-height:34px}
 .sn-pick.on{border-color:var(--blue);background:rgba(79,140,255,.14);color:var(--blue-lt)}
 .sn-pick[disabled]{opacity:.35;cursor:not-allowed}
+.sn-tfrow{gap:6px;padding:2px 0}
+.sn-tf{min-height:30px;padding:5px 10px}
+.sn-soft{border-style:dashed}
 .sn-key{width:100%;background:var(--bg-2);color:var(--tx-1);border:1px solid var(--bd-2);border-radius:8px;padding:9px 10px;font-size:16px}
 </style>
 </head>
@@ -5004,6 +5007,14 @@ const ARIA_LAWS = [
 
 let AM = { totalSig: 0, wins: 0, lastVerdict: null };
 
+// ARIA v7.1 gate settings. sentinel_engine.py mirrors these exactly
+// (tests/sentinel-parity.test.cjs fails if they drift).
+const ARIA_GATE_COUNT = 10;
+const ARIA_EXEC_MIN = 9, ARIA_QUAL_MIN = 8, ARIA_WAIT_MIN = 6;
+const ARIA_ATR_BAND = [0.6, 1.8];
+const ARIA_PATTERN_RECENT = 3;
+const ARIA_FIB_ZONE = [0.45, 0.668], ARIA_FIB_RECENT = 5, ARIA_FIB_MIN_LEG_ATR = 3;
+
 function ariaMCC(cdles, closes, ema20v, ema50v, atrV) {
   const n = closes.length, last = closes[n-1], e20 = ema20v[n-1], e50 = ema50v[n-1];
   const atr = atrV[n-1] || last * 0.002;
@@ -5081,8 +5092,13 @@ function ariaGates(cdles, closes, ema20v, ema50v, ema200v, rsiV, macdV, stochV, 
   const g5 = eng || pin || bdy;
   G.push({ name:'Live Candle', pass:g5, detail:g5 ? `✓ ${eng?'Engulf':pin?'Pin bar':'Body confirms'}` : '✗ Current candle opposes' });
 
-  const g6 = atr > 0;
-  G.push({ name:'ATR Valid', pass:g6, detail:`ATR ${atr?.toFixed(S.dp)} — ${g6?'✓ ok':'✗ zero'}` });
+  // ATR Band (v7.1): volatility must be normal for this market — not dead
+  // (spread dominates, stops sit in noise) and not blown out (stops too wide).
+  const atrHist = atrV.slice(-100).filter(Boolean);
+  const atrMean = atrHist.length ? atrHist.reduce((a, b) => a + b, 0) / atrHist.length : 0;
+  const atrRatio = atrMean > 0 && atrV[n-1] ? atrV[n-1] / atrMean : 0;
+  const g6 = atrRatio >= ARIA_ATR_BAND[0] && atrRatio <= ARIA_ATR_BAND[1];
+  G.push({ name:'ATR Band', pass:g6, detail:`ATR ${atrRatio.toFixed(2)}× its 100-bar average — ${g6?'✓ normal':atrRatio < ARIA_ATR_BAND[0]?'✗ too quiet':'✗ too wild'}` });
 
   const e200 = ema200v?.[n-1];
   let g7;
@@ -5095,7 +5111,10 @@ function ariaGates(cdles, closes, ema20v, ema50v, ema200v, rsiV, macdV, stochV, 
   G.push({ name:'Stochastic', pass:g8, detail:g8 ? '✓ Stoch confirms' : '✗ Stoch opposing' });
 
   const g9 = !!patternAligned;
-  G.push({ name:'Pattern Gate', pass:g9, detail:g9 ? `✓ ${patternAligned}` : '✗ No scanner match' });
+  G.push({ name:'Pattern Gate', pass:g9, detail:g9 ? `✓ ${patternAligned} (last ${ARIA_PATTERN_RECENT} bars)` : `✗ No pattern in the last ${ARIA_PATTERN_RECENT} bars` });
+
+  const fib = ariaFib(cdles, atrV, dir);
+  G.push({ name:'Fibonacci Zone', pass:fib.pass, detail:fib.detail });
 
   const score = G.reduce((a, g) => a + (g.pass ? 1 : 0), 0);
   return { gates: G, score, dir };
@@ -5123,18 +5142,64 @@ function ariaVerdict(score, mcc, sym, dir) {
   if (isNAS && S.newsWeek && dir === 'sell') {
     return { v:'BLOCKED', cls:'verdict-obs', msg:`🛑 BLOCKED — NAS100 short during news week (Joel's rule)` };
   }
-  const execThreshold = isNAS ? 8 : 8; // execution-ready requires stronger confluence than setup qualification
-  const watchThreshold = 7;
-  if (score >= execThreshold) return { v:'EXEC_READY', cls:'verdict-armed', msg:`🎯 EXECUTION READY — ${score}/9 gates${isNAS?' · NAS protocol':''}` };
-  if (score >= watchThreshold) return { v:'QUALIFIED', cls:'verdict-wait', msg:`⚡ QUALIFIED SETUP — ${score}/9 gates · wait for execution trigger` };
-  if (score >= 5) return { v:'WAITING', cls:'verdict-wait', msg:`⏳ WAITING — ${score}/9 (need ≥${watchThreshold})` };
-  return { v:'OBSERVER', cls:'verdict-obs', msg:`👁 OBSERVER — ${score}/9 (insufficient confluence)` };
+  const execThreshold = ARIA_EXEC_MIN;   // execution-ready requires stronger confluence than setup qualification
+  const watchThreshold = ARIA_QUAL_MIN;
+  if (score >= execThreshold) return { v:'EXEC_READY', cls:'verdict-armed', msg:`🎯 EXECUTION READY — ${score}/${ARIA_GATE_COUNT} gates${isNAS?' · NAS protocol':''}` };
+  if (score >= watchThreshold) return { v:'QUALIFIED', cls:'verdict-wait', msg:`⚡ QUALIFIED SETUP — ${score}/${ARIA_GATE_COUNT} gates · wait for execution trigger` };
+  if (score >= ARIA_WAIT_MIN) return { v:'WAITING', cls:'verdict-wait', msg:`⏳ WAITING — ${score}/${ARIA_GATE_COUNT} (need ≥${watchThreshold})` };
+  return { v:'OBSERVER', cls:'verdict-obs', msg:`👁 OBSERVER — ${score}/${ARIA_GATE_COUNT} (insufficient confluence)` };
 }
 
-function getPatternAlignment(dir) {
-  const SCAN = runPatternScanSilent();
-  const matching = SCAN.filter(p => dir==='buy' ? (p.dir==='bull' && p.conf>=75) : (p.dir==='bear' && p.conf>=75));
-  return matching.length ? matching[0].name : null;
+// Pattern Gate (v7.1): only a pattern completed on one of the last
+// ARIA_PATTERN_RECENT candles counts. The old 30-bar lookback passed on every
+// setup (one-year replay: 100%), so it filtered nothing.
+function getPatternAlignment(dir, cdles = S.candles) {
+  const n = cdles.length, want = dir === 'buy' ? 'bull' : 'bear';
+  if (n < 20) return null;
+  let best = null;
+  PATTERNS.forEach(p => {
+    if (p.dir !== want) return;
+    for (let i = Math.max(15, n - ARIA_PATTERN_RECENT); i < n; i++) {
+      let r = null;
+      try { r = p.detect(cdles, i); } catch (_) { r = null; }
+      if (r && r.conf >= 75 && (!best || r.conf > best.conf)) best = { name: p.name, conf: r.conf };
+    }
+  });
+  return best ? best.name : null;
+}
+
+// Fibonacci Zone (v7.1, Law 10). Objective and mechanical:
+//  • impulse leg = the extreme of the last 60 bars and the opposite extreme
+//    in the 60 bars before it; it must be at least 3× ATR long
+//  • the pullback since that extreme must reach the 50–61.8% zone
+//    (tolerance: 45%–66.8%), and that touch must be within the last 5 bars
+//  • price must have turned from the touch and not broken back past the extreme
+function ariaFib(cdles, atrV, dir) {
+  const n = cdles.length, W = 60, atr = atrV[n-1] || 0;
+  const fail = d => ({ pass:false, detail:'✗ ' + d, r:null });
+  if (n < 30 || !(atr > 0)) return fail('not enough data');
+  const start = Math.max(0, n - W), last = cdles[n-1].close;
+  const hi = i => cdles[i].high, lo = i => cdles[i].low;
+  let ext = start;
+  for (let i = start; i < n; i++) if (dir === 'buy' ? hi(i) > hi(ext) : lo(i) < lo(ext)) ext = i;
+  if (ext > n - 2) return fail('no pullback yet');
+  let orig = -1;
+  for (let i = Math.max(0, ext - W); i < ext; i++) if (orig < 0 || (dir === 'buy' ? lo(i) < lo(orig) : hi(i) > hi(orig))) orig = i;
+  if (orig < 0) return fail('no swing found');
+  let pb = ext + 1;
+  for (let i = ext + 1; i < n; i++) if (dir === 'buy' ? lo(i) <= lo(pb) : hi(i) >= hi(pb)) pb = i;
+  const H = dir === 'buy' ? hi(ext) : hi(orig), L = dir === 'buy' ? lo(orig) : lo(ext);
+  const leg = H - L;
+  if (!(leg >= ARIA_FIB_MIN_LEG_ATR * atr)) return fail('last swing too small');
+  const r = dir === 'buy' ? (H - lo(pb)) / leg : (hi(pb) - L) / leg;
+  const pct = (r * 100).toFixed(0) + '%';
+  if (r < ARIA_FIB_ZONE[0]) return fail(`pullback only ${pct} (needs 50–61.8%)`);
+  if (r > 1) return fail(`swing fully retraced (${pct}) — no pullback to trade`);
+  if (r > ARIA_FIB_ZONE[1]) return fail(`pullback ${pct} — past 61.8%`);
+  if (n - 1 - pb > ARIA_FIB_RECENT) return fail(`zone touch ${n - 1 - pb} bars ago`);
+  const turned = dir === 'buy' ? (last > lo(pb) && last < H) : (last < hi(pb) && last > L);
+  if (!turned) return fail('no reaction from the zone yet');
+  return { pass:true, detail:`✓ ${pct} retrace of the last swing`, r };
 }
 
 function renderARIA() {
@@ -5191,9 +5256,9 @@ function renderARIA() {
   <div class="acard">
     <div class="acttl">
       Gate Score
-      <span style="color:${scoreColor};font-family:var(--font-mono);font-size:14px;font-weight:900">${gates.score}/9</span>
+      <span style="color:${scoreColor};font-family:var(--font-mono);font-size:14px;font-weight:900">${gates.score}/${ARIA_GATE_COUNT}</span>
       <div style="flex:1;height:4px;background:var(--bg-4);border-radius:2px;overflow:hidden;margin-left:6px">
-        <div style="height:100%;border-radius:2px;width:${(gates.score/9)*100}%;background:${scoreColor};transition:width .5s"></div>
+        <div style="height:100%;border-radius:2px;width:${(gates.score/ARIA_GATE_COUNT)*100}%;background:${scoreColor};transition:width .5s"></div>
       </div>
     </div>
     <div style="display:flex;flex-direction:column;gap:0">
@@ -5286,7 +5351,7 @@ function applyARIA(sl, tp, dir) {
 
 /* ════════════════════════════════════════════════════════════
    SETUP CHECK — one verdict, one vocabulary.
-   ARIA's nine gates and Oracle's confidence are the engine; this panel
+   ARIA's ten gates and Oracle's confidence are the engine; this panel
    is the only place a trader has to read. Each check opens a plain-
    language explainer; the numbers are referenced back to ARIA and Oracle.
 ════════════════════════════════════════════════════════════ */
@@ -5296,10 +5361,11 @@ const CHECK_TERMS = {
   'MACD Direction':   { t:'MACD agrees',                  l:4, b:'MACD compares a fast and a slow average. When its line is above its signal line momentum is building upward; below, downward. The check passes when that agrees with the trade.' },
   'Market Structure': { t:'Higher highs / lower lows',    l:2, b:'A trend leaves a staircase: in an uptrend each pullback bottoms above the last and each push tops above the last. This looks at the last ten candles for at least two such steps in the direction of the trade.' },
   'Live Candle':      { t:'Current candle confirms',      l:4, b:'The candle forming right now should already lean the way of the trade: an engulfing candle, a pin bar rejecting the other side, or at least a body in the right direction. If it opposes, entering now is fighting the last thing the market did.' },
-  'ATR Valid':        { t:'Volatility is measurable (ATR)', l:3, b:'ATR is the average candle range over the last 14. The stop is placed 1.5× that away so ordinary noise does not hit it. If ATR is zero the market is not moving and no sensible stop exists.' },
+  'ATR Band':         { t:'Volatility is normal (ATR)',  l:3, b:'ATR is the average candle range over the last 14. This passes when it is between 0.6× and 1.8× its own 100-candle average. Too quiet and the spread eats the trade while stops sit inside noise; too wild and the stop has to be so wide the risk stops making sense.' },
   'Macro Align':      { t:'Bigger picture agrees (EMA 200)', l:4, b:'The 200-period average is the slow backdrop. Trading with it means the setup goes with the larger flow rather than against it.' },
   'Stochastic':       { t:'Stochastic agrees',            l:4, b:'The stochastic compares the close to its recent range. For a buy it should still be in the lower half (room to rise); for a sell, the upper half. When it disagrees, price is already at the wrong end of its range and a bounce is likely first.' },
-  'Pattern Gate':     { t:'Scanner pattern supports',     l:4, b:'The pattern scanner looks for classic shapes — double tops, flags, engulfing bars. This passes when a pattern with at least 75% confidence points the same way as the trade.' },
+  'Pattern Gate':     { t:'Fresh pattern supports',       l:4, b:'The pattern scanner looks for classic shapes — double tops, flags, engulfing bars. This passes only when a pattern with at least 75% confidence, pointing the same way as the trade, completed on one of the last 3 candles. Older patterns no longer count.' },
+  'Fibonacci Zone':   { t:'Pullback reached 50–61.8%',   l:4, b:'Law 10. Take the last clear swing (at least 3× ATR long). This passes when price has pulled back into the 50–61.8% retracement of that swing within the last 5 candles and has started to turn away from it, without breaking the swing extreme. It is how a trend entry is timed at value instead of chased.' },
 };
 const CHECK_LESSON_URL = null;   // set when the Academy publishes per-lesson links
 
@@ -5316,7 +5382,7 @@ function checkModel() {
   const gates = ariaGates(cdles, closes, ema20v, ema50v, ema200v, rsiV, macdV, stochV, atrV, patternAlign);
   const verdict = ariaVerdict(gates.score, mcc, S.sym, gates.dir);
   const entry = ariaEntry(cdles, closes, atrV, gates.dir, mcc);
-  const oracle = Math.round((gates.score / 9) * 100);
+  const oracle = Math.round((gates.score / ARIA_GATE_COUNT) * 100);
   return { gates, verdict, entry, mcc, wyck, oracle, rsi: rsiV[n-1], atr: atrV[n-1], patternAlign, session: getSession() };
 }
 
@@ -5385,7 +5451,7 @@ function renderCheck() {
     <div class="chk-bar">${gates.gates.map(g => `<i class="${g.pass ? '' : 'f'}"></i>`).join('')}</div>
     <p class="chk-sum">${sum}</p>
     <div class="chk-engines">
-      <button onclick="setRTab('aria',null)" title="Open the ARIA engine detail">ARIA <b>${pass}/9</b> gates · ${verdict.v.replace('_', ' ')}</button>
+      <button onclick="setRTab('aria',null)" title="Open the ARIA engine detail">ARIA <b>${pass}/${ARIA_GATE_COUNT}</b> gates · ${verdict.v.replace('_', ' ')}</button>
       <button onclick="setRTab('oracle',null)" title="Open the Oracle advisor">Oracle <b>${oracle}%</b> confidence</button>
     </div>
     <div class="chk-list">${ordered.slice(0, 5).map(row).join('')}
@@ -5498,7 +5564,7 @@ function renderOracle() {
   const gates = ariaGates(cdles, closes, ema20v, ema50v, ema200v, rsiV, macdV, stochV, atrV, patternAlign);
   const entry = ariaEntry(cdles, closes, atrV, gates.dir, mcc);
   const dp = S.dp;
-  const confidence = Math.round((gates.score / 9) * 100);
+  const confidence = Math.round((gates.score / ARIA_GATE_COUNT) * 100);
   const maxRisk = S.balance * S.riskPct / 100;
   // CFD position sizing: lots = risk budget / (stop distance x value per lot).
   const _spec = otSpec(S.sym);
@@ -5861,7 +5927,7 @@ function processVoice(cmd) {
     const dir = (closes[closes.length-1]>e20[e20.length-1]&&e20[e20.length-1]>e50[e50.length-1])?'buy':'sell';
     const pa = getPatternAlignment(dir);
     const gates = ariaGates(S.candles,closes,e20,e50,calcEMA(closes,200),calcRSI(closes),calcMACD(closes),calcStoch(S.candles),calcATR(S.candles,14),pa);
-    speak(`ARIA: ${gates.score} of 9 gates confirmed. Direction: ${gates.dir}. ${gates.score>=8?'Execution ready.':gates.score>=7?'Qualified setup — wait for trigger.':gates.score>=5?'Waiting — need more confluence.':'Observer — avoid entry.'}`);
+    speak(`ARIA: ${gates.score} of ${ARIA_GATE_COUNT} gates confirmed. Direction: ${gates.dir}. ${gates.score>=ARIA_EXEC_MIN?'Execution ready.':gates.score>=ARIA_QUAL_MIN?'Qualified setup — wait for trigger.':gates.score>=ARIA_WAIT_MIN?'Waiting — need more confluence.':'Observer — avoid entry.'}`);
     return;
   }
   if (cmd.includes('breakeven') || cmd.includes('break even')) {
@@ -7833,14 +7899,14 @@ const SENT = (() => {
       <div class="sn-row">
         <span class="sn-mk">${esc(label(t.market))}</span><span class="sn-chip">${esc(t.tf)}</span>
         <span class="sn-chip ${t.dir}">${t.dir === 'buy' ? 'BUY' : 'SELL'}</span>
-        <span class="sn-chip">${t.score}/9</span>${evChip(ev)}${syn ? '<span class="sn-chip">Synthetic</span>' : ''}
+        <span class="sn-chip">${t.score}/${ARIA_GATE_COUNT}</span>${evChip(ev)}${syn ? '<span class="sn-chip">Synthetic</span>' : ''}${t.elliott ? `<span class="sn-chip sn-soft" title="Elliott Wave is a soft context layer: it never changes the score">EW ${esc(t.elliott)}</span>` : ''}
       </div>
       <div class="sn-lv">
         <div><span>Entry</span><b>${px(t.market, t.entry)}</b></div>
         <div><span>Stop</span><b>${px(t.market, t.sl)}</b></div>
         <div><span>Target</span><b>${px(t.market, t.tp2)}</b></div>
       </div>
-      <div class="sn-meta">${esc(t.mcc)} · ${esc(t.wyckoff)}${t.pattern ? ' · ' + esc(t.pattern) : ''} · signal ${ago(t.opened_at)} · ${t.bars} bar${t.bars === 1 ? '' : 's'} · best ${t.mfe_r.toFixed(2)}R${d ? ` · now ${px(t.market, d.now)}` : ''}</div>
+      <div class="sn-meta">${esc(t.mcc)} · ${esc(t.wyckoff)}${t.pattern ? ' · ' + esc(t.pattern) : ''}${Number.isFinite(t.fib_r) ? ` · Fib ${(t.fib_r * 100).toFixed(0)}%` : ''} · signal ${ago(t.opened_at)} · ${t.bars} bar${t.bars === 1 ? '' : 's'} · best ${t.mfe_r.toFixed(2)}R${d ? ` · now ${px(t.market, d.now)}` : ''}</div>
       ${warn ? `<div class="sn-warn">${esc(warn)}</div>` : ''}
       <button class="sn-btn" ${d?.dead ? 'disabled' : ''} onclick="SENT.load('${esc(t.id)}')">Load setup on chart</button>
     </div>`;
@@ -7850,13 +7916,14 @@ const SENT = (() => {
   // ones (up to the server's cap) it spends each 15-minute cycle on.
   function focusBlock(status) {
     const n = status.markets.length, max = status.max_markets || n;
+    const TFS = status.supported_tfs || ['15m', '1h', '4h'];
     if (!pick) {
-      const names = status.markets.map(m => esc(label(m.id))).join(' · ');
+      const names = status.markets.map(m => `${esc(label(m.id))} <span style="color:var(--tx-3)">${esc((m.tfs || []).join('·'))}</span>`).join(' &nbsp;·&nbsp; ');
       return `<div class="sn-card sn-focus">
         <div class="sn-row"><span class="sn-mk" style="font-size:12px">Focus · ${n} of ${max}</span>
           <span class="sn-meta" style="margin-left:auto">${cat ? cat.total : '89'} markets available</span></div>
         <div class="sn-meta">${names}</div>
-        <button class="sn-btn sn-btn-2" onclick="SENT.editFocus()">Choose markets</button></div>`;
+        <button class="sn-btn sn-btn-2" onclick="SENT.editFocus()">Choose markets &amp; timeframes</button></div>`;
     }
     const chosen = pick.size, full = chosen >= max;
     const groups = (cat?.groups || []).map(g => {
@@ -7867,12 +7934,18 @@ const SENT = (() => {
           return `<button class="sn-pick ${sel ? 'on' : ''}" ${!sel && full ? 'disabled' : ''} onclick="SENT.toggle('${esc(m.id)}')">${esc(m.label)}</button>`;
         }).join('')}</div></details>`;
     }).join('');
+    const tfRows = [...pick.entries()].map(([id, tfs]) => `<div class="sn-row sn-tfrow">
+        <span class="sn-meta" style="flex:1;color:var(--tx-1)">${esc(label(id))}</span>
+        ${TFS.map(tf => `<button class="sn-pick sn-tf ${tfs.includes(tf) ? 'on' : ''}" onclick="SENT.toggleTf('${esc(id)}','${tf}')">${tf}</button>`).join('')}
+      </div>`).join('');
     const needKey = !ownerKey() || /owner key/i.test(pickErr);
     return `<div class="sn-card sn-focus">
       <div class="sn-row"><span class="sn-mk" style="font-size:12px">Choose up to ${max} markets</span>
         <span class="sn-chip ${full ? 'ev-unproven' : ''}" style="margin-left:auto">${chosen} / ${max}</span></div>
-      <div class="sn-meta">Sentinel can read all ${cat ? cat.total : ''} markets but scans only these, every 15-minute close on ${status.timeframes.join(' + ')}. Markets you remove keep their open paper trade until it finishes.</div>
+      <div class="sn-meta">Sentinel can read all ${cat ? cat.total : ''} markets but scans only these, at every 15-minute close. Markets you remove keep their open paper trade until it finishes.</div>
       ${groups}
+      ${chosen ? `<div class="sn-h" style="margin-top:6px">Timeframes per market</div>
+        <div class="sn-meta">Tip: the one-year test lost money on every 15m forex pair (spread ≈ 17% of the stop). 1h and 4h are cheaper to trade.</div>${tfRows}` : ''}
       ${needKey ? `<label class="sn-meta" for="snKey">Owner key (set as SENTINEL_ADMIN_KEY on the server)</label>
         <input id="snKey" class="sn-key" type="password" autocomplete="off" value="${esc(ownerKey())}" placeholder="Owner key">` : ''}
       ${pickErr ? `<div class="sn-warn">${esc(pickErr)}</div>` : ''}
@@ -7890,7 +7963,7 @@ const SENT = (() => {
         cat.groups.forEach(g => g.markets.forEach(m => { cat.byId[m.id] = m; }));
       } catch (e) { return showToast('Could not load the market list.', 2600); }
     }
-    pick = new Set(last.status.markets.map(m => m.id));
+    pick = new Map(last.status.markets.map(m => [m.id, (m.tfs || ['15m', '1h']).slice()]));
     render();
   }
 
@@ -7898,7 +7971,16 @@ const SENT = (() => {
     if (!pick) return;
     const max = last?.status?.max_markets || 12;
     if (pick.has(id)) pick.delete(id);
-    else if (pick.size < max) pick.add(id);
+    else if (pick.size < max) pick.set(id, ['1h']);
+    render();
+  }
+
+  function toggleTf(id, tf) {
+    const tfs = pick?.get(id);
+    if (!tfs) return;
+    const i = tfs.indexOf(tf);
+    if (i >= 0) { if (tfs.length > 1) tfs.splice(i, 1); else return showToast('Each market needs at least one timeframe.', 2200); }
+    else tfs.push(tf);
     render();
   }
 
@@ -7911,12 +7993,13 @@ const SENT = (() => {
       const res = await fetch(`${BOT_BASE}/api/sentinel/focus`, {
         method:'POST', cache:'no-store', signal: AbortSignal.timeout(15000),
         headers:{ 'Content-Type':'application/json', 'X-Sentinel-Key': ownerKey() },
-        body: JSON.stringify({ markets: [...pick] }),
+        body: JSON.stringify({ markets: [...pick.entries()].map(([id, tfs]) => ({ id, tfs })) }),
       });
       const body = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(body.detail || ('HTTP ' + res.status));
       cat.focus = body.focus; pick = null;
-      showToast(`Sentinel now reads ${body.focus.length} markets. New ones appear within a minute.`, 3600);
+      const slices = body.focus.reduce((a, f) => a + f.tfs.length, 0);
+      showToast(`Sentinel now reads ${body.focus.length} markets (${slices} market-timeframes). New ones appear within a minute.`, 3800);
       setTimeout(refresh, 20000);
       await refresh();
     } catch (e) {
@@ -7939,7 +8022,7 @@ const SENT = (() => {
     const closed = (feed.closed || []).slice(0, 8);
 
     const baseTxt = bx.n
-      ? `One-year replay (${esc(base.period?.[0])} → ${esc(base.period?.[1])}): <b>${bx.n.toLocaleString()}</b> signals at 8+/9 gates averaged <b>${bx.expectancy_r >= 0 ? '+' : ''}${bx.expectancy_r.toFixed(2)}R</b> each after estimated spreads (win rate ${(bx.win_rate * 100).toFixed(1)}% vs ${(stats.model.breakeven_win_rate * 100).toFixed(1)}% break-even).`
+      ? `One-year replay (${esc(base.period?.[0])} → ${esc(base.period?.[1])}): <b>${bx.n.toLocaleString()}</b> exec-ready signals averaged <b>${bx.expectancy_r >= 0 ? '+' : ''}${bx.expectancy_r.toFixed(2)}R</b> each after estimated spreads (win rate ${(bx.win_rate * 100).toFixed(1)}% vs ${(stats.model.breakeven_win_rate * 100).toFixed(1)}% break-even).`
       : 'No replay baseline loaded yet.';
     const evTxt = proven
       ? `<b>${proven}</b> market${proven === 1 ? '' : 's'} have a proven edge in both the replay and the live journal.`
@@ -7961,21 +8044,21 @@ const SENT = (() => {
 
       <div class="sn-h">Market board</div>
       <table class="sn-tbl"><thead><tr><th>Market</th><th>ARIA</th><th>Score</th><th>Bias</th><th>Evidence</th></tr></thead><tbody>
-      ${(board.rows || []).map(b => `<tr class="go" onclick="SENT.chart('${esc(b.market)}','${esc(b.tf)}')" title="${esc(b.mcc)} · ${esc(b.wyckoff)}">
+      ${(board.rows || []).map(b => `<tr class="go" onclick="SENT.chart('${esc(b.market)}','${esc(b.tf)}')" title="${esc(b.mcc)} · ${esc(b.wyckoff)}${b.elliott ? ' · EW ' + esc(b.elliott) + ' (soft)' : ''}">
         <td><b style="color:var(--tx-1)">${esc(label(b.market))}</b> <span style="color:var(--tx-3)">${esc(b.tf)}${b.mode === 'synthetic' ? ' · syn' : ''}</span></td>
         <td class="sn-v-${esc(b.verdict)}">${V_LABEL[b.verdict] || esc(b.verdict)}</td>
-        <td>${b.score}/9</td>
+        <td>${b.score}/${ARIA_GATE_COUNT}</td>
         <td class="${b.dir === 'buy' ? 'sn-pos' : 'sn-neg'}">${b.dir === 'buy' ? 'Long' : 'Short'}</td>
         <td>${evChip(b.evidence)}</td></tr>`).join('') || '<tr><td colspan="5" class="sn-empty">Waiting for the first scan…</td></tr>'}
       </tbody></table>
 
-      <div class="sn-h">Paper results · 8+/9 · all focus markets</div>
+      <div class="sn-h">Paper results · exec-ready · all focus markets</div>
       <div class="sn-card"><div class="sn-meta">${live.n
         ? `${live.n} closed · win ${(live.win_rate * 100).toFixed(1)}% · average ${r(live.expectancy_r)} · total ${r(live.total_r)} · ${esc(live.verdict)}`
         : 'No closed paper trades yet. Results appear here as Sentinel’s setups hit their stop or target.'}</div>
       ${closed.length ? `<table class="sn-tbl"><tbody>${closed.map(t => `<tr>
         <td>${esc(label(t.market))} <span style="color:var(--tx-3)">${esc(t.tf)}</span></td>
-        <td class="${t.dir === 'buy' ? 'sn-pos' : 'sn-neg'}">${t.dir === 'buy' ? 'Long' : 'Short'} ${t.score}/9</td>
+        <td class="${t.dir === 'buy' ? 'sn-pos' : 'sn-neg'}">${t.dir === 'buy' ? 'Long' : 'Short'} ${t.score}/${ARIA_GATE_COUNT}</td>
         <td>${esc(t.status)}</td><td style="text-align:right">${r(t.r)}</td></tr>`).join('')}</tbody></table>` : ''}
       </div>
 
@@ -7983,7 +8066,7 @@ const SENT = (() => {
         <table class="sn-tbl"><thead><tr><th>Market</th><th>Trades</th><th>Avg R</th><th>95% range</th></tr></thead><tbody>
         ${Object.entries(base.by_slice || {}).map(([k, s]) => `<tr><td>${esc(label(k.split(' ')[0]))} <span style="color:var(--tx-3)">${esc(k.split(' ')[1] || '')}</span></td><td>${s.n}</td><td>${r(s.expectancy_r)}</td><td>${s.ci95_r ? s.ci95_r.map(x => (x >= 0 ? '+' : '') + x.toFixed(2)).join(' … ') : '—'}</td></tr>`).join('')}
         </tbody></table>
-        <div class="sn-meta" style="margin-top:6px">${esc(base.notes || '')} A market is marked proven only when both the replay and ${stats.model.evidence_min_trades}+ live paper trades show a 95% range above zero.</div>
+        <div class="sn-meta" style="margin-top:6px">${esc(base.notes || '')} A market is marked proven only when both the replay and ${stats.model.evidence_min_trades}+ live paper trades (ARIA ${esc(stats.model.engine)}) stay above zero even at ${stats.model.evidence_z}× the standard error, a 95% test corrected for the ${stats.model.slices} market-timeframes being watched.</div>
       </details>
     </div>`;
   }
@@ -8029,7 +8112,7 @@ const SENT = (() => {
     applyARIA(t.sl, t.tp2, t.dir);   // fills the ticket and opens the Trade tab; the trader still decides
   }
 
-  return { open, refresh, load, chart, editFocus, toggle, saveFocus, cancelFocus };
+  return { open, refresh, load, chart, editFocus, toggle, toggleTf, saveFocus, cancelFocus };
 })();
 
 /* ════════════════════════════════════════════════════════════

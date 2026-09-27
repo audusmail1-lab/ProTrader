@@ -29,13 +29,15 @@ const source = [
 function makeCandles(seed, n, start, vol) {
   let s = seed >>> 0;
   const rnd = () => ((s = (s * 1664525 + 1013904223) >>> 0) / 4294967296);
-  const out = []; let px = start, drift = 0;
+  const out = []; let px = start, drift = 0, volMul = 1;
   for (let i = 0; i < n; i++) {
     if (i % 40 === 0) drift = (rnd() - 0.5) * vol * 0.6;
-    const o = px, c = Math.max(1e-6, o + drift + (rnd() - 0.5) * vol * 2);
+    if (i % 60 === 0) volMul = [0.25, 1, 1, 3][Math.floor(rnd() * 4)];   // volatility regimes
+    const v = vol * volMul;
+    const o = px, c = Math.max(1e-6, o + drift + (rnd() - 0.5) * v * 2);
     const flat = rnd() < 0.02;
-    const h = flat ? o : Math.max(o, c) + rnd() * vol;
-    const l = flat ? o : Math.min(o, c) - rnd() * vol;
+    const h = flat ? o : Math.max(o, c) + rnd() * v;
+    const l = flat ? o : Math.min(o, c) - rnd() * v;
     out.push({time: 1780000000 + i * 900, open: +o.toFixed(5), high: +h.toFixed(5),
               low: +l.toFixed(5), close: +(flat ? o : c).toFixed(5)});
     px = c;
@@ -89,9 +91,11 @@ print(json.dumps(out))
 `], {input: JSON.stringify(cases), maxBuffer: 64 << 20}).toString());
 
   let verdicts = {};
+  const gatePass = new Array(10).fill(0);
   cases.forEach((k, i) => {
     const js = JSON.parse(JSON.stringify(runJS(k.c, k.sym, k.hour, k.news))), p = py[i];
     verdicts[js.verdict] = (verdicts[js.verdict] || 0) + 1;
+    js.gates.forEach((g, gi) => { if (g) gatePass[gi]++; });
     for (const f of ['dir', 'score', 'mcc', 'wyckoff', 'pattern', 'verdict']) {
       assert.deepEqual(p[f], js[f], `case ${i} field ${f}`);
     }
@@ -102,5 +106,9 @@ print(json.dumps(out))
   });
   // The fixture must exercise more than one verdict or the test proves little.
   assert.ok(Object.keys(verdicts).length >= 3, JSON.stringify(verdicts));
+  // Every gate must both pass and fail somewhere in the fixture, or a gate's
+  // logic could differ between JS and Python without the test noticing.
+  gatePass.forEach((c, gi) => assert.ok(c > 0 && c < cases.length, `gate ${gi} passed ${c}/${cases.length}`));
+  console.log('gate passes', gatePass.join(' '));
   console.log('verdict mix', verdicts, 'cases', cases.length);
 });

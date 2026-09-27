@@ -1,5 +1,5 @@
 """
-ARIA v7 engine — Python port for Sentinel.
+ARIA v7.1 engine — Python port for Sentinel.
 
 This is a line-for-line port of the ARIA functions in protrader_mobile.html
 (calcEMA/RSI/MACD/Stoch/ATR, ariaMCC, ariaWyckoff, ariaGates, ariaVerdict,
@@ -23,6 +23,17 @@ import math
 from typing import Any, Optional
 
 Candle = dict[str, float]
+
+# ARIA v7.1 gate settings — identical to the constants in protrader_mobile.html.
+ENGINE_VERSION = "7.1"
+GATE_COUNT = 10
+EXEC_MIN, QUAL_MIN, WAIT_MIN = 9, 8, 6
+ATR_BAND = (0.6, 1.8)
+PATTERN_RECENT = 3
+FIB_ZONE = (0.45, 0.668)
+FIB_RECENT = 5
+FIB_MIN_LEG_ATR = 3
+FIB_WINDOW = 60
 
 
 def js_round(x: float) -> int:
@@ -163,7 +174,62 @@ def aria_wyckoff(cdles, closes, ema20v, ema50v) -> str:
 
 
 GATE_NAMES = ["EMA Stack", "RSI Momentum", "MACD Direction", "Market Structure",
-              "Live Candle", "ATR Valid", "Macro Align", "Stochastic", "Pattern Gate"]
+              "Live Candle", "ATR Band", "Macro Align", "Stochastic", "Pattern Gate",
+              "Fibonacci Zone"]
+
+
+def atr_ratio(atrv) -> float:
+    """Current ATR over its 100-bar average (non-empty values only)."""
+    hist = [v for v in atrv[-100:] if v]
+    mean = sum(hist) / len(hist) if hist else 0
+    now = atrv[-1]
+    return now / mean if mean > 0 and now else 0.0
+
+
+def aria_fib(cdles, atrv, d: str) -> dict[str, Any]:
+    """Fibonacci Zone gate — see ariaFib() in the terminal for the rules."""
+    n = len(cdles)
+    atr = atrv[n - 1] or 0
+    fail = lambda why: {"pass": False, "detail": why, "r": None}
+    if n < 30 or not atr > 0:
+        return fail("not enough data")
+    buy = d == "buy"
+    start = max(0, n - FIB_WINDOW)
+    last = cdles[n - 1]["close"]
+    hi = lambda i: cdles[i]["high"]
+    lo = lambda i: cdles[i]["low"]
+    ext = start
+    for i in range(start, n):
+        if (hi(i) > hi(ext)) if buy else (lo(i) < lo(ext)):
+            ext = i
+    if ext > n - 2:
+        return fail("no pullback yet")
+    orig = -1
+    for i in range(max(0, ext - FIB_WINDOW), ext):
+        if orig < 0 or ((lo(i) < lo(orig)) if buy else (hi(i) > hi(orig))):
+            orig = i
+    if orig < 0:
+        return fail("no swing found")
+    pb = ext + 1
+    for i in range(ext + 1, n):
+        if (lo(i) <= lo(pb)) if buy else (hi(i) >= hi(pb)):
+            pb = i
+    H = hi(ext) if buy else hi(orig)
+    L = lo(orig) if buy else lo(ext)
+    leg = H - L
+    if not leg >= FIB_MIN_LEG_ATR * atr:
+        return fail("last swing too small")
+    r = (H - lo(pb)) / leg if buy else (hi(pb) - L) / leg
+    if r < FIB_ZONE[0]:
+        return fail("pullback too shallow")
+    if r > FIB_ZONE[1]:
+        return fail("pullback past 61.8%")
+    if n - 1 - pb > FIB_RECENT:
+        return fail("zone touch too old")
+    turned = (lo(pb) < last < H) if buy else (L < last < hi(pb))
+    if not turned:
+        return fail("no reaction from the zone yet")
+    return {"pass": True, "detail": f"{r*100:.0f}% retrace", "r": r}
 
 
 def aria_gates(cdles, closes, ema20v, ema50v, ema200v, rsiv, macdv, stochv, atrv, pattern_aligned) -> dict[str, Any]:
@@ -197,7 +263,8 @@ def aria_gates(cdles, closes, ema20v, ema50v, ema200v, rsiv, macdv, stochv, atrv
         pin = lc["high"] > pc["high"] and lc["close"] < mid
         bdy = lc["close"] < lc["open"]
     g.append(eng or pin or bdy)
-    g.append(atr > 0)
+    ratio = atr_ratio(atrv)
+    g.append(ATR_BAND[0] <= ratio <= ATR_BAND[1])
     e200 = ema200v[n - 1] if ema200v else None
     if e200:
         g.append(last > e200 if buy else last < e200)
@@ -208,7 +275,9 @@ def aria_gates(cdles, closes, ema20v, ema50v, ema200v, rsiv, macdv, stochv, atrv
     kv = stochv["k"][n - 1]
     g.append(kv is not None and (kv < 50 if buy else kv > 50))
     g.append(bool(pattern_aligned))
-    return {"gates": [bool(x) for x in g], "score": sum(1 for x in g if x), "dir": d}
+    fib = aria_fib(cdles, atrv, d)
+    g.append(fib["pass"])
+    return {"gates": [bool(x) for x in g], "score": sum(1 for x in g if x), "dir": d, "fib": fib}
 
 
 def aria_entry(closes, atrv, d: str, mcc: dict) -> dict[str, float]:
@@ -229,11 +298,11 @@ def aria_verdict(score: int, mcc: dict, sym: str, d: str, news_week: bool) -> st
         return "OBSERVER"
     if sym == "frxNAS100" and news_week and d == "sell":
         return "BLOCKED"
-    if score >= 8:
+    if score >= EXEC_MIN:
         return "EXEC_READY"
-    if score >= 7:
+    if score >= QUAL_MIN:
         return "QUALIFIED"
-    if score >= 5:
+    if score >= WAIT_MIN:
         return "WAITING"
     return "OBSERVER"
 
@@ -425,11 +494,23 @@ def pattern_scan(cdles: list[Candle]) -> list[dict]:
 
 
 def pattern_alignment(cdles: list[Candle], d: str) -> Optional[str]:
+    """Best same-direction pattern (conf ≥ 75) completed on the last PATTERN_RECENT bars."""
+    n = len(cdles)
+    if n < 20:
+        return None
     want = "bull" if d == "buy" else "bear"
-    for r in pattern_scan(cdles):
-        if r["dir"] == want and r["conf"] >= 75:
-            return r["name"]
-    return None
+    best = None
+    for name, pdir, fn in PATTERNS:
+        if pdir != want:
+            continue
+        for i in range(max(15, n - PATTERN_RECENT), n):
+            try:
+                conf = fn(cdles, i)
+            except (ZeroDivisionError, ValueError, IndexError):
+                conf = None
+            if conf is not None and conf >= 75 and (best is None or conf > best[1]):
+                best = (name, conf)
+    return best[0] if best else None
 
 
 # ── One-call evaluation ──────────────────────────────────────────────────────
@@ -453,5 +534,96 @@ def evaluate(cdles: list[Candle], sym: str, utc_hour: int, news_week: bool = Fal
     return {
         "dir": gates["dir"], "score": gates["score"], "gates": gates["gates"],
         "mcc": mcc["code"], "wyckoff": wyck, "pattern": pat, "verdict": verdict,
-        "rsi": rsiv[n - 1], **entry,
+        "rsi": rsiv[n - 1], "fib_r": gates["fib"]["r"], "atr_ratio": atr_ratio(atrv),
+        "engine": ENGINE_VERSION, "elliott": elliott_read(cdles, atrv, rsiv), **entry,
     }
+
+
+# ── Elliott Wave — SOFT context layer (not a gate) ───────────────────────────
+#
+# Deliberately cautious: it never changes the score or the verdict. It labels
+# the structure only when the hard Elliott rules hold on objective ATR swings,
+# says whether the Fibonacci proportions fit, and flags RSI divergence on a
+# fifth wave. The journal records the label so its value can be measured
+# before it is ever promoted to a gate. Multi-timeframe confirmation is not
+# part of this version, which is one more reason it stays soft.
+
+EW_SWING_ATR = 2.0
+
+
+def zigzag(cdles: list[Candle], atrv, k: float = EW_SWING_ATR) -> tuple[list[tuple], tuple]:
+    """Swing points: a swing is confirmed once price reverses k×ATR from it.
+    Returns (confirmed pivots [(index, 'H'|'L', price)], current unconfirmed extreme)."""
+    piv: list[tuple] = []
+    if not cdles:
+        return piv, None
+    trend, ext = "up", 0
+    for i, c in enumerate(cdles):
+        a = atrv[i] or (c["high"] - c["low"]) or 1e-9
+        if trend == "up":
+            if c["high"] >= cdles[ext]["high"]:
+                ext = i
+            elif cdles[ext]["high"] - c["low"] >= k * a:
+                piv.append((ext, "H", cdles[ext]["high"]))
+                trend, ext = "down", i
+        else:
+            if c["low"] <= cdles[ext]["low"]:
+                ext = i
+            elif c["high"] - cdles[ext]["low"] >= k * a:
+                piv.append((ext, "L", cdles[ext]["low"]))
+                trend, ext = "up", i
+    cur = (ext, "H" if trend == "up" else "L",
+           cdles[ext]["high"] if trend == "up" else cdles[ext]["low"])
+    return piv, cur
+
+
+def _impulse(pts: list[tuple], up: bool) -> Optional[dict]:
+    """Check hard Elliott rules on alternating points p0..pk (k = 3 or 5)."""
+    s = 1 if up else -1
+    v = [p[2] * s for p in pts]          # flip a down-move so the maths is one-sided
+    w1 = v[1] - v[0]
+    if w1 <= 0 or v[2] <= v[0]:          # wave 2 may not retrace all of wave 1
+        return None
+    r2 = (v[1] - v[2]) / w1
+    if v[3] <= v[1]:                     # wave 3 must go beyond wave 1
+        return None
+    w3 = v[3] - v[2]
+    out = {"waves": 3, "fib_ok": 0.382 <= r2 <= 0.786}
+    if len(pts) >= 5:
+        if v[4] <= v[1]:                 # wave 4 may not overlap wave 1
+            return None
+        r4 = (v[3] - v[4]) / w3
+        out.update(waves=4, fib_ok=out["fib_ok"] and 0.236 <= r4 <= 0.5)
+    if len(pts) >= 6:
+        w5 = v[5] - v[4]
+        if v[5] <= v[3] or w3 < min(w1, w5):   # wave 3 is never the shortest
+            return None
+        out["waves"] = 5
+    return out
+
+
+def elliott_read(cdles: list[Candle], atrv, rsiv) -> dict[str, Any]:
+    """Soft Elliott context for the latest bar. label None = no valid count."""
+    piv, cur = zigzag(cdles, atrv)
+    pts = piv + ([cur] if cur else [])
+    best = {"label": None, "dir": None, "fib_ok": False, "divergence": False}
+    # Try the longest valid count ending at the latest point: 5, then 4, then 3 waves.
+    for k in (6, 5, 4):
+        if len(pts) < k:
+            continue
+        seq = pts[-k:]
+        up = seq[0][1] == "L"
+        info = _impulse(seq, up)
+        if not info:
+            continue
+        d = "up" if up else "down"
+        if info["waves"] == 5:
+            i3, i5 = seq[3][0], seq[5][0]
+            r3, r5 = rsiv[i3], rsiv[i5]
+            div = r3 is not None and r5 is not None and ((r5 < r3) if up else (r5 > r3))
+            return {"label": f"Wave 5 {d}" + (" · divergence" if div else ""), "dir": d,
+                    "fib_ok": info["fib_ok"], "divergence": div}
+        if info["waves"] == 4:
+            return {"label": f"Wave 4 pullback in {d}trend", "dir": d, "fib_ok": info["fib_ok"], "divergence": False}
+        return {"label": f"Wave 3 {d}", "dir": d, "fib_ok": info["fib_ok"], "divergence": False}
+    return best

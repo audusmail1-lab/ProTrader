@@ -5,9 +5,10 @@ What it does, every time a 15m / 1h bar closes:
   1. pulls the closed candles for each market in the FOCUS list from Deriv
      (Sentinel can read all 89 terminal instruments; the owner picks up to
      SENTINEL_MAX_MARKETS of them)
-  2. runs ARIA v7 on them (sentinel_engine — identical to the terminal)
-  3. opens a PAPER trade when ARIA says QUALIFIED (7/9) or EXECUTION READY
-     (8+/9), and scores every open paper trade against the new bar
+  2. runs ARIA v7.1 on them (sentinel_engine — identical to the terminal)
+  3. opens a PAPER trade when ARIA says QUALIFIED (8/10) or EXECUTION READY
+     (9+/10), and scores every open paper trade against the new bar
+     (each focus market has its own timeframes: 15m, 1h and/or 4h)
   4. journals everything to SQLite and, if configured, pings Telegram
 
 What it never does: place an order. Sentinel prepares, the trader confirms —
@@ -28,7 +29,7 @@ Environment:
                               when a disk is mounted at /var/data, otherwise the
                               journal resets on every deploy. /status shows
                               whether the journal is persistent.
-  SENTINEL_TFS=15m,1h         timeframes to scan
+  SENTINEL_TFS=15m,1h         timeframes for a focus market saved without its own
   SENTINEL_MAX_MARKETS=12     how many markets the focus list may hold
   SENTINEL_ADMIN_KEY=…        owner key: enables POST /focus and /config
   TELEGRAM_BOT_TOKEN / TELEGRAM_CHAT_ID   optional alerts
@@ -172,7 +173,8 @@ def _alert_open(t: core.Trade) -> None:
         return
     ev = _evidence().get(f"{t.market} {t.tf}", {}).get("status", "unproven")
     _telegram(
-        f"ARIA Sentinel · {m.label}{' (synthetic)' if m.mode == 'synthetic' else ''} {t.tf} · {t.dir.upper()} {t.score}/9\n"
+        f"ARIA Sentinel · {m.label}{' (synthetic)' if m.mode == 'synthetic' else ''} {t.tf} · {t.dir.upper()} {t.score}/{core.eng.GATE_COUNT}\n"
+        f"{'EW ' + t.elliott + ' (soft) · ' if t.elliott else ''}"
         f"Entry {_fmt_px(t.entry)} · SL {_fmt_px(t.sl)} · TP {_fmt_px(t.tp2)}\n"
         f"MCC {t.mcc} · {t.wyckoff}{' · ' + t.pattern if t.pattern else ''}\n"
         f"Evidence: {ev}. Paper signal — confirm on the chart before trading.")
@@ -187,9 +189,48 @@ def _alert_close(t: core.Trade) -> None:
 
 # ── Scanner ──────────────────────────────────────────────────────────────────
 
-def _focus() -> list[str]:
-    ids = _meta_get("focus", None) or core.DEFAULT_FOCUS
-    return [i for i in ids if i in core.MARKET_BY_ID][:MAX_MARKETS]
+SUPPORTED_TFS = [t for t in ("15m", "1h", "4h") if t in core.TF_SEC]
+# Default per-market timeframes. 15m forex is left out on purpose: in the
+# one-year replay the spread cost ~17% of each stop there and every 15m FX
+# slice lost money.
+DEFAULT_FOCUS = [
+    {"id": "frxNAS100", "tfs": ["15m", "1h"]},
+    {"id": "frxXAUUSD", "tfs": ["15m", "1h"]},
+    {"id": "cryBTCUSD", "tfs": ["1h"]},
+    {"id": "frxEURUSD", "tfs": ["1h"]},
+    {"id": "R_75", "tfs": ["15m", "1h"]},
+    {"id": "1HZ75V", "tfs": ["15m", "1h"]},
+]
+
+
+def _norm_focus(raw) -> list[dict]:
+    """Accept the old list-of-ids form and the new [{id, tfs}] form."""
+    out, seen = [], set()
+    for item in raw or []:
+        mid, tfs = (item, TFS) if isinstance(item, str) else (item.get("id"), item.get("tfs") or TFS)
+        if mid not in core.MARKET_BY_ID or mid in seen:
+            continue
+        tfs = [t for t in SUPPORTED_TFS if t in tfs] or TFS
+        seen.add(mid)
+        out.append({"id": mid, "tfs": tfs})
+    return out[:MAX_MARKETS]
+
+
+def _focus() -> list[dict]:
+    return _norm_focus(_meta_get("focus", None) or DEFAULT_FOCUS)
+
+
+def _focus_ids() -> list[str]:
+    return [f["id"] for f in _focus()]
+
+
+def _slices() -> list[str]:
+    return [f"{f['id']} {tf}" for f in _focus() for tf in f["tfs"]]
+
+
+def _current(trades: list[dict]) -> list[dict]:
+    """Only trades produced by the current ARIA rules count toward evidence."""
+    return [t for t in trades if t.get("engine", "7.0") == core.eng.ENGINE_VERSION]
 
 
 async def _scan_one(m: core.Market, tf: str, focused: bool = True) -> None:
@@ -221,7 +262,8 @@ async def _scan_one(m: core.Market, tf: str, focused: bool = True) -> None:
         _state["board"][key] = {
             "market": m.id, "label": m.label, "tf": tf, "mode": m.mode, "bar": last["time"],
             "price": last["close"], **{k: read[k] for k in ("dir", "score", "gates", "mcc", "wyckoff", "pattern", "verdict")},
-            "sl": read["sl"], "tp2": read["tp2"],
+            "sl": read["sl"], "tp2": read["tp2"], "elliott": read["elliott"]["label"],
+            "fib_r": read["fib_r"],
         }
     elif seen is None:
         # First cycle after a restart on an already-judged bar: still show it.
@@ -230,7 +272,8 @@ async def _scan_one(m: core.Market, tf: str, focused: bool = True) -> None:
             _state["board"][key] = {"market": m.id, "label": m.label, "tf": tf, "mode": m.mode,
                                     "bar": last["time"], "price": last["close"],
                                     **{k: r[k] for k in ("dir", "score", "gates", "mcc", "wyckoff", "pattern", "verdict")},
-                                    "sl": r["sl"], "tp2": r["tp2"]}
+                                    "sl": r["sl"], "tp2": r["tp2"], "elliott": r["elliott"]["label"],
+                                    "fib_r": r["fib_r"]}
     # Keep the open trade's progress on disk so a restart resumes it.
     t = _book.open.get((m.id, tf))
     if t:
@@ -248,25 +291,25 @@ async def _loop() -> None:
     _book = _restore_book()
     _wake = asyncio.Event()
     _state.update(running=True, started_at=time.time())
-    log.info("Sentinel started: focus %s × %s", _focus(), TFS)
+    log.info("Sentinel started: focus %s", _slices())
     while True:
         cycle_start = time.time()
         focus = _focus()
-        # Markets dropped from focus keep being read until their paper
-        # trade finishes, so no result is lost by editing the list.
-        extra = sorted({mk for (mk, _tf) in _book.open} - set(focus))
-        for mid in focus + extra:
+        wanted = {(f["id"], tf) for f in focus for tf in f["tfs"]}
+        # Slices dropped from focus keep being read until their paper trade
+        # finishes, so no result is lost by editing the list.
+        jobs = sorted(wanted | set(_book.open), key=lambda x: (x[0] not in [f["id"] for f in focus], x))
+        for mid, tf in jobs:
             m = core.MARKET_BY_ID.get(mid)
-            if not m:
-                continue
-            for tf in TFS:
+            if m and tf in core.TF_SEC:
                 try:
-                    await _scan_one(m, tf, focused=mid in focus)
+                    await _scan_one(m, tf, focused=(mid, tf) in wanted)
                 except Exception as e:
                     _state["last_error"] = f"{time.strftime('%H:%M:%S', time.gmtime())} {m.id} {tf}: {e}"
                     log.warning("sentinel %s %s: %s", m.id, tf, e)
                 await asyncio.sleep(0.3)   # be gentle with the public feed
-        for key in [k for k in _state["board"] if k.split(" ")[0] not in focus]:
+        keep = {f"{a} {b}" for a, b in wanted}
+        for key in [k for k in _state["board"] if k not in keep]:
             _state["board"].pop(key, None)
         _state["last_cycle"] = time.time()
         _state["cycles"] += 1
@@ -324,24 +367,25 @@ def _baseline() -> dict:
 def _evidence() -> dict[str, dict]:
     """
     A market × timeframe is "proven" only when the one-year replay AND the
-    live paper journal both show a 95% interval above zero on enough trades.
-    Until then Sentinel's signals are labelled unproven, whatever the score.
-    Markets without a replay can only become proven after a replay is run.
+    live paper journal (current ARIA rules, exec-ready tier) both clear the
+    bar on at least EVIDENCE_MIN_N trades. The bar is a 95% interval with a
+    Bonferroni correction for the number of slices in focus, so watching more
+    markets cannot manufacture a lucky "proven". Otherwise: unproven, or
+    negative when either source is clearly below zero.
     """
     base = _baseline().get("by_slice", {})
-    live = core.group_stats([t for t in _load_trades() if t["tier"] == "exec"],
+    live = core.group_stats([t for t in _current(_load_trades()) if t["tier"] == "exec"],
                             lambda t: f"{t['market']} {t['tf']}")
-    ok = lambda s: s.get("n", 0) >= EVIDENCE_MIN_N and (s.get("ci95_r") or [0])[0] > 0
-    neg = lambda s: s.get("n", 0) >= EVIDENCE_MIN_N and (s.get("ci95_r") or [0, 0])[1] < 0
+    slices = _slices()
+    k = len(slices)
     out = {}
-    for mid in _focus():
-        for tf in TFS:
-            k = f"{mid} {tf}"
-            b, l = base.get(k, {}), live.get(k, {})
-            status = ("proven" if ok(b) and ok(l)
-                      else "negative" if neg(b) or neg(l)
-                      else "unproven")
-            out[k] = {"status": status, "replay": b, "live": l}
+    for key in slices:
+        b, l = base.get(key, {}), live.get(key, {})
+        sb, sl = core.edge_status(b, k, EVIDENCE_MIN_N), core.edge_status(l, k, EVIDENCE_MIN_N)
+        status = ("proven" if sb == "proven" and sl == "proven"
+                  else "negative" if "negative" in (sb, sl)
+                  else "unproven")
+        out[key] = {"status": status, "replay": b, "live": l}
     return out
 
 
@@ -363,9 +407,13 @@ def status() -> dict:
         "enabled": os.getenv("SENTINEL_ENABLED", "1") != "0",
         "running": _state["running"], "started_at": _state["started_at"],
         "last_cycle": _state["last_cycle"], "cycles": _state["cycles"],
-        "last_error": _state["last_error"], "timeframes": TFS,
+        "last_error": _state["last_error"], "timeframes": sorted({tf for f in focus for tf in f["tfs"]}, key=SUPPORTED_TFS.index),
         "news_week": bool(_book.news_week) if _book else bool(_meta_get("news_week", False)),
-        "markets": [{"id": i, "label": core.MARKET_BY_ID[i].label, "mode": core.MARKET_BY_ID[i].mode} for i in focus],
+        "markets": [{"id": f["id"], "label": core.MARKET_BY_ID[f["id"]].label,
+                     "mode": core.MARKET_BY_ID[f["id"]].mode, "tfs": f["tfs"]} for f in focus],
+        "supported_tfs": SUPPORTED_TFS, "engine": core.eng.ENGINE_VERSION,
+        "gate_count": core.eng.GATE_COUNT,
+        "evidence_z": round(core.z_for(len(_slices())), 2),
         "max_markets": MAX_MARKETS,
         "open_trades": len(_book.open) if _book else 0,
         "alerts": bool(os.getenv("TELEGRAM_BOT_TOKEN") and os.getenv("TELEGRAM_CHAT_ID")),
@@ -390,23 +438,29 @@ def markets() -> dict:
     for m in core.CATALOGUE:
         groups.setdefault(m.group, []).append({"id": m.id, "label": m.label, "mode": m.mode})
     return {"groups": [{"name": g, "markets": ms} for g, ms in groups.items()],
-            "focus": _focus(), "max": MAX_MARKETS, "total": len(core.CATALOGUE)}
+            "focus": _focus(), "max": MAX_MARKETS, "total": len(core.CATALOGUE),
+            "supported_tfs": SUPPORTED_TFS}
 
 
 @router.post("/focus")
 async def set_focus(request: Request) -> dict:
     _check_key(request)
     body = await request.json()
-    ids = body.get("markets") if isinstance(body, dict) else None
-    if not isinstance(ids, list) or not ids:
-        raise HTTPException(400, "Send {\"markets\": [ids…]} with at least one market")
+    items = body.get("markets") if isinstance(body, dict) else None
+    if not isinstance(items, list) or not items:
+        raise HTTPException(400, "Send {\"markets\": [id or {\"id\", \"tfs\"}, …]} with at least one market")
+    ids = [i if isinstance(i, str) else (i or {}).get("id") for i in items]
     unknown = [i for i in ids if i not in core.MARKET_BY_ID]
     if unknown:
         raise HTTPException(400, f"Unknown market(s): {', '.join(map(str, unknown[:5]))}")
-    clean = list(dict.fromkeys(ids))
-    if len(clean) > MAX_MARKETS:
+    if len(set(ids)) > MAX_MARKETS:
         raise HTTPException(400, f"Sentinel reads at most {MAX_MARKETS} markets at a time")
-    _meta_set("focus", clean)
+    for i in items:
+        if isinstance(i, dict) and i.get("tfs") is not None:
+            bad = [t for t in i["tfs"] if t not in SUPPORTED_TFS]
+            if bad or not i["tfs"]:
+                raise HTTPException(400, f"Timeframes must be some of {', '.join(SUPPORTED_TFS)}")
+    _meta_set("focus", _norm_focus(items))
     if _wake:
         _wake.set()
     return markets()
@@ -415,9 +469,9 @@ async def set_focus(request: Request) -> dict:
 @router.get("/board")
 def board() -> dict:
     ev = _evidence()
-    focus = set(_focus())
+    keep = set(_slices())
     rows = [{**b, "evidence": ev.get(k, {}).get("status", "unproven")}
-            for k, b in _state["board"].items() if b["market"] in focus]
+            for k, b in _state["board"].items() if k in keep]
     order = {"EXEC_READY": 0, "QUALIFIED": 1, "WAITING": 2, "BLOCKED": 3, "OBSERVER": 4}
     rows.sort(key=lambda r: (order.get(r["verdict"], 9), -r["score"], r["mode"] != "real"))
     return {"updated": _state["last_cycle"], "rows": rows}
@@ -436,9 +490,10 @@ def feed(limit: int = 40) -> dict:
 
 @router.get("/stats")
 def stats() -> dict:
-    trades = _load_trades()
-    for t in trades:
+    all_trades = _load_trades()
+    for t in all_trades:
         t["mode"] = LEGACY_MODE.get(t.get("mode"), t.get("mode"))
+    trades = _current(all_trades)
     real = [t for t in trades if t["mode"] == "real"]
     syn = [t for t in trades if t["mode"] == "synthetic"]
     base = _baseline()
@@ -449,12 +504,17 @@ def stats() -> dict:
             "real": core.summarise(real),
             "synthetic": core.summarise(syn),
             "by_slice": core.group_stats(trades, lambda t: f"{t['market']} {t['tf']}"),
+            "by_elliott": core.group_stats([t for t in trades if t["tier"] == "exec"],
+                                           lambda t: t.get("elliott") or "no count"),
+            "older_rules": len(all_trades) - len(trades),
         },
         "baseline": {k: base.get(k) for k in ("generated", "period", "notes", "all", "exec", "by_slice",
                                              "by_score", "synthetic", "gate_pass_rate")},
         "evidence": {k: v["status"] for k, v in _evidence().items()},
         "model": {"target_r": core.TARGET_R, "breakeven_win_rate": round(core.BREAKEVEN_WINRATE, 4),
-                  "max_bars": core.MAX_BARS, "evidence_min_trades": EVIDENCE_MIN_N},
+                  "max_bars": core.MAX_BARS, "evidence_min_trades": EVIDENCE_MIN_N,
+                  "engine": core.eng.ENGINE_VERSION, "gate_count": core.eng.GATE_COUNT,
+                  "evidence_z": round(core.z_for(len(_slices())), 2), "slices": len(_slices())},
     }
 
 
