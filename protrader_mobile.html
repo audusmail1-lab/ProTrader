@@ -1349,15 +1349,15 @@ svg.ico{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.7;st
 .ws-trade-label .c-x:hover,.ws-trade-label .c-x:focus-visible{background:var(--bg-4);color:var(--tx-1);outline:none}
 .ws-trade-label.tp{border-color:var(--green);color:var(--green)}.ws-trade-label.tp .c-qty,.ws-trade-label.tp .c-x{border-color:var(--green)}
 .ws-trade-label.sl{border-color:var(--red);color:var(--red)}.ws-trade-label.sl .c-qty,.ws-trade-label.sl .c-x{border-color:var(--red)}
-.ws-trade-label.tp.is-negative .c-amt,.ws-trade-label.sl.is-positive .c-amt{color:var(--amber)}   /* a target that still loses, a stop that locks in profit */
+/* money colour follows the sign only — a stop that locks in profit reads green, a target below entry reads red */
+.ws-trade-label.is-positive .c-amt{color:var(--green)}.ws-trade-label.is-negative .c-amt{color:var(--red)}
 .ws-trade-label.entry{cursor:pointer}
 .ws-trade-label.entry.buy{border-color:var(--green)}.ws-trade-label.entry.buy .c-qty{background:var(--green);color:#06261d;border-color:var(--green)}
 .ws-trade-label.entry.sell{border-color:var(--red)}.ws-trade-label.entry.sell .c-qty{background:var(--red);color:#2a0705;border-color:var(--red)}
-.ws-trade-label.entry.is-positive .c-amt{color:var(--green)}.ws-trade-label.entry.is-negative .c-amt{color:var(--red)}
 .ws-trade-label.entry .c-x{border-color:inherit}
 .ws-trade-label.ticket{border-style:dashed;opacity:.9}
 .ws-trade-label.is-draft{border-style:dashed}.ws-trade-label.is-draft .c-amt::after{content:'draft';margin-left:6px;font-size:var(--fs-1);letter-spacing:.06em;text-transform:uppercase;color:var(--amber);font-weight:700}
-.ws-trade-label.is-selected{box-shadow:0 0 0 1px var(--blue)}
+.ws-trade-label.is-selected .c-x{color:var(--tx-1)}
 .ws-trade-label.is-dragging{box-shadow:0 0 0 1px var(--blue)}
 .ws-trade-label.is-offscreen{opacity:.55}
 .ws-trade-label:focus-visible{outline:2px solid var(--blue-lt);outline-offset:2px}
@@ -1380,7 +1380,7 @@ svg.ico{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.7;st
   .ws-summary{gap:12px;min-height:32px;padding:4px 10px}.ws-summary .ws-equity{display:none}
   .ticker-wrap{display:none}.app>.workspace{grid-row:3}
   .ws-menu-body{max-height:60dvh;overflow:auto;width:230px}
-  .ws-trade-label{min-height:30px}.ws-trade-label>*{padding:0 8px}
+  .ws-trade-label{min-height:26px;font-size:var(--fs-1)}.ws-trade-label>*{padding:0 7px}.ws-trade-label .c-x{padding:0 7px}
   .ws-trade-editor{bottom:10px;padding:10px}.ws-edit-fields input{font-size:16px}.ws-edit-fields{margin:8px 0}.ws-edit-note{display:none}
   .ws-fields label{grid-template-columns:1fr 140px}.ws-fields input{font-size:16px}
 }
@@ -4491,10 +4491,10 @@ const LEVELS = {
 
   /* ── selection and drafts ── */
   select(key) { this.selected = key; this.schedule(); },
-  begin(g) {
+  begin(g, quiet) {
     if (this.draft && this.draft.key !== g.key) { showToast('Confirm or discard the current draft first.', 2400); return null; }
     if (!this.draft) this.draft = { key: g.key, g, sl: { intent: 'unchanged', price: g.sl }, tp: { intent: 'unchanged', price: g.tp } };
-    this.selected = g.key; this.editor.hidden = false; this.renderEditor(); this.schedule(); return this.draft;
+    this.selected = g.key; if (!quiet) this.editor.hidden = false; this.renderEditor(); this.schedule(); return this.draft;
   },
   discard(silent) { this.draft = null; this.editor.hidden = true; this.schedule(); if (!silent) showToast('Draft discarded. Saved levels unchanged.', 2200); },
   remove(g, f) {
@@ -4549,7 +4549,7 @@ const LEVELS = {
     document.getElementById('lvlConfirm').disabled = !!err || !changed || d.busy;
     document.getElementById('lvlConfirm').textContent = d.busy ? 'Sending…' : g.kind === 'mt5' ? 'Update on MT5' : 'Confirm';
   },
-  async confirm() {
+  async confirm(toast) {
     const d = this.draft; if (!d || d.busy) return;
     const g = d.g, sl = this.eff(g, 'sl'), tp = this.eff(g, 'tp');
     const err = this.check(g, sl, tp, d); if (err) { this.renderEditor(); return; }
@@ -4561,7 +4561,7 @@ const LEVELS = {
         if (res.status !== 'modified') throw new Error('The paper broker rejected the change.');
         p.sl = sl; p.tp = tp; if (d.sl.intent !== 'unchanged') p.trail = 0;
         OT.save(); OT.renderBook(); CH.refreshLevels();
-        showToast('Levels updated.', 2200);
+        showToast(toast || 'Levels updated.', 2600);
       } else {
         const r = await LIVE.send({ type: 'modify', ticket: g.ticket, sl: sl == null ? 0 : sl, tp: tp == null ? 0 : tp });
         showToast((r.ok ? '✓ MT5 · ' : '✕ ') + r.msg, r.ok ? 4000 : 6500);
@@ -4609,7 +4609,7 @@ const LEVELS = {
     if (e.target.closest('.lvl-x') || e.target.closest('.lvl-add')) return;
     const it = el._item; if (!it) return;
     e.preventDefault(); e.stopPropagation();
-    if (it.kind !== 'ticket' && !this.begin(it.g)) return;
+    if (it.kind !== 'ticket' && !this.begin(it.g, true)) return;
     this.drag = { el, it, y0: e.clientY, p0: it.kind === 'ticket' ? it.price : (this.eff(it.g, it.which) ?? it.price), pid: e.pointerId, moved: false };
     el.classList.add('is-dragging'); el.setPointerCapture(e.pointerId);
     const move = ev => this.move(ev), up = ev => this.end(ev, move, up);
@@ -4617,7 +4617,7 @@ const LEVELS = {
     if (typeof CH.watchScale === 'function') CH.watchScale(200);
   },
   startAdd(e, g, f, handle) {
-    const d = this.begin(g); if (!d) return;
+    const d = this.begin(g, true); if (!d) return;
     const q = otQuote(S.sym), sp = otSpec(S.sym); if (!q.ok) return;
     d[f] = { intent: 'set', price: this.clamp(g, f, g.entry) };
     this.schedule();
@@ -4660,8 +4660,29 @@ const LEVELS = {
     d.el.classList.remove('is-dragging');
     this.drag = null;
     if (d.it.kind === 'ticket') { OT.render(); this.schedule(); return; }
+    if (e.type === 'pointerup' && !d.moved && !d.fromHandle && this.draft) this.editor.hidden = false;
     if (e.type !== 'pointerup' && this.draft) { this.draft[d.it.which] = { intent: d.fromHandle ? 'unchanged' : 'set', price: d.fromHandle ? d.it.g[d.it.which] : d.p0 }; }
     this.renderEditor(); this.schedule();
+    /* A drag is the whole gesture, TradeLocker-style: releasing the pill
+       applies the level. Only a drag that never moved (a tap) leaves the
+       draft open for typing. Real-money MT5 still confirms before sending;
+       removals (×) and closing always go through a review. */
+    if (e.type !== 'pointerup' || !this.draft || this.draft.key !== d.it.g.key) return;
+    if (d.moved) this.applyDrag(d.it.which);
+    else if (d.fromHandle) { this.draft[d.it.which] = { intent: 'unchanged', price: d.it.g[d.it.which] }; this.addByKey(d.it.g, d.it.which); }
+  },
+  async applyDrag(which) {
+    const d = this.draft; if (!d) return;
+    const g = d.g, sl = this.eff(g, 'sl'), tp = this.eff(g, 'tp');
+    const err = this.check(g, sl, tp, d);
+    if (err) { this.renderEditor(); this.editor.hidden = false; showToast(err, 4200); return; }
+    if (g.kind === 'mt5' && LIVE.isReal && LIVE.isReal()) {
+      const ok = await LIVE.confirm(`Move ${which === 'sl' ? 'stop' : 'target'} on your REAL account?`,
+        LIVE.line('Position', LIVE.esc(`${g.side.toUpperCase()} ${g.vol} ${g.label}`)) + LIVE.line(which === 'sl' ? 'New stop' : 'New target', LIVE.esc(otFmtPx(S.sym, which === 'sl' ? sl : tp))), 'Send to MT5', '');
+      if (!ok) { this.discard(true); return; }
+    }
+    const label = (which === 'sl' ? 'Stop' : 'Target') + ' moved to ' + otFmtPx(S.sym, which === 'sl' ? sl : tp) + ' · ' + this.fmt(this.money(g, which === 'sl' ? sl : tp)) + ' if hit';
+    await this.confirm(label);
   },
 };
 
