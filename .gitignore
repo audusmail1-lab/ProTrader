@@ -12,3 +12,6 @@ retracement_data.db
 
 # packaged mac launcher (rebuild locally, don't version)
 Trading Bot.app/
+sentinel.db
+sentinel.db-*
+.sentinel_src.bundle

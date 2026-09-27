@@ -50,6 +50,11 @@ bot = TradingBot()
 from mt5_bridge import router as _mt5_bridge_router
 app.include_router(_mt5_bridge_router)
 
+# ARIA Sentinel (see sentinel.py): always-on ARIA scanner + paper journal.
+import sentinel as _sentinel
+app.include_router(_sentinel.router)
+_sentinel.attach(app)
+
 # In-memory store
 history: deque = deque(maxlen=50)
 cache:   dict[str, dict] = {}

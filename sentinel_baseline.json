@@ -1,0 +1,347 @@
+{
+ "generated": 1790540366,
+ "period": [
+  "2025-09-25",
+  "2026-09-27"
+ ],
+ "notes": "Replay of the live Sentinel rules on Deriv history. Estimated spreads, no slippage, news-week block off. 'exec' = 8+/9 gates.",
+ "all": {
+  "n": 10619,
+  "wins": 2712,
+  "win_rate": 0.2554,
+  "breakeven_win_rate": 0.2857,
+  "expectancy_r": -0.1,
+  "ci95_r": [
+   -0.1291,
+   -0.0708
+  ],
+  "total_r": -1061.82,
+  "profit_factor": 0.868,
+  "max_drawdown_r": 1102.84,
+  "avg_cost_r": 0.1066,
+  "timeouts": 756,
+  "p_vs_breakeven": 0.9914,
+  "verdict": "negative edge (95% interval below zero)"
+ },
+ "exec": {
+  "n": 4443,
+  "wins": 1161,
+  "win_rate": 0.2613,
+  "breakeven_win_rate": 0.2857,
+  "expectancy_r": -0.0745,
+  "ci95_r": [
+   -0.1199,
+   -0.029
+  ],
+  "total_r": -330.93,
+  "profit_factor": 0.9,
+  "max_drawdown_r": 417.15,
+  "avg_cost_r": 0.1091,
+  "timeouts": 327,
+  "p_vs_breakeven": 0.703,
+  "verdict": "negative edge (95% interval below zero)"
+ },
+ "by_slice": {
+  "cryBTCUSD 15m": {
+   "n": 845,
+   "wins": 226,
+   "win_rate": 0.2675,
+   "breakeven_win_rate": 0.2857,
+   "expectancy_r": -0.0867,
+   "ci95_r": [
+    -0.1912,
+    0.0178
+   ],
+   "total_r": -73.26,
+   "profit_factor": 0.885,
+   "max_drawdown_r": 112.6,
+   "avg_cost_r": 0.1189,
+   "timeouts": 57,
+   "p_vs_breakeven": 0.4865,
+   "verdict": "no proven edge yet (interval includes zero)"
+  },
+  "cryBTCUSD 1h": {
+   "n": 220,
+   "wins": 66,
+   "win_rate": 0.3,
+   "breakeven_win_rate": 0.2857,
+   "expectancy_r": 0.1185,
+   "ci95_r": [
+    -0.0927,
+    0.3296
+   ],
+   "total_r": 26.06,
+   "profit_factor": 1.177,
+   "max_drawdown_r": 17.57,
+   "avg_cost_r": 0.048,
+   "timeouts": 15,
+   "p_vs_breakeven": 0.1423,
+   "verdict": "no proven edge yet (interval includes zero)"
+  },
+  "frxEURUSD 15m": {
+   "n": 616,
+   "wins": 146,
+   "win_rate": 0.237,
+   "breakeven_win_rate": 0.2857,
+   "expectancy_r": -0.162,
+   "ci95_r": [
+    -0.2807,
+    -0.0432
+   ],
+   "total_r": -99.77,
+   "profit_factor": 0.793,
+   "max_drawdown_r": 105.56,
+   "avg_cost_r": 0.1596,
+   "timeouts": 60,
+   "p_vs_breakeven": 0.8958,
+   "verdict": "negative edge (95% interval below zero)"
+  },
+  "frxEURUSD 1h": {
+   "n": 132,
+   "wins": 39,
+   "win_rate": 0.2955,
+   "breakeven_win_rate": 0.2857,
+   "expectancy_r": 0.0442,
+   "ci95_r": [
+    -0.2281,
+    0.3165
+   ],
+   "total_r": 5.83,
+   "profit_factor": 1.063,
+   "max_drawdown_r": 24.66,
+   "avg_cost_r": 0.0776,
+   "timeouts": 7,
+   "p_vs_breakeven": 0.2873,
+   "verdict": "no proven edge yet (interval includes zero)"
+  },
+  "frxGBPUSD 15m": {
+   "n": 646,
+   "wins": 144,
+   "win_rate": 0.2229,
+   "breakeven_win_rate": 0.2857,
+   "expectancy_r": -0.2247,
+   "ci95_r": [
+    -0.3385,
+    -0.111
+   ],
+   "total_r": -145.16,
+   "profit_factor": 0.721,
+   "max_drawdown_r": 147.54,
+   "avg_cost_r": 0.1786,
+   "timeouts": 71,
+   "p_vs_breakeven": 0.9737,
+   "verdict": "negative edge (95% interval below zero)"
+  },
+  "frxGBPUSD 1h": {
+   "n": 128,
+   "wins": 39,
+   "win_rate": 0.3047,
+   "breakeven_win_rate": 0.2857,
+   "expectancy_r": 0.068,
+   "ci95_r": [
+    -0.2101,
+    0.3461
+   ],
+   "total_r": 8.7,
+   "profit_factor": 1.098,
+   "max_drawdown_r": 8.38,
+   "avg_cost_r": 0.0863,
+   "timeouts": 7,
+   "p_vs_breakeven": 0.213,
+   "verdict": "no proven edge yet (interval includes zero)"
+  },
+  "frxNAS100 15m": {
+   "n": 338,
+   "wins": 85,
+   "win_rate": 0.2515,
+   "breakeven_win_rate": 0.2857,
+   "expectancy_r": 0.0024,
+   "ci95_r": [
+    -0.1614,
+    0.1662
+   ],
+   "total_r": 0.83,
+   "profit_factor": 1.004,
+   "max_drawdown_r": 27.73,
+   "avg_cost_r": 0.0264,
+   "timeouts": 27,
+   "p_vs_breakeven": 0.7056,
+   "verdict": "no proven edge yet (interval includes zero)"
+  },
+  "frxNAS100 1h": {
+   "n": 96,
+   "wins": 28,
+   "win_rate": 0.2917,
+   "breakeven_win_rate": 0.2857,
+   "expectancy_r": 0.0863,
+   "ci95_r": [
+    -0.2369,
+    0.4095
+   ],
+   "total_r": 8.28,
+   "profit_factor": 1.126,
+   "max_drawdown_r": 13.55,
+   "avg_cost_r": 0.0122,
+   "timeouts": 3,
+   "p_vs_breakeven": 0.4096,
+   "verdict": "no proven edge yet (interval includes zero)"
+  },
+  "frxUSDJPY 15m": {
+   "n": 594,
+   "wins": 149,
+   "win_rate": 0.2508,
+   "breakeven_win_rate": 0.2857,
+   "expectancy_r": -0.1799,
+   "ci95_r": [
+    -0.3024,
+    -0.0573
+   ],
+   "total_r": -106.84,
+   "profit_factor": 0.776,
+   "max_drawdown_r": 132.52,
+   "avg_cost_r": 0.1668,
+   "timeouts": 43,
+   "p_vs_breakeven": 0.7995,
+   "verdict": "negative edge (95% interval below zero)"
+  },
+  "frxUSDJPY 1h": {
+   "n": 136,
+   "wins": 29,
+   "win_rate": 0.2132,
+   "breakeven_win_rate": 0.2857,
+   "expectancy_r": -0.1861,
+   "ci95_r": [
+    -0.4336,
+    0.0615
+   ],
+   "total_r": -25.31,
+   "profit_factor": 0.76,
+   "max_drawdown_r": 30.62,
+   "avg_cost_r": 0.0763,
+   "timeouts": 9,
+   "p_vs_breakeven": 0.9396,
+   "verdict": "no proven edge yet (interval includes zero)"
+  },
+  "frxXAUUSD 15m": {
+   "n": 556,
+   "wins": 169,
+   "win_rate": 0.304,
+   "breakeven_win_rate": 0.2857,
+   "expectancy_r": 0.1041,
+   "ci95_r": [
+    -0.0296,
+    0.2378
+   ],
+   "total_r": 57.87,
+   "profit_factor": 1.154,
+   "max_drawdown_r": 22.14,
+   "avg_cost_r": 0.0305,
+   "timeouts": 24,
+   "p_vs_breakeven": 0.0578,
+   "verdict": "no proven edge yet (interval includes zero)"
+  },
+  "frxXAUUSD 1h": {
+   "n": 136,
+   "wins": 41,
+   "win_rate": 0.3015,
+   "breakeven_win_rate": 0.2857,
+   "expectancy_r": 0.087,
+   "ci95_r": [
+    -0.1829,
+    0.3568
+   ],
+   "total_r": 11.83,
+   "profit_factor": 1.128,
+   "max_drawdown_r": 15.78,
+   "avg_cost_r": 0.0146,
+   "timeouts": 4,
+   "p_vs_breakeven": 0.2924,
+   "verdict": "no proven edge yet (interval includes zero)"
+  }
+ },
+ "by_score": {
+  "7/9": {
+   "n": 6176,
+   "wins": 1551,
+   "win_rate": 0.2511,
+   "breakeven_win_rate": 0.2857,
+   "expectancy_r": -0.1183,
+   "ci95_r": [
+    -0.1563,
+    -0.0803
+   ],
+   "total_r": -730.88,
+   "profit_factor": 0.844,
+   "max_drawdown_r": 740.92,
+   "avg_cost_r": 0.1048,
+   "timeouts": 429,
+   "p_vs_breakeven": 0.9964,
+   "verdict": "negative edge (95% interval below zero)"
+  },
+  "8/9": {
+   "n": 4370,
+   "wins": 1138,
+   "win_rate": 0.2604,
+   "breakeven_win_rate": 0.2857,
+   "expectancy_r": -0.0774,
+   "ci95_r": [
+    -0.1232,
+    -0.0316
+   ],
+   "total_r": -338.4,
+   "profit_factor": 0.897,
+   "max_drawdown_r": 420.33,
+   "avg_cost_r": 0.1094,
+   "timeouts": 321,
+   "p_vs_breakeven": 0.7492,
+   "verdict": "negative edge (95% interval below zero)"
+  },
+  "9/9": {
+   "n": 73,
+   "wins": 23,
+   "win_rate": 0.3151,
+   "breakeven_win_rate": 0.2857,
+   "expectancy_r": 0.1022,
+   "ci95_r": [
+    -0.2654,
+    0.4698
+   ],
+   "total_r": 7.46,
+   "profit_factor": 1.153,
+   "max_drawdown_r": 20.04,
+   "avg_cost_r": 0.0916,
+   "timeouts": 6,
+   "p_vs_breakeven": 0.181,
+   "verdict": "no proven edge yet (interval includes zero)"
+  }
+ },
+ "research": {
+  "n": 4872,
+  "wins": 1339,
+  "win_rate": 0.2748,
+  "breakeven_win_rate": 0.2857,
+  "expectancy_r": 0.0045,
+  "ci95_r": [
+   -0.0394,
+   0.0484
+  ],
+  "total_r": 22.01,
+  "profit_factor": 1.006,
+  "max_drawdown_r": 69.24,
+  "avg_cost_r": 0.0192,
+  "timeouts": 172,
+  "p_vs_breakeven": 0.555,
+  "verdict": "no proven edge yet (interval includes zero)"
+ },
+ "gate_pass_rate": {
+  "EMA Stack": 0.879,
+  "RSI Momentum": 0.885,
+  "MACD Direction": 0.778,
+  "Market Structure": 0.978,
+  "Live Candle": 0.885,
+  "ATR Valid": 1.0,
+  "Macro Align": 0.864,
+  "Stochastic": 0.158,
+  "Pattern Gate": 1.0
+ }
+}

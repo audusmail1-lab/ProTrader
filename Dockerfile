@@ -28,6 +28,7 @@ RUN pip install --upgrade pip && pip install -r requirements.txt
 
 # App source. .dockerignore keeps logs, venv and pid files out.
 COPY dashboard.py mt5_bridge.py grok_quantum_bot.py protrader_mobile.html landing.html chart_lab.html ./
+COPY sentinel.py sentinel_core.py sentinel_engine.py sentinel_replay.py sentinel_baseline.json ./
 COPY vendor ./vendor
 COPY static ./static
 
