@@ -24,8 +24,8 @@ Endpoints (all read-only except config):
 
 Environment:
   SENTINEL_ENABLED=0          switch the scanner off (API still answers)
-  SENTINEL_DB=path            SQLite journal. On Render attach a disk at
-                              /var/data and set /var/data/sentinel.db, or the
+  SENTINEL_DB=path            SQLite journal. Defaults to /var/data/sentinel.db
+                              when a disk is mounted at /var/data, otherwise the
                               journal resets on every deploy. /status shows
                               whether the journal is persistent.
   SENTINEL_TFS=15m,1h         timeframes to scan
@@ -56,6 +56,9 @@ router = APIRouter(prefix="/api/sentinel", tags=["sentinel"])
 HERE = os.path.dirname(os.path.abspath(__file__))
 
 
+DISK_DIR = "/var/data"
+
+
 def _pick_db_path() -> tuple[str, bool, Optional[str]]:
     """
     Where the journal lives. SENTINEL_DB should point at a persistent disk
@@ -65,8 +68,10 @@ def _pick_db_path() -> tuple[str, bool, Optional[str]]:
     """
     fallback = os.path.join(HERE, "sentinel.db")
     want = os.getenv("SENTINEL_DB", "").strip()
+    if not want and os.path.ismount(DISK_DIR):
+        want = os.path.join(DISK_DIR, "sentinel.db")   # Render disk mounted at /var/data
     if not want:
-        return fallback, False, "SENTINEL_DB is not set: the journal resets on every deploy"
+        return fallback, False, "no persistent disk at /var/data and SENTINEL_DB is not set: the journal resets on every deploy"
     try:
         d = os.path.dirname(os.path.abspath(want))
         os.makedirs(d, exist_ok=True)
