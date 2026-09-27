@@ -167,8 +167,19 @@ DEFAULT_FOCUS = ["frxNAS100", "cryBTCUSD", "frxXAUUSD", "frxEURUSD", "frxGBPUSD"
 MARKET_BY_ID = {m.id: m for m in MARKETS}
 
 
-def spread_for(m: Market, price: float) -> float:
+# Spreads measured on the trader's own MT5 account (via the bridge "spec"
+# command), as a fraction of price: {market_id: pct}. When present they
+# replace the estimates below. Filled by sentinel.py from its journal DB.
+MEASURED_SPREAD_PCT: dict[str, float] = {}
+
+
+def estimated_spread(m: Market, price: float) -> float:
     return m.spread if m.spread > 0 else price * m.spread_pct
+
+
+def spread_for(m: Market, price: float) -> float:
+    pct = MEASURED_SPREAD_PCT.get(m.id)
+    return price * pct if pct else estimated_spread(m, price)
 
 
 # ── Data ─────────────────────────────────────────────────────────────────────

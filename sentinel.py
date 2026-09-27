@@ -22,6 +22,9 @@ Endpoints (all read-only except config):
   GET  /api/sentinel/feed     open paper trades + recent results
   GET  /api/sentinel/stats    journal statistics + one-year replay baseline
   POST /api/sentinel/config   {"news_week": bool}  (needs X-Sentinel-Key)
+  GET  /api/sentinel/costs    estimated vs MT5-measured spread per focus market
+  POST /api/sentinel/costs    bid/ask snapshots from the MT5 bridge (owner key);
+                              the median measured spread replaces the estimate
 
 Environment:
   SENTINEL_ENABLED=0          switch the scanner off (API still answers)
@@ -138,6 +141,20 @@ def _load_trades(where: str = "", args: tuple = (), limit: int = 5000) -> list[d
         rows = con.execute(f"SELECT data FROM trades {where} ORDER BY opened_at DESC LIMIT ?",
                            args + (limit,)).fetchall()
     return [json.loads(r[0]) for r in rows]
+
+
+def _load_costs() -> dict:
+    """Measured MT5 spreads: {market: [{"pct", "spread", "mid", "symbol", "at"}, …]}."""
+    return _meta_get("costs", {}) or {}
+
+
+def _apply_costs(costs: dict) -> None:
+    """Median of the recorded samples, as a fraction of price, per market."""
+    core.MEASURED_SPREAD_PCT.clear()
+    for mid, samples in costs.items():
+        pcts = sorted(x["pct"] for x in samples if x.get("pct", 0) > 0)
+        if pcts:
+            core.MEASURED_SPREAD_PCT[mid] = pcts[len(pcts) // 2]
 
 
 def _restore_book() -> core.PaperBook:
@@ -289,6 +306,7 @@ _wake: Optional[asyncio.Event] = None
 async def _loop() -> None:
     global _book, _wake
     _book = _restore_book()
+    _apply_costs(_load_costs())
     _wake = asyncio.Event()
     _state.update(running=True, started_at=time.time())
     log.info("Sentinel started: focus %s", _slices())
@@ -464,6 +482,63 @@ async def set_focus(request: Request) -> dict:
     if _wake:
         _wake.set()
     return markets()
+
+
+COST_SAMPLES_KEEP = 30
+
+
+@router.get("/costs")
+def costs() -> dict:
+    """Estimated vs measured spread for every focus market."""
+    data = _load_costs()
+    _apply_costs(data)
+    rows = []
+    for f in _focus():
+        m = core.MARKET_BY_ID[f["id"]]
+        samples = data.get(m.id, [])
+        last = samples[-1] if samples else None
+        price = last["mid"] if last else next(
+            (b["price"] for k, b in _state["board"].items() if b["market"] == m.id), None)
+        est = core.estimated_spread(m, price) if price else None
+        rows.append({
+            "market": m.id, "label": m.label, "mode": m.mode,
+            "estimate_pct": (est / price) if (est and price) else (m.spread_pct or None),
+            "measured_pct": core.MEASURED_SPREAD_PCT.get(m.id),
+            "samples": len(samples), "last": last,
+        })
+    return {"rows": rows}
+
+
+@router.post("/costs")
+async def add_costs(request: Request) -> dict:
+    """Owner-only: record bid/ask snapshots taken from MT5 through the bridge."""
+    _check_key(request)
+    body = await request.json()
+    items = body.get("samples") if isinstance(body, dict) else None
+    if not isinstance(items, list) or not items or len(items) > 60:
+        raise HTTPException(400, "Send {\"samples\": [{market, symbol, bid, ask}, …]}")
+    data = _load_costs()
+    now = int(time.time())
+    took, skipped = 0, []
+    for it in items:
+        mid = (it or {}).get("market")
+        try:
+            bid, ask = float(it.get("bid")), float(it.get("ask"))
+        except (TypeError, ValueError):
+            skipped.append(f"{mid}: no prices"); continue
+        if mid not in core.MARKET_BY_ID or not (bid > 0 and ask >= bid):
+            skipped.append(f"{mid}: bad quote"); continue
+        mid_px = (bid + ask) / 2
+        pct = (ask - bid) / mid_px
+        if pct > 0.05:                      # a 5%+ spread is a broken quote, not a cost
+            skipped.append(f"{mid}: spread {pct:.1%} looks wrong"); continue
+        data.setdefault(mid, []).append({"pct": pct, "spread": ask - bid, "mid": mid_px,
+                                         "symbol": str(it.get("symbol", ""))[:40], "at": now})
+        data[mid] = data[mid][-COST_SAMPLES_KEEP:]
+        took += 1
+    _meta_set("costs", data)
+    _apply_costs(data)
+    return {"recorded": took, "skipped": skipped, **costs()}
 
 
 @router.get("/board")

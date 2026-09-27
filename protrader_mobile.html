@@ -8009,6 +8009,56 @@ const SENT = (() => {
 
   function cancelFocus() { pick = null; pickErr = ''; render(); }
 
+  // ── Trading costs: replace spread estimates with quotes from the trader's
+  // own MT5 account. Uses the bridge's read-only "spec" command; nothing is
+  // traded. Each run adds one sample per market; the median is used.
+  let measuring = '';
+  function costBlock() {
+    const rows = last?.costs?.rows || [];
+    if (!rows.length) return '';
+    const bridge = typeof LIVE !== 'undefined' && LIVE.online && LIVE.online();
+    const pct = v => Number.isFinite(v) ? (v * 100).toFixed(v < 0.001 ? 4 : 3) + '%' : '—';
+    return `<details class="sn-costs"><summary>Trading costs · ${rows.filter(r => r.measured_pct).length}/${rows.length} measured on MT5</summary>
+      <table class="sn-tbl"><thead><tr><th>Market</th><th>Estimate</th><th>MT5</th><th>Samples</th></tr></thead><tbody>
+      ${rows.map(r => `<tr><td>${esc(label(r.market))}</td><td>${pct(r.estimate_pct)}</td>
+        <td>${r.measured_pct ? `<b style="color:var(--tx-1)">${pct(r.measured_pct)}</b>` : '—'}</td><td>${r.samples}</td></tr>`).join('')}
+      </tbody></table>
+      <div class="sn-meta" style="margin:6px 0">Spread as a share of price. Sentinel uses the MT5 median once a market has a sample. Spreads widen at rollover and around news, so measure a few times at the hours you trade.</div>
+      ${measuring ? `<div class="sn-warn">${esc(measuring)}</div>` : ''}
+      <button class="sn-btn sn-btn-2" ${bridge && !measuring ? '' : 'disabled'} onclick="SENT.measureCosts()">${bridge ? 'Measure spreads from MT5 now' : 'Connect the MT5 bridge (Trade tab) to measure'}</button>
+    </details>`;
+  }
+
+  async function measureCosts() {
+    if (measuring || typeof LIVE === 'undefined' || !LIVE.online()) return;
+    const ids = (last?.status?.markets || []).map(m => m.id);
+    const samples = [], missed = [];
+    for (let i = 0; i < ids.length; i++) {
+      const id = ids[i], name = LIVE.mt5Symbol(id);
+      measuring = `Asking MT5 for ${name} (${i + 1}/${ids.length})…`; render();
+      const r = await LIVE.send({ type: 'spec', symbol: name }, 9000);
+      if (r && r.ok && r.spec && r.spec.ask > 0 && r.spec.bid > 0) samples.push({ market: id, symbol: r.spec.symbol, bid: r.spec.bid, ask: r.spec.ask });
+      else missed.push(`${label(id)} (${(r && r.msg) || 'no reply'})`);
+    }
+    measuring = samples.length ? 'Saving…' : '';
+    render();
+    if (samples.length) {
+      try {
+        const res = await fetch(`${BOT_BASE}/api/sentinel/costs`, {
+          method:'POST', cache:'no-store', signal: AbortSignal.timeout(15000),
+          headers:{ 'Content-Type':'application/json', 'X-Sentinel-Key': ownerKey() },
+          body: JSON.stringify({ samples }),
+        });
+        const body = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(body.detail || ('HTTP ' + res.status));
+        last.costs = { rows: body.rows };
+        showToast(`Recorded ${body.recorded} MT5 spreads${missed.length ? ` · ${missed.length} not found` : ''}.`, 3600);
+      } catch (e) { showToast('Could not save spreads: ' + e.message + (/owner key/i.test(e.message) ? ' — set it under Choose markets.' : ''), 4200); }
+    }
+    if (missed.length) showToast('MT5 could not quote: ' + missed.join(', '), 5200);
+    measuring = ''; render();
+  }
+
   function render() {
     const el = document.getElementById('sentinel-panel');
     if (!el || !last) return;
@@ -8062,6 +8112,8 @@ const SENT = (() => {
         <td>${esc(t.status)}</td><td style="text-align:right">${r(t.r)}</td></tr>`).join('')}</tbody></table>` : ''}
       </div>
 
+      ${costBlock()}
+
       <details><summary>Replay evidence by market</summary>
         <table class="sn-tbl"><thead><tr><th>Market</th><th>Trades</th><th>Avg R</th><th>95% range</th></tr></thead><tbody>
         ${Object.entries(base.by_slice || {}).map(([k, s]) => `<tr><td>${esc(label(k.split(' ')[0]))} <span style="color:var(--tx-3)">${esc(k.split(' ')[1] || '')}</span></td><td>${s.n}</td><td>${r(s.expectancy_r)}</td><td>${s.ci95_r ? s.ci95_r.map(x => (x >= 0 ? '+' : '') + x.toFixed(2)).join(' … ') : '—'}</td></tr>`).join('')}
@@ -8075,9 +8127,9 @@ const SENT = (() => {
     if (busy) return;
     busy = true;
     try {
-      const [status, board, feed, stats] = await Promise.all([get('status'), get('board'), get('feed?limit=30'), get('stats')]);
+      const [status, board, feed, stats, costs] = await Promise.all([get('status'), get('board'), get('feed?limit=30'), get('stats'), get('costs').catch(() => null)]);
       if (!cat) get('markets').then(c => { c.byId = {}; c.groups.forEach(g => g.markets.forEach(m => { c.byId[m.id] = m; })); cat = cat || c; render(); }).catch(() => {});
-      last = { status, board, feed, stats };
+      last = { status, board, feed, stats, costs };
       render();
     } catch (e) {
       const el = document.getElementById('sentinel-panel');
@@ -8112,7 +8164,7 @@ const SENT = (() => {
     applyARIA(t.sl, t.tp2, t.dir);   // fills the ticket and opens the Trade tab; the trader still decides
   }
 
-  return { open, refresh, load, chart, editFocus, toggle, toggleTf, saveFocus, cancelFocus };
+  return { open, refresh, load, chart, editFocus, toggle, toggleTf, saveFocus, cancelFocus, measureCosts };
 })();
 
 /* ════════════════════════════════════════════════════════════
