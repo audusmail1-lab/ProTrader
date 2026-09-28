@@ -134,6 +134,41 @@ def test_shadow_rules_run_beside_the_model_and_outlive_it():
     assert st_["hold"]["n"] == 1 and st_["usd100"]["n"] == 1 and st_["hold"]["reached_2_5r_pct"] == 1.0
 
 
+def _hybrid_run(seq):
+    t = trade(); t.model = "7.2c"; t.stop = t.sl
+    t.shadow = core.shadow_init(t.entry, t.sl, [bar(0, 100, 100.4, 99.6, 100), bar(0, 100, 100.3, 99.7, 100)])
+    b = book_with(t)
+    for i in range(len(seq)):
+        b.update("frxXAUUSD", "15m", seq[:i + 1])
+        b.update_shadows("frxXAUUSD", "15m", seq[:i + 1])
+    return t.shadow["hybrid"]
+
+
+def test_hybrid_follows_a_swing_after_1R():
+    h = _hybrid_run([bar(900, 100, 102.2, 99.9, 102.1),        # +1.1R: armed
+                     bar(1800, 102.1, 102.3, 101.4, 101.5),
+                     bar(2700, 101.5, 101.6, 100.9, 101.0),
+                     bar(3600, 101.0, 101.2, 100.7, 100.9),    # swing low 100.7 (above +0.3R = 100.6)
+                     bar(4500, 100.9, 101.5, 101.0, 101.4),
+                     bar(5400, 101.4, 101.8, 101.1, 101.7),    # confirmed -> stop 100.7 - 0.133
+                     bar(6300, 101.7, 101.7, 100.2, 100.3)])
+    assert h["state"] == "closed" and abs(h["gross"] - (100.7 - 0.1 * 2 / 1.5 - 100) / 2) < 1e-3, h
+
+
+def test_hybrid_breakeven_when_no_swing_confirms():
+    h = _hybrid_run([bar(900, 100, 102.2, 99.9, 102.1)] +
+                    [bar(900 * (k + 2), 102 + k * .3, 102.4 + k * .3, 101.9 + k * .3, 102.3 + k * .3) for k in range(4)] +
+                    [bar(900 * 6, 103, 103.1, 99.5, 99.6)])
+    assert h["fb"] and h["state"] == "closed" and h["gross"] == 0.0, h
+
+
+def test_hybrid_breakeven_on_fall_back_to_0_3R():
+    h = _hybrid_run([bar(900, 100, 102.2, 99.9, 102.1),
+                     bar(1800, 102.1, 102.2, 100.5, 100.6),      # back below +0.3R: stop -> entry
+                     bar(2700, 100.6, 100.8, 99.0, 99.2)])
+    assert h["fb"] and h["state"] == "closed" and h["gross"] == 0.0, h
+
+
 if __name__ == "__main__":
     for name, fn in list(globals().items()):
         if name.startswith("test_"):

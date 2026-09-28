@@ -90,10 +90,16 @@ a{color:var(--s1)}
   </header>
 
   <section>
+    <h2>Your hybrid: structure first, breakeven as the fallback</h2>
+    <p id="hybText"></p>
+    <p class="note">Settings were fixed before the run and not tuned afterwards: two-bar swings, stop 0.1 × ATR beyond the swing, breakeven if no swing confirms within 4 bars of +1R or price falls back to +0.3R.</p>
+  </section>
+
+  <section>
     <h2>Scorecard</h2>
-    <p>The same ARIA 7.2c entries, managed four ways. <span id="scoreNote"></span></p>
+    <p>The same ARIA 7.2c entries, managed five ways. <span id="scoreNote"></span></p>
     <div class="panel scroll"><table class="score" id="score"></table></div>
-    <p class="note">Green marks the best of the four on that row, red the worst. “Average per trade” is net of spread, with its 95% range in brackets.</p>
+    <p class="note">Green marks the best of the five on that row, red the worst. “Average per trade” is net of spread, with its 95% range in brackets.</p>
   </section>
 
   <section>
@@ -160,11 +166,12 @@ const K = {
   off: "BE at 1R +0.1R, trail 1R",
   str: "Structure: swing stop after 1R",
   vol: "Volatility: 3×ATR trail after 1R",
+  hyb: "Hybrid: swings after 1R, BE fallback",
 };
 const dollar = Object.keys(D.sets["ARIA 7.2c"].all).filter(k => k.startsWith("$100 → BE, trail $100"));
 K.d = dollar.find(k => k.includes("36.9k"));
 const nice = k => ({[K.hold]: "Hold to stop or 2.5R", [K.c72]: "+1R → breakeven, trail 1R (Sentinel 7.2c)", [K.off]: "+1R → breakeven +0.1R, trail 1R",
-  [K.str]: "Swing-structure stop after +1R", [K.vol]: "3×ATR trail after +1R"}[k] || k.replace("$100 → BE, trail $100", "+$100 → breakeven, trail $100")
+  [K.str]: "Swing-structure stop after +1R", [K.vol]: "3×ATR trail after +1R", [K.hyb]: "Hybrid: swings after +1R, breakeven fallback"}[k] || k.replace("$100 → BE, trail $100", "+$100 → breakeven, trail $100")
   .replace("$100 → BE, trail 1R", "+$100 → breakeven, trail 1R").replace("$100 → BE only, TP 2.5R", "+$100 → breakeven only, 2.5R target").replace("sweep BE+trail at", "Sweep: breakeven + trail at"));
 const pct = (v, d = 0) => v == null ? "—" : (v * 100).toFixed(d) + "%";
 const r = (v, d = 3) => v == null ? "—" : (v >= 0 ? "+" : "−") + Math.abs(v).toFixed(d) + "R";
@@ -186,9 +193,15 @@ $("verdict").innerHTML = `
   <p><b>Recommendation:</b> measure the trigger in R, not dollars. Auto-protect in PROTrader defaults to +1R → breakeven, trail 1R. The +$100 rule is there as an option, and the app shows what $100 equals in R on your account. Choose it for a smoother ride, knowing it caps the big winners.</p>`;
 $("scoreNote").textContent = `Period ${fmtDate(D.period[0])} to ${fmtDate(D.period[1])}.`;
 
+/* ── hybrid ── */
+(function () {
+  const h = A.all[K.hyb], v = A.vs_72c[K.hyb], hh = A.holdout[K.hyb], hc = A.holdout[K.c72], hs = A.holdout[K.str];
+  $("hybText").innerHTML = `On the same ${h.n.toLocaleString()} trades the hybrid averaged <b class="num">${r(h.exp)}</b>, against <b class="num">${r(aC.exp)}</b> for Sentinel's current rule: <b>${r(v.mean)}</b> per trade, 95% range ${r(v.lo)} to ${r(v.hi)}. It lost ${pct(h.full_loss, 1)} of trades in full, level with breakeven at +1R (${pct(aC.full_loss, 1)}) and well below the pure swing stop (${pct(aS.full_loss, 1)}), so the fallback kept the protection. The pure swing stop still earned a little more (${r(aS.exp)}); the hybrid gives up about ${(aS.exp - h.exp).toFixed(2)}R a trade for that protection. In the last 30% of the year: hybrid ${r(hh.exp)}, current rule ${r(hc.exp)}, swing stop ${r(hs.exp)}. It now runs as a fourth shadow on Sentinel's trades.`;
+})();
+
 /* ── scorecard ── */
 (function () {
-  const cols = [[K.hold, "Hold to stop or 2.5R"], [K.d, "+$100 → BE, trail $100"], [K.c72, "+1R → BE, trail 1R (now)"], [K.str, "Swing stop after +1R"]];
+  const cols = [[K.hold, "Hold to stop or 2.5R"], [K.d, "+$100 → BE, trail $100"], [K.c72, "+1R → BE, trail 1R (now)"], [K.str, "Swing stop after +1R"], [K.hyb, "Hybrid"]];
   const rows = [
     ["Trades lost in full (−1R)", s => s.full_loss, v => pct(v), "low"],
     ["Trades closed in profit", s => s.win, v => pct(v), "high"],
@@ -274,7 +287,7 @@ function drawC2() {
 }
 function drawC3() {
   const host = $("c3"); host.innerHTML = "";
-  const keys = [K.c72, K.off, K.str, K.vol, ...Object.keys(A.all).filter(k => k.startsWith("$100"))];
+  const keys = [K.c72, K.off, K.str, K.hyb, K.vol, ...Object.keys(A.all).filter(k => k.startsWith("$100"))];
   const rows = keys.map(k => ({ k, s: A.all[k].saved_r, c: A.all[k].cut_r, n: A.all[k].saved_r + A.all[k].cut_r }));
   const mx = Math.max(...rows.map(x => Math.max(Math.abs(x.s), Math.abs(x.c)))) * 1.05;
   const W = Math.max(320, host.clientWidth || 800), narrow = W < 560, lw = narrow ? 0 : 270, rowH = narrow ? 50 : 28, H = rows.length * rowH + 30;
