@@ -169,6 +169,16 @@ def test_hybrid_breakeven_on_fall_back_to_0_3R():
     assert h["fb"] and h["state"] == "closed" and h["gross"] == 0.0, h
 
 
+def test_setup_grades():
+    base = {"market": "frxXAUUSD", "tf": "15m", "dir": "buy", "score": 8, "trend_4h": "up", "elliott": None}
+    assert core.grade_of(base) == "A"
+    assert core.grade_of({**base, "score": 9}) == "A+"
+    assert core.grade_of({**base, "trend_4h": "flat"}) == "other"
+    assert core.grade_of({**base, "elliott": "Wave 5 up"}) == "other"
+    assert core.grade_of({**base, "market": "frxEURUSD"}) == "other"
+    assert core.grade_of({**base, "tf": "1h", "market": "cryBTCUSD", "dir": "sell", "trend_4h": "down", "score": 10}) == "A+"
+
+
 if __name__ == "__main__":
     for name, fn in list(globals().items()):
         if name.startswith("test_"):

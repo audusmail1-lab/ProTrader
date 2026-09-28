@@ -73,6 +73,23 @@ SHADOW_BALANCE = float(_os.environ.get("SENTINEL_SHADOW_BALANCE", "36900"))
 SHADOW_TIMEOUT = 96
 
 
+# Setup grades (28 Sep 2026, research_selectivity.py). "A" is the standard
+# Joel trades: Sentinel 7.2c conditions (8+/10, 4h trend aligned, no completed
+# Wave 5) on one of the four candidate slices. "A+" adds a 9 or 10/10 score and
+# is tracked separately only; it is not required. Everything else is "other":
+# still paper-traded by Sentinel as a comparison group for the slices.
+CANDIDATE_SLICES = {("frxNAS100", "15m"), ("frxXAUUSD", "15m"), ("frxXAUUSD", "1h"), ("cryBTCUSD", "1h")}
+
+
+def grade_of(t: dict) -> str:
+    if (t.get("market"), t.get("tf")) not in CANDIDATE_SLICES:
+        return "other"
+    want = "up" if t.get("dir") == "buy" else "down"
+    if (t.get("score") or 0) < 8 or t.get("trend_4h") != want or (t.get("elliott") or "").startswith("Wave 5"):
+        return "other"
+    return "A+" if (t.get("score") or 0) >= 9 else "A"
+
+
 def shadow_rules() -> dict:
     T = round(SHADOW_USD / (SHADOW_BALANCE * 0.01), 4)
     return {
@@ -471,6 +488,7 @@ class Trade:
     protected_at: Optional[int] = None  # when the stop first reached breakeven or better
     locked_r: Optional[float] = None    # best profit the stop had locked in, in R
     shadow: dict = field(default_factory=dict)   # alternative exit rules run in parallel (see shadow_rules)
+    grade: Optional[str] = None                   # "A+", "A" or "other" (see grade_of)
 
     def to_dict(self) -> dict:
         return asdict(self)
@@ -617,6 +635,7 @@ class PaperBook:
             model=self.model, stop=read["sl"], trend_4h=trend_4h,
             shadow=shadow_init(read["entry"], read["sl"], window),
         )
+        t.grade = grade_of(t.to_dict())
         self.open[(m.id, tf)] = t
         return read, t
 

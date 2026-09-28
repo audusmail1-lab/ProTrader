@@ -199,7 +199,7 @@ def _alert_open(t: core.Trade) -> None:
         return
     ev = _evidence().get(f"{t.market} {t.tf}", {}).get("status", "unproven")
     _telegram(
-        f"ARIA Sentinel · {m.label}{' (synthetic)' if m.mode == 'synthetic' else ''} {t.tf} · {t.dir.upper()} {t.score}/{core.eng.GATE_COUNT}\n"
+        f"ARIA Sentinel · {(t.grade + ' setup · ') if t.grade in ('A', 'A+') else ''}{m.label}{' (synthetic)' if m.mode == 'synthetic' else ''} {t.tf} · {t.dir.upper()} {t.score}/{core.eng.GATE_COUNT}\n"
         f"{'EW ' + t.elliott + ' (soft) · ' if t.elliott else ''}"
         + (f"Entry {_fmt_px(t.entry)} · SL {_fmt_px(t.sl)} · TP {_fmt_px(t.tp2)}\n" if t.model == "fixed" else
            f"Entry {_fmt_px(t.entry)} · SL {_fmt_px(t.sl)} · no fixed target: at +1R trail the stop 1R behind the best price\n"
@@ -603,6 +603,8 @@ def feed(limit: int = 40) -> dict:
         t["mode"] = LEGACY_MODE.get(t.get("mode"), t.get("mode"))
     for t in closed:
         t["stage"] = core.stage_of(t)
+    for t in open_ + closed:
+        t["grade"] = t.get("grade") or core.grade_of(t)
     return {"open": open_, "closed": closed}
 
 
@@ -626,6 +628,7 @@ def stats() -> dict:
                                            lambda t: t.get("elliott") or "no count"),
             "management": core.management_stats(trades),
             "shadow": core.shadow_stats(trades),
+            "by_grade": core.group_stats(trades, lambda t: t.get("grade") or core.grade_of(t)),
             "older_rules": len(all_trades) - len(trades),
         },
         "baseline": {k: base.get(k) for k in ("generated", "period", "notes", "all", "exec", "by_slice",
