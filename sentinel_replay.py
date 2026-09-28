@@ -28,24 +28,28 @@ from concurrent.futures import ProcessPoolExecutor
 import sentinel_core as core
 
 
-def replay_series(m: core.Market, tf: str, bars: list[dict]) -> list[dict]:
-    book = core.PaperBook(news_week=False)
+def replay_series(m: core.Market, tf: str, bars: list[dict], h4: list[dict] | None = None,
+                  model: str = core.SENTINEL_MODEL) -> list[dict]:
+    """Exactly the live loop: score open trades on the new bar, then judge it."""
+    book = core.PaperBook(news_week=False, model=model)
+    ct, tr = core.trend_series(h4 or [])
     W = core.WINDOW
     for i in range(W - 1, len(bars)):
         book.update(m.id, tf, [bars[i]])
-        book.consider(m, tf, bars[i - W + 1:i + 1])
+        t4 = core.trend_at(ct, tr, bars[i]["time"] + core.TF_SEC[tf]) if ct else None
+        book.consider(m, tf, bars[i - W + 1:i + 1], trend_4h=t4)
     return [t.to_dict() for t in book.closed]
 
 
 def _job(args):
-    mid, tf, bars = args
-    return mid, tf, replay_series(core.MARKET_BY_ID[mid], tf, bars)
+    mid, tf, bars, h4, model = args
+    return mid, tf, replay_series(core.MARKET_BY_ID[mid], tf, bars, h4, model)
 
 
 async def _load(markets, tfs, pages):
     data = {}
     for m in markets:
-        for tf in tfs:
+        for tf in sorted(set(tfs) | {"4h"}, key=list(core.TF_SEC).index):
             try:
                 bars = await core.fetch_candles(m.deriv, tf, 5000, pages_back=pages)
             except Exception as e:  # keep going; report what failed
@@ -60,16 +64,24 @@ async def _load(markets, tfs, pages):
 def write_baseline(trades: list[dict], bars_info: dict, path: str) -> None:
     """Compact summary the live Sentinel shows next to its own journal."""
     live = [t for t in trades if t["mode"] == "real"]
-    ex = [t for t in live if t["tier"] == "exec"]            # headline: real markets
-    ex_all = [t for t in trades if t["tier"] == "exec"]      # per-market evidence: everything
+    model = trades[0].get("model", "fixed") if trades else "fixed"
+    if model == "fixed":
+        ex = [t for t in live if t["tier"] == "exec"]        # headline: real markets, exec-ready
+        ex_all = [t for t in trades if t["tier"] == "exec"]  # per-market evidence
+    else:                                                     # a filtered model: every trade it takes counts
+        ex, ex_all = live, trades
     starts = [v[0] for v in bars_info.values()]
     ends = [v[1] for v in bars_info.values()]
     fmt_d = lambda e: time.strftime("%Y-%m-%d", time.gmtime(e))
     out = {
         "generated": int(time.time()),
         "period": [fmt_d(min(starts)), fmt_d(max(ends))] if starts else None,
+        "model": model,
         "notes": ("Replay of the live Sentinel rules on Deriv history. Estimated spreads, "
-                  "no slippage, news-week block off. 'exec' = execution-ready (9+/10 gates, ARIA 7.1) on real markets."),
+                  "no slippage, news-week block off. " + (
+                      "'exec' = execution-ready (9+/10 gates, ARIA 7.1) on real markets." if model == "fixed" else
+                      f"Model {model}: ARIA 7.1 signals (8+/10) taken only with the 4h trend, no Wave 5 entries, "
+                      "trailing 1R exit once +1R.")),
         "all": core.summarise(live),
         "exec": core.summarise(ex),
         "by_slice": core.group_stats(ex_all, lambda t: f"{t['market']} {t['tf']}"),
@@ -100,6 +112,8 @@ def main() -> None:
     ap.add_argument("--market", action="append", help="terminal id(s), e.g. frxXAUUSD (default: the default focus list)")
     ap.add_argument("--out", help="write every trade and the summaries to this JSON file")
     ap.add_argument("--baseline", help="write the compact baseline the Sentinel pane shows")
+    ap.add_argument("--model", default=core.SENTINEL_MODEL, choices=list(core.MODELS),
+                    help="paper-trading model (default: the live Sentinel model)")
     a = ap.parse_args()
     tfs = a.tf or ["15m", "1h"]
     markets = [core.MARKET_BY_ID[x] for x in (a.market or core.DEFAULT_FOCUS)]
@@ -107,7 +121,9 @@ def main() -> None:
     t0 = time.time()
     data = asyncio.run(_load(markets, tfs, a.pages))
     with ProcessPoolExecutor() as ex:
-        results = list(ex.map(_job, [(mid, tf, bars) for (mid, tf), bars in data.items()]))
+        jobs = [(mid, tf, bars, data.get((mid, "4h")), a.model)
+                for (mid, tf), bars in data.items() if tf in tfs]
+        results = list(ex.map(_job, jobs))
     trades = [t for _, _, ts in results for t in ts]
 
     def show(title, groups):
@@ -115,7 +131,7 @@ def main() -> None:
         for k, s in groups.items():
             print(f"  {k:28s} {fmt(s)}")
 
-    print(f"\nSentinel replay · {len(trades)} paper trades · {time.time()-t0:.0f}s")
+    print(f"\nSentinel replay · model {a.model} · {len(trades)} paper trades · {time.time()-t0:.0f}s")
     print(f"Target 2.5R → break-even win rate before costs {core.BREAKEVEN_WINRATE*100:.1f}%")
     live = [t for t in trades if t["mode"] == "real"]
     res = [t for t in trades if t["mode"] == "synthetic"]

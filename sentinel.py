@@ -158,7 +158,7 @@ def _apply_costs(costs: dict) -> None:
 
 
 def _restore_book() -> core.PaperBook:
-    book = core.PaperBook(news_week=bool(_meta_get("news_week", False)))
+    book = core.PaperBook(news_week=bool(_meta_get("news_week", False)), model=core.SENTINEL_MODEL)
     for d in _load_trades("WHERE status='open'"):
         d["mode"] = LEGACY_MODE.get(d.get("mode"), d.get("mode"))
         t = core.Trade(**d)
@@ -186,20 +186,23 @@ def _telegram(text: str) -> None:
 
 def _alert_open(t: core.Trade) -> None:
     m = core.MARKET_BY_ID[t.market]
-    if t.tier != "exec":
+    if t.model == "fixed" and t.tier != "exec":
         return
     ev = _evidence().get(f"{t.market} {t.tf}", {}).get("status", "unproven")
     _telegram(
         f"ARIA Sentinel · {m.label}{' (synthetic)' if m.mode == 'synthetic' else ''} {t.tf} · {t.dir.upper()} {t.score}/{core.eng.GATE_COUNT}\n"
         f"{'EW ' + t.elliott + ' (soft) · ' if t.elliott else ''}"
-        f"Entry {_fmt_px(t.entry)} · SL {_fmt_px(t.sl)} · TP {_fmt_px(t.tp2)}\n"
+        + (f"Entry {_fmt_px(t.entry)} · SL {_fmt_px(t.sl)} · TP {_fmt_px(t.tp2)}\n" if t.model == "fixed" else
+           f"Entry {_fmt_px(t.entry)} · SL {_fmt_px(t.sl)} · no fixed target: at +1R trail the stop 1R behind the best price\n"
+           f"4h trend {t.trend_4h} · ARIA {t.model} candidate\n")
+        + 
         f"MCC {t.mcc} · {t.wyckoff}{' · ' + t.pattern if t.pattern else ''}\n"
         f"Evidence: {ev}. Paper signal — confirm on the chart before trading.")
 
 
 def _alert_close(t: core.Trade) -> None:
     m = core.MARKET_BY_ID[t.market]
-    if t.tier != "exec":
+    if t.model == "fixed" and t.tier != "exec":
         return
     _telegram(f"ARIA Sentinel · {m.label} {t.tf} paper {t.dir} closed: {t.status.upper()} {t.r:+.2f}R")
 
@@ -210,13 +213,12 @@ SUPPORTED_TFS = [t for t in ("15m", "1h", "4h") if t in core.TF_SEC]
 # Default per-market timeframes. 15m forex is left out on purpose: in the
 # one-year replay the spread cost ~17% of each stop there and every 15m FX
 # slice lost money.
+# ARIA 7.2 candidate focus: the four market-timeframes that held up in both
+# the full year and the hold-out of the 27 Sep 2026 research.
 DEFAULT_FOCUS = [
-    {"id": "frxNAS100", "tfs": ["15m", "1h"]},
+    {"id": "frxNAS100", "tfs": ["15m"]},
     {"id": "frxXAUUSD", "tfs": ["15m", "1h"]},
     {"id": "cryBTCUSD", "tfs": ["1h"]},
-    {"id": "frxEURUSD", "tfs": ["1h"]},
-    {"id": "R_75", "tfs": ["15m", "1h"]},
-    {"id": "1HZ75V", "tfs": ["15m", "1h"]},
 ]
 
 
@@ -246,14 +248,42 @@ def _slices() -> list[str]:
 
 
 def _current(trades: list[dict]) -> list[dict]:
-    """Only trades produced by the current ARIA rules count toward evidence."""
-    return [t for t in trades if t.get("engine", "7.0") == core.eng.ENGINE_VERSION]
+    """Only trades made by the current ARIA rules AND paper model count as evidence."""
+    return [t for t in trades if t.get("engine", "7.0") == core.eng.ENGINE_VERSION
+            and t.get("model", "fixed") == core.SENTINEL_MODEL]
+
+
+_trend_cache: dict[str, tuple] = {}   # market -> (close_times, trends, next_refresh_epoch)
+
+
+async def _trend_4h(m: core.Market) -> Optional[str]:
+    """4h trend from the last CLOSED 4h bar, refreshed once per 4h close."""
+    now = time.time()
+    hit = _trend_cache.get(m.id)
+    if not hit or now >= hit[2]:
+        h4 = await core.fetch_candles(m.deriv, "4h", 5000)
+        ct, tr = core.trend_series(h4)
+        nxt = (ct[-1] + core.TF_SEC["4h"] + 30) if ct else now + 600
+        hit = _trend_cache[m.id] = (ct, tr, nxt)
+    ct, tr, _ = hit
+    return core.trend_at(ct, tr, int(now)) if ct else None
+
+
+def _board_row(m: core.Market, tf: str, last: dict, r: dict) -> dict:
+    return {"market": m.id, "label": m.label, "tf": tf, "mode": m.mode, "bar": last["time"],
+            "price": last["close"],
+            **{k: r[k] for k in ("dir", "score", "gates", "mcc", "wyckoff", "pattern", "verdict")},
+            "sl": r["sl"], "tp2": r["tp2"], "elliott": r["elliott"]["label"], "fib_r": r["fib_r"],
+            "trend_4h": r.get("trend_4h"), "block": r.get("block")}
 
 
 async def _scan_one(m: core.Market, tf: str, focused: bool = True) -> None:
     """Score open paper trades; if the market is in focus, judge the new bar."""
     key = f"{m.id} {tf}"
-    bars = await core.fetch_candles(m.deriv, tf, core.WINDOW + 10)
+    # Deriv's "count" is really a time span (count × timeframe back from now),
+    # so across a weekend or outside index hours it returns far fewer bars.
+    # Ask for the maximum and keep the last WINDOW+10 closed bars.
+    bars = (await core.fetch_candles(m.deriv, tf, 5000))[-(core.WINDOW + 10):]
     if len(bars) < core.WINDOW // 2:
         return
     for t in _book.update(m.id, tf, bars):
@@ -272,25 +302,22 @@ async def _scan_one(m: core.Market, tf: str, focused: bool = True) -> None:
     # outage the latest close may be stale, and its price is no longer
     # available to a trader — record the read, skip the entry.
     fresh = time.time() - (last["time"] + core.TF_SEC[tf]) < FRESH_S
-    read, new = (_book.consider(m, tf, bars[-core.WINDOW:], allow_open=fresh)
+    t4 = None
+    if last["time"] > evaluated or seen is None:
+        try:
+            t4 = await _trend_4h(m)
+        except Exception as e:          # no 4h trend = no candidate entry, never a crash
+            log.warning("4h trend %s: %s", m.id, e)
+    read, new = (_book.consider(m, tf, bars[-core.WINDOW:], allow_open=fresh, trend_4h=t4)
                  if last["time"] > evaluated else (None, None))
     if read:
         _meta_set(f"eval:{key}", last["time"])
-        _state["board"][key] = {
-            "market": m.id, "label": m.label, "tf": tf, "mode": m.mode, "bar": last["time"],
-            "price": last["close"], **{k: read[k] for k in ("dir", "score", "gates", "mcc", "wyckoff", "pattern", "verdict")},
-            "sl": read["sl"], "tp2": read["tp2"], "elliott": read["elliott"]["label"],
-            "fib_r": read["fib_r"],
-        }
+        _state["board"][key] = _board_row(m, tf, last, read)
     elif seen is None:
-        # First cycle after a restart on an already-judged bar: still show it.
-        r = core.eng.evaluate(bars[-core.WINDOW:], m.id, core.bar_close_hour(last, tf), _book.news_week)
+        # First cycle after a restart on an already-judged bar: show it, never enter.
+        r, _ = _book.consider(m, tf, bars[-core.WINDOW:], allow_open=False, trend_4h=t4)
         if r:
-            _state["board"][key] = {"market": m.id, "label": m.label, "tf": tf, "mode": m.mode,
-                                    "bar": last["time"], "price": last["close"],
-                                    **{k: r[k] for k in ("dir", "score", "gates", "mcc", "wyckoff", "pattern", "verdict")},
-                                    "sl": r["sl"], "tp2": r["tp2"], "elliott": r["elliott"]["label"],
-                                    "fib_r": r["fib_r"]}
+            _state["board"][key] = _board_row(m, tf, last, r)
     # Keep the open trade's progress on disk so a restart resumes it.
     t = _book.open.get((m.id, tf))
     if t:
@@ -392,8 +419,7 @@ def _evidence() -> dict[str, dict]:
     negative when either source is clearly below zero.
     """
     base = _baseline().get("by_slice", {})
-    live = core.group_stats([t for t in _current(_load_trades()) if t["tier"] == "exec"],
-                            lambda t: f"{t['market']} {t['tf']}")
+    live = core.group_stats(_current(_load_trades()), lambda t: f"{t['market']} {t['tf']}")
     slices = _slices()
     k = len(slices)
     out = {}
@@ -430,6 +456,7 @@ def status() -> dict:
         "markets": [{"id": f["id"], "label": core.MARKET_BY_ID[f["id"]].label,
                      "mode": core.MARKET_BY_ID[f["id"]].mode, "tfs": f["tfs"]} for f in focus],
         "supported_tfs": SUPPORTED_TFS, "engine": core.eng.ENGINE_VERSION,
+        "model": core.SENTINEL_MODEL, "model_rules": core.MODELS[core.SENTINEL_MODEL],
         "gate_count": core.eng.GATE_COUNT,
         "evidence_z": round(core.z_for(len(_slices())), 2),
         "max_markets": MAX_MARKETS,
@@ -575,7 +602,7 @@ def stats() -> dict:
     return {
         "journal": {
             "all": core.summarise(trades),
-            "exec": core.summarise([t for t in trades if t["tier"] == "exec"]),
+            "exec": core.summarise(trades),          # every trade the current model took
             "real": core.summarise(real),
             "synthetic": core.summarise(syn),
             "by_slice": core.group_stats(trades, lambda t: f"{t['market']} {t['tf']}"),
@@ -589,6 +616,7 @@ def stats() -> dict:
         "model": {"target_r": core.TARGET_R, "breakeven_win_rate": round(core.BREAKEVEN_WINRATE, 4),
                   "max_bars": core.MAX_BARS, "evidence_min_trades": EVIDENCE_MIN_N,
                   "engine": core.eng.ENGINE_VERSION, "gate_count": core.eng.GATE_COUNT,
+                  "model": core.SENTINEL_MODEL,
                   "evidence_z": round(core.z_for(len(_slices())), 2), "slices": len(_slices())},
     }
 

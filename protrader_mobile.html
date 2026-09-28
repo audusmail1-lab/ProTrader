@@ -7887,7 +7887,10 @@ const SENT = (() => {
     if (!Number.isFinite(now) || !(t.sl_dist > 0)) return null;
     const sign = t.dir === 'buy' ? 1 : -1;
     const moved = sign * (now - t.entry) / t.sl_dist;
-    return { now, moved, dead: moved <= -1 || moved >= 2.5 };
+    const trailing = t.model && t.model !== 'fixed';
+    const stop = Number.isFinite(t.stop) ? t.stop : t.sl;
+    const pastStop = sign * (now - stop) <= 0;
+    return { now, moved, dead: trailing ? pastStop : (moved <= -1 || moved >= 2.5) };
   }
 
   function tradeCard(t, ev) {
@@ -7904,7 +7907,9 @@ const SENT = (() => {
       <div class="sn-lv">
         <div><span>Entry</span><b>${px(t.market, t.entry)}</b></div>
         <div><span>Stop</span><b>${px(t.market, t.sl)}</b></div>
-        <div><span>Target</span><b>${px(t.market, t.tp2)}</b></div>
+        ${t.model && t.model !== 'fixed'
+          ? `<div><span>Stop now</span><b>${px(t.market, Number.isFinite(t.stop) ? t.stop : t.sl)}</b></div>`
+          : `<div><span>Target</span><b>${px(t.market, t.tp2)}</b></div>`}
       </div>
       <div class="sn-meta">${esc(t.mcc)} · ${esc(t.wyckoff)}${t.pattern ? ' · ' + esc(t.pattern) : ''}${Number.isFinite(t.fib_r) ? ` · Fib ${(t.fib_r * 100).toFixed(0)}%` : ''} · signal ${ago(t.opened_at)} · ${t.bars} bar${t.bars === 1 ? '' : 's'} · best ${t.mfe_r.toFixed(2)}R${d ? ` · now ${px(t.market, d.now)}` : ''}</div>
       ${warn ? `<div class="sn-warn">${esc(warn)}</div>` : ''}
@@ -8072,7 +8077,9 @@ const SENT = (() => {
     const closed = (feed.closed || []).slice(0, 8);
 
     const baseTxt = bx.n
-      ? `One-year replay (${esc(base.period?.[0])} → ${esc(base.period?.[1])}): <b>${bx.n.toLocaleString()}</b> exec-ready signals averaged <b>${bx.expectancy_r >= 0 ? '+' : ''}${bx.expectancy_r.toFixed(2)}R</b> each after estimated spreads (win rate ${(bx.win_rate * 100).toFixed(1)}% vs ${(stats.model.breakeven_win_rate * 100).toFixed(1)}% break-even).`
+      ? (base.model && base.model !== 'fixed'
+        ? `One-year replay of ARIA ${esc(base.model)} on real markets (${esc(base.period?.[0])} → ${esc(base.period?.[1])}): <b>${bx.n.toLocaleString()}</b> trades averaged <b>${bx.expectancy_r >= 0 ? '+' : ''}${bx.expectancy_r.toFixed(2)}R</b> each after estimated spreads; ${(bx.win_rate * 100).toFixed(0)}% closed in profit.`
+        : `One-year replay (${esc(base.period?.[0])} → ${esc(base.period?.[1])}): <b>${bx.n.toLocaleString()}</b> exec-ready signals averaged <b>${bx.expectancy_r >= 0 ? '+' : ''}${bx.expectancy_r.toFixed(2)}R</b> each after estimated spreads (win rate ${(bx.win_rate * 100).toFixed(1)}% vs ${(stats.model.breakeven_win_rate * 100).toFixed(1)}% break-even).`)
       : 'No replay baseline loaded yet.';
     const evTxt = proven
       ? `<b>${proven}</b> market${proven === 1 ? '' : 's'} have a proven edge in both the replay and the live journal.`
@@ -8085,7 +8092,7 @@ const SENT = (() => {
         <span class="sn-sub">${running ? `Reading ${status.markets.length} of ${cat ? cat.total : 89} markets · ${status.timeframes.join(' + ')}<br>last scan ${ago(status.last_cycle)}` : status.enabled ? 'Starting up…' : 'Scanner is off on this server'}</span>
       </div>
       ${status.journal && !status.journal.persistent ? `<div class="sn-warn">Journal is temporary: ${esc(status.journal.warning || 'it resets on every deploy')}.</div>` : ''}
-      <div class="sn-note">Paper only — Sentinel prepares, you confirm. ${evTxt}<br>${baseTxt}${status.news_week ? '<br><b>News Week is ON:</b> NAS100 shorts are blocked.' : ''}</div>
+      <div class="sn-note">${status.model && status.model !== 'fixed' ? `<b>ARIA ${esc(status.model)} candidate</b> on paper: ARIA 8+/10 signals, taken only with the 4h trend and never on a completed Wave 5; stop −1R, trailing 1R once +1R. ` : ''}Paper only — Sentinel prepares, you confirm. ${evTxt}<br>${baseTxt}${status.news_week ? '<br><b>News Week is ON:</b> NAS100 shorts are blocked.' : ''}</div>
 
       ${focusBlock(status)}
 
@@ -8096,13 +8103,13 @@ const SENT = (() => {
       <table class="sn-tbl"><thead><tr><th>Market</th><th>ARIA</th><th>Score</th><th>Bias</th><th>Evidence</th></tr></thead><tbody>
       ${(board.rows || []).map(b => `<tr class="go" onclick="SENT.chart('${esc(b.market)}','${esc(b.tf)}')" title="${esc(b.mcc)} · ${esc(b.wyckoff)}${b.elliott ? ' · EW ' + esc(b.elliott) + ' (soft)' : ''}">
         <td><b style="color:var(--tx-1)">${esc(label(b.market))}</b> <span style="color:var(--tx-3)">${esc(b.tf)}${b.mode === 'synthetic' ? ' · syn' : ''}</span></td>
-        <td class="sn-v-${esc(b.verdict)}">${V_LABEL[b.verdict] || esc(b.verdict)}</td>
+        <td class="sn-v-${esc(b.verdict)}">${V_LABEL[b.verdict] || esc(b.verdict)}${b.block && (b.verdict === 'EXEC_READY' || b.verdict === 'QUALIFIED') ? `<div class="sn-meta" style="font-weight:600;color:var(--amber)">held: ${esc(b.block)}</div>` : ''}</td>
         <td>${b.score}/${ARIA_GATE_COUNT}</td>
-        <td class="${b.dir === 'buy' ? 'sn-pos' : 'sn-neg'}">${b.dir === 'buy' ? 'Long' : 'Short'}</td>
+        <td class="${b.dir === 'buy' ? 'sn-pos' : 'sn-neg'}">${b.dir === 'buy' ? 'Long' : 'Short'}${b.trend_4h ? `<div class="sn-meta">4h ${b.trend_4h === 'up' ? '↑' : b.trend_4h === 'down' ? '↓' : '→'}</div>` : ''}</td>
         <td>${evChip(b.evidence)}</td></tr>`).join('') || '<tr><td colspan="5" class="sn-empty">Waiting for the first scan…</td></tr>'}
       </tbody></table>
 
-      <div class="sn-h">Paper results · exec-ready · all focus markets</div>
+      <div class="sn-h">Paper results · current model · all focus markets</div>
       <div class="sn-card"><div class="sn-meta">${live.n
         ? `${live.n} closed · win ${(live.win_rate * 100).toFixed(1)}% · average ${r(live.expectancy_r)} · total ${r(live.total_r)} · ${esc(live.verdict)}`
         : 'No closed paper trades yet. Results appear here as Sentinel’s setups hit their stop or target.'}</div>
@@ -8161,7 +8168,14 @@ const SENT = (() => {
     const d = drift(t);
     if (d?.dead) return;
     chart(t.market, t.tf);
-    applyARIA(t.sl, t.tp2, t.dir);   // fills the ticket and opens the Trade tab; the trader still decides
+    if (t.model && t.model !== 'fixed') {
+      // 7.2 candidate: no fixed target. Fill the stop only; the plan is to
+      // trail it 1R behind the best price once the trade reaches +1R.
+      applyARIA(Number.isFinite(t.stop) ? t.stop : t.sl, NaN, t.dir);
+      showToast(`Stop filled. ARIA 7.2 candidate: no fixed target — once +1R (${px(t.market, t.entry + (t.dir === 'buy' ? 1 : -1) * t.sl_dist)}), trail the stop 1R behind the best price.`, 6500);
+    } else {
+      applyARIA(t.sl, t.tp2, t.dir);   // fills the ticket and opens the Trade tab; the trader still decides
+    }
   }
 
   return { open, refresh, load, chart, editFocus, toggle, toggleTf, saveFocus, cancelFocus, measureCosts };

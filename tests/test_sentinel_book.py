@@ -58,6 +58,26 @@ def test_summary_breakeven_math():
     assert s["verdict"].startswith("no proven edge")
 
 
+def test_trailing_model_matches_research_simulator():
+    """The live paper book and the research simulator must score trades identically."""
+    import random
+    from research_exits import simulate, EXIT_MODELS
+    rnd = random.Random(7)
+    for trial in range(300):
+        d = rnd.choice(["buy", "sell"])
+        px, bars = 100.0, [bar(0, 100, 100, 100, 100)]
+        for k in range(1, 130):
+            o = px; px = max(1.0, px + rnd.gauss(0, 1.2) + (0.15 if d == "buy" else -0.15) * rnd.random())
+            bars.append(bar(900 * k, o, max(o, px) + rnd.random(), min(o, px) - rnd.random(), px))
+        t = trade(d, entry=100.0, sl_dist=2.0, cost_r=0.0)
+        t.model, t.stop, t.last_bar = "7.2c", t.sl, 0
+        b = book_with(t)
+        b.update(t.market, t.tf, bars[1:])
+        want, _ = simulate(bars, 0, d, 100.0, 2.0, EXIT_MODELS["trail_1R"])
+        assert t.status != "open", trial
+        assert abs(t.r - want) < 1e-4, (trial, t.r, want)   # r is stored to 4 dp
+
+
 if __name__ == "__main__":
     for name, fn in list(globals().items()):
         if name.startswith("test_"):

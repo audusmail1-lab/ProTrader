@@ -37,6 +37,45 @@ MAX_BARS = 48         # paper trade time-out, in bars of its own timeframe
 TARGET_R = 2.5        # TP2
 BREAKEVEN_WINRATE = 1 / (1 + TARGET_R)   # 28.6 % before costs
 
+# Paper-trading models. "7.2c" is the ARIA 7.2 CANDIDATE chosen from the
+# 27 Sep 2026 research (research_exits.py): same ARIA 7.1 gates, but
+#   • entries only when the last CLOSED 4h bar trends the same way
+#     (close vs EMA20 vs EMA50), and never on a completed Elliott Wave 5
+#   • exit: stop at -1R; once +1R is reached the stop trails 1R behind the
+#     best price; no fixed target; out after 96 bars
+# "fixed" is the original model (stop -1R, target +2.5R, 48 bars).
+MODELS = {
+    "fixed": dict(tp=TARGET_R, timeout=MAX_BARS, trail=None, arm=None, mtf=False, wave5_veto=False),
+    "7.2c":  dict(tp=None, timeout=96, trail=1.0, arm=1.0, mtf=True, wave5_veto=True),
+}
+SENTINEL_MODEL = "7.2c"
+
+
+def trend_series(h4: list[dict]) -> tuple[list[int], list[str]]:
+    """Per 4h bar: its close time and 'up' / 'down' / 'flat' (EMA20/50 + close)."""
+    closes = [c["close"] for c in h4]
+    if not closes:
+        return [], []
+    e20, e50 = eng.calc_ema(closes, 20), eng.calc_ema(closes, 50)
+    tr = []
+    for i, c in enumerate(closes):
+        if i < 60:
+            tr.append("flat")
+        elif c > e20[i] > e50[i]:
+            tr.append("up")
+        elif c < e20[i] < e50[i]:
+            tr.append("down")
+        else:
+            tr.append("flat")
+    return [c["time"] + TF_SEC["4h"] for c in h4], tr
+
+
+def trend_at(close_times: list[int], trends: list[str], t: int) -> str:
+    """Trend of the last 4h bar that had closed by time t — never looks ahead."""
+    import bisect
+    k = bisect.bisect_right(close_times, t) - 1
+    return trends[k] if k >= 0 else "flat"
+
 
 @dataclass(frozen=True)
 class Market:
@@ -264,6 +303,10 @@ class Trade:
     atr_ratio: Optional[float] = None
     elliott: Optional[str] = None  # soft Elliott label, context only
     ew_aligned: Optional[bool] = None  # Elliott direction agrees with the trade
+    model: str = "fixed"           # paper-trading model (see MODELS)
+    stop: Optional[float] = None   # current stop (moves when trailing)
+    best_r: float = 0.0            # best excursion used for trailing, in R
+    trend_4h: Optional[str] = None
 
     def to_dict(self) -> dict:
         return asdict(self)
@@ -272,8 +315,9 @@ class Trade:
 class PaperBook:
     """One open paper position per market × timeframe, like a disciplined trader."""
 
-    def __init__(self, news_week: bool = False):
+    def __init__(self, news_week: bool = False, model: str = "fixed"):
         self.news_week = news_week
+        self.model = model
         self.open: dict[tuple[str, str], Trade] = {}
         self.closed: list[Trade] = []
 
@@ -282,6 +326,8 @@ class PaperBook:
         t = self.open.get((market, tf))
         if not t:
             return []
+        if MODELS.get(t.model, {}).get("trail"):
+            return self._update_trailing(t, tf, bars)
         sign = 1 if t.dir == "buy" else -1
         for b in bars:
             if b["time"] <= t.last_bar:
@@ -308,6 +354,39 @@ class PaperBook:
                 return [t]
         return []
 
+    def _update_trailing(self, t: Trade, tf: str, bars: list[dict]) -> list[Trade]:
+        """Trailing model — mirrors research_exits.simulate() bar for bar."""
+        cfg = MODELS[t.model]
+        s = 1 if t.dir == "buy" else -1
+        if t.stop is None:
+            t.stop = t.sl
+        for b in bars:
+            if b["time"] <= t.last_bar:
+                continue
+            t.last_bar = b["time"]
+            t.bars += 1
+            lo_r = s * ((b["low"] if s > 0 else b["high"]) - t.entry) / t.sl_dist
+            hi_r = s * ((b["high"] if s > 0 else b["low"]) - t.entry) / t.sl_dist
+            t.mfe_r = max(t.mfe_r, hi_r)
+            t.mae_r = max(t.mae_r, -lo_r)
+            if hi_r >= 1.5:
+                t.tp1_hit = True
+            close_at = b["time"] + TF_SEC[tf]
+            stop_r = s * (t.stop - t.entry) / t.sl_dist
+            if lo_r <= stop_r:                                  # stop first
+                self._close(t, "win" if stop_r > 0 else "loss", t.stop, stop_r, close_at)
+                return [t]
+            t.best_r = max(t.best_r, hi_r)
+            if t.best_r >= cfg["arm"]:
+                cand = t.entry + s * t.sl_dist * (t.best_r - cfg["trail"])
+                if (s > 0 and cand > t.stop) or (s < 0 and cand < t.stop):
+                    t.stop = cand
+            if t.bars >= cfg["timeout"]:
+                gross = s * (b["close"] - t.entry) / t.sl_dist
+                self._close(t, "timeout", b["close"], gross, close_at)
+                return [t]
+        return []
+
     def _close(self, t: Trade, status: str, px: float, gross_r: float, at: int) -> None:
         t.status, t.exit, t.closed_at = status, px, at
         t.r = round(gross_r - t.cost_r, 4)
@@ -316,10 +395,20 @@ class PaperBook:
 
     # Judge the newest closed bar; open a paper trade if ARIA says so.
     def consider(self, m: Market, tf: str, window: list[dict],
-                 allow_open: bool = True) -> tuple[Optional[dict], Optional[Trade]]:
+                 allow_open: bool = True, trend_4h: Optional[str] = None) -> tuple[Optional[dict], Optional[Trade]]:
         last = window[-1]
         read = eng.evaluate(window, m.id, bar_close_hour(last, tf), self.news_week)
-        if not read or not allow_open or (m.id, tf) in self.open:
+        if not read:
+            return read, None
+        cfg = MODELS[self.model]
+        want = "up" if read["dir"] == "buy" else "down"
+        read["trend_4h"] = trend_4h
+        read["block"] = None
+        if cfg["mtf"] and trend_4h != want:
+            read["block"] = "4h trend " + ("flat" if trend_4h in (None, "flat") else "against")
+        elif cfg["wave5_veto"] and (read["elliott"]["label"] or "").startswith("Wave 5"):
+            read["block"] = "Wave 5 exhaustion"
+        if not allow_open or (m.id, tf) in self.open or read["block"]:
             return read, None
         tier = {"EXEC_READY": "exec", "QUALIFIED": "qualified"}.get(read["verdict"])
         if not tier or not (read["sl_dist"] > 0):
@@ -335,6 +424,7 @@ class PaperBook:
             elliott=read["elliott"]["label"],
             ew_aligned=(None if not read["elliott"]["dir"]
                         else read["elliott"]["dir"] == ("up" if read["dir"] == "buy" else "down")),
+            model=self.model, stop=read["sl"], trend_4h=trend_4h,
         )
         self.open[(m.id, tf)] = t
         return read, t
