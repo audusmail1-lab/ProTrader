@@ -55,6 +55,17 @@ _KEY_RE = re.compile(r"^[A-Za-z0-9_-]{%d,128}$" % MIN_KEY_LEN)
 _lock = threading.Lock()
 _channels: "OrderedDict[str, dict]" = OrderedDict()
 
+# Callbacks run on every EA snapshot: fn(channel_id, snapshot, deals_or_None).
+# Sentinel uses this to track the owner's trade management server-side, so
+# stop moves are recorded even when no browser has PROTrader open. A hook
+# must be quick and must never raise into the EA's request.
+SNAPSHOT_HOOKS: list = []
+
+
+def channel_id(key: str) -> str | None:
+    """The relay's id for a bridge key (sha256), or None if malformed."""
+    return hashlib.sha256(key.encode()).hexdigest() if _KEY_RE.match(key or "") else None
+
 
 def _now() -> float:
     return time.time()
@@ -227,6 +238,14 @@ async def ea_sync(request: Request):
         ch["snapshot"] = snap
         if isinstance(body.get("history"), list):
             ch["history"] = {"at": now, "deals": body["history"][:200]}
+
+        cid = hashlib.sha256(request.headers.get("x-bridge-key", "").encode()).hexdigest()
+        deals = body["history"][:200] if isinstance(body.get("history"), list) else None
+        for hook in SNAPSHOT_HOOKS:
+            try:
+                hook(cid, snap, deals)
+            except Exception:       # tracking must never break order flow
+                pass
 
         for r in (body.get("results") or [])[:20]:
             if isinstance(r, dict) and _ID_RE.match(str(r.get("id", ""))):

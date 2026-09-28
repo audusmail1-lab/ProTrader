@@ -1415,6 +1415,57 @@ svg.ico{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.7;st
 .ws-button:disabled{opacity:.45;cursor:default}
 .nt-channel{display:flex;align-items:center;gap:12px;padding:12px;border:1px solid var(--bd-1);border-radius:10px}.nt-channel>div{flex:1;min-width:0;display:grid;gap:3px}.nt-channel small{color:var(--tx-3);line-height:1.45}.nt-channel.on{border-color:rgba(47,191,155,.5)}
 .nt-events{border:1px solid var(--bd-1);border-radius:10px;padding:6px 12px 10px;display:grid;gap:6px}.nt-events legend{font-size:var(--fs-1);color:var(--tx-3);padding:0 4px}
+/* ── ARIA Sentinel pane ── */
+.sn{display:flex;flex-direction:column;gap:8px;font-size:12px;color:var(--tx-2)}
+.sn-hd{display:flex;align-items:center;gap:8px}
+.sn-title{font-size:13px;font-weight:900;color:var(--blue-lt);letter-spacing:.4px}
+.sn-dot{width:8px;height:8px;border-radius:50%;background:var(--tx-4);flex:0 0 auto}
+.sn-dot.on{background:var(--green);box-shadow:0 0 0 3px var(--green-glow)}
+.sn-dot.warn{background:var(--amber)}
+.sn-sub{color:var(--tx-3);font-size:11px;margin-left:auto;text-align:right}
+.sn-note{background:var(--bg-3);border:1px solid var(--bd-1);border-left:3px solid var(--amber);border-radius:var(--r-sm);padding:8px 10px;line-height:1.45}
+.sn-note b{color:var(--tx-1)}
+.sn-h{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.6px;color:var(--tx-3);margin-top:4px}
+.sn-card{background:var(--bg-3);border:1px solid var(--bd-1);border-radius:var(--r-sm);padding:9px 10px;display:flex;flex-direction:column;gap:6px}
+.sn-row{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.sn-mk{font-weight:800;color:var(--tx-1);font-size:13px}
+.sn-chip{font-size:10.5px;font-weight:800;border-radius:999px;padding:2px 7px;border:1px solid var(--bd-2);color:var(--tx-2);white-space:nowrap}
+.sn-chip.buy{color:var(--green);border-color:var(--green)}
+.sn-chip.sell{color:var(--red);border-color:var(--red)}
+.sn-chip.ev-proven{color:var(--green);border-color:var(--green)}
+.sn-chip.ev-negative{color:var(--red);border-color:var(--red)}
+.sn-chip.ev-unproven{color:var(--amber);border-color:var(--amber)}
+.sn-lv{display:grid;grid-template-columns:repeat(3,1fr);gap:4px}
+.sn-lv div{background:var(--bg-2);border-radius:6px;padding:4px 6px}
+.sn-lv span{display:block;font-size:10px;color:var(--tx-3)}
+.sn-lv b{font-variant-numeric:tabular-nums;color:var(--tx-1);font-size:12px}
+.sn-meta{color:var(--tx-3);font-size:11px;line-height:1.4}
+.sn-warn{color:var(--amber);font-size:11px}
+.sn-btn{appearance:none;border:1px solid var(--blue);background:rgba(79,140,255,.12);color:var(--blue-lt);font-weight:800;border-radius:8px;padding:8px 10px;font-size:12px;cursor:pointer;min-height:36px}
+.sn-btn[disabled]{opacity:.45;cursor:not-allowed}
+.sn-tbl{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
+.sn-tbl th{font-size:10px;color:var(--tx-3);text-align:left;font-weight:700;padding:3px 4px;border-bottom:1px solid var(--bd-1)}
+.sn-tbl td{padding:6px 4px;border-bottom:1px solid var(--bd-1);color:var(--tx-2);vertical-align:middle}
+.sn-tbl tr.go{cursor:pointer}
+.sn-tbl tr.go:hover td{background:var(--bg-4)}
+.sn-tbl td.sn-v-EXEC_READY{color:var(--green);font-weight:800}
+.sn-tbl td.sn-v-QUALIFIED{color:var(--blue-lt);font-weight:700}
+.sn-tbl td.sn-v-BLOCKED{color:var(--red);font-weight:700}
+.sn .sn-pos{color:var(--green)} .sn .sn-neg{color:var(--red)}
+.sn details summary{cursor:pointer;color:var(--tx-2);font-weight:700;padding:4px 0}
+.sn-empty{color:var(--tx-3);padding:6px 2px}
+.sn-btn-2{background:transparent;border-color:var(--bd-2);color:var(--tx-2)}
+.sn-focus .sn-meta{line-height:1.5}
+.sn-grp{border-top:1px solid var(--bd-1);padding-top:4px}
+.sn-grp summary{font-size:12px}
+.sn-picks{display:flex;flex-wrap:wrap;gap:6px;padding:6px 0 4px}
+.sn-pick{appearance:none;border:1px solid var(--bd-2);background:var(--bg-2);color:var(--tx-2);border-radius:999px;padding:7px 11px;font-size:12px;font-weight:600;cursor:pointer;min-height:34px}
+.sn-pick.on{border-color:var(--blue);background:rgba(79,140,255,.14);color:var(--blue-lt)}
+.sn-pick[disabled]{opacity:.35;cursor:not-allowed}
+.sn-tfrow{gap:6px;padding:2px 0}
+.sn-tf{min-height:30px;padding:5px 10px}
+.sn-soft{border-style:dashed}
+.sn-key{width:100%;background:var(--bg-2);color:var(--tx-1);border:1px solid var(--bd-2);border-radius:8px;padding:9px 10px;font-size:16px}
 </style>
 </head>
 <body>
@@ -1614,6 +1665,7 @@ svg.ico{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.7;st
     <div class="ws-heading">Analysis &amp; execution<button type="button" aria-label="Collapse analysis panel" onclick="WS.toggle('analysis')">−</button></div>
     <div class="rpanel-tabs">
       <button class="rtab active" data-tab="check" onclick="setRTab('check',this)">Analysis</button>
+      <button class="rtab" data-tab="sentinel" onclick="setRTab('sentinel',this)">Sentinel</button>
       <button class="rtab" data-tab="trade" onclick="setRTab('trade',this)">Trade</button>
       <button class="rtab" data-tab="portfolio" onclick="setRTab('portfolio',this)">Portfolio</button>
       <button class="rtab" data-tab="mtf" onclick="setRTab('mtf',this)">Timeframes</button>
@@ -1624,6 +1676,11 @@ svg.ico{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.7;st
       <!-- Setup Check — one verdict, fed by ARIA's gates and Oracle's confidence -->
       <div class="rpane active" id="checkPane">
         <div id="check-panel"><div class="pos-empty">Waiting for enough candles to run the check…</div></div>
+      </div>
+
+      <!-- ARIA Sentinel — server-side scanner feed (sentinel.py) -->
+      <div class="rpane" id="sentinelPane">
+        <div id="sentinel-panel"><div class="pos-empty">Loading Sentinel…</div></div>
       </div>
 
       <!-- ARIA Pane -->
@@ -4958,6 +5015,14 @@ const ARIA_LAWS = [
 
 let AM = { totalSig: 0, wins: 0, lastVerdict: null };
 
+// ARIA v7.1 gate settings. sentinel_engine.py mirrors these exactly
+// (tests/sentinel-parity.test.cjs fails if they drift).
+const ARIA_GATE_COUNT = 10;
+const ARIA_EXEC_MIN = 9, ARIA_QUAL_MIN = 8, ARIA_WAIT_MIN = 6;
+const ARIA_ATR_BAND = [0.6, 1.8];
+const ARIA_PATTERN_RECENT = 3;
+const ARIA_FIB_ZONE = [0.45, 0.668], ARIA_FIB_RECENT = 5, ARIA_FIB_MIN_LEG_ATR = 3;
+
 function ariaMCC(cdles, closes, ema20v, ema50v, atrV) {
   const n = closes.length, last = closes[n-1], e20 = ema20v[n-1], e50 = ema50v[n-1];
   const atr = atrV[n-1] || last * 0.002;
@@ -5035,8 +5100,13 @@ function ariaGates(cdles, closes, ema20v, ema50v, ema200v, rsiV, macdV, stochV, 
   const g5 = eng || pin || bdy;
   G.push({ name:'Live Candle', pass:g5, detail:g5 ? `✓ ${eng?'Engulf':pin?'Pin bar':'Body confirms'}` : '✗ Current candle opposes' });
 
-  const g6 = atr > 0;
-  G.push({ name:'ATR Valid', pass:g6, detail:`ATR ${atr?.toFixed(S.dp)} — ${g6?'✓ ok':'✗ zero'}` });
+  // ATR Band (v7.1): volatility must be normal for this market — not dead
+  // (spread dominates, stops sit in noise) and not blown out (stops too wide).
+  const atrHist = atrV.slice(-100).filter(Boolean);
+  const atrMean = atrHist.length ? atrHist.reduce((a, b) => a + b, 0) / atrHist.length : 0;
+  const atrRatio = atrMean > 0 && atrV[n-1] ? atrV[n-1] / atrMean : 0;
+  const g6 = atrRatio >= ARIA_ATR_BAND[0] && atrRatio <= ARIA_ATR_BAND[1];
+  G.push({ name:'ATR Band', pass:g6, detail:`ATR ${atrRatio.toFixed(2)}× its 100-bar average — ${g6?'✓ normal':atrRatio < ARIA_ATR_BAND[0]?'✗ too quiet':'✗ too wild'}` });
 
   const e200 = ema200v?.[n-1];
   let g7;
@@ -5049,7 +5119,10 @@ function ariaGates(cdles, closes, ema20v, ema50v, ema200v, rsiV, macdV, stochV, 
   G.push({ name:'Stochastic', pass:g8, detail:g8 ? '✓ Stoch confirms' : '✗ Stoch opposing' });
 
   const g9 = !!patternAligned;
-  G.push({ name:'Pattern Gate', pass:g9, detail:g9 ? `✓ ${patternAligned}` : '✗ No scanner match' });
+  G.push({ name:'Pattern Gate', pass:g9, detail:g9 ? `✓ ${patternAligned} (last ${ARIA_PATTERN_RECENT} bars)` : `✗ No pattern in the last ${ARIA_PATTERN_RECENT} bars` });
+
+  const fib = ariaFib(cdles, atrV, dir);
+  G.push({ name:'Fibonacci Zone', pass:fib.pass, detail:fib.detail });
 
   const score = G.reduce((a, g) => a + (g.pass ? 1 : 0), 0);
   return { gates: G, score, dir };
@@ -5077,18 +5150,64 @@ function ariaVerdict(score, mcc, sym, dir) {
   if (isNAS && S.newsWeek && dir === 'sell') {
     return { v:'BLOCKED', cls:'verdict-obs', msg:`🛑 BLOCKED — NAS100 short during news week (Joel's rule)` };
   }
-  const execThreshold = isNAS ? 8 : 8; // execution-ready requires stronger confluence than setup qualification
-  const watchThreshold = 7;
-  if (score >= execThreshold) return { v:'EXEC_READY', cls:'verdict-armed', msg:`🎯 EXECUTION READY — ${score}/9 gates${isNAS?' · NAS protocol':''}` };
-  if (score >= watchThreshold) return { v:'QUALIFIED', cls:'verdict-wait', msg:`⚡ QUALIFIED SETUP — ${score}/9 gates · wait for execution trigger` };
-  if (score >= 5) return { v:'WAITING', cls:'verdict-wait', msg:`⏳ WAITING — ${score}/9 (need ≥${watchThreshold})` };
-  return { v:'OBSERVER', cls:'verdict-obs', msg:`👁 OBSERVER — ${score}/9 (insufficient confluence)` };
+  const execThreshold = ARIA_EXEC_MIN;   // execution-ready requires stronger confluence than setup qualification
+  const watchThreshold = ARIA_QUAL_MIN;
+  if (score >= execThreshold) return { v:'EXEC_READY', cls:'verdict-armed', msg:`🎯 EXECUTION READY — ${score}/${ARIA_GATE_COUNT} gates${isNAS?' · NAS protocol':''}` };
+  if (score >= watchThreshold) return { v:'QUALIFIED', cls:'verdict-wait', msg:`⚡ QUALIFIED SETUP — ${score}/${ARIA_GATE_COUNT} gates · wait for execution trigger` };
+  if (score >= ARIA_WAIT_MIN) return { v:'WAITING', cls:'verdict-wait', msg:`⏳ WAITING — ${score}/${ARIA_GATE_COUNT} (need ≥${watchThreshold})` };
+  return { v:'OBSERVER', cls:'verdict-obs', msg:`👁 OBSERVER — ${score}/${ARIA_GATE_COUNT} (insufficient confluence)` };
 }
 
-function getPatternAlignment(dir) {
-  const SCAN = runPatternScanSilent();
-  const matching = SCAN.filter(p => dir==='buy' ? (p.dir==='bull' && p.conf>=75) : (p.dir==='bear' && p.conf>=75));
-  return matching.length ? matching[0].name : null;
+// Pattern Gate (v7.1): only a pattern completed on one of the last
+// ARIA_PATTERN_RECENT candles counts. The old 30-bar lookback passed on every
+// setup (one-year replay: 100%), so it filtered nothing.
+function getPatternAlignment(dir, cdles = S.candles) {
+  const n = cdles.length, want = dir === 'buy' ? 'bull' : 'bear';
+  if (n < 20) return null;
+  let best = null;
+  PATTERNS.forEach(p => {
+    if (p.dir !== want) return;
+    for (let i = Math.max(15, n - ARIA_PATTERN_RECENT); i < n; i++) {
+      let r = null;
+      try { r = p.detect(cdles, i); } catch (_) { r = null; }
+      if (r && r.conf >= 75 && (!best || r.conf > best.conf)) best = { name: p.name, conf: r.conf };
+    }
+  });
+  return best ? best.name : null;
+}
+
+// Fibonacci Zone (v7.1, Law 10). Objective and mechanical:
+//  • impulse leg = the extreme of the last 60 bars and the opposite extreme
+//    in the 60 bars before it; it must be at least 3× ATR long
+//  • the pullback since that extreme must reach the 50–61.8% zone
+//    (tolerance: 45%–66.8%), and that touch must be within the last 5 bars
+//  • price must have turned from the touch and not broken back past the extreme
+function ariaFib(cdles, atrV, dir) {
+  const n = cdles.length, W = 60, atr = atrV[n-1] || 0;
+  const fail = d => ({ pass:false, detail:'✗ ' + d, r:null });
+  if (n < 30 || !(atr > 0)) return fail('not enough data');
+  const start = Math.max(0, n - W), last = cdles[n-1].close;
+  const hi = i => cdles[i].high, lo = i => cdles[i].low;
+  let ext = start;
+  for (let i = start; i < n; i++) if (dir === 'buy' ? hi(i) > hi(ext) : lo(i) < lo(ext)) ext = i;
+  if (ext > n - 2) return fail('no pullback yet');
+  let orig = -1;
+  for (let i = Math.max(0, ext - W); i < ext; i++) if (orig < 0 || (dir === 'buy' ? lo(i) < lo(orig) : hi(i) > hi(orig))) orig = i;
+  if (orig < 0) return fail('no swing found');
+  let pb = ext + 1;
+  for (let i = ext + 1; i < n; i++) if (dir === 'buy' ? lo(i) <= lo(pb) : hi(i) >= hi(pb)) pb = i;
+  const H = dir === 'buy' ? hi(ext) : hi(orig), L = dir === 'buy' ? lo(orig) : lo(ext);
+  const leg = H - L;
+  if (!(leg >= ARIA_FIB_MIN_LEG_ATR * atr)) return fail('last swing too small');
+  const r = dir === 'buy' ? (H - lo(pb)) / leg : (hi(pb) - L) / leg;
+  const pct = (r * 100).toFixed(0) + '%';
+  if (r < ARIA_FIB_ZONE[0]) return fail(`pullback only ${pct} (needs 50–61.8%)`);
+  if (r > 1) return fail(`swing fully retraced (${pct}) — no pullback to trade`);
+  if (r > ARIA_FIB_ZONE[1]) return fail(`pullback ${pct} — past 61.8%`);
+  if (n - 1 - pb > ARIA_FIB_RECENT) return fail(`zone touch ${n - 1 - pb} bars ago`);
+  const turned = dir === 'buy' ? (last > lo(pb) && last < H) : (last < hi(pb) && last > L);
+  if (!turned) return fail('no reaction from the zone yet');
+  return { pass:true, detail:`✓ ${pct} retrace of the last swing`, r };
 }
 
 function renderARIA() {
@@ -5145,9 +5264,9 @@ function renderARIA() {
   <div class="acard">
     <div class="acttl">
       Gate Score
-      <span style="color:${scoreColor};font-family:var(--font-mono);font-size:14px;font-weight:900">${gates.score}/9</span>
+      <span style="color:${scoreColor};font-family:var(--font-mono);font-size:14px;font-weight:900">${gates.score}/${ARIA_GATE_COUNT}</span>
       <div style="flex:1;height:4px;background:var(--bg-4);border-radius:2px;overflow:hidden;margin-left:6px">
-        <div style="height:100%;border-radius:2px;width:${(gates.score/9)*100}%;background:${scoreColor};transition:width .5s"></div>
+        <div style="height:100%;border-radius:2px;width:${(gates.score/ARIA_GATE_COUNT)*100}%;background:${scoreColor};transition:width .5s"></div>
       </div>
     </div>
     <div style="display:flex;flex-direction:column;gap:0">
@@ -5240,7 +5359,7 @@ function applyARIA(sl, tp, dir) {
 
 /* ════════════════════════════════════════════════════════════
    SETUP CHECK — one verdict, one vocabulary.
-   ARIA's nine gates and Oracle's confidence are the engine; this panel
+   ARIA's ten gates and Oracle's confidence are the engine; this panel
    is the only place a trader has to read. Each check opens a plain-
    language explainer; the numbers are referenced back to ARIA and Oracle.
 ════════════════════════════════════════════════════════════ */
@@ -5250,10 +5369,11 @@ const CHECK_TERMS = {
   'MACD Direction':   { t:'MACD agrees',                  l:4, b:'MACD compares a fast and a slow average. When its line is above its signal line momentum is building upward; below, downward. The check passes when that agrees with the trade.' },
   'Market Structure': { t:'Higher highs / lower lows',    l:2, b:'A trend leaves a staircase: in an uptrend each pullback bottoms above the last and each push tops above the last. This looks at the last ten candles for at least two such steps in the direction of the trade.' },
   'Live Candle':      { t:'Current candle confirms',      l:4, b:'The candle forming right now should already lean the way of the trade: an engulfing candle, a pin bar rejecting the other side, or at least a body in the right direction. If it opposes, entering now is fighting the last thing the market did.' },
-  'ATR Valid':        { t:'Volatility is measurable (ATR)', l:3, b:'ATR is the average candle range over the last 14. The stop is placed 1.5× that away so ordinary noise does not hit it. If ATR is zero the market is not moving and no sensible stop exists.' },
+  'ATR Band':         { t:'Volatility is normal (ATR)',  l:3, b:'ATR is the average candle range over the last 14. This passes when it is between 0.6× and 1.8× its own 100-candle average. Too quiet and the spread eats the trade while stops sit inside noise; too wild and the stop has to be so wide the risk stops making sense.' },
   'Macro Align':      { t:'Bigger picture agrees (EMA 200)', l:4, b:'The 200-period average is the slow backdrop. Trading with it means the setup goes with the larger flow rather than against it.' },
   'Stochastic':       { t:'Stochastic agrees',            l:4, b:'The stochastic compares the close to its recent range. For a buy it should still be in the lower half (room to rise); for a sell, the upper half. When it disagrees, price is already at the wrong end of its range and a bounce is likely first.' },
-  'Pattern Gate':     { t:'Scanner pattern supports',     l:4, b:'The pattern scanner looks for classic shapes — double tops, flags, engulfing bars. This passes when a pattern with at least 75% confidence points the same way as the trade.' },
+  'Pattern Gate':     { t:'Fresh pattern supports',       l:4, b:'The pattern scanner looks for classic shapes — double tops, flags, engulfing bars. This passes only when a pattern with at least 75% confidence, pointing the same way as the trade, completed on one of the last 3 candles. Older patterns no longer count.' },
+  'Fibonacci Zone':   { t:'Pullback reached 50–61.8%',   l:4, b:'Law 10. Take the last clear swing (at least 3× ATR long). This passes when price has pulled back into the 50–61.8% retracement of that swing within the last 5 candles and has started to turn away from it, without breaking the swing extreme. It is how a trend entry is timed at value instead of chased.' },
 };
 const CHECK_LESSON_URL = null;   // set when the Academy publishes per-lesson links
 
@@ -5270,7 +5390,7 @@ function checkModel() {
   const gates = ariaGates(cdles, closes, ema20v, ema50v, ema200v, rsiV, macdV, stochV, atrV, patternAlign);
   const verdict = ariaVerdict(gates.score, mcc, S.sym, gates.dir);
   const entry = ariaEntry(cdles, closes, atrV, gates.dir, mcc);
-  const oracle = Math.round((gates.score / 9) * 100);
+  const oracle = Math.round((gates.score / ARIA_GATE_COUNT) * 100);
   return { gates, verdict, entry, mcc, wyck, oracle, rsi: rsiV[n-1], atr: atrV[n-1], patternAlign, session: getSession() };
 }
 
@@ -5339,7 +5459,7 @@ function renderCheck() {
     <div class="chk-bar">${gates.gates.map(g => `<i class="${g.pass ? '' : 'f'}"></i>`).join('')}</div>
     <p class="chk-sum">${sum}</p>
     <div class="chk-engines">
-      <button onclick="setRTab('aria',null)" title="Open the ARIA engine detail">ARIA <b>${pass}/9</b> gates · ${verdict.v.replace('_', ' ')}</button>
+      <button onclick="setRTab('aria',null)" title="Open the ARIA engine detail">ARIA <b>${pass}/${ARIA_GATE_COUNT}</b> gates · ${verdict.v.replace('_', ' ')}</button>
       <button onclick="setRTab('oracle',null)" title="Open the Oracle advisor">Oracle <b>${oracle}%</b> confidence</button>
     </div>
     <div class="chk-list">${ordered.slice(0, 5).map(row).join('')}
@@ -5452,7 +5572,7 @@ function renderOracle() {
   const gates = ariaGates(cdles, closes, ema20v, ema50v, ema200v, rsiV, macdV, stochV, atrV, patternAlign);
   const entry = ariaEntry(cdles, closes, atrV, gates.dir, mcc);
   const dp = S.dp;
-  const confidence = Math.round((gates.score / 9) * 100);
+  const confidence = Math.round((gates.score / ARIA_GATE_COUNT) * 100);
   const maxRisk = S.balance * S.riskPct / 100;
   // CFD position sizing: lots = risk budget / (stop distance x value per lot).
   const _spec = otSpec(S.sym);
@@ -5815,7 +5935,7 @@ function processVoice(cmd) {
     const dir = (closes[closes.length-1]>e20[e20.length-1]&&e20[e20.length-1]>e50[e50.length-1])?'buy':'sell';
     const pa = getPatternAlignment(dir);
     const gates = ariaGates(S.candles,closes,e20,e50,calcEMA(closes,200),calcRSI(closes),calcMACD(closes),calcStoch(S.candles),calcATR(S.candles,14),pa);
-    speak(`ARIA: ${gates.score} of 9 gates confirmed. Direction: ${gates.dir}. ${gates.score>=8?'Execution ready.':gates.score>=7?'Qualified setup — wait for trigger.':gates.score>=5?'Waiting — need more confluence.':'Observer — avoid entry.'}`);
+    speak(`ARIA: ${gates.score} of ${ARIA_GATE_COUNT} gates confirmed. Direction: ${gates.dir}. ${gates.score>=ARIA_EXEC_MIN?'Execution ready.':gates.score>=ARIA_QUAL_MIN?'Qualified setup — wait for trigger.':gates.score>=ARIA_WAIT_MIN?'Waiting — need more confluence.':'Observer — avoid entry.'}`);
     return;
   }
   if (cmd.includes('breakeven') || cmd.includes('break even')) {
@@ -7746,17 +7866,640 @@ function renderLaws() {
 }
 
 /* ════════════════════════════════════════════════════════════
+   ARIA SENTINEL — always-on scanner (server: sentinel.py)
+   Sentinel prepares, the trader confirms: "Load setup" only fills the
+   ticket. Nothing here places an order.
+════════════════════════════════════════════════════════════ */
+const SENT = (() => {
+  let timer = null, busy = false, last = null, cat = null, pick = null, saving = false, pickErr = '';
+  const KEY_STORE = 'protrader.sentinelKey';
+  const ownerKey = () => { try { return localStorage.getItem(KEY_STORE) || ''; } catch (_) { return ''; } };
+  const EV_LABEL = { proven:'Proven edge', negative:'Negative edge', unproven:'Unproven' };
+  const EV_CLS = { proven:'ev-proven', negative:'ev-negative', unproven:'ev-unproven' };
+  const V_LABEL = { EXEC_READY:'Exec ready', QUALIFIED:'Qualified', WAITING:'Waiting', OBSERVER:'Observer', BLOCKED:'Blocked' };
+  const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const label = id => PAIR_MAP[id]?.label || cat?.byId?.[id]?.label || id;
+  const dp = id => PAIR_MAP[id]?.dp ?? 2;
+  const px = (id, v) => Number.isFinite(v) ? Number(v).toFixed(dp(id)) : '—';
+  const r = v => Number.isFinite(v) ? `<span class="${v >= 0 ? 'sn-pos' : 'sn-neg'}">${v >= 0 ? '+' : ''}${v.toFixed(2)}R</span>` : '—';
+  const ago = ts => {
+    if (!ts) return '—';
+    const m = Math.round((Date.now() / 1000 - ts) / 60);
+    return m < 1 ? 'just now' : m < 60 ? `${m} min ago` : m < 1440 ? `${Math.round(m / 60)} h ago` : `${Math.round(m / 1440)} d ago`;
+  };
+  const evChip = ev => `<span class="sn-chip ${EV_CLS[ev] || 'ev-unproven'}">${EV_LABEL[ev] || esc(ev)}</span>`;
+
+  async function get(path) {
+    const res = await fetch(`${BOT_BASE}/api/sentinel/${path}`, { cache:'no-store', signal: AbortSignal.timeout(15000) });
+    if (!res.ok) throw new Error(path + ' ' + res.status);
+    return res.json();
+  }
+
+  // Where is price now relative to the paper trade? Uses the live quote when
+  // the terminal has one; otherwise the setup is shown as of its bar close.
+  function drift(t) {
+    const now = pairPrices[t.market]?.price;
+    if (!Number.isFinite(now) || !(t.sl_dist > 0)) return null;
+    const sign = t.dir === 'buy' ? 1 : -1;
+    const moved = sign * (now - t.entry) / t.sl_dist;
+    const trailing = t.model && t.model !== 'fixed';
+    const stop = Number.isFinite(t.stop) ? t.stop : t.sl;
+    const pastStop = sign * (now - stop) <= 0;
+    return { now, moved, dead: trailing ? pastStop : (moved <= -1 || moved >= 2.5) };
+  }
+
+  function tradeCard(t, ev) {
+    const d = drift(t), syn = t.mode === 'synthetic';
+    const warn = d?.dead ? 'Price has already moved past the stop or target. This setup is no longer valid.'
+      : d && Math.abs(d.moved) > 0.5 ? `Price has moved ${d.moved >= 0 ? '+' : ''}${d.moved.toFixed(2)}R from the signal entry. Re-check before trading.`
+      : '';
+    return `<div class="sn-card">
+      <div class="sn-row">
+        <span class="sn-mk">${esc(label(t.market))}</span><span class="sn-chip">${esc(t.tf)}</span>
+        <span class="sn-chip ${t.dir}">${t.dir === 'buy' ? 'BUY' : 'SELL'}</span>
+        <span class="sn-chip">${t.score}/${ARIA_GATE_COUNT}</span>${evChip(ev)}${syn ? '<span class="sn-chip">Synthetic</span>' : ''}${t.elliott ? `<span class="sn-chip sn-soft" title="Elliott Wave is a soft context layer: it never changes the score">EW ${esc(t.elliott)}</span>` : ''}
+      </div>
+      <div class="sn-lv">
+        <div><span>Entry</span><b>${px(t.market, t.entry)}</b></div>
+        <div><span>Stop</span><b>${px(t.market, t.sl)}</b></div>
+        ${t.model && t.model !== 'fixed'
+          ? `<div><span>Stop now</span><b>${px(t.market, Number.isFinite(t.stop) ? t.stop : t.sl)}</b></div>`
+          : `<div><span>Target</span><b>${px(t.market, t.tp2)}</b></div>`}
+      </div>
+      <div class="sn-meta">${esc(t.mcc)} · ${esc(t.wyckoff)}${t.pattern ? ' · ' + esc(t.pattern) : ''}${Number.isFinite(t.fib_r) ? ` · Fib ${(t.fib_r * 100).toFixed(0)}%` : ''} · signal ${ago(t.opened_at)} · ${t.bars} bar${t.bars === 1 ? '' : 's'} · best ${t.mfe_r.toFixed(2)}R${d ? ` · now ${px(t.market, d.now)}` : ''}</div>
+      ${warn ? `<div class="sn-warn">${esc(warn)}</div>` : ''}
+      <button class="sn-btn" ${d?.dead ? 'disabled' : ''} onclick="SENT.load('${esc(t.id)}')">Load setup on chart</button>
+    </div>`;
+  }
+
+  // ── Focus list: Sentinel can read every market; the owner picks which
+  // ones (up to the server's cap) it spends each 15-minute cycle on.
+  function focusBlock(status) {
+    const n = status.markets.length, max = status.max_markets || n;
+    const TFS = status.supported_tfs || ['15m', '1h', '4h'];
+    if (!pick) {
+      const names = status.markets.map(m => `${esc(label(m.id))} <span style="color:var(--tx-3)">${esc((m.tfs || []).join('·'))}</span>`).join(' &nbsp;·&nbsp; ');
+      return `<div class="sn-card sn-focus">
+        <div class="sn-row"><span class="sn-mk" style="font-size:12px">Focus · ${n} of ${max}</span>
+          <span class="sn-meta" style="margin-left:auto">${cat ? cat.total : '89'} markets available</span></div>
+        <div class="sn-meta">${names}</div>
+        <button class="sn-btn sn-btn-2" onclick="SENT.editFocus()">Choose markets &amp; timeframes</button></div>`;
+    }
+    const chosen = pick.size, full = chosen >= max;
+    const groups = (cat?.groups || []).map(g => {
+      const on = g.markets.filter(m => pick.has(m.id)).length;
+      return `<details class="sn-grp" ${on ? 'open' : ''}><summary>${esc(g.name)} <span class="sn-meta">${on ? on + ' selected' : g.markets.length}</span></summary>
+        <div class="sn-picks">${g.markets.map(m => {
+          const sel = pick.has(m.id);
+          return `<button class="sn-pick ${sel ? 'on' : ''}" ${!sel && full ? 'disabled' : ''} onclick="SENT.toggle('${esc(m.id)}')">${esc(m.label)}</button>`;
+        }).join('')}</div></details>`;
+    }).join('');
+    const tfRows = [...pick.entries()].map(([id, tfs]) => `<div class="sn-row sn-tfrow">
+        <span class="sn-meta" style="flex:1;color:var(--tx-1)">${esc(label(id))}</span>
+        ${TFS.map(tf => `<button class="sn-pick sn-tf ${tfs.includes(tf) ? 'on' : ''}" onclick="SENT.toggleTf('${esc(id)}','${tf}')">${tf}</button>`).join('')}
+      </div>`).join('');
+    const needKey = !ownerKey() || /owner key/i.test(pickErr);
+    return `<div class="sn-card sn-focus">
+      <div class="sn-row"><span class="sn-mk" style="font-size:12px">Choose up to ${max} markets</span>
+        <span class="sn-chip ${full ? 'ev-unproven' : ''}" style="margin-left:auto">${chosen} / ${max}</span></div>
+      <div class="sn-meta">Sentinel can read all ${cat ? cat.total : ''} markets but scans only these, at every 15-minute close. Markets you remove keep their open paper trade until it finishes.</div>
+      ${groups}
+      ${chosen ? `<div class="sn-h" style="margin-top:6px">Timeframes per market</div>
+        <div class="sn-meta">Tip: the one-year test lost money on every 15m forex pair (spread ≈ 17% of the stop). 1h and 4h are cheaper to trade.</div>${tfRows}` : ''}
+      ${needKey ? `<label class="sn-meta" for="snKey">Owner key (set as SENTINEL_ADMIN_KEY on the server)</label>
+        <input id="snKey" class="sn-key" type="password" autocomplete="off" value="${esc(ownerKey())}" placeholder="Owner key">` : ''}
+      ${pickErr ? `<div class="sn-warn">${esc(pickErr)}</div>` : ''}
+      <div class="sn-row"><button class="sn-btn" style="flex:1" ${chosen && !saving ? '' : 'disabled'} onclick="SENT.saveFocus()">${saving ? 'Saving…' : 'Save focus'}</button>
+        <button class="sn-btn sn-btn-2" onclick="SENT.cancelFocus()">Cancel</button></div>
+    </div>`;
+  }
+
+  async function editFocus() {
+    pickErr = '';
+    if (!cat) {
+      try {
+        cat = await get('markets');
+        cat.byId = {};
+        cat.groups.forEach(g => g.markets.forEach(m => { cat.byId[m.id] = m; }));
+      } catch (e) { return showToast('Could not load the market list.', 2600); }
+    }
+    pick = new Map(last.status.markets.map(m => [m.id, (m.tfs || ['15m', '1h']).slice()]));
+    render();
+  }
+
+  function toggle(id) {
+    if (!pick) return;
+    const max = last?.status?.max_markets || 12;
+    if (pick.has(id)) pick.delete(id);
+    else if (pick.size < max) pick.set(id, ['1h']);
+    render();
+  }
+
+  function toggleTf(id, tf) {
+    const tfs = pick?.get(id);
+    if (!tfs) return;
+    const i = tfs.indexOf(tf);
+    if (i >= 0) { if (tfs.length > 1) tfs.splice(i, 1); else return showToast('Each market needs at least one timeframe.', 2200); }
+    else tfs.push(tf);
+    render();
+  }
+
+  async function saveFocus() {
+    if (!pick || saving) return;
+    const input = document.getElementById('snKey');
+    if (input) { try { localStorage.setItem(KEY_STORE, input.value.trim()); } catch (_) {} }
+    saving = true; pickErr = ''; render();
+    try {
+      const res = await fetch(`${BOT_BASE}/api/sentinel/focus`, {
+        method:'POST', cache:'no-store', signal: AbortSignal.timeout(15000),
+        headers:{ 'Content-Type':'application/json', 'X-Sentinel-Key': ownerKey() },
+        body: JSON.stringify({ markets: [...pick.entries()].map(([id, tfs]) => ({ id, tfs })) }),
+      });
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(body.detail || ('HTTP ' + res.status));
+      cat.focus = body.focus; pick = null;
+      const slices = body.focus.reduce((a, f) => a + f.tfs.length, 0);
+      showToast(`Sentinel now reads ${body.focus.length} markets (${slices} market-timeframes). New ones appear within a minute.`, 3800);
+      setTimeout(refresh, 20000);
+      await refresh();
+    } catch (e) {
+      pickErr = e.message;
+    } finally { saving = false; render(); }
+  }
+
+  function cancelFocus() { pick = null; pickErr = ''; render(); }
+
+  const STAGE_CLS = { 'Full winner': 'ev-proven', 'Managed winner': 'ev-proven', 'Protected flat': '', 'Scratch': '',
+                      'Time exit': '', 'Unprotected winner': 'ev-unproven', 'Protected loss': 'ev-unproven', 'Full loser': 'ev-negative' };
+  const money = v => Number.isFinite(v) ? (v >= 0 ? '+' : '−') + '$' + Math.abs(v).toFixed(2) : '—';
+  const pctTxt = v => Number.isFinite(v) ? (v * 100).toFixed(0) + '%' : '—';
+
+  // Sentinel's own paper trades, judged by management stage.
+  function paperStages(m) {
+    if (!m || !m.n) return '';
+    const st = m.stages || {};
+    return `<div class="sn-meta" style="margin-top:4px">${Object.entries(st).filter(([, v]) => v).map(([k, v]) =>
+      `<span class="sn-chip ${STAGE_CLS[k] || ''}" style="margin:2px 4px 2px 0;display:inline-block">${esc(k)} ${v}</span>`).join('')}</div>
+      <div class="sn-meta">Became risk free: <b>${pctTxt(m.risk_free_pct)}</b> · of those, closed in profit: <b>${pctTxt(m.risk_free_positive_pct)}</b> · average peak ${Number.isFinite(m.avg_mfe_r) ? m.avg_mfe_r.toFixed(2) + 'R' : '—'} · kept ${pctTxt(m.capture_pct)} of winning moves</div>`;
+  }
+
+  // The trader's own positions: how they were managed.
+  function managedBlock() {
+    const m = last?.managed, st = m?.stats || {};
+    const serverOpen = (m?.records || []).filter(r => !r.closed && r.tracker === 'server').map(r => ({
+      label: r.label, side: r.side, pnl_now: r.pnl_now, peak_pnl: r.peak_pnl, locked_pnl: r.locked_pnl,
+      locked_r: r.locked_r, mfe_r: r.mfe_r, be_at: r.be_at, late: r.late, sentinel: !!r.sentinel_id,
+      stops: (r.events || []).filter(e => e.type === 'stop').length, server: true,
+    }));
+    const live = (typeof MGMT !== 'undefined' ? MGMT.openSummaries() : []).concat(serverOpen);
+    const recs = (m?.records || []).filter(r => r.closed).slice(0, 8);
+    if (!live.length && !recs.length && !ownerKey()) return '';
+    const openRows = live.map(o => `<div class="sn-card">
+        <div class="sn-row"><span class="sn-mk">${esc(o.label)}</span><span class="sn-chip ${o.side}">${o.side === 'buy' ? 'BUY' : 'SELL'}</span>
+          <span class="sn-chip ${o.be_at ? 'ev-proven' : ''}">${o.be_at ? (Number.isFinite(o.locked_pnl) && o.locked_pnl > 0.005 ? 'Risk free · profit locked' : 'Risk free · at breakeven') : 'At risk'}</span>
+          ${o.sentinel ? '<span class="sn-chip">from Sentinel</span>' : ''}${o.server ? '<span class="sn-chip">MT5 · tracked 24/7</span>' : ''}</div>
+        <div class="sn-lv">
+          <div><span>Now</span><b>${money(o.pnl_now)}</b></div>
+          <div><span>Peak</span><b>${money(o.peak_pnl)}</b></div>
+          <div><span>Locked by stop</span><b>${o.be_at ? money(Math.max(0, o.locked_pnl || 0)) : '—'}</b></div>
+        </div>
+        <div class="sn-meta">${o.stops} stop move${o.stops === 1 ? '' : 's'}${Number.isFinite(o.locked_r) ? ` · locked ${o.locked_r >= 0 ? '+' : ''}${o.locked_r.toFixed(2)}R` : ''}${Number.isFinite(o.mfe_r) ? ` · peak ${o.mfe_r.toFixed(2)}R` : ''}${o.late ? ' · tracking began after entry, so the original stop (1R) is unknown' : ''}</div>
+      </div>`).join('');
+    const closedRows = recs.length ? `<table class="sn-tbl"><tbody>${recs.map(r => `<tr>
+        <td>${esc(r.label)} <span style="color:var(--tx-3)">${r.side === 'buy' ? 'L' : 'S'}</span></td>
+        <td><span class="sn-chip ${STAGE_CLS[r.stage] || ''}">${esc(r.stage || '—')}</span></td>
+        <td style="text-align:right">${money(r.pnl)}${Number.isFinite(r.exit_r) ? `<div class="sn-meta">${r.exit_r >= 0 ? '+' : ''}${r.exit_r.toFixed(2)}R · peak ${Number.isFinite(r.mfe_r) ? r.mfe_r.toFixed(2) + 'R' : '—'}</div>` : ''}${Number.isFinite(r.sentinel_r) ? `<div class="sn-meta">Sentinel ${r.sentinel_r >= 0 ? '+' : ''}${r.sentinel_r.toFixed(2)}R</div>` : ''}</td></tr>`).join('')}</tbody></table>` : '';
+    const vs = st.vs_sentinel;
+    const trackNote = m?.server_tracking ? '' : `<div class="sn-meta">MT5 trades are tracked only while this page is open. Open PROTrader once on the device where your MT5 bridge is set up to switch on 24/7 tracking.</div>`;
+    return `<div class="sn-h">Your trade management</div>${trackNote}
+      ${openRows}
+      ${st.n ? `<div class="sn-card"><div class="sn-meta">
+        ${st.n} closed · ${money(st.pnl_total)} · ${pctTxt(st.win_pct)} in profit<br>
+        Became risk free: <b>${pctTxt(st.risk_free_pct)}</b> · of those, closed in profit: <b>${pctTxt(st.risk_free_positive_pct)}</b>${Number.isFinite(st.capture_pct) ? ` · kept ${pctTxt(st.capture_pct)} of the peak on winners` : ''}
+        ${vs ? `<br>On ${vs.n} Sentinel setups: you ${vs.trader_avg_r >= 0 ? '+' : ''}${vs.trader_avg_r.toFixed(2)}R vs Sentinel's paper ${vs.sentinel_avg_r >= 0 ? '+' : ''}${vs.sentinel_avg_r.toFixed(2)}R per trade` : ''}
+        </div>${closedRows}</div>`
+        : `<div class="sn-empty">${ownerKey() ? 'Closed trades appear here with how they were managed: stop moves, when they became risk free, peak profit and the exit.' : 'Set your owner key (Choose markets) to keep this journal on the server.'}</div>`}`;
+  }
+
+  // ── Trading costs: replace spread estimates with quotes from the trader's
+  // own MT5 account. Uses the bridge's read-only "spec" command; nothing is
+  // traded. Each run adds one sample per market; the median is used.
+  let measuring = '';
+  function costBlock() {
+    const rows = last?.costs?.rows || [];
+    if (!rows.length) return '';
+    const bridge = typeof LIVE !== 'undefined' && LIVE.online && LIVE.online();
+    const pct = v => Number.isFinite(v) ? (v * 100).toFixed(v < 0.001 ? 4 : 3) + '%' : '—';
+    return `<details class="sn-costs"><summary>Trading costs · ${rows.filter(r => r.measured_pct).length}/${rows.length} measured on MT5</summary>
+      <table class="sn-tbl"><thead><tr><th>Market</th><th>Estimate</th><th>MT5</th><th>Samples</th></tr></thead><tbody>
+      ${rows.map(r => `<tr><td>${esc(label(r.market))}</td><td>${pct(r.estimate_pct)}</td>
+        <td>${r.measured_pct ? `<b style="color:var(--tx-1)">${pct(r.measured_pct)}</b>` : '—'}</td><td>${r.samples}</td></tr>`).join('')}
+      </tbody></table>
+      <div class="sn-meta" style="margin:6px 0">Spread as a share of price. Sentinel uses the MT5 median once a market has a sample. Spreads widen at rollover and around news, so measure a few times at the hours you trade.</div>
+      ${measuring ? `<div class="sn-warn">${esc(measuring)}</div>` : ''}
+      <button class="sn-btn sn-btn-2" ${bridge && !measuring ? '' : 'disabled'} onclick="SENT.measureCosts()">${bridge ? 'Measure spreads from MT5 now' : 'Connect the MT5 bridge (Trade tab) to measure'}</button>
+    </details>`;
+  }
+
+  async function measureCosts() {
+    if (measuring || typeof LIVE === 'undefined' || !LIVE.online()) return;
+    const ids = (last?.status?.markets || []).map(m => m.id);
+    const samples = [], missed = [];
+    for (let i = 0; i < ids.length; i++) {
+      const id = ids[i], name = LIVE.mt5Symbol(id);
+      measuring = `Asking MT5 for ${name} (${i + 1}/${ids.length})…`; render();
+      const r = await LIVE.send({ type: 'spec', symbol: name }, 9000);
+      if (r && r.ok && r.spec && r.spec.ask > 0 && r.spec.bid > 0) samples.push({ market: id, symbol: r.spec.symbol, bid: r.spec.bid, ask: r.spec.ask });
+      else missed.push(`${label(id)} (${(r && r.msg) || 'no reply'})`);
+    }
+    measuring = samples.length ? 'Saving…' : '';
+    render();
+    if (samples.length) {
+      try {
+        const res = await fetch(`${BOT_BASE}/api/sentinel/costs`, {
+          method:'POST', cache:'no-store', signal: AbortSignal.timeout(15000),
+          headers:{ 'Content-Type':'application/json', 'X-Sentinel-Key': ownerKey() },
+          body: JSON.stringify({ samples }),
+        });
+        const body = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(body.detail || ('HTTP ' + res.status));
+        last.costs = { rows: body.rows };
+        showToast(`Recorded ${body.recorded} MT5 spreads${missed.length ? ` · ${missed.length} not found` : ''}.`, 3600);
+      } catch (e) { showToast('Could not save spreads: ' + e.message + (/owner key/i.test(e.message) ? ' — set it under Choose markets.' : ''), 4200); }
+    }
+    if (missed.length) showToast('MT5 could not quote: ' + missed.join(', '), 5200);
+    measuring = ''; render();
+  }
+
+  function render() {
+    const el = document.getElementById('sentinel-panel');
+    if (!el || !last) return;
+    const { status, board, feed, stats } = last;
+    const ev = stats.evidence || {};
+    const base = stats.baseline || {}, bx = base.exec || {};
+    const live = stats.journal?.exec || {};
+    const proven = new Set(Object.entries(ev).filter(([, v]) => v === 'proven').map(([k]) => k.split(' ')[0])).size;
+    const running = status.running && status.last_cycle && (Date.now() / 1000 - status.last_cycle) < 1800;
+    const open = (feed.open || []).slice().sort((a, b) => b.opened_at - a.opened_at);
+    const closed = (feed.closed || []).slice(0, 8);
+
+    const baseTxt = bx.n
+      ? (base.model && base.model !== 'fixed'
+        ? `One-year replay of ARIA ${esc(base.model)} on real markets (${esc(base.period?.[0])} → ${esc(base.period?.[1])}): <b>${bx.n.toLocaleString()}</b> trades averaged <b>${bx.expectancy_r >= 0 ? '+' : ''}${bx.expectancy_r.toFixed(2)}R</b> each after estimated spreads; ${(bx.win_rate * 100).toFixed(0)}% closed in profit.`
+        : `One-year replay (${esc(base.period?.[0])} → ${esc(base.period?.[1])}): <b>${bx.n.toLocaleString()}</b> exec-ready signals averaged <b>${bx.expectancy_r >= 0 ? '+' : ''}${bx.expectancy_r.toFixed(2)}R</b> each after estimated spreads (win rate ${(bx.win_rate * 100).toFixed(1)}% vs ${(stats.model.breakeven_win_rate * 100).toFixed(1)}% break-even).`)
+      : 'No replay baseline loaded yet.';
+    const evTxt = proven
+      ? `<b>${proven}</b> market${proven === 1 ? '' : 's'} have a proven edge in both the replay and the live journal.`
+      : `<b>No market has a proven edge yet.</b> Treat every signal as a candidate to confirm with your own read, not a trade.`;
+
+    el.innerHTML = `<div class="sn">
+      <div class="sn-hd">
+        <span class="sn-dot ${running ? 'on' : status.enabled ? 'warn' : ''}"></span>
+        <span class="sn-title">ARIA SENTINEL</span>
+        <span class="sn-sub">${running ? `Reading ${status.markets.length} of ${cat ? cat.total : 89} markets · ${status.timeframes.join(' + ')}<br>last scan ${ago(status.last_cycle)}` : status.enabled ? 'Starting up…' : 'Scanner is off on this server'}</span>
+      </div>
+      ${status.journal && !status.journal.persistent ? `<div class="sn-warn">Journal is temporary: ${esc(status.journal.warning || 'it resets on every deploy')}.</div>` : ''}
+      <div class="sn-note">${status.model && status.model !== 'fixed' ? `<b>ARIA ${esc(status.model)} candidate</b> on paper: ARIA 8+/10 signals, taken only with the 4h trend and never on a completed Wave 5; stop −1R, trailing 1R once +1R. ` : ''}Paper only — Sentinel prepares, you confirm. ${evTxt}<br>${baseTxt}${status.news_week ? '<br><b>News Week is ON:</b> NAS100 shorts are blocked.' : ''}</div>
+
+      ${focusBlock(status)}
+
+      <div class="sn-h">Open setups · ${open.length}</div>
+      ${open.length ? open.map(t => tradeCard(t, ev[`${t.market} ${t.tf}`])).join('') : '<div class="sn-empty">No open setups. Sentinel checks every market at each 15-minute close.</div>'}
+
+      <div class="sn-h">Market board</div>
+      <table class="sn-tbl"><thead><tr><th>Market</th><th>ARIA</th><th>Score</th><th>Bias</th><th>Evidence</th></tr></thead><tbody>
+      ${(board.rows || []).map(b => `<tr class="go" onclick="SENT.chart('${esc(b.market)}','${esc(b.tf)}')" title="${esc(b.mcc)} · ${esc(b.wyckoff)}${b.elliott ? ' · EW ' + esc(b.elliott) + ' (soft)' : ''}">
+        <td><b style="color:var(--tx-1)">${esc(label(b.market))}</b> <span style="color:var(--tx-3)">${esc(b.tf)}${b.mode === 'synthetic' ? ' · syn' : ''}</span></td>
+        <td class="sn-v-${esc(b.verdict)}">${V_LABEL[b.verdict] || esc(b.verdict)}${b.block && (b.verdict === 'EXEC_READY' || b.verdict === 'QUALIFIED') ? `<div class="sn-meta" style="font-weight:600;color:var(--amber)">held: ${esc(b.block)}</div>` : ''}</td>
+        <td>${b.score}/${ARIA_GATE_COUNT}</td>
+        <td class="${b.dir === 'buy' ? 'sn-pos' : 'sn-neg'}">${b.dir === 'buy' ? 'Long' : 'Short'}${b.trend_4h ? `<div class="sn-meta">4h ${b.trend_4h === 'up' ? '↑' : b.trend_4h === 'down' ? '↓' : '→'}</div>` : ''}</td>
+        <td>${evChip(b.evidence)}</td></tr>`).join('') || '<tr><td colspan="5" class="sn-empty">Waiting for the first scan…</td></tr>'}
+      </tbody></table>
+
+      ${managedBlock()}
+
+      <div class="sn-h">Paper results · current model · all focus markets</div>
+      <div class="sn-card"><div class="sn-meta">${live.n
+        ? `${live.n} closed · average ${r(live.expectancy_r)} · total ${r(live.total_r)} · ${esc(live.verdict)}`
+        : 'No closed paper trades yet. Results appear here as Sentinel’s setups close.'}</div>
+      ${paperStages(stats.journal?.management)}
+      ${closed.length ? `<table class="sn-tbl"><tbody>${closed.map(t => `<tr>
+        <td>${esc(label(t.market))} <span style="color:var(--tx-3)">${esc(t.tf)}</span></td>
+        <td class="${t.dir === 'buy' ? 'sn-pos' : 'sn-neg'}">${t.dir === 'buy' ? 'Long' : 'Short'} ${t.score}/${ARIA_GATE_COUNT}</td>
+        <td><span class="sn-chip ${STAGE_CLS[t.stage] || ''}">${esc(t.stage || t.status)}</span></td><td style="text-align:right">${r(t.r)}</td></tr>`).join('')}</tbody></table>` : ''}
+      </div>
+
+      ${costBlock()}
+
+      <details><summary>Replay evidence by market</summary>
+        <table class="sn-tbl"><thead><tr><th>Market</th><th>Trades</th><th>Avg R</th><th>95% range</th></tr></thead><tbody>
+        ${Object.entries(base.by_slice || {}).map(([k, s]) => `<tr><td>${esc(label(k.split(' ')[0]))} <span style="color:var(--tx-3)">${esc(k.split(' ')[1] || '')}</span></td><td>${s.n}</td><td>${r(s.expectancy_r)}</td><td>${s.ci95_r ? s.ci95_r.map(x => (x >= 0 ? '+' : '') + x.toFixed(2)).join(' … ') : '—'}</td></tr>`).join('')}
+        </tbody></table>
+        <div class="sn-meta" style="margin-top:6px">${esc(base.notes || '')} A market is marked proven only when both the replay and ${stats.model.evidence_min_trades}+ live paper trades (ARIA ${esc(stats.model.engine)}) stay above zero even at ${stats.model.evidence_z}× the standard error, a 95% test corrected for the ${stats.model.slices} market-timeframes being watched.</div>
+      </details>
+    </div>`;
+  }
+
+  async function refresh() {
+    if (busy) return;
+    busy = true;
+    try {
+      const [status, board, feed, stats, costs] = await Promise.all([get('status'), get('board'), get('feed?limit=30'), get('stats'), get('costs').catch(() => null)]);
+      let managed = null;
+      if (ownerKey()) {
+        try {
+          const res = await fetch(`${BOT_BASE}/api/sentinel/managed`, { cache: 'no-store', signal: AbortSignal.timeout(15000), headers: { 'X-Sentinel-Key': ownerKey() } });
+          if (res.ok) managed = await res.json();
+        } catch (_) {}
+      }
+      if (!cat) get('markets').then(c => { c.byId = {}; c.groups.forEach(g => g.markets.forEach(m => { c.byId[m.id] = m; })); cat = cat || c; render(); }).catch(() => {});
+      last = { status, board, feed, stats, costs, managed };
+      render();
+    } catch (e) {
+      const el = document.getElementById('sentinel-panel');
+      if (el && !last) el.innerHTML = `<div class="pos-empty">Sentinel is not reachable on this server (${esc(e.message)}).</div>`;
+    } finally { busy = false; }
+  }
+
+  function open() {
+    refresh();
+    clearInterval(timer);
+    timer = setInterval(() => {
+      if (document.getElementById('sentinelPane')?.classList.contains('active') && !document.hidden) refresh();
+      else { clearInterval(timer); timer = null; }
+    }, 30000);
+  }
+
+  function chart(market, tf) {
+    if (!PAIR_MAP[market]) return;
+    if (S.sym !== market) selectPair(market);
+    if (S.tf !== tf) {
+      const btn = [...document.querySelectorAll('.tf-btn')].find(b => (b.getAttribute('onclick') || '').includes(`'${tf}'`));
+      setTF(tf, btn || null);
+    }
+  }
+
+  function load(id) {
+    const t = (last?.feed?.open || []).find(x => x.id === id);
+    if (!t) return showToast('That setup has closed — refreshing Sentinel.', 2600), refresh();
+    const d = drift(t);
+    if (d?.dead) return;
+    MGMT.link(t);                      // the next matching fill is this setup
+    chart(t.market, t.tf);
+    if (t.model && t.model !== 'fixed') {
+      // 7.2 candidate: no fixed target. Fill the stop only; the plan is to
+      // trail it 1R behind the best price once the trade reaches +1R.
+      applyARIA(Number.isFinite(t.stop) ? t.stop : t.sl, NaN, t.dir);
+      showToast(`Stop filled. ARIA 7.2 candidate: no fixed target — once +1R (${px(t.market, t.entry + (t.dir === 'buy' ? 1 : -1) * t.sl_dist)}), trail the stop 1R behind the best price.`, 6500);
+    } else {
+      applyARIA(t.sl, t.tp2, t.dir);   // fills the ticket and opens the Trade tab; the trader still decides
+    }
+  }
+
+  return { open, refresh, load, chart, editFocus, toggle, toggleTf, saveFocus, cancelFocus, measureCosts };
+})();
+
+/* ════════════════════════════════════════════════════════════
+   TRADE MANAGEMENT JOURNAL
+   Watches the trader's own positions (paper and MT5) and records how each
+   was MANAGED, not just whether it hit the final target: initial stop, every
+   stop move, when it became risk free, partials, peak profit, the exit.
+   A position opened from Sentinel's "Load setup" is linked to Sentinel's
+   paper trade, so the system's part and the trader's part can be compared.
+   Stored on this device and, with the owner key, on the server.
+════════════════════════════════════════════════════════════ */
+const MGMT = {
+  KEY: 'protrader.mgmt.v1', LINK_KEY: 'protrader.mgmt.link',
+  recs: {}, dirty: new Set(), _last: 0, _sync: 0,
+  serverMt5: false, _bindTried: 0, _linked: {},
+
+  start() {
+    try { this.recs = JSON.parse(localStorage.getItem(this.KEY) || '{}') || {}; } catch (_) { this.recs = {}; }
+    setInterval(() => this.observe(), 2000);
+    setInterval(() => this.push(), 15000);
+  },
+
+  // Once per session: tell the server which bridge channel is the owner's MT5
+  // account, so it tracks MT5 management 24/7 without this page open.
+  async bind() {
+    const key = this.ownerKey();
+    if (this.serverMt5 || !key || typeof LIVE === 'undefined' || !LIVE.key) return;
+    if (Date.now() - this._bindTried < 60000) return;
+    this._bindTried = Date.now();
+    try {
+      const res = await fetch(`${BOT_BASE}/api/sentinel/managed/bind`, {
+        method: 'POST', cache: 'no-store', signal: AbortSignal.timeout(15000),
+        headers: { 'Content-Type': 'application/json', 'X-Sentinel-Key': key, 'X-Bridge-Key': LIVE.key },
+        body: '{}',
+      });
+      if (res.ok) {
+        this.serverMt5 = true;
+        // The server owns MT5 records from now on; drop local copies of open ones.
+        Object.keys(this.recs).forEach(k => { if (k.startsWith('mt5:') && !this.recs[k].closed) delete this.recs[k]; });
+        this.save();
+      }
+    } catch (_) {}
+  },
+
+  // Server-tracked MT5 position just appeared: attach a pending Sentinel setup.
+  async linkServer(p) {
+    if (this._linked[p.key]) return;
+    this._linked[p.key] = 1;
+    const lk = this.takeLink(null, p.symbol, p.side);
+    if (!lk) return;
+    try {
+      await fetch(`${BOT_BASE}/api/sentinel/managed/link`, {
+        method: 'POST', cache: 'no-store', signal: AbortSignal.timeout(15000),
+        headers: { 'Content-Type': 'application/json', 'X-Sentinel-Key': this.ownerKey() },
+        body: JSON.stringify({ key: p.key, sentinel_id: lk.id, sl: lk.sl, sl_dist: lk.sl_dist, model: lk.model }),
+      });
+    } catch (_) {}
+  },
+  save() { try { localStorage.setItem(this.KEY, JSON.stringify(this.recs)); } catch (_) {} },
+  ownerKey() { try { return localStorage.getItem('protrader.sentinelKey') || ''; } catch (_) { return ''; } },
+
+  // Called by Sentinel's "Load setup": the next matching fill is this setup.
+  link(t) {
+    const l = { id: t.id, market: t.market, dir: t.dir, entry: t.entry, sl: t.sl, sl_dist: t.sl_dist, model: t.model, at: Date.now() };
+    try { localStorage.setItem(this.LINK_KEY, JSON.stringify(l)); } catch (_) {}
+  },
+  takeLink(appId, mt5Sym, side) {
+    let l = null;
+    try { l = JSON.parse(localStorage.getItem(this.LINK_KEY) || 'null'); } catch (_) {}
+    if (!l || Date.now() - l.at > 20 * 60000) return null;
+    const same = l.market === appId || (typeof LIVE !== 'undefined' && mt5Sym && LIVE.mt5Symbol(l.market) === mt5Sym);
+    if (!same || l.dir !== side) return null;
+    try { localStorage.removeItem(this.LINK_KEY); } catch (_) {}
+    return l;
+  },
+
+  livePositions() {
+    const out = [];
+    TR.positions.forEach(p => {
+      const q = otQuote(p.symbol);
+      const px = q.ok ? (p.side === 'buy' ? q.bid : q.ask) : null;
+      out.push({ key: 'paper:' + p.id, src: 'paper', appId: p.symbol, symbol: p.symbol, label: p.label,
+                 side: p.side, volume: p.volume, entry: p.entry, sl: p.sl, tp: p.tp, price: px,
+                 pnl: px != null ? otPnl(p.side, p.entry, px, p.volume, p.symbol) : null, openTime: p.openTime });
+    });
+    const online = typeof LIVE !== 'undefined' && LIVE.online && LIVE.online();
+    const snap = online ? LIVE.snap() : null;
+    (snap && snap.positions || []).forEach(p => {
+      out.push({ key: 'mt5:' + p.ticket, src: 'mt5', appId: null, symbol: p.symbol, label: p.symbol,
+                 side: p.side, volume: +p.volume, entry: +p.entry, sl: p.sl > 0 ? +p.sl : null, tp: p.tp > 0 ? +p.tp : null,
+                 price: +p.price, pnl: +p.profit, openTime: p.time ? p.time * 1000 : null });
+    });
+    return { out, mt5Visible: !!snap };
+  },
+
+  observe() {
+    const now = Date.now();
+    this.bind();
+    const { out, mt5Visible } = this.livePositions();
+    const seen = new Set();
+    out.forEach(p => {
+      if (p.src === 'mt5' && this.serverMt5) { this.linkServer(p); return; }   // server tracks MT5
+      seen.add(p.key);
+      let r = this.recs[p.key];
+      if (!r) {
+        const late = p.openTime ? now - p.openTime > 90000 : false;
+        const lk = this.takeLink(p.appId, p.src === 'mt5' ? p.symbol : null, p.side);
+        r = this.recs[p.key] = {
+          key: p.key, src: p.src, symbol: p.symbol, label: p.label, side: p.side, entry: p.entry,
+          opened: p.openTime || now, first_seen: now, late,
+          initial_sl: lk ? lk.sl : (late ? null : p.sl), r_dist: null,
+          sentinel_id: lk ? lk.id : null, sentinel_model: lk ? lk.model : null,
+          events: [{ t: now, type: late ? 'joined' : 'open', sl: p.sl, tp: p.tp, volume: p.volume, price: p.price }],
+          sl: p.sl, tp: p.tp, volume: p.volume, max_volume: p.volume,
+          be_at: null, lock_at: null, locked_r: null, locked_pnl: null,
+          mfe_price: p.price, peak_pnl: p.pnl, pnl_now: p.pnl, closed: null,
+        };
+        if (lk && lk.sl_dist > 0) r.r_dist = lk.sl_dist;
+        else if (r.initial_sl != null) r.r_dist = Math.abs(p.entry - r.initial_sl);
+        this.dirty.add(p.key);
+      }
+      const s = p.side === 'buy' ? 1 : -1;
+      // First stop set after entry (no stop at fill) defines 1R.
+      if (r.r_dist == null && p.sl != null && !r.late && s * (p.sl - p.entry) < 0) {
+        r.initial_sl = p.sl; r.r_dist = Math.abs(p.entry - p.sl);
+      }
+      if (p.sl !== r.sl) {
+        r.events.push({ t: now, type: 'stop', from: r.sl, to: p.sl, price: p.price, pnl: p.pnl });
+        r.sl = p.sl; this.dirty.add(p.key);
+      }
+      if (p.tp !== r.tp) { r.events.push({ t: now, type: 'target', from: r.tp, to: p.tp }); r.tp = p.tp; this.dirty.add(p.key); }
+      if (p.volume < r.volume - 1e-9) {
+        r.events.push({ t: now, type: 'partial', closed: +(r.volume - p.volume).toFixed(6), price: p.price, pnl: p.pnl });
+        this.dirty.add(p.key);
+      }
+      r.volume = p.volume;
+      if (p.price != null && (r.mfe_price == null || s * (p.price - r.mfe_price) > 0)) r.mfe_price = p.price;
+      if (p.pnl != null) { r.pnl_now = p.pnl; if (r.peak_pnl == null || p.pnl > r.peak_pnl) r.peak_pnl = p.pnl; }
+      // Protection: stop at breakeven or better.
+      if (p.sl != null && s * (p.sl - p.entry) >= -1e-9) {
+        if (!r.be_at) { r.be_at = now; r.events.push({ t: now, type: 'risk_free', sl: p.sl }); this.dirty.add(p.key); }
+        const lockedR = r.r_dist > 0 ? s * (p.sl - p.entry) / r.r_dist : null;
+        if (lockedR != null && (r.locked_r == null || lockedR > r.locked_r)) r.locked_r = +lockedR.toFixed(3);
+        // Money locked in by the stop, estimated from the live P&L per unit of price.
+        if (p.pnl != null && p.price != null && p.price !== p.entry) {
+          const lp = p.pnl * (p.sl - p.entry) / (p.price - p.entry);
+          if (Number.isFinite(lp) && (r.locked_pnl == null || lp > r.locked_pnl)) r.locked_pnl = +lp.toFixed(2);
+        }
+        if (s * (p.sl - p.entry) > 0 && !r.lock_at) r.lock_at = now;
+      }
+      if (r.r_dist > 0 && r.mfe_price != null) r.mfe_r = +(s * (r.mfe_price - r.entry) / r.r_dist).toFixed(3);
+    });
+
+    // Positions that disappeared have closed.
+    Object.values(this.recs).forEach(r => {
+      if (r.closed || seen.has(r.key)) return;
+      if (r.src === 'mt5' && (!mt5Visible || this.serverMt5)) return;   // cannot see MT5 / server owns it
+      const exit = this.exitFor(r);
+      if (!exit) { if (now - (r._gone || (r._gone = now)) < 60000) return; }   // give history a minute
+      const s = r.side === 'buy' ? 1 : -1;
+      r.closed = now;
+      r.exit_price = exit ? exit.price : null;
+      r.pnl = exit ? exit.pnl : r.pnl_now;
+      r.exit_reason = exit ? exit.reason : 'Unknown';
+      r.exit_r = r.r_dist > 0 && r.exit_price != null ? +(s * (r.exit_price - r.entry) / r.r_dist).toFixed(3) : null;
+      // A stop that fills at or beyond entry was a protected stop, even if it
+      // was moved and hit between two observations.
+      if (!r.be_at && /stop/i.test(r.exit_reason) && r.exit_price != null && s * (r.exit_price - r.entry) >= -1e-9) {
+        r.be_at = now; r.events.push({ t: now, type: 'risk_free', sl: r.exit_price });
+      }
+      r.stage = this.stage(r);
+      r.events.push({ t: now, type: 'close', price: r.exit_price, pnl: r.pnl, reason: r.exit_reason });
+      this.dirty.add(r.key);
+    });
+    // Keep the store bounded: newest 300.
+    const keys = Object.keys(this.recs);
+    if (keys.length > 300) keys.sort((a, b) => (this.recs[a].opened || 0) - (this.recs[b].opened || 0)).slice(0, keys.length - 300).forEach(k => delete this.recs[k]);
+    if (this.dirty.size || now - this._last > 30000) { this.save(); this._last = now; }
+  },
+
+  exitFor(r) {
+    if (r.src === 'paper') {
+      const id = +r.key.split(':')[1];
+      const rows = (S.trades || []).filter(t => t.id === id);
+      if (!rows.length) return null;
+      const last = rows[rows.length - 1];
+      return { price: last.exit, pnl: rows.reduce((a, t) => a + (t.pnl || 0), 0), reason: last.reason || 'Manual' };
+    }
+    const h0 = typeof LIVE !== 'undefined' && LIVE.state && LIVE.state.history;
+    const hist = (h0 && Array.isArray(h0.deals)) ? h0.deals : [];
+    const t = r.key.split(':')[1];
+    const rows = hist.filter(h => h.kind === 'trade' && String(h.ticket) === t);
+    if (!rows.length) return null;
+    return { price: +rows[0].exit, pnl: rows.reduce((a, h) => a + (+h.profit || 0), 0), reason: rows[0].reason || 'Manual' };
+  },
+
+  // How the trade was managed, not only whether it hit the target.
+  stage(r) {
+    const pnl = r.pnl || 0;
+    const flat = r.r_dist > 0 && r.exit_r != null ? Math.abs(r.exit_r) <= 0.1 : Math.abs(pnl) < 0.5;
+    if (/take profit/i.test(r.exit_reason || '')) return 'Full winner';
+    if (r.be_at) return flat ? 'Protected flat' : pnl > 0 ? 'Managed winner' : 'Protected loss';
+    if (flat) return 'Scratch';
+    return pnl > 0 ? 'Unprotected winner' : 'Full loser';
+  },
+
+  // Live description of an open tracked position, for the Sentinel pane.
+  openSummaries() {
+    return Object.values(this.recs).filter(r => !r.closed).map(r => ({
+      label: r.label, side: r.side, pnl_now: r.pnl_now, peak_pnl: r.peak_pnl, locked_pnl: r.locked_pnl,
+      locked_r: r.locked_r, mfe_r: r.mfe_r, be_at: r.be_at, late: r.late, sentinel: !!r.sentinel_id,
+      stops: r.events.filter(e => e.type === 'stop').length,
+    }));
+  },
+
+  async push() {
+    const key = this.ownerKey();
+    if (!key || !this.dirty.size) return;
+    const records = [...this.dirty].map(k => this.recs[k]).filter(Boolean).slice(0, 150);
+    try {
+      const res = await fetch(`${BOT_BASE}/api/sentinel/managed`, {
+        method: 'POST', cache: 'no-store', signal: AbortSignal.timeout(15000),
+        headers: { 'Content-Type': 'application/json', 'X-Sentinel-Key': key },
+        body: JSON.stringify({ records }),
+      });
+      if (res.ok) records.forEach(r => this.dirty.delete(r.key));
+    } catch (_) { /* try again next round */ }
+  },
+};
+
+/* ════════════════════════════════════════════════════════════
    PANEL NAVIGATION
 ════════════════════════════════════════════════════════════ */
 function setRTab(tab, btn) {
   document.querySelectorAll('.rtab').forEach(b => b.classList.remove('active'));
   document.querySelectorAll('.rpane').forEach(p => p.classList.remove('active'));
-  const paneMap = { check:'checkPane', aria:'ariaPane', oracle:'oraclePane', trade:'tradePane', portfolio:'portfolioPane', mtf:'mtfPane', laws:'lawsPane' };
+  const paneMap = { check:'checkPane', sentinel:'sentinelPane', aria:'ariaPane', oracle:'oraclePane', trade:'tradePane', portfolio:'portfolioPane', mtf:'mtfPane', laws:'lawsPane' };
   const pane = document.getElementById(paneMap[tab]);
   if (pane) pane.classList.add('active');
   if (btn) btn.classList.add('active');
   else document.querySelectorAll('.rtab').forEach(b => { if (b.dataset.tab === tab) b.classList.add('active'); });
   if (tab === 'check') renderCheck();
+  if (tab === 'sentinel') SENT.open();
   if (tab === 'aria') renderARIA();
   if (tab === 'trade') { OT.render(); renderLimits(); }
   if (tab === 'mtf') renderMTF();
@@ -8552,6 +9295,7 @@ function init() {
   renderPortfolio();
   OT.init();
   LIVE.init();
+  MGMT.start();
   VIEW.restore();
   applyDeepLink();
   buildTickerData();

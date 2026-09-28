@@ -12,3 +12,4 @@ start.sh
 stop.sh
 Trading Bot.command
 .DS_Store
+sentinel.db
