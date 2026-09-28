@@ -1935,9 +1935,11 @@ svg.ico{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.7;st
           <div class="port-stats">
             <div class="port-stat"><div class="ps-lbl">P&amp;L Today</div><div class="ps-val" id="pnlToday">$0.00</div></div>
             <div class="port-stat"><div class="ps-lbl">Win Rate</div><div class="ps-val" id="winRate">—</div></div>
-            <div class="port-stat"><div class="ps-lbl">Trades</div><div class="ps-val" id="totalTrades">0</div></div>
-            <div class="port-stat"><div class="ps-lbl">Best Trade</div><div class="ps-val" id="bestTrade">—</div></div>
+            <div class="port-stat"><div class="ps-lbl">Positions</div><div class="ps-val" id="totalTrades">0</div></div>
+            <div class="port-stat"><div class="ps-lbl">Best Position</div><div class="ps-val" id="bestTrade">—</div></div>
+            <div class="port-stat" style="grid-column:1/-1"><div class="ps-lbl">Avg R per position</div><div class="ps-val" id="avgR">—</div></div>
           </div>
+          <div id="portRNote" style="font-size:12px;color:var(--tx-3);margin-top:6px;line-height:1.45"></div>
           <div style="margin-top:8px">
             <div style="font-size:12px;color:var(--tx-3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px;font-weight:700">Portfolio Health</div>
             <div class="health-bar"><div class="health-fill" id="healthFill" style="width:100%"></div></div>
@@ -5615,7 +5617,7 @@ function paperLimits() {
   const today = (S.trades || []).filter(t => (t.closeTime || 0) >= day0.getTime());
   const dayNet = today.reduce((a, t) => a + (t.pnl || 0), 0);
   const dayLoss = Math.max(0, -dayNet);
-  const losses = today.filter(t => (t.pnl || 0) < 0).length;
+  const losses = paperPositions(today).filter(p => p.pnl < -0.005).length;   // losing positions, partials netted
   const dayCap = (b - dayNet) * .03;                  // 3% of the balance at the start of today
   const locked = dayLoss > 0 && dayLoss >= dayCap - 0.005 ? `Daily loss limit reached (${otMoney(dayLoss)} of ${otMoney(dayCap)}). New trades reopen tomorrow.`
     : losses >= 3 ? 'Three losing trades today — your rules stop new trades until tomorrow.' : null;
@@ -5721,7 +5723,7 @@ function renderOracle() {
     <div class="acttl">Risk Management</div>
     <div class="arow"><span class="al">Max Risk/Trade</span><span class="av">$${maxRisk.toFixed(2)}</span></div>
     <div class="arow"><span class="al">Portfolio Health</span><span class="av" style="color:var(--green-lt)">${Math.round((S.balance/S.startBal)*100)}%</span></div>
-    <div class="arow"><span class="al">Consecutive Losses</span><span class="av" style="color:${S.losses>=3?'var(--red-lt)':'var(--green-lt)'}">${S.losses>=3?'⚠ STOP TRADING':'✓ OK'}</span></div>
+    <div class="arow"><span class="al">Consecutive Losses</span><span class="av" style="color:${paperLimits().losses>=3?'var(--red-lt)':'var(--green-lt)'}">${paperLimits().losses>=3?'⚠ STOP TRADING':'✓ OK · ' + paperLimits().losses + ' today'}</span></div>
     <div class="arow"><span class="al">Session Quality</span><span class="av" style="color:${mcc.code==='DEAD_ZONE'?'var(--red-lt)':'var(--green-lt)'}">${mcc.code==='DEAD_ZONE'?'⚠ Dead Zone':'✓ Active'}</span></div>
   </div>
   ${confidence>=70?`<button class="xbtn ${dir==='buy'?'buy':'sell'}" style="font-size:12px;padding:8px" onclick="applyARIA(${entry.slLevel.toFixed(dp)},${entry.tp2.toFixed(dp)},'${dir}')">⚡ Apply Oracle Signal</button>`:''}`;
@@ -7314,6 +7316,9 @@ const OT = {
       side: order.side, volume: order.volume, entry: fill,
       sl: order.stopLoss, tp: order.takeProfit,
       r0: order.stopLoss != null ? Math.abs(fill - order.stopLoss) : null,   // 1R, fixed at the fill
+      sl0: order.stopLoss != null ? order.stopLoss : null,                   // the stop at entry, never changes
+      risk0: order.stopLoss != null ? Math.abs(otPnl(order.side, fill, order.stopLoss, order.volume, order.symbol) || 0) || null : null,
+      realized: 0,
       margin, openTime: Date.now(), accountId: order.accountId,
     };
     TR.positions.push(pos);
@@ -7368,6 +7373,12 @@ const OT = {
       const q = otQuote(p.symbol);
       if (!q.ok || q.stale) return;
       const px = p.side === 'buy' ? q.bid : q.ask;
+      if (p.sl0 === undefined) {
+        const lossSide = p.sl != null && (p.side === 'buy' ? p.sl < p.entry : p.sl > p.entry);
+        p.sl0 = lossSide ? p.sl : null; p.sl0_inferred = true;
+        p.risk0 = lossSide ? Math.abs(otPnl(p.side, p.entry, p.sl, p.volume, p.symbol) || 0) || null : null;
+        moved = true;
+      }
       if (AUTOP.apply(p, px)) moved = true;
       // Trailing stop: follows price at a fixed distance and only ever tightens.
       if (p.trail > 0) {
@@ -7430,13 +7441,21 @@ const OT = {
     S.balance += pnl;
     S.pnlToday += pnl;
     const won = pnl >= 0;
-    if (won) { S.wins++; if (pnl > S.bestTrade) S.bestTrade = pnl; } else { S.losses++; }
+    if (won) { S.wins++; } else { S.losses++; }     // legacy per-fill tallies; the Portfolio counts positions
+    p.realized = (p.realized || 0) + pnl;
+    const fullClose = vol >= p.volume - 1e-9;
 
-    if (vol >= p.volume - 1e-9) TR.positions = TR.positions.filter(x => x.id !== id);
+    if (fullClose) TR.positions = TR.positions.filter(x => x.id !== id);
     else { p.volume = +(p.volume - vol).toFixed(6); p.margin = (p.margin || 0) - marginBack; }
 
     S.trades.push({ id: p.id, sym: p.symbol, pair: p.label, type: p.side, volume: vol,
-                    entry: p.entry, exit, pnl, openTime: p.openTime || null, closeTime: Date.now(), won, reason: reason || 'Manual' });
+                    entry: p.entry, exit, pnl, openTime: p.openTime || null, closeTime: Date.now(), won, reason: reason || 'Manual',
+                    sl0: p.sl0 ?? null, risk0: p.risk0 ?? null, sl0_inferred: !!p.sl0_inferred,
+                    r: p.risk0 > 0 ? +(pnl / p.risk0).toFixed(4) : null, final: fullClose });
+    if (fullClose) {   // net of every tranche of this position (older partials included)
+      const net = S.trades.filter(t => t.id === p.id && t.entry === p.entry).reduce((a, t) => a + (t.pnl || 0), 0);
+      posTally(net, p.risk0);
+    }
     this.renderHistory();
     updateBalDisplay(); renderPortfolio(); updateGarden(won, pnl);
     this.renderBook(); this.render(); this.save();
@@ -7573,7 +7592,7 @@ const OT = {
   save() {
     try {
       localStorage.setItem(TRADE_STORE_KEY, JSON.stringify({
-        balance: S.balance, pnlToday: S.pnlToday, wins: S.wins, losses: S.losses,
+        balance: S.balance, pnlToday: S.pnlToday, wins: S.wins, losses: S.losses, posStats: S.posStats || null,
         bestTrade: S.bestTrade, trades: S.trades.slice(-500),
         positions: TR.positions, orders: TR.orders, seq: TR.seq,
         ticket: { volume: TK.volume, type: TK.type, side: TK.side },
@@ -7592,6 +7611,7 @@ const OT = {
       if (Number.isFinite(d.losses)) S.losses = d.losses;
       if (Number.isFinite(d.bestTrade)) S.bestTrade = d.bestTrade;
       if (Array.isArray(d.trades)) S.trades = d.trades;
+      S.posStats = d.posStats && Number.isFinite(d.posStats.wins) ? d.posStats : null;   // null: rebuilt from the fills
       if (Array.isArray(d.positions)) TR.positions = d.positions;
       if (Array.isArray(d.orders)) TR.orders = d.orders;
       if (Number.isFinite(d.seq)) TR.seq = d.seq;
@@ -7933,22 +7953,83 @@ function updateBalDisplay() {
   set('depDemoBal', fmt(S.balance));
 }
 
+/* ── Fills → positions ──
+   A partial close writes one fill per tranche, so counting fills counts one
+   trade several times. Group the fills of a position (same position id and
+   entry price; entry price alone for old records without an id), net their
+   P&L, and count the position once. A position still open is not counted. */
+function paperPositions(trades) {
+  const open = new Set((typeof TR !== 'undefined' ? TR.positions : []).map(p => 'id' + p.id + '@' + p.entry));
+  const g = new Map();
+  (trades || []).forEach(t => {
+    const key = (t.id != null ? 'id' + t.id : t.sym + '|' + t.type) + '@' + t.entry;
+    let p = g.get(key);
+    if (!p) g.set(key, p = { key, id: t.id, sym: t.sym, pair: t.pair, type: t.type, entry: t.entry, pnl: 0, volume: 0, fills: 0,
+                             openTime: t.openTime || null, closeTime: 0, sl0: null, risk0: null, sl0_inferred: false });
+    p.pnl += t.pnl || 0; p.volume += t.volume || 0; p.fills++;
+    p.closeTime = Math.max(p.closeTime, t.closeTime || 0);
+    if (p.sl0 == null && t.sl0 != null) { p.sl0 = t.sl0; p.sl0_inferred = !!t.sl0_inferred; }
+    if (p.risk0 == null && t.risk0 > 0) p.risk0 = t.risk0;
+  });
+  return [...g.values()].filter(p => !open.has(p.key)).map(p => ({
+    ...p, pnl: +p.pnl.toFixed(2), won: p.pnl > 0.005, flat: Math.abs(p.pnl) <= 0.005, r: p.risk0 > 0 ? p.pnl / p.risk0 : null }));
+}
+
+/* Running per-position tallies (the fill list is capped at 500, the tallies are not).
+   Built once from the stored fills, then updated on every full close. */
+function posStats() {
+  if (!S.posStats) {
+    const ps = paperPositions(S.trades);
+    S.posStats = { wins: ps.filter(p => p.won).length, losses: ps.filter(p => !p.won && !p.flat).length, flat: ps.filter(p => p.flat).length,
+                   best: Math.max(0, ...ps.map(p => p.pnl)), rSum: ps.reduce((a, p) => a + (p.r ?? 0), 0), rN: ps.filter(p => p.r != null).length };
+  }
+  return S.posStats;
+}
+function posTally(net, risk0) {
+  const st = posStats();
+  if (net > 0.005) st.wins++; else if (net < -0.005) st.losses++; else st.flat++;
+  if (net > st.best) st.best = net;
+  S.bestTrade = st.best;
+  if (risk0 > 0) { st.rSum += net / risk0; st.rN++; }
+}
+
+let _sentGrades = null, _sentGradesAt = 0;
+async function sentinelGrades() {
+  if (Date.now() - _sentGradesAt < 5 * 60000) return _sentGrades;
+  _sentGradesAt = Date.now();
+  try {
+    const r = await fetch(`${BOT_BASE}/api/sentinel/stats`, { cache: 'no-store', signal: AbortSignal.timeout(15000) });
+    if (r.ok) { _sentGrades = (await r.json())?.journal?.by_grade || null; renderPortfolio(); }
+  } catch (_) {}
+  return _sentGrades;
+}
+
 function renderPortfolio() {
-  // Count from the win/loss tallies: S.trades is a capped list, so its length
-  // under-counts once the cap is hit and would push the win rate past 100%.
-  const total = Math.max(S.wins + S.losses, S.trades.length);
+  const st = posStats();
+  const total = st.wins + st.losses + st.flat;
   // "Today" means trades closed since local midnight, not the all-time gain.
   const day0 = new Date(); day0.setHours(0, 0, 0, 0);
   S.pnlToday = S.trades.reduce((a, t) => a + ((t.closeTime || 0) >= day0.getTime() ? (t.pnl || 0) : 0), 0);
-  const wr = total > 0 ? ((S.wins / total) * 100).toFixed(0) + '%' : '—';
+  const wr = total > 0 ? ((st.wins / total) * 100).toFixed(0) + '%' : '—';
   const el = id => document.getElementById(id);
   if (el('pnlToday')) {
     el('pnlToday').textContent = (S.pnlToday >= 0 ? '+$' : '-$') + Math.abs(S.pnlToday).toFixed(2);
     el('pnlToday').style.color = S.pnlToday >= 0 ? 'var(--green-lt)' : 'var(--red-lt)';
   }
-  if (el('winRate')) el('winRate').textContent = wr;
+  if (el('winRate')) { el('winRate').textContent = wr; el('winRate').title = `${st.wins} won · ${st.losses} lost · ${st.flat} flat, counted per position (partial closes netted)`; }
   if (el('totalTrades')) el('totalTrades').textContent = total;
-  if (el('bestTrade')) el('bestTrade').textContent = S.bestTrade > 0 ? '+$' + S.bestTrade.toFixed(2) : '—';
+  if (el('bestTrade')) el('bestTrade').textContent = st.best > 0 ? '+$' + st.best.toFixed(2) : '—';
+  if (el('avgR')) {
+    el('avgR').textContent = st.rN ? (st.rSum / st.rN >= 0 ? '+' : '−') + Math.abs(st.rSum / st.rN).toFixed(2) + 'R' : '—';
+    el('avgR').style.color = !st.rN ? '' : st.rSum >= 0 ? 'var(--green-lt)' : 'var(--red-lt)';
+  }
+  if (el('portRNote')) {
+    const g = _sentGrades, a = g && g.A, ap = g && g['A+'];
+    const n = (a?.n || 0) + (ap?.n || 0), sr = n ? (((a?.expectancy_r || 0) * (a?.n || 0)) + ((ap?.expectancy_r || 0) * (ap?.n || 0))) / n : null;
+    el('portRNote').innerHTML = `Average R on ${st.rN} of ${total} position${total === 1 ? '' : 's'} with a stop recorded at entry`
+      + (n ? ` · Sentinel A setups: <b>${sr >= 0 ? '+' : '−'}${Math.abs(sr).toFixed(2)}R</b> on ${n}` : '');
+    sentinelGrades();
+  }
   const health = Math.max(0, Math.min(100, (S.balance / S.startBal) * 100));
   if (el('healthFill')) {
     el('healthFill').style.width = health + '%';
@@ -8509,7 +8590,7 @@ const MGMT = {
       const q = otQuote(p.symbol);
       const px = q.ok ? (p.side === 'buy' ? q.bid : q.ask) : null;
       out.push({ key: 'paper:' + p.id, src: 'paper', appId: p.symbol, symbol: p.symbol, label: p.label,
-                 side: p.side, volume: p.volume, entry: p.entry, sl: p.sl, tp: p.tp, price: px,
+                 side: p.side, volume: p.volume, entry: p.entry, sl: p.sl, tp: p.tp, price: px, sl0: p.sl0 ?? null,
                  pnl: px != null ? otPnl(p.side, p.entry, px, p.volume, p.symbol) : null, openTime: p.openTime });
     });
     const online = typeof LIVE !== 'undefined' && LIVE.online && LIVE.online();
@@ -8537,7 +8618,7 @@ const MGMT = {
         r = this.recs[p.key] = {
           key: p.key, src: p.src, symbol: p.symbol, label: p.label, side: p.side, entry: p.entry,
           opened: p.openTime || now, first_seen: now, late,
-          initial_sl: lk ? lk.sl : (late ? null : p.sl), r_dist: null,
+          initial_sl: lk ? lk.sl : (p.sl0 != null ? p.sl0 : (late ? null : p.sl)), r_dist: null,
           sentinel_id: lk ? lk.id : null, sentinel_model: lk ? lk.model : null,
           events: [{ t: now, type: late ? 'joined' : 'open', sl: p.sl, tp: p.tp, volume: p.volume, price: p.price }],
           sl: p.sl, tp: p.tp, volume: p.volume, max_volume: p.volume,

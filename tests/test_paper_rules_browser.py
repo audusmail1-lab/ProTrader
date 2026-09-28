@@ -67,7 +67,7 @@ def check_rules(page):
     assert "no stop loss" in (e.get("general") or ""), e
     # 5. three losing trades today -> locked
     e = run(page, """(() => { TR.positions = []; const t = Date.now();
-        S.trades = [1,2,3].map(i => ({pnl: -10, closeTime: t})); return OT.validate(); })()""")
+        S.trades = [1,2,3].map(i => ({id: i, entry: 100 + i, pnl: -10, closeTime: t})); return OT.validate(); })()""")
     assert "Three losing trades" in (e.get("general") or ""), e
     # 6. 3% daily loss -> locked
     e = run(page, "(() => { S.trades = [{pnl: -1200, closeTime: Date.now()}]; return OT.validate(); })()")
@@ -138,6 +138,36 @@ def check_autoprotect(page):
     assert r == 43800, r
 
 
+def check_positions(page):
+    run(page, SETUP)
+    r = run(page, """(async () => {
+        S.trades = []; S.posStats = null; S.balance = 36900;
+        // a position opened through the ticket path records its entry stop and risk
+        OT.openPosition({ symbol: 'R_75', side: 'buy', volume: 0.2, stopLoss: 43800, takeProfit: null, accountId: TR.acct.id }, 44000);
+        const p = TR.positions[TR.positions.length - 1], out = { sl0: p.sl0, risk0: p.risk0 };
+        __px = 44300; await OT.closePosition(p.id, 0.1, 'Partial close');        // +$30 tranche
+        __px = 43850; await OT.closePosition(p.id, null, 'Manual');               // -$15 tranche -> net +$15
+        OT.openPosition({ symbol: 'R_75', side: 'sell', volume: 0.2, stopLoss: 44200, takeProfit: null, accountId: TR.acct.id }, 44000);
+        const q = TR.positions[TR.positions.length - 1];
+        __px = 43900; await OT.closePosition(q.id, 0.1, 'Partial close');        // +$10
+        __px = 44150; await OT.closePosition(q.id, null, 'Manual');               // -$15 -> net -$5
+        // an old record without an id or stop: grouped by entry price
+        S.trades.push({ sym: 'R_75', type: 'buy', volume: 0.1, entry: 100, exit: 101, pnl: 2, closeTime: Date.now() },
+                      { sym: 'R_75', type: 'buy', volume: 0.1, entry: 100, exit: 99, pnl: -1, closeTime: Date.now() });
+        S.posStats = null; renderPortfolio();
+        const st = posStats();
+        out.fills = S.trades.length; out.wins = st.wins; out.losses = st.losses; out.rN = st.rN; out.avgR = st.rSum / st.rN;
+        out.wr = document.getElementById('winRate').textContent; out.total = document.getElementById('totalTrades').textContent;
+        out.fillR = S.trades[0].r; out.fillSl0 = S.trades[0].sl0;
+        return out; })()""")
+    assert r["sl0"] == 43800 and abs(r["risk0"] - 40) < 1e-6, r            # 0.2 lots x 200 points
+    assert r["fills"] == 6 and r["wins"] == 2 and r["losses"] == 1, r       # 3 positions, not 6 fills
+    assert r["wr"] == "67%" and r["total"] == "3", r
+    assert r["rN"] == 2 and abs(r["avgR"] - ((15 / 40) + (-5 / 40)) / 2) < 1e-6, r
+    assert r["fillSl0"] == 43800 and abs(r["fillR"] - 30 / 40) < 1e-6, r
+    run(page, "TR.positions = []; S.trades = []; S.posStats = null")
+
+
 def main():
     httpd = serve()
     port = httpd.server_address[1]
@@ -152,7 +182,7 @@ def main():
         page.goto(f"http://127.0.0.1:{port}/protrader_mobile.html", wait_until="domcontentloaded")
         page.wait_for_function("typeof OT !== 'undefined' && typeof LEVELS !== 'undefined' && typeof AUTOP !== 'undefined'")
         page.wait_for_timeout(1500)
-        for name, fn in [("risk rules", check_rules), ("chart tags", check_tags), ("auto-protect", check_autoprotect)]:
+        for name, fn in [("risk rules", check_rules), ("chart tags", check_tags), ("auto-protect", check_autoprotect), ("positions not fills", check_positions)]:
             fn(page)
             print(f"ok  {name}")
         assert not errs, errs
