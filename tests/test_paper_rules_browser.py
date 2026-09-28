@@ -101,7 +101,7 @@ def check_tags(page):
 
 def check_autoprotect(page):
     run(page, SETUP)
-    assert run(page, "AUTOP.on()") is False              # off until the trader turns it on
+    assert run(page, "AUTOP.load().preset") == "r1"      # default: +1R -> breakeven, trail 1R
     # +1R -> breakeven, trail 1R
     r = run(page, """(() => {
         AUTOP.pick('r1');

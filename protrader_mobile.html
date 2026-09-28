@@ -5552,7 +5552,9 @@ const AUTOP = {
   load() {
     if (this.cfg) return this.cfg;
     let c = null; try { c = JSON.parse(localStorage.getItem(this.KEY) || 'null'); } catch (_) {}
-    this.cfg = c && typeof c === 'object' ? c : { preset: 'off' };   // off by default: the rule is being tested on Sentinel first
+    // Default: the research recommendation (+1R → breakeven, trail 1R). The +$100 rule runs as a
+    // shadow on Sentinel's trades so its forward results can be compared before anyone relies on it.
+    this.cfg = c && typeof c === 'object' ? c : { preset: 'r1', ...this.PRESETS.r1 };
     return this.cfg;
   },
   save() { try { localStorage.setItem(this.KEY, JSON.stringify(this.cfg)); } catch (_) {} },
