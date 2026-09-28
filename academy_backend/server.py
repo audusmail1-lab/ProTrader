@@ -18,7 +18,7 @@ from urllib.parse import urlsplit
 
 ROOT = Path(__file__).resolve().parent.parent
 LESSONS = json.loads((ROOT / 'academy_backend/lessons.json').read_text())
-PUBLIC = {'journey-videos.js','landing-assets/protrader-workspace.webp','posters/guide-0.jpg','posters/guide-1.jpg','captions/guide-0.vtt','captions/guide-1.vtt','teacher.js','teacher.css','support-chat.js','support-chat.css','homepage.js','homepage.css','landing-assets/barlow-400.woff2','landing-assets/barlow-500.woff2','landing-assets/barlow-700.woff2','landing-assets/barlow-condensed-600.woff2','landing-assets/landing-terminal-800.webp','landing-assets/landing-terminal.webp','styles.css','favicon.svg','live.js','live.css','public-content.js','public-intro.js','public-pages.js','video-player.js','video-library.js','intro-video.js','captions/intro.vtt','posters/intro-landscape.jpg','posters/intro-portrait.jpg'} | {f'captions/tutorial-{i}.vtt' for i in range(7)} | {f'posters/tutorial-{i}.jpg' for i in range(7)}
+PUBLIC = {'posters/callan-1.jpg', 'captions/callan-3.vtt', 'captions/callan-6.vtt', 'posters/callan-3.jpg', 'posters/callan-9.jpg', 'posters/callan-4.jpg', 'posters/callan-0.jpg', 'captions/callan-2.vtt', 'captions/callan-4.vtt', 'academy-intelligence.js', 'posters/callan-5.jpg', 'captions/callan-7.vtt', 'captions/callan-8.vtt', 'captions/callan-9.vtt', 'posters/callan-7.jpg', 'academy-site.js', 'academy-design.css', 'academy-films.js', 'academy-guides.js', 'posters/callan-6.jpg', 'captions/callan-5.vtt', 'posters/callan-7-portrait.jpg', 'academy-library-toggle.js', 'posters/callan-2.jpg', 'captions/callan-1.vtt', 'captions/callan-0.vtt', 'posters/callan-8.jpg'} | {'journey-videos.js','landing-assets/protrader-workspace.webp','posters/guide-0.jpg','posters/guide-1.jpg','captions/guide-0.vtt','captions/guide-1.vtt','teacher.js','teacher.css','support-chat.js','support-chat.css','homepage.js','homepage.css','landing-assets/barlow-400.woff2','landing-assets/barlow-500.woff2','landing-assets/barlow-700.woff2','landing-assets/barlow-condensed-600.woff2','landing-assets/landing-terminal-800.webp','landing-assets/landing-terminal.webp','styles.css','favicon.svg','live.js','live.css','public-content.js','public-intro.js','public-pages.js','video-player.js','video-library.js','intro-video.js','captions/intro.vtt','posters/intro-landscape.jpg','posters/intro-portrait.jpg'} | {f'captions/tutorial-{i}.vtt' for i in range(7)} | {f'posters/tutorial-{i}.jpg' for i in range(7)}
 POLICY = json.loads((ROOT / 'academy_backend/public_policy.json').read_text())
 EMAIL = re.compile(r'^[^\s@]+@[^\s@]+\.[^\s@]+$')
 
@@ -146,7 +146,7 @@ class Handler(BaseHTTPRequestHandler):
         self.send_header('Content-Length',str(len(payload))); self.send_header('Cache-Control','no-store')
         self.send_header('X-Content-Type-Options','nosniff'); self.send_header('Referrer-Policy','no-referrer')
         self.send_header('X-Frame-Options','DENY')
-        self.send_header('Content-Security-Policy',"default-src 'self'; script-src 'self' blob: https://elevenlabs.io https://*.elevenlabs.io; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; media-src 'self' blob: https://*.elevenlabs.io https://d2ol7oe51mr4n9.cloudfront.net; img-src 'self' data: blob: https://*.elevenlabs.io https://storage.googleapis.com; connect-src 'self' https://elevenlabs.io https://*.elevenlabs.io wss://*.elevenlabs.io https://*.livekit.cloud wss://*.livekit.cloud; worker-src 'self' blob:; frame-ancestors 'none'; base-uri 'self'; form-action 'self'")
+        self.send_header('Content-Security-Policy',"default-src 'self'; script-src 'self' blob: https://unpkg.com https://elevenlabs.io https://*.elevenlabs.io; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; media-src 'self' blob: https://*.elevenlabs.io https://d2ol7oe51mr4n9.cloudfront.net; img-src 'self' data: blob: https://*.elevenlabs.io https://storage.googleapis.com; connect-src 'self' https://elevenlabs.io https://*.elevenlabs.io wss://*.elevenlabs.io https://*.livekit.cloud wss://*.livekit.cloud; worker-src 'self' blob:; frame-ancestors 'none'; base-uri 'self'; form-action 'self'")
         if cookie: self.send_header('Set-Cookie',cookie)
         self.end_headers(); self.wfile.write(payload)
 
@@ -226,8 +226,8 @@ class Handler(BaseHTTPRequestHandler):
                     students=[dict(r) for r in db.execute("SELECT u.id,u.name,u.email,u.status,u.verified,u.experience,u.difficulty,u.goal,u.created,a.version AS terms_version,a.adult AS adult_confirmed,a.accepted AS acknowledged_at FROM users u LEFT JOIN agreements a ON a.user_id=u.id WHERE u.role='student' ORDER BY u.created DESC")]
                     mail=[dict(r) for r in db.execute('SELECT id,recipient,subject,status,error,created FROM mail ORDER BY id DESC LIMIT 100')]
                 return self.output({'students':students,'mail':mail,'mailEnabled':self.app.mail_enabled,'recipient':self.app.recipient})
-            if path=='/':
-                html=(ROOT/'academy/live.html').read_text()
+            if path in ('/','/classroom'):
+                html=(ROOT/('academy/academy-landing.html' if path=='/' else 'academy/live.html')).read_text()
                 return self.output(html,content_type='text/html; charset=utf-8')
             name=path.removeprefix('/')
             if name in PUBLIC:
