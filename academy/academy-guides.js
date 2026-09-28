@@ -20,6 +20,7 @@ document.querySelector('#tour').innerHTML='Watch the overview <span>▷ 0:49</sp
 const nav=document.querySelector('.site-header nav');const appLink=document.createElement('button');appLink.textContent='Open app ↗';appLink.onclick=()=>showPage('terminal');nav.appendChild(appLink);
 // Make the risk explanation available without expanding the video library.
 const riskLink=document.createElement('button');riskLink.className='risk-explainer-link';riskLink.textContent='Understand risk & position size →';riskLink.setAttribute('aria-haspopup','dialog');riskLink.onclick=()=>openDescription(0);document.querySelector('.hero-visual').appendChild(riskLink);
+document.addEventListener('academy:guide',e=>{if(videos.some(v=>v.id===e.detail))openDescription(e.detail)});
 function openDescription(id){
  const v=videos.find(x=>x.id===id), original=lessons[oldLabels[id]];
  modal.querySelector('video')?.pause();modal.classList.remove('video-dialog');
@@ -30,7 +31,7 @@ function openDescription(id){
  if($('#written-practise'))$('#written-practise').onclick=showPage;
  modal.scrollTop=0;$('#close-modal').focus();
 }
-document.addEventListener('academy:watch-lesson',event=>{if([5,6].includes(event.detail))openVideo(event.detail)});
+document.addEventListener('academy:watch-lesson',event=>{if(videos.some(v=>v.id===event.detail))openVideo(event.detail)});
 function openVideo(id){
  const v=videos.find(x=>x.id===id),portrait=id<7||(id===7&&innerWidth<600),source=id===7&&portrait?v.formats.portrait.url:v.url,poster=id===7&&portrait?v.formats.portrait.poster:v.poster;
  modal.classList.add('video-dialog');
