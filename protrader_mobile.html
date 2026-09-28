@@ -1408,6 +1408,13 @@ svg.ico{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.7;st
 .fav-btn.on{color:var(--amber)}
 .group-lbl.fav{color:var(--amber)}
 #pairSheet .fav-btn{width:40px;min-height:40px}
+
+/* notifications */
+#notifyBtn.on{color:var(--green)}#notifyBtn.on::after{content:'';position:absolute;top:6px;right:6px;width:6px;height:6px;border-radius:50%;background:var(--green)}
+#notifyBtn{position:relative}
+.ws-button:disabled{opacity:.45;cursor:default}
+.nt-channel{display:flex;align-items:center;gap:12px;padding:12px;border:1px solid var(--bd-1);border-radius:10px}.nt-channel>div{flex:1;min-width:0;display:grid;gap:3px}.nt-channel small{color:var(--tx-3);line-height:1.45}.nt-channel.on{border-color:rgba(47,191,155,.5)}
+.nt-events{border:1px solid var(--bd-1);border-radius:10px;padding:6px 12px 10px;display:grid;gap:6px}.nt-events legend{font-size:var(--fs-1);color:var(--tx-3);padding:0 4px}
 </style>
 </head>
 <body>
@@ -1469,6 +1476,7 @@ svg.ico{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.7;st
     </button>
 
     <button class="voice-btn" id="voiceBtn" onclick="handleVoiceClick(event)" title="Click: listen for voice commands. Shift+click: toggle spoken responses (default off)." aria-label="Voice commands"><svg class="ico" viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0014 0M12 18v3"/></svg></button>
+    <button class="icon-btn" onclick="NOTIFY.open()" id="notifyBtn" title="Notifications" aria-label="Notifications"><svg class="ico" viewBox="0 0 24 24"><path d="M18 16v-5a6 6 0 10-12 0v5l-2 2h16zM10 20a2 2 0 004 0"/></svg></button>
     <button class="icon-btn" onclick="toggleTheme()" id="themeBtn" title="Toggle light/dark mode" aria-label="Toggle light and dark mode"><svg class="ico" viewBox="0 0 24 24"><path d="M20 14.5A8 8 0 019.5 4a8 8 0 1010.5 10.5z"/></svg></button>
     <button class="icon-btn" onclick="toggleShortcutsHelp()" title="Keyboard shortcuts (press ?)" aria-label="Help and support" style="font-weight:800">?</button>
     <button class="icon-btn" onclick="toggleShortcutsHelp()" title="Help and support" style="display:none;font-size:12px;font-weight:800" id="menuBtn" aria-label="Help and support">?</button>
@@ -7066,6 +7074,7 @@ const OT = {
     };
     TR.positions.push(pos);
     showToast(`${order.side === 'buy' ? '▲' : '▼'} ${order.side.toUpperCase()} ${order.volume} ${pos.label} @ ${otFmtPx(pos.symbol, fill)}`, 3200);
+    if (typeof NOTIFY !== 'undefined') NOTIFY.paperEvent(order._pending ? 'pending_filled' : 'executed', pos, { price: fill, sl: pos.sl, tp: pos.tp });
     speak(`${order.side} ${order.volume} lots ${pos.label} filled at ${fill.toFixed(otSpec(pos.symbol).dp)}.`);
     updateBalDisplay(); renderPortfolio();
   },
@@ -7102,7 +7111,7 @@ const OT = {
       }
       this.openPosition({
         symbol: o.symbol, side: o.side, volume: o.volume,
-        stopLoss: o.sl, takeProfit: o.tp, accountId: o.accountId,
+        stopLoss: o.sl, takeProfit: o.tp, accountId: o.accountId, _pending: true,
       }, fill);
       this.save();
     });
@@ -7152,11 +7161,12 @@ const OT = {
   },
 
   /* -- position management -- */
-  async closePosition(id, volume, reason) {
+  async closePosition(id, volume, reason, at, quiet) {
     const p = TR.positions.find(x => x.id === id);
     if (!p || p._closing) return;
     p._closing = true;
-    const res = await Broker.close(id, volume == null ? p.volume : volume);
+    // `at`: the server's watcher already closed this one at that price while the app was away
+    const res = Number.isFinite(at) ? { status: 'filled', fillPrice: at } : await Broker.close(id, volume == null ? p.volume : volume);
     p._closing = false;
     if (res.status !== 'filled') { showToast(`✕ Close rejected — ${res.reason}`, 3600); return; }
 
@@ -7179,6 +7189,10 @@ const OT = {
     updateBalDisplay(); renderPortfolio(); updateGarden(won, pnl);
     this.renderBook(); this.render(); this.save();
     showToast(`${won ? '✓' : '✕'} Closed ${vol} ${p.label} @ ${otFmtPx(p.symbol, exit)} · ${otMoney(pnl)}${reason ? ' · ' + reason : ''}`, 4000);
+    if (!quiet && typeof NOTIFY !== 'undefined') {
+      const full = !TR.positions.some(x => x.id === id);   // a partial close gets its own key so the final close still notifies
+      NOTIFY.paperEvent(reason === 'Stop loss' ? 'sl' : reason === 'Take profit' ? 'tp' : 'closed', Object.assign({}, p, { volume: vol, id: full ? p.id : `${p.id}p${Date.now()}` }), { price: exit, pnl });
+    }
   },
 
   closeHalf(id) {
@@ -7313,6 +7327,7 @@ const OT = {
         ticket: { volume: TK.volume, type: TK.type, side: TK.side },
       }));
     } catch (_) {}
+    if (typeof NOTIFY !== 'undefined') NOTIFY.syncPaper();
   },
   load() {
     try {
@@ -7969,6 +7984,197 @@ const WS = {
   },
 };
 
+
+/* ════════════════════════════════════════════════════════════
+   PHONE NOTIFICATIONS
+   Fills, stops and targets reach the phone through Web Push (the installed
+   app) and/or Telegram. The server (notify.py) delivers; this module keeps
+   the device registered, uploads the open paper book so the server can watch
+   it while the app is closed, reports the events the app sees itself, and
+   reconciles closes the server made while we were away.
+════════════════════════════════════════════════════════════ */
+const NOTIFY = {
+  KEY: 'protrader.notify.v1', st: { device: null, tg: null, prefs: {}, wanted: false, tgCode: null },
+  cfg: null, status: null, _syncT: 0, _lastSync: '', _pollT: 0,
+
+  init() {
+    try { Object.assign(this.st, JSON.parse(localStorage.getItem(this.KEY) || '{}')); } catch (_) {}
+    if (!this.st.device) { this.st.device = 'd' + Array.from(crypto.getRandomValues(new Uint8Array(12)), b => b.toString(16).padStart(2, '0')).join(''); this.save(); }
+    this.refreshConfig().then(() => this.register());
+    document.addEventListener('visibilitychange', () => { if (!document.hidden) { this.syncPaper(true); this.register(); } });
+    this._pollT = setInterval(() => this.syncPaper(true), 20000);
+    if ('serviceWorker' in navigator) navigator.serviceWorker.addEventListener('message', ev => {
+      if (!ev.data) return;
+      if (ev.data.type === 'push-resubscribe') this.enablePush(true);
+      if (ev.data.type === 'notification-open' && ev.data.url) { try { const u = new URL(ev.data.url, location.origin); const sym = u.searchParams.get('sym'); if (sym && PAIR_MAP[sym]) selectPair(sym); } catch (_) {} }
+    });
+  },
+  save() { try { localStorage.setItem(this.KEY, JSON.stringify(this.st)); } catch (_) {} },
+  async api(path, body) {
+    const r = await fetch('/api/notify' + path, body === undefined ? {} : { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+    if (!r.ok) { let m = r.statusText; try { m = (await r.json()).detail || m; } catch (_) {} throw new Error(m); }
+    return r.json();
+  },
+  async refreshConfig() { try { this.cfg = await this.api('/config'); } catch (_) { this.cfg = null; } return this.cfg; },
+
+  /* ── registration: idempotent, runs on every load so a server restart heals ── */
+  async register(extra) {
+    if (!this.cfg) return;
+    // `tg` is only sent when this device knows its chat (or is explicitly clearing it): a
+    // pairing that just landed on the server must not be wiped by a routine re-register
+    const body = Object.assign({ device: this.st.device, prefs: this.st.prefs, bridgeKey: (typeof LIVE !== 'undefined' && LIVE.key) || '' }, this.st.tg ? { tg: this.st.tg } : {}, extra || {});
+    if (!('push' in body)) {
+      const sub = await this.currentSub();
+      if (sub) body.push = sub.toJSON(); else if (this.st.wanted && this.cfg.push && this.permission() === 'granted') { const s = await this.subscribe().catch(() => null); if (s) body.push = s.toJSON(); }
+    }
+    try { this.status = await this.api('/register', body); } catch (e) { console.info('[notify] register failed:', e.message); }
+    this.syncPaper(true);
+    return this.status;
+  },
+  permission() { return ('Notification' in window) ? Notification.permission : 'unsupported'; },
+  standalone() { return window.matchMedia('(display-mode: standalone)').matches || navigator.standalone === true; },
+  ios() { return /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1); },
+  pushSupported() { return 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window; },
+  /* serviceWorker.ready never settles when no worker was registered (private
+     mode, an http origin), so it is raced against a short timeout */
+  async reg() { const r = await Promise.race([navigator.serviceWorker.ready, new Promise(res => setTimeout(() => res(null), 1500))]); if (!r) throw new Error('No service worker'); return r; },
+  async currentSub() { try { if (!this.pushSupported()) return null; const r = await this.reg(); return await r.pushManager.getSubscription(); } catch (_) { return null; } },
+  async subscribe() {
+    const r = await this.reg();
+    const key = this.cfg && this.cfg.vapidPublicKey; if (!key) throw new Error('Push is not configured on the server.');
+    const raw = atob(key.replace(/-/g, '+').replace(/_/g, '/').padEnd(Math.ceil(key.length / 4) * 4, '='));
+    const arr = new Uint8Array(raw.length); for (let i = 0; i < raw.length; i++) arr[i] = raw.charCodeAt(i);
+    return r.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: arr });
+  },
+  /* must run from a tap: browsers only show the permission prompt on a user gesture */
+  async enablePush(quiet) {
+    if (!this.pushSupported()) { if (!quiet) showToast(this.ios() ? 'On iPhone, add PROTrader to your Home Screen first, then turn notifications on from the installed app.' : 'This browser cannot receive push notifications.', 6000); return false; }
+    if (!this.cfg || !this.cfg.push) { if (!quiet) showToast('Push is not configured on the server yet.', 4000); return false; }
+    try {
+      const perm = await Notification.requestPermission();
+      if (perm !== 'granted') { if (!quiet) showToast('Notifications are blocked for this app. Allow them in your phone settings.', 5000); this.st.wanted = false; this.save(); return false; }
+      const sub = await this.subscribe();
+      this.st.wanted = true; this.save();
+      await this.register({ push: sub.toJSON() });
+      return true;
+    } catch (e) { if (!quiet) showToast('Could not enable push: ' + e.message, 5000); return false; }
+  },
+  async disablePush() {
+    const sub = await this.currentSub(); if (sub) { try { await sub.unsubscribe(); } catch (_) {} }
+    this.st.wanted = false; this.save();
+    await this.register({ push: null });
+  },
+  async connectTelegram() {
+    try {
+      const r = await this.api('/telegram/code', { device: this.st.device });
+      this.st.tgCode = r.code; this.save();
+      if (r.url) window.open(r.url, '_blank', 'noopener');
+      // pairing lands server-side; poll until the chat shows up
+      let n = 0; const t = setInterval(async () => { n++; try { const s = await this.api('/status?device=' + this.st.device); if (s.tg) { clearInterval(t); this.st.tg = s.tgChat; this.save(); this.status = s; this.renderSheet(); showToast('Telegram connected.', 3000); } } catch (_) {} if (n > 60) clearInterval(t); }, 3000);
+      this.renderSheet();
+      return r;
+    } catch (e) { showToast(e.message, 4000); }
+  },
+  async disconnectTelegram() { this.st.tg = null; this.st.tgCode = null; this.save(); await this.register({ tg: null }); this.renderSheet(); },
+  async sendTest() { try { const r = await this.api('/test', { device: this.st.device }); showToast(r.sent ? 'Test sent — check your phone.' : 'Nothing is connected yet.', 3500); } catch (e) { showToast(e.message, 4000); } },
+
+  /* ── events the app sees itself ── */
+  event(ev) {
+    if (!this.cfg || (!this.status || (!this.status.push && !this.status.tg))) return;
+    this.api('/event', { device: this.st.device, event: ev }).catch(() => {});
+  },
+  paperEvent(type, p, extra) {
+    const sp = otSpec(p.symbol);
+    this.event(Object.assign({ type, account: 'paper', id: String(p.id), symbol: p.symbol, label: p.label || sp.label || p.symbol, side: p.side, volume: p.volume, dp: sp.dp }, extra || {}));
+  },
+
+  /* ── paper book → server watcher; server closes → paper book ── */
+  paperSnapshot() {
+    if (typeof TR === 'undefined') return [];
+    return TR.positions.map(p => {
+      const sp = otSpec(p.symbol), q = otQuote(p.symbol);
+      const unit = otPnl(p.side, p.entry, p.entry + 1, p.volume, p.symbol);
+      return { id: String(p.id), symbol: p.symbol, label: p.label || sp.label || p.symbol, side: p.side, volume: p.volume, entry: p.entry,
+               sl: p.sl == null ? null : p.sl, tp: p.tp == null ? null : p.tp, unit: Number.isFinite(unit) ? unit : null, dp: sp.dp, spread: q.ok && q.hasSpread ? q.spread : 0 };
+    });
+  },
+  syncPaper(force) {
+    if (!this.cfg || !this.status || (!this.status.push && !this.status.tg)) return;
+    const snap = this.paperSnapshot(), sig = JSON.stringify(snap);
+    if (!force && sig === this._lastSync) return;
+    clearTimeout(this._syncT);
+    this._syncT = setTimeout(async () => {
+      try {
+        const r = await this.api('/paper/sync', { device: this.st.device, positions: snap });
+        this._lastSync = sig;
+        if (r.closed && r.closed.length) this.reconcile(r.closed);
+      } catch (_) {}
+    }, force ? 0 : 400);
+  },
+  async reconcile(closed) {
+    const ids = [];
+    for (const c of closed) {
+      const p = TR.positions.find(x => String(x.id) === String(c.id));
+      if (p) {
+        // the server already told the phone; close the book at the server's price, quietly
+        await OT.closePosition(p.id, null, c.reason === 'sl' ? 'Stop loss' : 'Take profit', c.price, true);
+      }
+      ids.push(c.id);
+    }
+    if (ids.length) this.api('/paper/ack', { device: this.st.device, ids }).catch(() => {});
+  },
+
+  /* ── the sheet ── */
+  open() {
+    document.querySelectorAll('dialog.ws-dialog').forEach(d => d.remove());
+    const d = document.createElement('dialog'); d.className = 'ws-dialog'; d.id = 'notifySheet';
+    d.innerHTML = `<header><h2>Notifications</h2><button type="button" class="ws-button" aria-label="Close">×</button></header><div class="ws-dialog-body" id="notifyBody"></div>`;
+    d.querySelector('header button').onclick = () => d.close();
+    d.addEventListener('close', () => d.remove()); document.body.appendChild(d); d.showModal();
+    this.renderSheet();
+    this.refreshConfig().then(() => this.register()).then(() => this.renderSheet());
+  },
+  renderSheet() {
+    const body = document.getElementById('notifyBody'); if (!body) return;
+    const cfg = this.cfg || {}, st = this.status || {}, perm = this.permission();
+    const pushOn = !!st.push, tgOn = !!st.tg;
+    const iosNeedsInstall = this.ios() && !this.standalone();
+    const pushNote = !cfg.push ? 'Push is not configured on the server yet.'
+      : iosNeedsInstall ? 'On iPhone, notifications only work from the installed app: Share → Add to Home Screen, then open PROTrader from there.'
+      : !this.pushSupported() ? 'This browser cannot receive push notifications.'
+      : perm === 'denied' ? 'Blocked in your phone settings for this app.'
+      : pushOn ? 'This phone will be notified even when the app is closed.' : 'Fills, stops and targets as native notifications on this phone.';
+    const prefs = Object.assign({ executed: true, pending_filled: true, sl: true, tp: true, closed: true }, this.st.prefs || {});
+    const row = (k, label, hint) => `<label class="ws-check"><input type="checkbox" data-pref="${k}" ${prefs[k] ? 'checked' : ''}><span>${label}<small>${hint}</small></span></label>`;
+    body.innerHTML = `
+      <div class="ws-fields">
+        <div class="nt-channel ${pushOn ? 'on' : ''}">
+          <div><strong>Phone push</strong><small>${pushNote}</small></div>
+          <button type="button" class="ws-button ${pushOn ? '' : 'ws-primary'}" data-push ${(!cfg.push || iosNeedsInstall || !this.pushSupported() || perm === 'denied') && !pushOn ? 'disabled' : ''}>${pushOn ? 'Turn off' : 'Turn on'}</button>
+        </div>
+        <div class="nt-channel ${tgOn ? 'on' : ''}">
+          <div><strong>Telegram</strong><small>${!cfg.telegram ? 'Telegram is not configured on the server yet.' : tgOn ? 'Connected — the bot messages this chat.' : this.st.tgCode ? 'Waiting for you to press Start in Telegram…' : 'Works on any phone, no install needed.'}</small></div>
+          <button type="button" class="ws-button ${tgOn ? '' : 'ws-primary'}" data-tg ${cfg.telegram ? '' : 'disabled'}>${tgOn ? 'Disconnect' : 'Connect'}</button>
+        </div>
+        <fieldset class="nt-events"><legend>Notify me about</legend>
+          ${row('executed', 'Trade executed', 'Market order filled')}
+          ${row('pending_filled', 'Pending order filled', 'Limit or stop order triggered')}
+          ${row('sl', 'Stop loss hit', 'Closed at the stop, with the loss or locked-in profit')}
+          ${row('tp', 'Take profit hit', 'Closed at the target, with the realised profit')}
+          ${row('closed', 'Closed manually', 'Positions you close yourself, or the broker closes')}
+        </fieldset>
+        <p class="ws-notice">Paper positions are watched on the server, so a stop or target fires the notification even when the app is closed. MT5 events come straight from your bridge: ${st.bridge ? 'connected.' : 'connect the bridge in Trade → Trade live to include them.'}</p>
+      </div>
+      <footer><button type="button" class="ws-button" data-test ${pushOn || tgOn ? '' : 'disabled'}>Send a test</button><span class="ws-spacer"></span><button type="button" class="ws-button ws-primary" data-done>Done</button></footer>`;
+    body.querySelector('[data-push]').onclick = async e => { e.target.disabled = true; if (pushOn) await this.disablePush(); else await this.enablePush(); this.renderSheet(); };
+    body.querySelector('[data-tg]').onclick = () => tgOn ? this.disconnectTelegram() : this.connectTelegram();
+    body.querySelector('[data-test]').onclick = () => this.sendTest();
+    body.querySelector('[data-done]').onclick = () => document.getElementById('notifySheet').close();
+    body.querySelectorAll('[data-pref]').forEach(i => i.onchange = () => { this.st.prefs = this.st.prefs || {}; this.st.prefs[i.dataset.pref] = i.checked; this.save(); this.register({ prefs: this.st.prefs }); });
+    const bell = document.getElementById('notifyBtn'); if (bell) bell.classList.toggle('on', pushOn || tgOn);
+  },
+};
+
 const TRADE_DOCK = {
   height: null, tab: 'scanner', drag: null,
   limit(height) {
@@ -8021,6 +8227,7 @@ const TRADE_DOCK = {
 };
 TRADE_DOCK.init();
 WS.init();
+NOTIFY.init();
 
 /* ════════════════════════════════════════════════════════════
    SIGNALS

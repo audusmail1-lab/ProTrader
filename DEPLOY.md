@@ -155,3 +155,26 @@ right call.
 **Updating.** Change code → `git push` → the host redeploys. The service
 worker picks up the new shell on the next open; bump `CACHE_VERSION` in
 `static/sw.js` if you want to force every device to refresh at once.
+
+## Phone notifications (fills, stops, targets)
+
+`notify.py` sends Web Push to the installed app and/or Telegram messages.
+Both are off until their keys exist in the Render environment
+(Dashboard → protrader → Environment):
+
+| variable | value |
+|---|---|
+| `VAPID_PUBLIC_KEY` | from `vapid_keys.txt` (generate once, keep forever — changing it invalidates every phone's subscription) |
+| `VAPID_PRIVATE_KEY` | same file |
+| `VAPID_SUBJECT` | `mailto:you@example.com` |
+| `TELEGRAM_BOT_TOKEN` | from @BotFather → `/newbot` |
+| `NOTIFY_STATE` | optional; defaults to `/var/data/notify.json` when a disk is mounted there, else a file next to the app |
+
+To generate VAPID keys locally: `pip install py-vapid && vapid --gen` (or the
+snippet in `notify.py`'s docstring). Without a persistent disk the state file
+is lost on redeploy, which is fine: every open app re-registers itself and
+re-uploads its paper book on the next launch, and Telegram chats are also
+remembered on the phone and re-sent.
+
+On iPhone, push only works from the Home-Screen app (Share → Add to Home
+Screen), iOS 16.4 or later. Android Chrome works in the browser or installed.

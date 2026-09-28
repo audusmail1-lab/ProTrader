@@ -2,7 +2,7 @@
    Caches the app shell (page + chart library + icons) so the terminal opens
    instantly and even offline; market data always goes to the network.
    Bump CACHE_VERSION whenever the shell changes to evict the old copy. */
-const CACHE_VERSION = 'protrader-shell-v29';
+const CACHE_VERSION = 'protrader-shell-v30';
 const VENDOR = '/vendor/lightweight-charts.standalone.production.js?v=5.0.9';
 const SHELL = ['/', '/mobile', '/app', VENDOR, '/static/manifest.webmanifest', '/static/icon-192.png', '/static/icon-512.png'];
 
@@ -60,4 +60,38 @@ self.addEventListener('fetch', e => {
     const fallback = e.request.mode === 'navigate' ? await cache.match('/') : null;
     return fallback || new Response('Offline', { status: 503, headers: { 'Content-Type': 'text/plain' } });
   })());
+});
+
+/* ── Phone notifications ──────────────────────────────────────────────────
+   The server pushes {title, body, tag, data} for fills, stops and targets.
+   One notification per event (tag), so a duplicate never stacks. Tapping it
+   opens the app on that instrument. */
+self.addEventListener('push', e => {
+  let p = {};
+  try { p = e.data ? e.data.json() : {}; } catch (_) { p = { title: 'PROTrader', body: e.data ? e.data.text() : '' }; }
+  const data = p.data || {};
+  e.waitUntil(self.registration.showNotification(p.title || 'PROTrader', {
+    body: p.body || '',
+    tag: p.tag || data.tag || undefined,
+    renotify: false,
+    icon: '/static/icon-192.png',
+    badge: '/static/icon-192.png',
+    timestamp: Date.now(),
+    data: { url: '/app' + (data.sym ? '?sym=' + encodeURIComponent(data.sym) : ''), type: data.type || '' },
+  }));
+});
+
+self.addEventListener('notificationclick', e => {
+  e.notification.close();
+  const url = (e.notification.data && e.notification.data.url) || '/app';
+  e.waitUntil(self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(cs => {
+    const open = cs.find(c => 'focus' in c);
+    if (open) { open.postMessage({ type: 'notification-open', url }); return open.focus(); }
+    return self.clients.openWindow(url);
+  }));
+});
+
+/* A push subscription can be rotated by the browser; re-register it. */
+self.addEventListener('pushsubscriptionchange', e => {
+  e.waitUntil(self.clients.matchAll({ type: 'window' }).then(cs => cs.forEach(c => c.postMessage({ type: 'push-resubscribe' }))));
 });

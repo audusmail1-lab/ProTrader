@@ -50,6 +50,18 @@ bot = TradingBot()
 from mt5_bridge import router as _mt5_bridge_router
 app.include_router(_mt5_bridge_router)
 
+# Phone notifications (see notify.py): Web Push to the installed app and
+# Telegram, for fills, stops and targets — paper positions are watched
+# server-side and MT5 events come off the bridge snapshots.
+import notify as _notify
+app.include_router(_notify.router)
+_notify.start()
+
+# ARIA Sentinel (see sentinel.py): always-on ARIA scanner + paper journal.
+import sentinel as _sentinel
+app.include_router(_sentinel.router)
+_sentinel.attach(app)
+
 # In-memory store
 history: deque = deque(maxlen=50)
 cache:   dict[str, dict] = {}

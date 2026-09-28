@@ -27,12 +27,16 @@ COPY requirements.txt .
 RUN pip install --upgrade pip && pip install -r requirements.txt
 
 # App source. .dockerignore keeps logs, venv and pid files out.
-COPY dashboard.py mt5_bridge.py grok_quantum_bot.py protrader_mobile.html landing.html chart_lab.html ./
+COPY dashboard.py mt5_bridge.py notify.py grok_quantum_bot.py protrader_mobile.html landing.html chart_lab.html ./
+COPY sentinel.py sentinel_core.py sentinel_engine.py sentinel_replay.py sentinel_baseline.json ./
 COPY vendor ./vendor
 COPY static ./static
 
 # Run as a non-root user.
 RUN useradd --create-home --shell /usr/sbin/nologin app && chown -R app:app /app
+# Mount point for a persistent disk (Sentinel journal). Owned by the app user
+# so the journal is writable when the host mounts a disk here.
+RUN mkdir -p /var/data && chown app:app /var/data
 USER app
 
 EXPOSE 8000
