@@ -78,6 +78,32 @@ def test_trailing_model_matches_research_simulator():
         assert abs(t.r - want) < 1e-4, (trial, t.r, want)   # r is stored to 4 dp
 
 
+def test_management_stages():
+    base = dict(cost_r=0.05, model="7.2c")
+    assert core.stage_of({**base, "status": "loss", "r": -1.05}) == "Full loser"
+    assert core.stage_of({**base, "status": "win", "r": 0.95, "protected_at": 1}) == "Managed winner"
+    assert core.stage_of({**base, "status": "loss", "r": -0.05, "protected_at": 1}) == "Protected flat"
+    assert core.stage_of({**base, "status": "timeout", "r": 0.3}) == "Time exit"
+    assert core.stage_of({"status": "win", "r": 2.45, "cost_r": 0.05, "model": "fixed"}) == "Full winner"
+    m = core.management_stats([
+        {**base, "status": "win", "r": 1.95, "protected_at": 1, "mfe_r": 3.0, "locked_r": 2.0},
+        {**base, "status": "loss", "r": -0.05, "protected_at": 1, "mfe_r": 1.2, "locked_r": 0.0},
+        {**base, "status": "loss", "r": -1.05, "mfe_r": 0.4}])
+    assert m["stages"]["Managed winner"] == 1 and m["stages"]["Protected flat"] == 1 and m["stages"]["Full loser"] == 1
+    assert abs(m["risk_free_pct"] - 2 / 3) < 1e-3 and m["risk_free_positive_pct"] == 0.5
+    assert abs(m["capture_pct"] - 2.0 / 3.0) < 1e-3
+
+
+def test_trailing_records_protection():
+    t = trade("buy", entry=100.0, sl_dist=2.0, cost_r=0.0)
+    t.model, t.stop = "7.2c", t.sl
+    b = book_with(t)
+    b.update(t.market, t.tf, [bar(900, 100, 102.5, 99.5, 102), bar(1800, 102, 104, 101.5, 103.5), bar(2700, 103.5, 103.6, 101, 101)])
+    assert t.protected_at == 900 + 900        # +1.25R on the first bar moves the stop to +0.25R
+    assert t.status == "win" and abs(t.r - 1.0) < 1e-9 and abs(t.locked_r - 1.0) < 1e-9
+    assert core.stage_of(t.to_dict()) == "Managed winner"
+
+
 if __name__ == "__main__":
     for name, fn in list(globals().items()):
         if name.startswith("test_"):

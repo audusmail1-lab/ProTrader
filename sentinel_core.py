@@ -307,6 +307,8 @@ class Trade:
     stop: Optional[float] = None   # current stop (moves when trailing)
     best_r: float = 0.0            # best excursion used for trailing, in R
     trend_4h: Optional[str] = None
+    protected_at: Optional[int] = None  # when the stop first reached breakeven or better
+    locked_r: Optional[float] = None    # best profit the stop had locked in, in R
 
     def to_dict(self) -> dict:
         return asdict(self)
@@ -381,6 +383,11 @@ class PaperBook:
                 cand = t.entry + s * t.sl_dist * (t.best_r - cfg["trail"])
                 if (s > 0 and cand > t.stop) or (s < 0 and cand < t.stop):
                     t.stop = cand
+            locked = s * (t.stop - t.entry) / t.sl_dist
+            if locked >= -1e-9:
+                if t.protected_at is None:
+                    t.protected_at = close_at
+                t.locked_r = round(max(t.locked_r if t.locked_r is not None else locked, locked), 4)
             if t.bars >= cfg["timeout"]:
                 gross = s * (b["close"] - t.entry) / t.sl_dist
                 self._close(t, "timeout", b["close"], gross, close_at)
@@ -494,6 +501,56 @@ def group_stats(trades: list[dict], key) -> dict[str, dict]:
     for t in trades:
         groups.setdefault(str(key(t)), []).append(t)
     return {k: summarise(v) for k, v in sorted(groups.items())}
+
+
+STAGES = ["Full winner", "Managed winner", "Protected flat", "Time exit", "Full loser"]
+
+
+def stage_of(t: dict) -> str:
+    """
+    Where a finished trade ended up, judged by how it was managed rather than
+    only by whether it reached the final target:
+      Full winner     – hit the fixed target
+      Managed winner  – stop had reached breakeven or better, closed in profit
+      Protected flat  – stop at breakeven or better, closed about flat (±0.1R)
+      Time exit       – never protected, closed on the time limit
+      Full loser      – stopped out before it was ever protected
+    Judged on gross R (before spread) so a breakeven exit is not called a loss.
+    """
+    gross = (t.get("r") or 0) + (t.get("cost_r") or 0)
+    if t.get("status") == "win" and t.get("model", "fixed") == "fixed":
+        return "Full winner"
+    if t.get("protected_at"):
+        if gross > 0.1:
+            return "Managed winner"
+        return "Protected flat" if gross >= -0.1 else "Full loser"
+    if t.get("status") == "timeout":
+        return "Time exit"
+    return "Full loser" if gross < 0 else "Managed winner"
+
+
+def management_stats(trades: list[dict]) -> dict:
+    """Stage breakdown plus how much of each move was kept."""
+    done = [t for t in trades if t.get("status") in ("win", "loss", "timeout")]
+    n = len(done)
+    if not n:
+        return {"n": 0}
+    stages = {k: 0 for k in STAGES}
+    for t in done:
+        stages[stage_of(t)] += 1
+    prot = [t for t in done if t.get("protected_at")]
+    gross = lambda t: (t.get("r") or 0) + (t.get("cost_r") or 0)
+    mfe = [t.get("mfe_r") or 0 for t in done]
+    capt = [gross(t) / t["mfe_r"] for t in done if (t.get("mfe_r") or 0) >= 1 and gross(t) > 0]
+    return {
+        "n": n, "stages": stages,
+        "risk_free_pct": round(len(prot) / n, 4),
+        "risk_free_positive_pct": round(sum(1 for t in prot if gross(t) > 0) / len(prot), 4) if prot else None,
+        "avg_mfe_r": round(sum(mfe) / n, 3),
+        "avg_locked_r": round(sum(t.get("locked_r") or 0 for t in prot) / len(prot), 3) if prot else None,
+        "avg_exit_r": round(sum(gross(t) for t in done) / n, 3),
+        "capture_pct": round(sum(capt) / len(capt), 3) if capt else None,
+    }
 
 
 def z_for(tests: int, alpha: float = 0.05) -> float:

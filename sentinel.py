@@ -23,6 +23,7 @@ Endpoints (all read-only except config):
   GET  /api/sentinel/stats    journal statistics + one-year replay baseline
   POST /api/sentinel/config   {"news_week": bool}  (needs X-Sentinel-Key)
   GET  /api/sentinel/costs    estimated vs MT5-measured spread per focus market
+  GET/POST /api/sentinel/managed  the trader's own trade-management journal (owner key)
   POST /api/sentinel/costs    bid/ask snapshots from the MT5 bridge (owner key);
                               the median measured spread replaces the estimate
 
@@ -116,6 +117,8 @@ def _db() -> sqlite3.Connection:
         id TEXT PRIMARY KEY, market TEXT, tf TEXT, status TEXT,
         opened_at INTEGER, closed_at INTEGER, data TEXT)""")
     con.execute("CREATE TABLE IF NOT EXISTS meta (k TEXT PRIMARY KEY, v TEXT)")
+    con.execute("""CREATE TABLE IF NOT EXISTS managed (
+        key TEXT PRIMARY KEY, opened INTEGER, closed INTEGER, data TEXT)""")
     return con
 
 
@@ -587,6 +590,8 @@ def feed(limit: int = 40) -> dict:
     closed.sort(key=lambda t: t.get("closed_at") or 0, reverse=True)
     for t in open_ + closed:
         t["mode"] = LEGACY_MODE.get(t.get("mode"), t.get("mode"))
+    for t in closed:
+        t["stage"] = core.stage_of(t)
     return {"open": open_, "closed": closed}
 
 
@@ -608,6 +613,7 @@ def stats() -> dict:
             "by_slice": core.group_stats(trades, lambda t: f"{t['market']} {t['tf']}"),
             "by_elliott": core.group_stats([t for t in trades if t["tier"] == "exec"],
                                            lambda t: t.get("elliott") or "no count"),
+            "management": core.management_stats(trades),
             "older_rules": len(all_trades) - len(trades),
         },
         "baseline": {k: base.get(k) for k in ("generated", "period", "notes", "all", "exec", "by_slice",
@@ -619,6 +625,100 @@ def stats() -> dict:
                   "model": core.SENTINEL_MODEL,
                   "evidence_z": round(core.z_for(len(_slices())), 2), "slices": len(_slices())},
     }
+
+
+# ── Trader's own trade management (owner only) ──────────────────────────────
+# The terminal watches the trader's paper and MT5 positions and records how
+# each one was managed: initial stop, every stop move, when it became risk
+# free, partials, peak profit and the exit. Sentinel's paper trade for the
+# same setup (when the position came from "Load setup") is kept alongside,
+# so the system's part and the trader's part can be judged separately.
+
+MANAGED_MAX = 2000
+
+
+def _managed_rows() -> list[dict]:
+    with _lock, _db() as con:
+        rows = con.execute("SELECT data FROM managed ORDER BY opened DESC LIMIT ?", (MANAGED_MAX,)).fetchall()
+    return [json.loads(r[0]) for r in rows]
+
+
+def _managed_stats(recs: list[dict]) -> dict:
+    done = [r for r in recs if r.get("closed")]
+    n = len(done)
+    if not n:
+        return {"n": 0, "open": sum(1 for r in recs if not r.get("closed"))}
+    stages: dict[str, int] = {}
+    for r in done:
+        stages[r.get("stage") or "Unclassified"] = stages.get(r.get("stage") or "Unclassified", 0) + 1
+    with_r = [r for r in done if isinstance(r.get("exit_r"), (int, float))]
+    prot = [r for r in done if r.get("be_at")]
+    capt = [r["exit_r"] / r["mfe_r"] for r in with_r if (r.get("mfe_r") or 0) >= 1 and r["exit_r"] > 0]
+    pnl = [r.get("pnl") or 0 for r in done]
+    linked = [r for r in with_r if isinstance(r.get("sentinel_r"), (int, float))]
+    return {
+        "n": n, "open": sum(1 for r in recs if not r.get("closed")), "stages": stages,
+        "pnl_total": round(sum(pnl), 2),
+        "win_pct": round(sum(1 for x in pnl if x > 0) / n, 4),
+        "risk_free_pct": round(len(prot) / n, 4),
+        "risk_free_positive_pct": round(sum(1 for r in prot if (r.get("pnl") or 0) > 0) / len(prot), 4) if prot else None,
+        "avg_exit_r": round(sum(r["exit_r"] for r in with_r) / len(with_r), 3) if with_r else None,
+        "avg_mfe_r": round(sum(r.get("mfe_r") or 0 for r in with_r) / len(with_r), 3) if with_r else None,
+        "capture_pct": round(sum(capt) / len(capt), 3) if capt else None,
+        "vs_sentinel": ({"n": len(linked),
+                         "trader_avg_r": round(sum(r["exit_r"] for r in linked) / len(linked), 3),
+                         "sentinel_avg_r": round(sum(r["sentinel_r"] for r in linked) / len(linked), 3)}
+                        if linked else None),
+    }
+
+
+def _attach_sentinel(recs: list[dict]) -> None:
+    """Fill in Sentinel's own paper result for linked positions."""
+    ids = [r["sentinel_id"] for r in recs if r.get("sentinel_id")]
+    if not ids:
+        return
+    by_id = {}
+    with _lock, _db() as con:
+        for i in ids:
+            row = con.execute("SELECT data FROM trades WHERE id=?", (i,)).fetchone()
+            if row:
+                by_id[i] = json.loads(row[0])
+    for r in recs:
+        t = by_id.get(r.get("sentinel_id"))
+        if t:
+            r["sentinel_status"] = t.get("status")
+            r["sentinel_r"] = (t.get("r") + t.get("cost_r", 0)) if t.get("r") is not None else None
+            r["sentinel_stage"] = core.stage_of(t) if t.get("status") != "open" else "open"
+
+
+@router.get("/managed")
+def managed(request: Request) -> dict:
+    _check_key(request)
+    recs = _managed_rows()
+    _attach_sentinel(recs)
+    return {"records": recs[:100], "stats": _managed_stats(recs)}
+
+
+@router.post("/managed")
+async def managed_upsert(request: Request) -> dict:
+    """Owner-only: the terminal sends the records it has been tracking."""
+    _check_key(request)
+    body = await request.json()
+    items = body.get("records") if isinstance(body, dict) else None
+    if not isinstance(items, list) or len(items) > 200:
+        raise HTTPException(400, "Send {\"records\": [...]} (at most 200)")
+    saved = 0
+    with _lock, _db() as con:
+        for r in items:
+            if not isinstance(r, dict) or not isinstance(r.get("key"), str) or len(r["key"]) > 80:
+                continue
+            blob = json.dumps(r)
+            if len(blob) > 20000:
+                continue
+            con.execute("INSERT OR REPLACE INTO managed VALUES (?,?,?,?)",
+                        (r["key"], int(r.get("opened") or 0), int(r.get("closed") or 0) or None, blob))
+            saved += 1
+    return {"saved": saved}
 
 
 @router.post("/config")
