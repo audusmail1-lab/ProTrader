@@ -1,6 +1,11 @@
 /* Preview media refinements. Original URLs retained for rollback. */
 (()=>{
 const videos=window.academyVideos;
+const lessons={
+'Chart essentials':['Start with context.','A candle summarizes the open, high, low and close for one time interval. A larger timeframe gives context; a smaller one shows more detail.','Choose a timeframe for your decision.','Mark the level that would invalidate your idea.','Keep the chart readable: every drawing should answer a question.'],
+'ARIA & Oracle, explained':['Agreement isn’t certainty.','ARIA checks defined market conditions. Oracle summarizes how many agree. Eight of ten conditions means 80% agreement—not an 80% chance of winning.','Read the failed checks as carefully as the passed ones.','Confirm that every input uses verified, current data.','Use the score as context, never as a substitute for a risk plan.'],
+'Plan your risk':['Start with what you can lose.','In this EUR/USD example, a 20-pip stop at 0.50 lots represents approximately $100 of price risk on a USD account, before fees and slippage.','Set the level where the idea stops making sense.','Choose your risk budget, then calculate size.','Check actual risk again after moving your stop.']};
+
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const order=[8,1,0,2,5,6,3,4,9,7];
 const grid=document.querySelector('.lesson-grid');
