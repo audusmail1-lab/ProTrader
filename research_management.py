@@ -59,6 +59,9 @@ DOLLAR = 100.0
 #          3 volatility: `dist` x ATR(14) behind the best price
 #   arm    trailing starts once best profit reaches arm
 NAN = float("nan")
+HYBRID = "Hybrid: swings after 1R, BE fallback"
+HYBRID_FALLBACK_BARS = 4      # no swing within 4 bars of the trade's timeframe -> breakeven
+HYBRID_RETRACE_R = 0.3        # or price falls back to +0.3R -> breakeven
 
 
 def rule(tp=NAN, trig=NAN, off=0.0, mode=0, dist=NAN, arm=NAN):
@@ -80,6 +83,7 @@ def rule_book() -> dict:
         "BE at 1R +0.1R, trail 1R": rule(trig=1.0, off=0.1, mode=1, dist=1.0, arm=1.0),
         "Structure: swing stop after 1R": rule(trig=NAN, mode=2, arm=1.0),
         "Volatility: 3×ATR trail after 1R": rule(trig=1.0, mode=3, dist=3.0, arm=1.0),
+        HYBRID: rule(mode=4, arm=1.0),
     }
     for bal in ACCOUNTS:
         T = DOLLAR / (0.01 * bal)
@@ -92,7 +96,8 @@ def rule_book() -> dict:
 # ── minute-by-minute simulator ───────────────────────────────────────────────
 
 @njit(cache=True)
-def simulate(h, l, c, i0, i1, s, entry, sd, atr, tp, trig, off, mode, dist, arm, piv_t, piv_px):
+def simulate(h, l, c, i0, i1, s, entry, sd, atr, tp, trig, off, mode, dist, arm, piv_t, piv_px,
+             tm, fb_sec, retr):
     """Walk 1m bars i0..i1-1. Returns (gross R, MFE R, exit index, reason, protected).
     reason: 0 stop, 1 target, 2 time-out. Within a minute the stop is checked
     before any favourable move (conservative)."""
@@ -100,6 +105,9 @@ def simulate(h, l, c, i0, i1, s, entry, sd, atr, tp, trig, off, mode, dist, arm,
     best = 0.0
     prot = False
     pk = 0
+    armed_j = -1          # mode 4: minute the trade first reached `arm`
+    seen = False          # mode 4: a swing confirmed since then
+    fb_done = False       # mode 4: breakeven fallback applied
     for j in range(i0, i1):
         adverse = (l[j] if s > 0 else h[j])
         favour = (h[j] if s > 0 else l[j])
@@ -130,6 +138,26 @@ def simulate(h, l, c, i0, i1, s, entry, sd, atr, tp, trig, off, mode, dist, arm,
                     if s * (cand - new) > 0 and s * (cand - entry) > 0:
                         new = cand
                     pk += 1
+            elif mode == 4:
+                # Hybrid (Joel, 28 Sep 2026): after +1R follow each swing confirmed from then
+                # on, wherever it is (a higher low below entry still cuts the risk). If no
+                # swing confirms within fb_sec, or price falls back to +retr R, go to breakeven.
+                if armed_j < 0:
+                    armed_j = j
+                while pk < piv_t.shape[0] and piv_t[pk] <= j:
+                    if piv_t[pk] > armed_j:
+                        seen = True
+                        cand = piv_px[pk]
+                        if s * (cand - new) > 0:
+                            new = cand
+                    pk += 1
+                if not fb_done and j > armed_j:
+                    late = (not seen) and (tm[j] - tm[armed_j] >= fb_sec)
+                    back = s * (adverse - entry) / sd <= retr
+                    if late or back:
+                        fb_done = True
+                        if s * (entry - new) > 0:
+                            new = entry
         if s * (new - stop) > 0:
             stop = new
             if s * (stop - entry) >= -1e-12:
@@ -236,7 +264,8 @@ def run_slice(args):
         res = {}
         for name, (tp, trig, off, mode, dist, arm) in rules.items():
             g, mfe, j, why, prot = simulate(h1, l1, c1, i0, i1, s, e["entry"], e["sd"], a,
-                                            tp, trig, off, mode, dist, arm, piv_t, piv_px)
+                                            tp, trig, off, mode, dist, arm, piv_t, piv_px,
+                                            t1, HYBRID_FALLBACK_BARS * sec, HYBRID_RETRACE_R)
             res[name] = (round(g, 4), round(mfe, 4), int(j - i0), int(why), bool(prot))
         rows.append({"set": e["set"], "market": mid, "tf": tf, "mode": m.mode, "t": t_in, "dir": e["dir"],
                      "cost": round(e["cost"], 5), "res": res})

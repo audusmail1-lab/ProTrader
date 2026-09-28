@@ -60,6 +60,12 @@ SENTINEL_MODEL = "7.2c"
 #   structure  after +1R, move the stop just past each new swing low (buy) or
 #              swing high (sell) that forms beyond entry. The standout rule
 #              of the 28 Sep 2026 minute-level research.
+#   hybrid     Joel's hybrid (28 Sep 2026): after +1R follow every swing that
+#              confirms from then on, wherever it is (a higher low below entry
+#              still cuts the risk), 0.1 ATR beyond it. If no swing confirms
+#              within 4 bars, or price falls back to +0.3R, go to breakeven.
+#              Settings fixed before testing; minute-level research on a year
+#              of data: +0.045R/trade vs 7.2c (95% +0.014 to +0.078).
 #   hold       no management: the original stop or a 2.5R target.
 import os as _os
 SHADOW_USD = float(_os.environ.get("SENTINEL_SHADOW_USD", "100"))
@@ -73,6 +79,8 @@ def shadow_rules() -> dict:
         "usd100": {"label": f"+${SHADOW_USD:g} → breakeven, trail ${SHADOW_USD:g} ({T:.2f}R on ${SHADOW_BALANCE/1000:g}k)",
                    "tp": None, "trig": T, "mode": "fixed", "dist": T, "arm": T},
         "structure": {"label": "Swing-structure stop after +1R", "tp": None, "trig": None, "mode": "swing", "dist": None, "arm": 1.0},
+        "hybrid": {"label": "Hybrid: swings after +1R, breakeven fallback", "tp": None, "trig": None, "mode": "hybrid",
+                   "dist": None, "arm": 1.0, "fb_bars": 4, "retrace": 0.3},
         "hold": {"label": "Hold to stop or 2.5R", "tp": 2.5, "trig": None, "mode": None, "dist": None, "arm": None},
     }
 
@@ -122,8 +130,32 @@ def shadow_step(t: "Trade", tf: str, bars: list[dict]) -> bool:
                     cand = t.entry + s * (sh["best"] - cfg["dist"]) * t.sl_dist
                     if s * (cand - new) > 0:
                         new = cand
+            armed_before = sh.get("armed")
+            if cfg["mode"] == "hybrid" and cfg["arm"] is not None and sh["best"] >= cfg["arm"] and not armed_before:
+                sh["armed"] = sh["bars"]                    # bar count when +1R was first reached
             sh["hl"] = (sh.get("hl") or []) + [[b["high"], b["low"]]]
             sh["hl"] = sh["hl"][-5:]
+            if cfg["mode"] == "hybrid" and sh.get("armed"):
+                w = sh["hl"]
+                if len(w) == 5 and sh["bars"] > sh["armed"]:            # a swing confirmed after +1R
+                    if s > 0:
+                        v = w[2][1]
+                        ok = v < w[0][1] and v < w[1][1] and v <= w[3][1] and v <= w[4][1]
+                    else:
+                        v = w[2][0]
+                        ok = v > w[0][0] and v > w[1][0] and v >= w[3][0] and v >= w[4][0]
+                    if ok:
+                        sh["seen"] = True
+                        cand = v - s * buf
+                        if s * (cand - new) > 0:
+                            new = cand
+                if not sh.get("fb") and armed_before:                   # bars after the +1R bar
+                    late = not sh.get("seen") and sh["bars"] - sh["armed"] >= cfg["fb_bars"]
+                    back = lo_r <= cfg["retrace"]
+                    if late or back:
+                        sh["fb"] = True
+                        if s * (t.entry - new) > 0:
+                            new = t.entry
             if cfg["mode"] == "swing" and cfg["arm"] is not None and sh["best"] >= cfg["arm"] and len(sh["hl"]) == 5:
                 w = sh["hl"]
                 if s > 0:

@@ -8178,7 +8178,7 @@ const SENT = (() => {
   // Forward test: the same Sentinel trades managed by other exit rules, in parallel.
   function shadowBlock(sh) {
     if (!sh) return '';
-    const order = ['usd100', 'structure', 'hold'];
+    const order = ['usd100', 'hybrid', 'structure', 'hold'];
     const rows = order.filter(k => sh[k]).map(k => {
       const x = sh[k];
       if (!x.n) return `<tr><td>${esc(x.label)}</td><td colspan="4" style="text-align:left;color:var(--tx-3)">no finished trades yet</td></tr>`;
