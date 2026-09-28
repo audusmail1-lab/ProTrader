@@ -44,10 +44,16 @@ from fastapi import APIRouter, HTTPException, Request
 log = logging.getLogger("notify")
 router = APIRouter(prefix="/api/notify")
 
-VAPID_PUBLIC = os.environ.get("VAPID_PUBLIC_KEY", "").strip()
-VAPID_PRIVATE = os.environ.get("VAPID_PRIVATE_KEY", "").strip()
+def _key_env(name: str, default: str = "") -> str:
+    """Keys and tokens contain no whitespace, so any that arrives (a line
+    wrapped while copying from a phone, a trailing newline) is dropped."""
+    return re.sub(r"\s+", "", os.environ.get(name, default))
+
+
+VAPID_PUBLIC = _key_env("VAPID_PUBLIC_KEY")
+VAPID_PRIVATE = _key_env("VAPID_PRIVATE_KEY")
 VAPID_SUBJECT = os.environ.get("VAPID_SUBJECT", "mailto:support@protraderacademy.company").strip()
-TG_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "").strip()
+TG_TOKEN = _key_env("TELEGRAM_BOT_TOKEN")
 DERIV_WS = os.environ.get("DERIV_WS_URL", "wss://ws.derivws.com/websockets/v3?app_id=1089")
 
 _DEVICE_RE = re.compile(r"^[A-Za-z0-9_-]{8,64}$")
