@@ -50,6 +50,135 @@ MODELS = {
 }
 SENTINEL_MODEL = "7.2c"
 
+# Shadow management (forward test). Every Sentinel paper trade is also
+# managed, on paper and in parallel, by these alternative exit rules. Same
+# entry, same stop, same bars, so each rule can be compared with the live
+# model trade for trade. Nothing here changes which trades Sentinel takes.
+#   usd100     Joel's rule: at +$100 move the stop to breakeven, then trail
+#              $100 behind the best price. With the 1% rule 1R is 1% of the
+#              balance, so $100 is SHADOW_USD / (SHADOW_BALANCE x 1%) in R.
+#   structure  after +1R, move the stop just past each new swing low (buy) or
+#              swing high (sell) that forms beyond entry. The standout rule
+#              of the 28 Sep 2026 minute-level research.
+#   hold       no management: the original stop or a 2.5R target.
+import os as _os
+SHADOW_USD = float(_os.environ.get("SENTINEL_SHADOW_USD", "100"))
+SHADOW_BALANCE = float(_os.environ.get("SENTINEL_SHADOW_BALANCE", "36900"))
+SHADOW_TIMEOUT = 96
+
+
+def shadow_rules() -> dict:
+    T = round(SHADOW_USD / (SHADOW_BALANCE * 0.01), 4)
+    return {
+        "usd100": {"label": f"+${SHADOW_USD:g} → breakeven, trail ${SHADOW_USD:g} ({T:.2f}R on ${SHADOW_BALANCE/1000:g}k)",
+                   "tp": None, "trig": T, "mode": "fixed", "dist": T, "arm": T},
+        "structure": {"label": "Swing-structure stop after +1R", "tp": None, "trig": None, "mode": "swing", "dist": None, "arm": 1.0},
+        "hold": {"label": "Hold to stop or 2.5R", "tp": 2.5, "trig": None, "mode": None, "dist": None, "arm": None},
+    }
+
+
+def shadow_init(entry: float, sl: float, window: list[dict]) -> dict:
+    """Fresh shadow state for a new trade; the last two bars seed swing detection."""
+    seed = [[b["high"], b["low"]] for b in window[-2:]]
+    return {k: {"stop": sl, "best": 0.0, "state": "open", "gross": None, "closed_at": None,
+                "protected_at": None, "bars": 0, "last": window[-1]["time"], "hl": list(seed)}
+            for k in shadow_rules()}
+
+
+def shadow_step(t: "Trade", tf: str, bars: list[dict]) -> bool:
+    """Advance every open shadow rule of trade t through new bars. Bar-level,
+    stop checked before any favourable move (as in the research). Returns
+    True when anything changed."""
+    rules = shadow_rules()
+    s = 1 if t.dir == "buy" else -1
+    buf = 0.1 * t.sl_dist / 1.5            # ~0.1 ATR beyond a swing (ARIA's stop is 1.5-2.5 ATR)
+    changed = False
+    for name, sh in (t.shadow or {}).items():
+        cfg = rules.get(name)
+        if not cfg or sh.get("state") != "open":
+            continue
+        for b in bars:
+            if b["time"] <= sh["last"]:
+                continue
+            sh["last"] = b["time"]
+            sh["bars"] += 1
+            changed = True
+            close_at = b["time"] + TF_SEC[tf]
+            lo_r = s * ((b["low"] if s > 0 else b["high"]) - t.entry) / t.sl_dist
+            hi_r = s * ((b["high"] if s > 0 else b["low"]) - t.entry) / t.sl_dist
+            stop_r = s * (sh["stop"] - t.entry) / t.sl_dist
+            if lo_r <= stop_r:
+                sh.update(state="closed", gross=round(stop_r, 4), closed_at=close_at, how="stop")
+                break
+            if cfg["tp"] is not None and hi_r >= cfg["tp"]:
+                sh.update(state="closed", gross=cfg["tp"], closed_at=close_at, how="target")
+                break
+            sh["best"] = max(sh["best"], hi_r)
+            new = sh["stop"]
+            if cfg["trig"] is not None and sh["best"] >= cfg["trig"] and s * (t.entry - new) > 0:
+                new = t.entry
+            if cfg["arm"] is not None and sh["best"] >= cfg["arm"]:
+                if cfg["mode"] == "fixed":
+                    cand = t.entry + s * (sh["best"] - cfg["dist"]) * t.sl_dist
+                    if s * (cand - new) > 0:
+                        new = cand
+            sh["hl"] = (sh.get("hl") or []) + [[b["high"], b["low"]]]
+            sh["hl"] = sh["hl"][-5:]
+            if cfg["mode"] == "swing" and cfg["arm"] is not None and sh["best"] >= cfg["arm"] and len(sh["hl"]) == 5:
+                w = sh["hl"]
+                if s > 0:
+                    v = w[2][1]
+                    ok = v < w[0][1] and v < w[1][1] and v <= w[3][1] and v <= w[4][1]
+                else:
+                    v = w[2][0]
+                    ok = v > w[0][0] and v > w[1][0] and v >= w[3][0] and v >= w[4][0]
+                cand = v - s * buf
+                if ok and s * (cand - t.entry) > 0 and s * (cand - new) > 0:
+                    new = cand
+            if s * (new - sh["stop"]) > 0:
+                sh["stop"] = new
+                if s * (new - t.entry) >= -1e-12 and not sh["protected_at"]:
+                    sh["protected_at"] = close_at
+            if sh["bars"] >= SHADOW_TIMEOUT:
+                sh.update(state="closed", gross=round(s * (b["close"] - t.entry) / t.sl_dist, 4),
+                          closed_at=close_at, how="time")
+                break
+    return changed
+
+
+def shadow_stats(trades: list[dict]) -> dict:
+    """Each shadow rule against the live model, on trades where both are finished."""
+    rules = shadow_rules()
+    out = {}
+    for name, cfg in rules.items():
+        pairs = []
+        for t in trades:
+            sh = (t.get("shadow") or {}).get(name)
+            if not sh or sh.get("state") != "closed" or t.get("status") not in ("win", "loss", "timeout"):
+                continue
+            main_g = (t.get("r") or 0) + (t.get("cost_r") or 0)
+            pairs.append((sh["gross"] - (t.get("cost_r") or 0), t.get("r") or 0, sh, main_g))
+        n = len(pairs)
+        if not n:
+            out[name] = {"label": cfg["label"], "n": 0}
+            continue
+        rs = [p[0] for p in pairs]
+        d = [p[0] - p[1] for p in pairs]
+        m = sum(rs) / n
+        md = sum(d) / n
+        sdd = (sum((x - md) ** 2 for x in d) / (n - 1)) ** 0.5 if n > 1 else 0.0
+        out[name] = {
+            "label": cfg["label"], "n": n, "expectancy_r": round(m, 4),
+            "live_expectancy_r": round(sum(p[1] for p in pairs) / n, 4),
+            "vs_live_r": round(md, 4),
+            "vs_live_ci95": [round(md - 1.96 * sdd / n ** 0.5, 4), round(md + 1.96 * sdd / n ** 0.5, 4)] if n > 1 else None,
+            "win_rate": round(sum(1 for x in rs if x > 0) / n, 4),
+            "full_loss_pct": round(sum(1 for p in pairs if p[2]["gross"] <= -0.999) / n, 4),
+            "protected_pct": round(sum(1 for p in pairs if p[2].get("protected_at")) / n, 4),
+            "reached_2_5r_pct": round(sum(1 for p in pairs if p[2]["gross"] >= 2.5 - 1e-9) / n, 4),
+        }
+    return out
+
 
 def trend_series(h4: list[dict]) -> tuple[list[int], list[str]]:
     """Per 4h bar: its close time and 'up' / 'down' / 'flat' (EMA20/50 + close)."""
@@ -309,6 +438,7 @@ class Trade:
     trend_4h: Optional[str] = None
     protected_at: Optional[int] = None  # when the stop first reached breakeven or better
     locked_r: Optional[float] = None    # best profit the stop had locked in, in R
+    shadow: dict = field(default_factory=dict)   # alternative exit rules run in parallel (see shadow_rules)
 
     def to_dict(self) -> dict:
         return asdict(self)
@@ -322,6 +452,25 @@ class PaperBook:
         self.model = model
         self.open: dict[tuple[str, str], Trade] = {}
         self.closed: list[Trade] = []
+        self.shadowing: dict[str, Trade] = {}   # model trade closed, a shadow rule still running
+
+    def shadows_open(self, t: Trade) -> bool:
+        return any(v.get("state") == "open" for v in (t.shadow or {}).values())
+
+    def update_shadows(self, market: str, tf: str, bars: list[dict]) -> list[Trade]:
+        """Advance the shadow exit rules of every trade on (market, tf).
+        Returns the trades whose shadow state changed (to be saved)."""
+        out = []
+        cands = [t for t in list(self.shadowing.values()) if t.market == market and t.tf == tf]
+        o = self.open.get((market, tf))
+        if o:
+            cands.append(o)
+        for t in cands:
+            if t.shadow and shadow_step(t, tf, bars):
+                out.append(t)
+            if t.status != "open" and not self.shadows_open(t):
+                self.shadowing.pop(t.id, None)
+        return out
 
     # Advance every open trade on (market, tf) through bars newer than it has seen.
     def update(self, market: str, tf: str, bars: list[dict]) -> list[Trade]:
@@ -399,6 +548,8 @@ class PaperBook:
         t.r = round(gross_r - t.cost_r, 4)
         self.open.pop((t.market, t.tf), None)
         self.closed.append(t)
+        if self.shadows_open(t):
+            self.shadowing[t.id] = t
 
     # Judge the newest closed bar; open a paper trade if ARIA says so.
     def consider(self, m: Market, tf: str, window: list[dict],
@@ -432,6 +583,7 @@ class PaperBook:
             ew_aligned=(None if not read["elliott"]["dir"]
                         else read["elliott"]["dir"] == ("up" if read["dir"] == "buy" else "down")),
             model=self.model, stop=read["sl"], trend_4h=trend_4h,
+            shadow=shadow_init(read["entry"], read["sl"], window),
         )
         self.open[(m.id, tf)] = t
         return read, t

@@ -1213,6 +1213,10 @@ svg.ico{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.7;st
 .limits{display:flex;flex-direction:column;gap:9px;padding:11px 12px;border-radius:10px;border:1px solid var(--bd-1);background:var(--bg-3)}
 .lim-hd{font-size:var(--fs-1);letter-spacing:.06em;text-transform:uppercase;color:var(--tx-3);font-weight:600;display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}
 .lim-hd .mut{text-transform:none;letter-spacing:0;font-weight:500}
+.lim.ap-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:6px}.ap-sel{flex:1;min-width:0;background:var(--bg-3);border:1px solid var(--bd-2);color:var(--tx-1);border-radius:6px;min-height:30px;padding:3px 6px;font:var(--fs-1) var(--font-display)}
+.ap-usd{width:80px;background:var(--bg-3);border:1px solid var(--bd-2);color:var(--tx-1);border-radius:6px;min-height:30px;padding:3px 6px;font:var(--fs-1) var(--font-mono)}
+.lim-note{font-size:var(--fs-1);color:var(--tx-3);line-height:1.45;margin:2px 0 4px}
+.lim-lock{margin:6px 0 2px;padding:7px 9px;border-radius:6px;background:rgba(239,68,68,.12);color:var(--red-lt);font-size:var(--fs-1);line-height:1.45}
 .lim{display:grid;grid-template-columns:1fr auto;gap:4px 10px;font-size:var(--fs-1)}
 .lim-l{color:var(--tx-2)}.lim-v{color:var(--tx-1);text-align:right}
 .lim-m{grid-column:1/3;height:4px;background:var(--bd-1);border-radius:2px;overflow:hidden}
@@ -1360,6 +1364,7 @@ svg.ico{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.7;st
 .ws-trade-label.is-selected .c-x{color:var(--tx-1)}
 .ws-trade-label.is-dragging{box-shadow:0 0 0 1px var(--blue)}
 .ws-trade-label.is-offscreen{opacity:.55}
+.ws-trade-label.is-faded{opacity:.28}.ws-trade-label.is-faded:hover{opacity:.7}
 .ws-trade-label:focus-visible{outline:2px solid var(--blue-lt);outline-offset:2px}
 .ws-trade-label::before{content:'';position:absolute;right:-3px;top:calc(50% + var(--connector-offset,0px));width:2px;height:var(--connector,0px);border-right:1px solid var(--tx-3);pointer-events:none}
 .lvl-adds{padding:0 4px;gap:4px;border-left:1px solid var(--bd-2)}.lvl-adds:empty{display:none}
@@ -4490,15 +4495,17 @@ const LEVELS = {
       e._item = { kind: 'ticket', which: t.which, price: t.price };
       const y = CH.toY(t.price); if (y == null) { e.hidden = true; return; }
       const entry = OT.entryRef(), m = Number.isFinite(entry) ? otPnl(TK.side, entry, t.price, TK.volume, S.sym) : null;
-      e.querySelector('.c-qty').textContent = TK.volume;
+      e.querySelector('.c-qty').textContent = t.which.toUpperCase();
       e.querySelector('.c-amt').textContent = Number.isFinite(entry) ? this.outcome(TK.side, entry, t.price, TK.volume) : '—';
       e.classList.toggle('is-positive', m != null && m >= 0); e.classList.toggle('is-negative', m != null && m < 0);
       e.title = `Ticket ${t.which === 'sl' ? 'stop' : 'target'} · drag to move`; e.setAttribute('aria-label', e.title + ' ' + otFmtPx(S.sym, t.price));
       put(e, y);
     });
     // positions
-    this.groups().forEach(g => {
+    const gs = this.groups(), focus = gs.length > 1 && gs.some(x => x.key === this.selected) ? this.selected : null;
+    gs.forEach(g => {
       const isSel = this.selected === g.key, d = this.draft && this.draft.key === g.key ? this.draft : null;
+      const faded = !!focus && g.key !== focus;
       // entry label: side · size · floating P&L · × close · add-handles for absent levels
       const ent = this.el(g.key + ':entry', 'ws-trade-label entry', `<span class="c-qty"></span><strong class="c-amt"></strong><span class="lvl-adds"></span><span class="lvl-x c-x" role="button" tabindex="0" title="Close position" aria-label="Close position">×</span>`, el => {
         el.addEventListener('click', ev => { if (ev.target.closest('.lvl-x') || ev.target.closest('.lvl-add')) return; this.select(el._g.key); });
@@ -4512,6 +4519,7 @@ const LEVELS = {
       ent.querySelector('.c-amt').textContent = this.fmt(fl);
       ent.classList.toggle('buy', g.side === 'buy'); ent.classList.toggle('sell', g.side !== 'buy');
       ent.classList.toggle('is-positive', fl != null && fl >= 0); ent.classList.toggle('is-negative', fl != null && fl < 0); ent.classList.toggle('is-selected', isSel);
+      ent.classList.toggle('is-faded', faded);
       ent.title = `${g.side.toUpperCase()} ${g.vol} ${g.label} at ${otFmtPx(S.sym, g.entry)} · floating ${this.fmt(fl)} · click to select`;
       // drag-to-add handles for absent levels
       const adds = ent.querySelector('.lvl-adds'); adds.innerHTML = '';
@@ -4538,11 +4546,13 @@ const LEVELS = {
         e._item = { kind: g.kind, which: f, price, g };
         const y = CH.toY(price); if (y == null) { e.hidden = true; return; }
         const m = this.money(g, price), drafted = d && d[f].intent === 'set';
-        e.querySelector('.c-qty').textContent = (g.trail && f === 'sl' && !drafted ? '↟ ' : '') + g.vol;
+        e.querySelector('.c-qty').textContent = (g.trail && f === 'sl' && !drafted ? '↟ ' : '') + f.toUpperCase();
         e.querySelector('.c-amt').textContent = m != null ? this.fmt(m) : this.outcome(g.side, g.entry, price, g.vol);
         e.classList.toggle('is-draft', !!drafted); e.classList.toggle('is-selected', isSel);
         e.classList.toggle('is-positive', m != null && m >= 0); e.classList.toggle('is-negative', m != null && m < 0);
         const x = e.querySelector('.lvl-x'); x.title = f === 'sl' ? 'Remove stop loss' : 'Remove take profit'; x.setAttribute('aria-label', x.title);
+        x.hidden = f === 'sl' && g.kind === 'paper';   // your rules: a paper trade always keeps a stop — drag it instead
+        e.classList.toggle('is-faded', faded);
         e.title = `${f === 'sl' ? 'Stop' : 'Target'} ${otFmtPx(S.sym, price)} · ${this.fmt(m)} if hit${m != null && ((f === 'tp' && m < 0) || (f === 'sl' && m > 0)) ? ' (' + (f === 'tp' ? 'a target below entry still loses' : 'a stop past entry locks in profit') + ')' : ''} · drag or use arrow keys`;
         e.setAttribute('aria-label', e.title);
         put(e, y);
@@ -4558,7 +4568,8 @@ const LEVELS = {
   },
 
   /* ── selection and drafts ── */
-  select(key) { this.selected = key; this.schedule(); },
+  /* tapping the selected trade again clears the focus */
+  select(key) { this.selected = this.selected === key && !this.draft ? null : key; this.schedule(); },
   begin(g, quiet) {
     if (this.draft && this.draft.key !== g.key) { showToast('Confirm or discard the current draft first.', 2400); return null; }
     if (!this.draft) this.draft = { key: g.key, g, sl: { intent: 'unchanged', price: g.sl }, tp: { intent: 'unchanged', price: g.tp } };
@@ -4566,6 +4577,7 @@ const LEVELS = {
   },
   discard(silent) { this.draft = null; this.editor.hidden = true; this.schedule(); if (!silent) showToast('Draft discarded. Saved levels unchanged.', 2200); },
   remove(g, f) {
+    if (f === 'sl' && g.kind === 'paper') { showToast('Your rules keep a stop on every trade. Drag it to move it, or use BE.', 3600); return; }
     const d = this.begin(g); if (!d) return;
     d[f] = { intent: 'remove', price: null };
     this.renderEditor(); this.schedule();
@@ -5522,6 +5534,92 @@ function renderAcctChip() {
   if (pl) pl.textContent = live ? (real ? 'MT5 real balance' : 'MT5 demo balance') : 'Paper balance';
 }
 
+/* ── Auto-protect (paper): once a trade is far enough in profit, move the
+   stop to breakeven (plus an optional offset) and trail it from there.
+   The trigger and the trail are measured either in R (the trade's own
+   initial risk) or in account currency. Research (research_management.py,
+   Sep 2026): a trigger measured in R behaves the same on every account
+   size; a fixed dollar amount does not — $100 is 0.27R on a $36.9k account
+   but 2R on a $5k one. It only ever tightens a stop, never widens it. ── */
+const AUTOP = {
+  KEY: 'protrader.autoprotect.v1',
+  PRESETS: {
+    off: null,
+    r1: { unit: 'r', trig: 1, off: 0, trail: 1, label: 'At +1R → breakeven, trail 1R' },
+    usd: { unit: 'usd', trig: 100, off: 0, trail: 100, label: 'At +$100 → breakeven, trail $100' },
+  },
+  cfg: null,
+  load() {
+    if (this.cfg) return this.cfg;
+    let c = null; try { c = JSON.parse(localStorage.getItem(this.KEY) || 'null'); } catch (_) {}
+    this.cfg = c && typeof c === 'object' ? c : { preset: 'off' };   // off by default: the rule is being tested on Sentinel first
+    return this.cfg;
+  },
+  save() { try { localStorage.setItem(this.KEY, JSON.stringify(this.cfg)); } catch (_) {} },
+  on() { const c = this.load(); return c.preset !== 'off' && c.trig > 0; },
+  pick(preset, amount) {
+    const base = this.PRESETS[preset];
+    if (preset === 'off' || !base) this.cfg = { preset: 'off' };
+    else {
+      const a = preset === 'usd' && Number.isFinite(+amount) && +amount > 0 ? +amount : base.trig;
+      this.cfg = { preset, unit: base.unit, trig: a, off: base.off, trail: preset === 'usd' ? a : base.trail };
+    }
+    this.save(); renderLimits();
+    showToast(this.on() ? `Auto-protect: ${this.describe()}. Applies to open and new paper trades.` : 'Auto-protect off. Your stops stay where you put them.', 3800);
+  },
+  describe() {
+    const c = this.load(); if (!this.on()) return 'off';
+    const u = v => c.unit === 'usd' ? otMoney(v) : v + 'R';
+    return `at +${u(c.trig)} → breakeven${c.off ? ' +' + u(c.off) : ''}, then trail ${u(c.trail)}`;
+  },
+  /* One price check for one paper position. Returns true when the stop moved. */
+  apply(p, px) {
+    if (!this.on() || p.ap || !Number.isFinite(px)) return false;
+    const c = this.cfg, s = p.side === 'buy' ? 1 : -1;
+    if (p.r0 == null && p.sl != null && s * (p.sl - p.entry) < 0) p.r0 = Math.abs(p.entry - p.sl);
+    const move = s * (px - p.entry);
+    if (!(move > 0)) return false;
+    const pnl = otPnl(p.side, p.entry, px, p.volume, p.symbol);
+    const perPx = pnl != null && pnl > 0 ? pnl / move : null;         // money per 1.0 of price, this size
+    const toPx = v => c.unit === 'usd' ? (perPx ? v / perPx : null) : (p.r0 > 0 ? v * p.r0 : null);
+    const need = toPx(c.trig);
+    if (!(need > 0) || move + 1e-12 < need) return false;
+    const dp = otSpec(p.symbol).dp;
+    const be = +(p.entry + s * (toPx(c.off || 0) || 0)).toFixed(dp);
+    let moved = false;
+    if (p.sl == null || s * (be - p.sl) > 0) { p.sl = be; moved = true; }
+    const dist = toPx(c.trail);
+    if (dist > 0 && !(p.trail > 0 && p.trail <= dist)) { p.trail = +dist.toFixed(dp); moved = true; }
+    p.ap = { at: Date.now(), px, rule: this.describe() };
+    showToast(`🛡 ${p.label}: stop to breakeven${c.off ? ' +' + (c.unit === 'usd' ? otMoney(c.off) : c.off + 'R') : ''}, trailing from here (auto-protect).`, 4200);
+    return moved;
+  },
+};
+
+/* ── the paper account's risk framework: 1% per trade · 2% open · 3% daily · 3 losses ── */
+function paperLimits() {
+  const b = S.balance;
+  const pos = typeof TR !== 'undefined' ? TR.positions : [];
+  const ords = typeof TR !== 'undefined' ? TR.orders.filter(o => o.state === 'working') : [];
+  const lossAt = (side, entry, sl, vol, sym) => {
+    if (sl == null || !Number.isFinite(entry)) return 0;
+    const v = otPnl(side, entry, sl, vol, sym);
+    return v != null && v < 0 ? -v : 0;
+  };
+  const openRisk = pos.reduce((a, p) => a + lossAt(p.side, p.entry, p.sl, p.volume, p.symbol), 0)
+    + ords.reduce((a, o) => a + lossAt(o.side, o.price, o.sl, o.volume, o.symbol), 0);
+  const unprotected = pos.filter(p => p.sl == null).length;
+  const day0 = new Date(); day0.setHours(0, 0, 0, 0);
+  const today = (S.trades || []).filter(t => (t.closeTime || 0) >= day0.getTime());
+  const dayNet = today.reduce((a, t) => a + (t.pnl || 0), 0);
+  const dayLoss = Math.max(0, -dayNet);
+  const losses = today.filter(t => (t.pnl || 0) < 0).length;
+  const dayCap = (b - dayNet) * .03;                  // 3% of the balance at the start of today
+  const locked = dayLoss > 0 && dayLoss >= dayCap - 0.005 ? `Daily loss limit reached (${otMoney(dayLoss)} of ${otMoney(dayCap)}). New trades reopen tomorrow.`
+    : losses >= 3 ? 'Three losing trades today — your rules stop new trades until tomorrow.' : null;
+  return { balance: b, maxRisk: b * S.riskPct / 100, openRisk, openCap: b * .02, unprotected, dayLoss, dayCap, losses, locked };
+}
+
 /* ── limits: the risk framework, always visible while a trade is open ── */
 function renderLimits() {
   const box = document.getElementById('limitsBox'); if (!box) return;
@@ -5538,22 +5636,20 @@ function renderLimits() {
     box.innerHTML = `<div class="lim-hd">Your limits · MT5 <span class="mut">enforced by the EA</span></div>${rows}`;
     return;
   }
-  const b = S.balance;
-  const openRisk = (typeof TR !== 'undefined' ? TR.positions : []).reduce((a, p) => {
-    if (p.sl == null) return a;
-    const v = otPnl(p.side, p.entry, p.sl, p.volume, p.symbol);
-    return a + (v != null && v < 0 ? -v : 0);
-  }, 0);
-  const unprotected = (typeof TR !== 'undefined' ? TR.positions : []).filter(p => p.sl == null).length;
-  const day0 = new Date(); day0.setHours(0, 0, 0, 0);
-  const today = (S.trades || []).filter(t => (t.closeTime || 0) >= day0.getTime());
-  const dayLoss = Math.max(0, -today.reduce((a, t) => a + (t.pnl || 0), 0));
-  const losses = today.filter(t => (t.pnl || 0) < 0).length;
-  rows = meter('Risk per trade', `${otMoney(b * S.riskPct / 100)} · ${S.riskPct}%`, S.riskPct * 100, false)
-    + meter('Open risk', `${otMoney(openRisk)} of ${otMoney(b * .02)}${unprotected ? ' · ' + unprotected + ' without a stop' : ''}`, openRisk / (b * .02) * 100, unprotected > 0 || openRisk > b * .016)
-    + meter('Daily loss', `${otMoney(dayLoss)} of ${otMoney(b * .03)}`, dayLoss / (b * .03) * 100, dayLoss > b * .02)
-    + meter('Losing trades', `${losses} of 3`, losses / 3 * 100, losses >= 2);
-  box.innerHTML = `<div class="lim-hd">Your limits · paper <span class="mut">1% · 2% open · 3% daily · 3 losses</span></div>${rows}`;
+  const L = paperLimits();
+  rows = meter('Risk per trade', `${otMoney(L.maxRisk)} · ${S.riskPct}%`, S.riskPct * 100, false)
+    + meter('Open risk', `${otMoney(L.openRisk)} of ${otMoney(L.openCap)}${L.unprotected ? ' · ' + L.unprotected + ' without a stop' : ''}`, L.openRisk / L.openCap * 100, L.unprotected > 0 || L.openRisk > L.openCap * .8)
+    + meter('Daily loss', `${otMoney(L.dayLoss)} of ${otMoney(L.dayCap)}`, L.dayLoss / L.dayCap * 100, L.dayLoss > L.dayCap * .66)
+    + meter('Losing trades', `${L.losses} of 3`, L.losses / 3 * 100, L.losses >= 2);
+  const ap = AUTOP.load();
+  const apRow = `<div class="lim ap-row"><span class="lim-l">Auto-protect</span>
+    <select class="ap-sel" aria-label="Auto-protect rule" onchange="AUTOP.pick(this.value, document.getElementById('apUsd') && document.getElementById('apUsd').value)">
+      <option value="r1"${ap.preset === 'r1' ? ' selected' : ''}>+1R → breakeven, trail 1R</option>
+      <option value="usd"${ap.preset === 'usd' ? ' selected' : ''}>+$ amount → breakeven, trail same</option>
+      <option value="off"${ap.preset === 'off' ? ' selected' : ''}>Off</option>
+    </select>${ap.preset === 'usd' ? `<input id="apUsd" class="ap-usd" type="number" inputmode="decimal" min="1" step="10" value="${ap.trig}" aria-label="Dollar trigger" onchange="AUTOP.pick('usd', this.value)"/>` : ''}</div>`
+    + (ap.preset === 'usd' ? `<div class="lim-note">$${ap.trig} is ${(ap.trig / Math.max(1, L.maxRisk)).toFixed(2)}R on this account (1R = ${otMoney(L.maxRisk)}). Research: a trigger under ~0.5R stops out many trades that would have gone on to win.</div>` : '');
+  box.innerHTML = `<div class="lim-hd">Your limits · paper <span class="mut">enforced · 1% · 2% open · 3% daily · 3 losses</span></div>${L.locked ? `<div class="lim-lock">${L.locked}</div>` : ''}${rows}${apRow}`;
 }
 
 /* ════════════════════════════════════════════════════════════
@@ -7123,8 +7219,33 @@ const OT = {
       else if (acct.unpriced > 0) e.general = `Equity unknown — ${acct.unpriced} open position${acct.unpriced === 1 ? '' : 's'} without a live price.`;
       else if (need > acct.free) e.general = `Insufficient margin: needs ${otMoney(need)}, free ${otMoney(acct.free)}.`;
     }
+    if (!(LIVE && LIVE.routing())) this.ruleCheck(e, id, v, entry);
     this.errs = e;
     return e;
+  },
+
+  /* Paper account: the risk framework is a hard rule, not a meter. Every
+     order needs a stop, may lose at most S.riskPct of the balance at that
+     stop, may not lift open risk past 2%, and nothing opens once the day
+     has lost 3% or three trades. There is no override on purpose. */
+  ruleCheck(e, id, v, entry) {
+    const L = paperLimits();
+    if (L.locked) { e.general = e.general || L.locked; return; }
+    if (L.unprotected) { e.general = e.general || `${L.unprotected} open trade${L.unprotected === 1 ? ' has' : 's have'} no stop loss — add one before opening another.`; return; }
+    if (!TK.slOn) { e.sl = e.sl || 'Your rules need a stop loss on every trade.'; return; }
+    if (e.volume || e.sl || !Number.isFinite(TK.sl) || !Number.isFinite(entry) || !Number.isFinite(v)) return;
+    const loss = otPnl(TK.side, entry, TK.sl, v, id);
+    if (loss == null) return;
+    const risk = Math.max(0, -loss);
+    if (risk > L.maxRisk * 1.005 + 0.01) {
+      const r = riskLots(id, entry, TK.sl, L.balance);
+      const fix = r && r.lots >= r.min ? ` At this stop the most you can trade is ${r.lots} lots — tap “Size from risk”.` : ' Even the minimum lot is too big here — tighten the stop.';
+      const pc = risk / L.balance * 100;
+      e.volume = `Risks ${otMoney(risk)} (${pc < 10 ? pc.toFixed(1) : pc.toFixed(0)}% of balance). Your limit is ${S.riskPct}% = ${otMoney(L.maxRisk)}.${fix}`;
+      return;
+    }
+    if (L.openRisk + risk > L.openCap * 1.005 + 0.01)
+      e.general = e.general || `Open risk would reach ${otMoney(L.openRisk + risk)}, over your 2% cap of ${otMoney(L.openCap)}. Close a trade or move its stop to breakeven first.`;
   },
 
   /* -- submission -- */
@@ -7190,6 +7311,7 @@ const OT = {
       id: TR.seq++, symbol: order.symbol, label: otSpec(order.symbol).label,
       side: order.side, volume: order.volume, entry: fill,
       sl: order.stopLoss, tp: order.takeProfit,
+      r0: order.stopLoss != null ? Math.abs(fill - order.stopLoss) : null,   // 1R, fixed at the fill
       margin, openTime: Date.now(), accountId: order.accountId,
     };
     TR.positions.push(pos);
@@ -7244,6 +7366,7 @@ const OT = {
       const q = otQuote(p.symbol);
       if (!q.ok || q.stale) return;
       const px = p.side === 'buy' ? q.bid : q.ask;
+      if (AUTOP.apply(p, px)) moved = true;
       // Trailing stop: follows price at a fixed distance and only ever tightens.
       if (p.trail > 0) {
         const dp = otSpec(p.symbol).dp;
@@ -7258,6 +7381,13 @@ const OT = {
       const now = Date.now();
       if (!this._trailDrawn || now - this._trailDrawn > 800) { this._trailDrawn = now; this.renderBook(); if (typeof CH !== 'undefined' && CH.ready) CH.refreshLevels(); }
     }
+  },
+
+  /* Positions list → chart: switch to the trade's market if needed and focus it. */
+  focus(id) {
+    const p = TR.positions.find(x => x.id === id); if (!p || typeof LEVELS === 'undefined') return;
+    if (p.symbol !== S.sym && typeof selectPair === 'function') selectPair(p.symbol);
+    LEVELS.selected = 'paper:' + id; LEVELS.schedule();
   },
 
   /* Trail on: the stop follows price at the current stop distance (or 1.5×ATR
@@ -7736,7 +7866,7 @@ const OT = {
     const cls = pnl == null ? '' : pnl >= 0 ? 'pos' : 'neg';
     return `<div class="pos-row">
       <span class="pos-side ${p.side}">${p.side.toUpperCase()}</span>
-      <span class="pos-main">
+      <span class="pos-main" onclick="OT.focus(${p.id})" style="cursor:pointer" title="Show this trade on the chart">
         <span class="pos-l1"><span class="pos-sym">${p.label}</span><span class="pos-lots">${p.volume} lot</span></span>
         <span class="pos-l2">${otFmtPx(p.symbol, p.entry)} → ${q.ok ? otFmtPx(p.symbol, cur) : '—'}
           · SL ${p.sl != null ? otFmtPx(p.symbol, p.sl) : '—'}${p.trail > 0 ? ' ↟' : ''} · TP ${p.tp != null ? otFmtPx(p.symbol, p.tp) : '—'}
@@ -8043,12 +8173,29 @@ const SENT = (() => {
       <div class="sn-meta">Became risk free: <b>${pctTxt(m.risk_free_pct)}</b> · of those, closed in profit: <b>${pctTxt(m.risk_free_positive_pct)}</b> · average peak ${Number.isFinite(m.avg_mfe_r) ? m.avg_mfe_r.toFixed(2) + 'R' : '—'} · kept ${pctTxt(m.capture_pct)} of winning moves</div>`;
   }
 
+  // Forward test: the same Sentinel trades managed by other exit rules, in parallel.
+  function shadowBlock(sh) {
+    if (!sh) return '';
+    const order = ['usd100', 'structure', 'hold'];
+    const rows = order.filter(k => sh[k]).map(k => {
+      const x = sh[k];
+      if (!x.n) return `<tr><td>${esc(x.label)}</td><td colspan="4" style="text-align:left;color:var(--tx-3)">no finished trades yet</td></tr>`;
+      const ci = x.vs_live_ci95, sig = ci && (ci[0] > 0 ? 'ev-proven' : ci[1] < 0 ? 'ev-negative' : '');
+      const r = v => (v >= 0 ? '+' : '−') + Math.abs(v).toFixed(3) + 'R';
+      return `<tr><td>${esc(x.label)}</td><td>${x.n}</td><td>${r(x.expectancy_r)}</td>
+        <td><span class="sn-chip ${sig}">${r(x.vs_live_r)}</span></td><td>${pctTxt(x.full_loss_pct)} · ${pctTxt(x.win_rate)}</td></tr>`;
+    }).join('');
+    return `<details class="sn-costs"><summary>Management test · shadow rules on Sentinel's own trades</summary>
+      <div class="sn-meta">Every Sentinel paper trade is also managed by these rules in parallel: same entry, same stop, same bars. It changes nothing Sentinel does. Green or red appears only once a difference is outside chance (95%).</div>
+      <table class="sn-tbl"><thead><tr><th>Rule</th><th>Trades</th><th>Per trade</th><th>vs Sentinel</th><th>Lost in full · in profit</th></tr></thead><tbody>${rows}</tbody></table></details>`;
+  }
+
   // The trader's own positions: how they were managed.
   function managedBlock() {
     const m = last?.managed, st = m?.stats || {};
     const serverOpen = (m?.records || []).filter(r => !r.closed && r.tracker === 'server').map(r => ({
       label: r.label, side: r.side, pnl_now: r.pnl_now, peak_pnl: r.peak_pnl, locked_pnl: r.locked_pnl,
-      locked_r: r.locked_r, mfe_r: r.mfe_r, be_at: r.be_at, late: r.late, sentinel: !!r.sentinel_id,
+      locked_r: r.locked_r, mfe_r: r.mfe_r, be_at: r.be_at, late: r.late, sentinel: !!r.sentinel_id, rule_break: r.rule_break,
       stops: (r.events || []).filter(e => e.type === 'stop').length, server: true,
     }));
     const live = (typeof MGMT !== 'undefined' ? MGMT.openSummaries() : []).concat(serverOpen);
@@ -8057,7 +8204,7 @@ const SENT = (() => {
     const openRows = live.map(o => `<div class="sn-card">
         <div class="sn-row"><span class="sn-mk">${esc(o.label)}</span><span class="sn-chip ${o.side}">${o.side === 'buy' ? 'BUY' : 'SELL'}</span>
           <span class="sn-chip ${o.be_at ? 'ev-proven' : ''}">${o.be_at ? (Number.isFinite(o.locked_pnl) && o.locked_pnl > 0.005 ? 'Risk free · profit locked' : 'Risk free · at breakeven') : 'At risk'}</span>
-          ${o.sentinel ? '<span class="sn-chip">from Sentinel</span>' : ''}${o.server ? '<span class="sn-chip">MT5 · tracked 24/7</span>' : ''}</div>
+          ${o.sentinel ? '<span class="sn-chip">from Sentinel</span>' : ''}${o.server ? '<span class="sn-chip">MT5 · tracked 24/7</span>' : ''}${o.rule_break ? `<span class="sn-chip ev-negative" title="Kept out of your management stats">Rule break · ${esc(o.rule_break)}</span>` : ''}</div>
         <div class="sn-lv">
           <div><span>Now</span><b>${money(o.pnl_now)}</b></div>
           <div><span>Peak</span><b>${money(o.peak_pnl)}</b></div>
@@ -8067,7 +8214,7 @@ const SENT = (() => {
       </div>`).join('');
     const closedRows = recs.length ? `<table class="sn-tbl"><tbody>${recs.map(r => `<tr>
         <td>${esc(r.label)} <span style="color:var(--tx-3)">${r.side === 'buy' ? 'L' : 'S'}</span></td>
-        <td><span class="sn-chip ${STAGE_CLS[r.stage] || ''}">${esc(r.stage || '—')}</span></td>
+        <td><span class="sn-chip ${STAGE_CLS[r.stage] || ''}">${esc(r.stage || '—')}</span>${r.rule_break ? `<div class="sn-meta" style="color:var(--red-lt)">Rule break · ${esc(r.rule_break)}</div>` : ''}</td>
         <td style="text-align:right">${money(r.pnl)}${Number.isFinite(r.exit_r) ? `<div class="sn-meta">${r.exit_r >= 0 ? '+' : ''}${r.exit_r.toFixed(2)}R · peak ${Number.isFinite(r.mfe_r) ? r.mfe_r.toFixed(2) + 'R' : '—'}</div>` : ''}${Number.isFinite(r.sentinel_r) ? `<div class="sn-meta">Sentinel ${r.sentinel_r >= 0 ? '+' : ''}${r.sentinel_r.toFixed(2)}R</div>` : ''}</td></tr>`).join('')}</tbody></table>` : '';
     const vs = st.vs_sentinel;
     const trackNote = m?.server_tracking ? '' : `<div class="sn-meta">MT5 trades are tracked only while this page is open. Open PROTrader once on the device where your MT5 bridge is set up to switch on 24/7 tracking.</div>`;
@@ -8076,6 +8223,7 @@ const SENT = (() => {
       ${st.n ? `<div class="sn-card"><div class="sn-meta">
         ${st.n} closed · ${money(st.pnl_total)} · ${pctTxt(st.win_pct)} in profit<br>
         Became risk free: <b>${pctTxt(st.risk_free_pct)}</b> · of those, closed in profit: <b>${pctTxt(st.risk_free_positive_pct)}</b>${Number.isFinite(st.capture_pct) ? ` · kept ${pctTxt(st.capture_pct)} of the peak on winners` : ''}
+        ${st.rule_breaks ? `<br><span style="color:var(--red-lt)">${st.rule_breaks.n} rule-break trade${st.rule_breaks.n === 1 ? '' : 's'} (${money(st.rule_breaks.pnl)}) kept out of these numbers</span>` : ''}
         ${vs ? `<br>On ${vs.n} Sentinel setups: you ${vs.trader_avg_r >= 0 ? '+' : ''}${vs.trader_avg_r.toFixed(2)}R vs Sentinel's paper ${vs.sentinel_avg_r >= 0 ? '+' : ''}${vs.sentinel_avg_r.toFixed(2)}R per trade` : ''}
         </div>${closedRows}</div>`
         : `<div class="sn-empty">${ownerKey() ? 'Closed trades appear here with how they were managed: stop moves, when they became risk free, peak profit and the exit.' : 'Set your owner key (Choose markets) to keep this journal on the server.'}</div>`}`;
@@ -8183,6 +8331,7 @@ const SENT = (() => {
         ? `${live.n} closed · average ${r(live.expectancy_r)} · total ${r(live.total_r)} · ${esc(live.verdict)}`
         : 'No closed paper trades yet. Results appear here as Sentinel’s setups close.'}</div>
       ${paperStages(stats.journal?.management)}
+      ${shadowBlock(stats.journal?.shadow)}
       ${closed.length ? `<table class="sn-tbl"><tbody>${closed.map(t => `<tr>
         <td>${esc(label(t.market))} <span style="color:var(--tx-3)">${esc(t.tf)}</span></td>
         <td class="${t.dir === 'buy' ? 'sn-pos' : 'sn-neg'}">${t.dir === 'buy' ? 'Long' : 'Short'} ${t.score}/${ARIA_GATE_COUNT}</td>
@@ -8383,6 +8532,7 @@ const MGMT = {
       if (r.r_dist == null && p.sl != null && !r.late && s * (p.sl - p.entry) < 0) {
         r.initial_sl = p.sl; r.r_dist = Math.abs(p.entry - p.sl);
       }
+      if (!r.rule_checked && !r.late) this.ruleCheck(r, p, now);
       if (p.sl !== r.sl) {
         r.events.push({ t: now, type: 'stop', from: r.sl, to: p.sl, price: p.price, pnl: p.pnl });
         r.sl = p.sl; this.dirty.add(p.key);
@@ -8464,10 +8614,33 @@ const MGMT = {
   },
 
   // Live description of an open tracked position, for the Sentinel pane.
+  /* A trade that broke the risk rules (no stop within a minute, or more than
+     1% of the account at its first stop) is flagged. It stays in the journal
+     but out of the management stats — same rule as the server. */
+  ruleCheck(r, p, now) {
+    if (r.r_dist == null) {
+      if (now - (r.opened || now) > 60000) { r.rule_break = 'no stop loss'; r.rule_checked = true; this.dirty.add(r.key); }
+      return;
+    }
+    let risk = null, eq = null;
+    if (p.src === 'paper') {
+      const v = otPnl(p.side, p.entry, p.entry - (p.side === 'buy' ? 1 : -1) * r.r_dist, p.volume, p.symbol);
+      risk = v != null ? Math.abs(v) : null; eq = S.balance;
+    } else {
+      if (p.price != null && Math.abs(p.price - p.entry) > 1e-12 && p.pnl) risk = Math.abs(p.pnl / (p.price - p.entry)) * r.r_dist;
+      const a = typeof LIVE !== 'undefined' && LIVE.acct ? LIVE.acct() : null; eq = a ? (+a.equity || +a.balance) : null;
+    }
+    if (!(risk > 0 && eq > 0)) return;
+    const pct = 100 * risk / eq;
+    r.risk_pct = +pct.toFixed(2); r.rule_checked = true;
+    if (pct > 1.05) r.rule_break = `risked ${pct.toFixed(1)}% (limit 1%)`;
+    this.dirty.add(r.key);
+  },
+
   openSummaries() {
     return Object.values(this.recs).filter(r => !r.closed).map(r => ({
       label: r.label, side: r.side, pnl_now: r.pnl_now, peak_pnl: r.peak_pnl, locked_pnl: r.locked_pnl,
-      locked_r: r.locked_r, mfe_r: r.mfe_r, be_at: r.be_at, late: r.late, sentinel: !!r.sentinel_id,
+      locked_r: r.locked_r, mfe_r: r.mfe_r, be_at: r.be_at, late: r.late, sentinel: !!r.sentinel_id, rule_break: r.rule_break,
       stops: r.events.filter(e => e.type === 'stop').length,
     }));
   },
