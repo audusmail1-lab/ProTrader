@@ -31,3 +31,5 @@ dialog{border:1px solid #d5ddcb;border-radius:15px;max-width:510px;width:calc(10
 @media(max-width:850px){.hero>.hero-intelligence-link{justify-self:start;margin-top:0;max-width:100%;line-height:1.6}}
 
 .footer-links{display:flex;flex-wrap:wrap;gap:16px}.skip-link{position:absolute;left:12px;top:-80px;z-index:10001;background:#fff;padding:12px}.skip-link:focus{top:12px}
+
+.video-playback-status{font-size:11px;line-height:1.5;color:#d6dfd4;padding:10px 14px;margin:0}.video-stage #video-error{padding:0 14px 14px;color:#f0e4d1}.video-stage #retry-video{color:#eef5e8;text-decoration:underline}

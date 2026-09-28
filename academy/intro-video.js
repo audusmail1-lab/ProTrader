@@ -3,12 +3,12 @@ export const introVideo = {
   "url": "https://d2ol7oe51mr4n9.cloudfront.net/user_3JK9HzQtMubHcINDjvbZuTRS9eo/51204369-5761-4293-b222-243ba6a5e4bb.mp4",
   "formats": {
     "landscape": {
-      "url": "https://d2ol7oe51mr4n9.cloudfront.net/user_3JK9HzQtMubHcINDjvbZuTRS9eo/e953c85b-8e92-4af2-97ab-2f2e92498359.mp4",
-      "poster": "/posters/intro-landscape.jpg"
+      "url": "https://d2ol7oe51mr4n9.cloudfront.net/user_3JK9HzQtMubHcINDjvbZuTRS9eo/51204369-5761-4293-b222-243ba6a5e4bb.mp4",
+      "poster": "/posters/polished-7.jpg"
     },
     "portrait": {
       "url": "https://d2ol7oe51mr4n9.cloudfront.net/user_3JK9HzQtMubHcINDjvbZuTRS9eo/f186777d-f3b7-4473-80a0-3a744dc4a982.mp4",
-      "poster": "/posters/callan-7-portrait.jpg",
+      "poster": "/posters/polished-7-portrait.jpg",
       "originalUrl": "https://d2ol7oe51mr4n9.cloudfront.net/user_3JK9HzQtMubHcINDjvbZuTRS9eo/a965a2d4-c34c-456a-9594-8d0def6585dc.mp4"
     }
   },
@@ -24,10 +24,10 @@ export const introVideo = {
     "Follow a lesson, save practice notes and ask your instructor for help."
   ],
   "note": "Educational examples only. Confluence counts matching checks; it is not a win probability. Academy and app sign-ins are separate. The tools do not replace your judgment.",
-  "poster": "/posters/callan-7.jpg",
+  "poster": "/posters/polished-7.jpg",
   "captions": "/captions/callan-7.vtt",
   "credit": {
-    "text": "“Neon” (No Melody) by Scott Buckley",
+    "text": "\u201cNeon\u201d (No Melody) by Scott Buckley",
     "source": "https://www.scottbuckley.com.au/library/neon/",
     "license": "https://creativecommons.org/licenses/by/4.0/"
   },
@@ -70,7 +70,7 @@ export const introVideo = {
     {
       "at": 25.07,
       "time": "0:25",
-      "text": "so you can understand the reasoning— including when the conditions say wait."
+      "text": "so you can understand the reasoning\u2014 including when the conditions say wait."
     },
     {
       "at": 31.65,
@@ -174,5 +174,6 @@ export const introVideo = {
   "kind": "orientation",
   "originalUrl": "https://d2ol7oe51mr4n9.cloudfront.net/user_3JK9HzQtMubHcINDjvbZuTRS9eo/e953c85b-8e92-4af2-97ab-2f2e92498359.mp4",
   "voice": "Callan",
-  "refined": true
+  "refined": true,
+  "posterSourceTime": 3.3
 };

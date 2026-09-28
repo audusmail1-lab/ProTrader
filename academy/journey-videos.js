@@ -6,7 +6,7 @@ export const journeyVideos = [
     "durationSeconds": 48.54166666666667,
     "topic": "Academy & app",
     "url": "https://d2ol7oe51mr4n9.cloudfront.net/user_3JK9HzQtMubHcINDjvbZuTRS9eo/0e5a281d-c12a-4738-b5be-399f3214c6c5.mp4",
-    "poster": "/posters/callan-8.jpg",
+    "poster": "/posters/polished-8.jpg",
     "captions": "/captions/callan-8.vtt",
     "summary": "See where to learn, where to explore, and how to bring your observations back to your lessons.",
     "steps": [
@@ -123,7 +123,8 @@ export const journeyVideos = [
     "kind": "orientation",
     "originalUrl": "https://d2ol7oe51mr4n9.cloudfront.net/user_3JK9HzQtMubHcINDjvbZuTRS9eo/fa99f9e9-8383-4dcb-ac67-d6d4f20c35de.mp4",
     "voice": "Callan",
-    "refined": true
+    "refined": true,
+    "posterSourceTime": 18.0
   },
   {
     "id": 9,
@@ -132,7 +133,7 @@ export const journeyVideos = [
     "durationSeconds": 53.75000000000001,
     "topic": "Class attendance",
     "url": "https://d2ol7oe51mr4n9.cloudfront.net/user_3JK9HzQtMubHcINDjvbZuTRS9eo/5db5a59e-a8cb-46b8-b647-3a6496f8bbe6.mp4",
-    "poster": "/posters/callan-9.jpg",
+    "poster": "/posters/polished-9.jpg",
     "captions": "/captions/callan-9.vtt",
     "summary": "Find your invitation, check the time zone, join from email or your classroom, and ask for help.",
     "steps": [
@@ -235,10 +236,11 @@ export const journeyVideos = [
     ],
     "reviewStatus": "Refined",
     "reviewNote": "Callan narration with the useful invitation and time-zone walkthrough retained. The recorded Need help control is available in the classroom; choose Academy team from Alex to contact support.",
-    "practice": "Check your actual invitation’s date, time zone and joining link before class.",
+    "practice": "Check your actual invitation\u2019s date, time zone and joining link before class.",
     "kind": "orientation",
     "originalUrl": "https://d2ol7oe51mr4n9.cloudfront.net/user_3JK9HzQtMubHcINDjvbZuTRS9eo/84cfcaf0-7d96-4283-9302-d3d68a735499.mp4",
     "voice": "Callan",
-    "refined": true
+    "refined": true,
+    "posterSourceTime": 17.5
   }
 ];

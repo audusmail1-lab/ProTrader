@@ -34,7 +34,7 @@ export function createVideoPlayer(videos) {
     document.querySelectorAll('video').forEach(video => video.pause());
     content.innerHTML = `
       <div class="tutorial-media">
-        <video controls playsinline preload="metadata" poster="${esc(media.poster)}" aria-label="${esc(v.title)}" src="${esc(media.url)}">
+        <video controls playsinline preload="auto" poster="${esc(media.poster)}" aria-label="${esc(v.title)}" src="${esc(media.url)}">
           <track kind="captions" src="${esc(v.captions)}" srclang="en" label="English">
         </video>
         <p class="playback-status" role="status">Press play when you’re ready. Pause or use full screen at any time.</p>
