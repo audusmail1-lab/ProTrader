@@ -8040,6 +8040,24 @@ const SENT = (() => {
     return { now, moved, dead: trailing ? pastStop : (moved <= -1 || moved >= 2.5) };
   }
 
+  // Setup grade: A+ / A = Sentinel's conditions on the four candidate markets (A+ adds 9-10/10).
+  function gradeChip(g) {
+    if (g === 'A+') return '<span class="sn-chip ev-proven" title="A+ setup: candidate market, 4h aligned, 9-10/10. Tracked separately; not required.">A+</span>';
+    if (g === 'A') return '<span class="sn-chip ev-proven" title="A setup: candidate market (NAS100 15m, gold 15m/1h, Bitcoin 1h), 4h aligned, 8+/10, no Wave 5">A</span>';
+    return '';
+  }
+  function gradeBlock(bg) {
+    if (!bg) return '';
+    const rr = v => Number.isFinite(v) ? (v >= 0 ? '+' : '−') + Math.abs(v).toFixed(2) + 'R' : '—';
+    const rows = [['A+', 'A+ · candidate market, 9–10/10'], ['A', 'A · candidate market, 8/10'], ['other', 'Other markets (comparison)']].map(([k, lab]) => {
+      const s = bg[k] || {};
+      return `<tr><td>${lab}</td><td>${s.n || 0}</td><td>${s.n ? rr(s.expectancy_r) : '—'}</td><td>${s.ci95_r ? rr(s.ci95_r[0]) + ' … ' + rr(s.ci95_r[1]) : '—'}</td></tr>`;
+    }).join('');
+    return `<details class="sn-costs" open><summary>By setup grade</summary>
+      <div class="sn-meta">You trade A setups: Sentinel's conditions on NAS100 15m, gold 15m and 1h, and Bitcoin 1h. A+ is tracked, not required. The other markets keep running on paper as the comparison: the candidate markets should beat them on new trades.</div>
+      <table class="sn-tbl"><thead><tr><th>Grade</th><th>Trades</th><th>Per trade</th><th>95% range</th></tr></thead><tbody>${rows}</tbody></table></details>`;
+  }
+
   function tradeCard(t, ev) {
     const d = drift(t), syn = t.mode === 'synthetic';
     const warn = d?.dead ? 'Price has already moved past the stop or target. This setup is no longer valid.'
@@ -8049,7 +8067,7 @@ const SENT = (() => {
       <div class="sn-row">
         <span class="sn-mk">${esc(label(t.market))}</span><span class="sn-chip">${esc(t.tf)}</span>
         <span class="sn-chip ${t.dir}">${t.dir === 'buy' ? 'BUY' : 'SELL'}</span>
-        <span class="sn-chip">${t.score}/${ARIA_GATE_COUNT}</span>${evChip(ev)}${syn ? '<span class="sn-chip">Synthetic</span>' : ''}${t.elliott ? `<span class="sn-chip sn-soft" title="Elliott Wave is a soft context layer: it never changes the score">EW ${esc(t.elliott)}</span>` : ''}
+        <span class="sn-chip">${t.score}/${ARIA_GATE_COUNT}</span>${gradeChip(t.grade)}${evChip(ev)}${syn ? '<span class="sn-chip">Synthetic</span>' : ''}${t.elliott ? `<span class="sn-chip sn-soft" title="Elliott Wave is a soft context layer: it never changes the score">EW ${esc(t.elliott)}</span>` : ''}
       </div>
       <div class="sn-lv">
         <div><span>Entry</span><b>${px(t.market, t.entry)}</b></div>
@@ -8332,11 +8350,12 @@ const SENT = (() => {
       <div class="sn-card"><div class="sn-meta">${live.n
         ? `${live.n} closed · average ${r(live.expectancy_r)} · total ${r(live.total_r)} · ${esc(live.verdict)}`
         : 'No closed paper trades yet. Results appear here as Sentinel’s setups close.'}</div>
+      ${gradeBlock(stats.journal?.by_grade)}
       ${paperStages(stats.journal?.management)}
       ${shadowBlock(stats.journal?.shadow)}
       ${closed.length ? `<table class="sn-tbl"><tbody>${closed.map(t => `<tr>
         <td>${esc(label(t.market))} <span style="color:var(--tx-3)">${esc(t.tf)}</span></td>
-        <td class="${t.dir === 'buy' ? 'sn-pos' : 'sn-neg'}">${t.dir === 'buy' ? 'Long' : 'Short'} ${t.score}/${ARIA_GATE_COUNT}</td>
+        <td class="${t.dir === 'buy' ? 'sn-pos' : 'sn-neg'}">${t.dir === 'buy' ? 'Long' : 'Short'} ${t.score}/${ARIA_GATE_COUNT} ${gradeChip(t.grade)}</td>
         <td><span class="sn-chip ${STAGE_CLS[t.stage] || ''}">${esc(t.stage || t.status)}</span></td><td style="text-align:right">${r(t.r)}</td></tr>`).join('')}</tbody></table>` : ''}
       </div>
 
