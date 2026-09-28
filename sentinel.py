@@ -691,12 +691,231 @@ def _attach_sentinel(recs: list[dict]) -> None:
             r["sentinel_stage"] = core.stage_of(t) if t.get("status") != "open" else "open"
 
 
+# ── Server-side MT5 management tracking ─────────────────────────────────────
+# The MT5 bridge relay receives the EA's snapshot about once a second while
+# MT5 runs, with or without a browser open. For the OWNER's bridge channel
+# (bound once from the terminal with the owner key), this tracker records how
+# every MT5 position is managed: initial stop, each stop/target move, when it
+# became risk free, the profit the stop locked, partials, peak profit, exit.
+# Same record format and stages as the terminal's MGMT journal.
+
+_mt5_open: dict[str, dict] = {}       # ticket key -> live record (owner channel only)
+_mt5_state = {"loaded": False, "last": 0.0, "deals": [], "deals_at": 0.0}
+MT5_EVERY_S = 2.0
+
+
+def _mt5_owner_channel() -> Optional[str]:
+    return _meta_get("mt5_channel")
+
+
+def _save_managed(r: dict) -> None:
+    with _lock, _db() as con:
+        con.execute("INSERT OR REPLACE INTO managed VALUES (?,?,?,?)",
+                    (r["key"], int(r.get("opened") or 0), int(r.get("closed") or 0) or None,
+                     json.dumps({k: v for k, v in r.items() if not k.startswith("_")})))
+
+
+def _load_open_mt5() -> None:
+    with _lock, _db() as con:
+        rows = con.execute("SELECT data FROM managed WHERE key LIKE 'mt5:%' AND closed IS NULL").fetchall()
+    for (blob,) in rows:
+        r = json.loads(blob)
+        _mt5_open[r["key"]] = r
+    _mt5_state["loaded"] = True
+
+
+def mgmt_stage(r: dict) -> str:
+    """Same rules as MGMT.stage() in the terminal."""
+    pnl = r.get("pnl") or 0
+    if r.get("r_dist") and isinstance(r.get("exit_r"), (int, float)):
+        flat = abs(r["exit_r"]) <= 0.1
+    else:
+        flat = abs(pnl) < 0.5
+    if "take profit" in (r.get("exit_reason") or "").lower():
+        return "Full winner"
+    if r.get("be_at"):
+        return "Protected flat" if flat else ("Managed winner" if pnl > 0 else "Protected loss")
+    if flat:
+        return "Scratch"
+    return "Unprotected winner" if pnl > 0 else "Full loser"
+
+
+def _num_or_none(v) -> Optional[float]:
+    try:
+        f = float(v)
+        return f if f > 0 else None
+    except (TypeError, ValueError):
+        return None
+
+
+def _mt5_track(cid: str, snap: dict, deals) -> None:
+    """Relay hook: runs on every EA snapshot."""
+    if deals is not None:
+        _mt5_state["deals"], _mt5_state["deals_at"] = deals, time.time()
+    now = time.time()
+    if now - _mt5_state["last"] < MT5_EVERY_S:
+        return
+    owner = _mt5_owner_channel()
+    if not owner or cid != owner:
+        return
+    _mt5_state["last"] = now
+    if not _mt5_state["loaded"]:
+        _load_open_mt5()
+    t_ms = int(now * 1000)
+    seen = set()
+    for p in (snap or {}).get("positions") or []:
+        try:
+            key = "mt5:" + str(p["ticket"])
+            side = p["side"]
+            entry, price = float(p["entry"]), float(p["price"])
+            vol, pnl = float(p["volume"]), float(p.get("profit") or 0)
+        except (KeyError, TypeError, ValueError):
+            continue
+        sl, tp = _num_or_none(p.get("sl")), _num_or_none(p.get("tp"))
+        opened = int(p.get("time") or 0) * 1000 or t_ms
+        seen.add(key)
+        s = 1 if side == "buy" else -1
+        r = _mt5_open.get(key)
+        dirty = False
+        if r is None:
+            late = t_ms - opened > 90_000
+            r = _mt5_open[key] = {
+                "key": key, "src": "mt5", "tracker": "server", "symbol": p.get("symbol"), "label": p.get("symbol"),
+                "side": side, "entry": entry, "opened": opened, "first_seen": t_ms, "late": late,
+                "initial_sl": None if late else sl, "r_dist": None,
+                "sentinel_id": None, "events": [{"t": t_ms, "type": "joined" if late else "open",
+                                                 "sl": sl, "tp": tp, "volume": vol, "price": price}],
+                "sl": sl, "tp": tp, "volume": vol, "max_volume": vol,
+                "be_at": None, "lock_at": None, "locked_r": None, "locked_pnl": None,
+                "mfe_price": price, "peak_pnl": pnl, "pnl_now": pnl, "closed": None,
+            }
+            if r["initial_sl"] is not None:
+                r["r_dist"] = abs(entry - r["initial_sl"])
+            dirty = True
+        if r.get("r_dist") is None and sl is not None and not r.get("late") and s * (sl - entry) < 0:
+            r["initial_sl"], r["r_dist"] = sl, abs(entry - sl)
+            dirty = True
+        if sl != r.get("sl"):
+            r["events"].append({"t": t_ms, "type": "stop", "from": r.get("sl"), "to": sl, "price": price, "pnl": pnl})
+            r["sl"] = sl
+            dirty = True
+        if tp != r.get("tp"):
+            r["events"].append({"t": t_ms, "type": "target", "from": r.get("tp"), "to": tp})
+            r["tp"] = tp
+            dirty = True
+        if vol < (r.get("volume") or vol) - 1e-9:
+            r["events"].append({"t": t_ms, "type": "partial", "closed": round(r["volume"] - vol, 6), "price": price, "pnl": pnl})
+            dirty = True
+        r["volume"] = vol
+        if r.get("mfe_price") is None or s * (price - r["mfe_price"]) > 0:
+            r["mfe_price"] = price
+        r["pnl_now"] = pnl
+        if r.get("peak_pnl") is None or pnl > r["peak_pnl"]:
+            r["peak_pnl"] = pnl
+        if sl is not None and s * (sl - entry) >= -1e-9:
+            if not r.get("be_at"):
+                r["be_at"] = t_ms
+                r["events"].append({"t": t_ms, "type": "risk_free", "sl": sl})
+                dirty = True
+            if r.get("r_dist"):
+                lr = round(s * (sl - entry) / r["r_dist"], 3)
+                if r.get("locked_r") is None or lr > r["locked_r"]:
+                    r["locked_r"] = lr
+            if price != entry:
+                lp = round(pnl * (sl - entry) / (price - entry), 2)
+                if r.get("locked_pnl") is None or lp > r["locked_pnl"]:
+                    r["locked_pnl"] = lp
+            if s * (sl - entry) > 0 and not r.get("lock_at"):
+                r["lock_at"] = t_ms
+        if r.get("r_dist"):
+            r["mfe_r"] = round(s * (r["mfe_price"] - entry) / r["r_dist"], 3)
+        r["_saved"] = r.get("_saved", 0)
+        if dirty or t_ms - r["_saved"] > 30_000:
+            r["_saved"] = t_ms
+            _save_managed(r)
+    # Closed: gone from the snapshot. Take the exit from the deal history.
+    for key in [k for k in _mt5_open if k not in seen]:
+        r = _mt5_open[key]
+        ticket = key.split(":", 1)[1]
+        rows = [d for d in _mt5_state["deals"] if isinstance(d, dict) and d.get("kind") == "trade"
+                and str(d.get("ticket")) == ticket]
+        if not rows and t_ms - r.setdefault("_gone", t_ms) < 180_000:
+            continue                                  # history arrives on its own schedule
+        s = 1 if r["side"] == "buy" else -1
+        r["closed"] = t_ms
+        r["exit_price"] = float(rows[0]["exit"]) if rows else None
+        r["pnl"] = round(sum(float(d.get("profit") or 0) for d in rows), 2) if rows else r.get("pnl_now")
+        r["exit_reason"] = rows[0].get("reason", "Manual") if rows else "Unknown"
+        r["exit_r"] = (round(s * (r["exit_price"] - r["entry"]) / r["r_dist"], 3)
+                       if r.get("r_dist") and r["exit_price"] is not None else None)
+        if (not r.get("be_at") and "stop" in (r["exit_reason"] or "").lower()
+                and r["exit_price"] is not None and s * (r["exit_price"] - r["entry"]) >= -1e-9):
+            r["be_at"] = t_ms
+            r["events"].append({"t": t_ms, "type": "risk_free", "sl": r["exit_price"]})
+        r["stage"] = mgmt_stage(r)
+        r["events"].append({"t": t_ms, "type": "close", "price": r["exit_price"], "pnl": r["pnl"],
+                            "reason": r["exit_reason"]})
+        r.pop("_gone", None)
+        _save_managed(r)
+        _mt5_open.pop(key, None)
+
+
+try:
+    import mt5_bridge as _bridge
+    _bridge.SNAPSHOT_HOOKS.append(_mt5_track)
+except Exception:        # bridge not present (tests): server tracking simply off
+    _bridge = None
+
+
+@router.post("/managed/bind")
+async def managed_bind(request: Request) -> dict:
+    """Owner-only: mark THIS bridge key's channel as the owner's MT5 account."""
+    _check_key(request)
+    cid = _bridge.channel_id(request.headers.get("x-bridge-key", "")) if _bridge else None
+    if not cid:
+        raise HTTPException(400, "Send the MT5 bridge key in X-Bridge-Key")
+    if _mt5_owner_channel() != cid:
+        _meta_set("mt5_channel", cid)
+        _mt5_open.clear()
+        _mt5_state["loaded"] = False
+    return {"bound": True, "server_tracking": True}
+
+
+@router.post("/managed/link")
+async def managed_link(request: Request) -> dict:
+    """Owner-only: attach a Sentinel setup to an MT5 position the server tracks."""
+    _check_key(request)
+    body = await request.json()
+    key, sid = str(body.get("key", "")), str(body.get("sentinel_id", ""))
+    if not key.startswith("mt5:") or not sid:
+        raise HTTPException(400, "Send {key: 'mt5:<ticket>', sentinel_id, sl, sl_dist}")
+    r = _mt5_open.get(key)
+    if r is None:
+        with _lock, _db() as con:
+            row = con.execute("SELECT data FROM managed WHERE key=?", (key,)).fetchone()
+        r = json.loads(row[0]) if row else None
+    if r is None:
+        raise HTTPException(404, "Position not tracked yet")
+    r["sentinel_id"] = sid
+    r["sentinel_model"] = body.get("model")
+    try:
+        sd = float(body.get("sl_dist") or 0)
+        if sd > 0:
+            r["r_dist"], r["initial_sl"] = sd, float(body.get("sl"))
+    except (TypeError, ValueError):
+        pass
+    _save_managed(r)
+    return {"linked": True}
+
+
 @router.get("/managed")
 def managed(request: Request) -> dict:
     _check_key(request)
     recs = _managed_rows()
     _attach_sentinel(recs)
-    return {"records": recs[:100], "stats": _managed_stats(recs)}
+    return {"records": recs[:100], "stats": _managed_stats(recs),
+            "server_tracking": bool(_mt5_owner_channel()),
+            "mt5_open_tracked": len(_mt5_open)}
 
 
 @router.post("/managed")
@@ -708,10 +927,13 @@ async def managed_upsert(request: Request) -> dict:
     if not isinstance(items, list) or len(items) > 200:
         raise HTTPException(400, "Send {\"records\": [...]} (at most 200)")
     saved = 0
+    server_mt5 = bool(_mt5_owner_channel())
     with _lock, _db() as con:
         for r in items:
             if not isinstance(r, dict) or not isinstance(r.get("key"), str) or len(r["key"]) > 80:
                 continue
+            if server_mt5 and r["key"].startswith("mt5:"):
+                continue            # the server tracks MT5 itself; it is the authority
             blob = json.dumps(r)
             if len(blob) > 20000:
                 continue

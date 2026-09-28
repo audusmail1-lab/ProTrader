@@ -8030,14 +8030,19 @@ const SENT = (() => {
 
   // The trader's own positions: how they were managed.
   function managedBlock() {
-    const live = typeof MGMT !== 'undefined' ? MGMT.openSummaries() : [];
     const m = last?.managed, st = m?.stats || {};
+    const serverOpen = (m?.records || []).filter(r => !r.closed && r.tracker === 'server').map(r => ({
+      label: r.label, side: r.side, pnl_now: r.pnl_now, peak_pnl: r.peak_pnl, locked_pnl: r.locked_pnl,
+      locked_r: r.locked_r, mfe_r: r.mfe_r, be_at: r.be_at, late: r.late, sentinel: !!r.sentinel_id,
+      stops: (r.events || []).filter(e => e.type === 'stop').length, server: true,
+    }));
+    const live = (typeof MGMT !== 'undefined' ? MGMT.openSummaries() : []).concat(serverOpen);
     const recs = (m?.records || []).filter(r => r.closed).slice(0, 8);
     if (!live.length && !recs.length && !ownerKey()) return '';
     const openRows = live.map(o => `<div class="sn-card">
         <div class="sn-row"><span class="sn-mk">${esc(o.label)}</span><span class="sn-chip ${o.side}">${o.side === 'buy' ? 'BUY' : 'SELL'}</span>
           <span class="sn-chip ${o.be_at ? 'ev-proven' : ''}">${o.be_at ? (Number.isFinite(o.locked_pnl) && o.locked_pnl > 0.005 ? 'Risk free · profit locked' : 'Risk free · at breakeven') : 'At risk'}</span>
-          ${o.sentinel ? '<span class="sn-chip">from Sentinel</span>' : ''}</div>
+          ${o.sentinel ? '<span class="sn-chip">from Sentinel</span>' : ''}${o.server ? '<span class="sn-chip">MT5 · tracked 24/7</span>' : ''}</div>
         <div class="sn-lv">
           <div><span>Now</span><b>${money(o.pnl_now)}</b></div>
           <div><span>Peak</span><b>${money(o.peak_pnl)}</b></div>
@@ -8050,7 +8055,8 @@ const SENT = (() => {
         <td><span class="sn-chip ${STAGE_CLS[r.stage] || ''}">${esc(r.stage || '—')}</span></td>
         <td style="text-align:right">${money(r.pnl)}${Number.isFinite(r.exit_r) ? `<div class="sn-meta">${r.exit_r >= 0 ? '+' : ''}${r.exit_r.toFixed(2)}R · peak ${Number.isFinite(r.mfe_r) ? r.mfe_r.toFixed(2) + 'R' : '—'}</div>` : ''}${Number.isFinite(r.sentinel_r) ? `<div class="sn-meta">Sentinel ${r.sentinel_r >= 0 ? '+' : ''}${r.sentinel_r.toFixed(2)}R</div>` : ''}</td></tr>`).join('')}</tbody></table>` : '';
     const vs = st.vs_sentinel;
-    return `<div class="sn-h">Your trade management</div>
+    const trackNote = m?.server_tracking ? '' : `<div class="sn-meta">MT5 trades are tracked only while this page is open. Open PROTrader once on the device where your MT5 bridge is set up to switch on 24/7 tracking.</div>`;
+    return `<div class="sn-h">Your trade management</div>${trackNote}
       ${openRows}
       ${st.n ? `<div class="sn-card"><div class="sn-meta">
         ${st.n} closed · ${money(st.pnl_total)} · ${pctTxt(st.win_pct)} in profit<br>
@@ -8250,11 +8256,49 @@ const SENT = (() => {
 const MGMT = {
   KEY: 'protrader.mgmt.v1', LINK_KEY: 'protrader.mgmt.link',
   recs: {}, dirty: new Set(), _last: 0, _sync: 0,
+  serverMt5: false, _bindTried: 0, _linked: {},
 
   start() {
     try { this.recs = JSON.parse(localStorage.getItem(this.KEY) || '{}') || {}; } catch (_) { this.recs = {}; }
     setInterval(() => this.observe(), 2000);
     setInterval(() => this.push(), 15000);
+  },
+
+  // Once per session: tell the server which bridge channel is the owner's MT5
+  // account, so it tracks MT5 management 24/7 without this page open.
+  async bind() {
+    const key = this.ownerKey();
+    if (this.serverMt5 || !key || typeof LIVE === 'undefined' || !LIVE.key) return;
+    if (Date.now() - this._bindTried < 60000) return;
+    this._bindTried = Date.now();
+    try {
+      const res = await fetch(`${BOT_BASE}/api/sentinel/managed/bind`, {
+        method: 'POST', cache: 'no-store', signal: AbortSignal.timeout(15000),
+        headers: { 'Content-Type': 'application/json', 'X-Sentinel-Key': key, 'X-Bridge-Key': LIVE.key },
+        body: '{}',
+      });
+      if (res.ok) {
+        this.serverMt5 = true;
+        // The server owns MT5 records from now on; drop local copies of open ones.
+        Object.keys(this.recs).forEach(k => { if (k.startsWith('mt5:') && !this.recs[k].closed) delete this.recs[k]; });
+        this.save();
+      }
+    } catch (_) {}
+  },
+
+  // Server-tracked MT5 position just appeared: attach a pending Sentinel setup.
+  async linkServer(p) {
+    if (this._linked[p.key]) return;
+    this._linked[p.key] = 1;
+    const lk = this.takeLink(null, p.symbol, p.side);
+    if (!lk) return;
+    try {
+      await fetch(`${BOT_BASE}/api/sentinel/managed/link`, {
+        method: 'POST', cache: 'no-store', signal: AbortSignal.timeout(15000),
+        headers: { 'Content-Type': 'application/json', 'X-Sentinel-Key': this.ownerKey() },
+        body: JSON.stringify({ key: p.key, sentinel_id: lk.id, sl: lk.sl, sl_dist: lk.sl_dist, model: lk.model }),
+      });
+    } catch (_) {}
   },
   save() { try { localStorage.setItem(this.KEY, JSON.stringify(this.recs)); } catch (_) {} },
   ownerKey() { try { return localStorage.getItem('protrader.sentinelKey') || ''; } catch (_) { return ''; } },
@@ -8295,9 +8339,11 @@ const MGMT = {
 
   observe() {
     const now = Date.now();
+    this.bind();
     const { out, mt5Visible } = this.livePositions();
     const seen = new Set();
     out.forEach(p => {
+      if (p.src === 'mt5' && this.serverMt5) { this.linkServer(p); return; }   // server tracks MT5
       seen.add(p.key);
       let r = this.recs[p.key];
       if (!r) {
@@ -8352,7 +8398,7 @@ const MGMT = {
     // Positions that disappeared have closed.
     Object.values(this.recs).forEach(r => {
       if (r.closed || seen.has(r.key)) return;
-      if (r.src === 'mt5' && !mt5Visible) return;          // cannot see MT5 right now: wait
+      if (r.src === 'mt5' && (!mt5Visible || this.serverMt5)) return;   // cannot see MT5 / server owns it
       const exit = this.exitFor(r);
       if (!exit) { if (now - (r._gone || (r._gone = now)) < 60000) return; }   // give history a minute
       const s = r.side === 'buy' ? 1 : -1;
@@ -8384,7 +8430,8 @@ const MGMT = {
       const last = rows[rows.length - 1];
       return { price: last.exit, pnl: rows.reduce((a, t) => a + (t.pnl || 0), 0), reason: last.reason || 'Manual' };
     }
-    const hist = (typeof LIVE !== 'undefined' && LIVE.state && LIVE.state.history) || [];
+    const h0 = typeof LIVE !== 'undefined' && LIVE.state && LIVE.state.history;
+    const hist = (h0 && Array.isArray(h0.deals)) ? h0.deals : [];
     const t = r.key.split(':')[1];
     const rows = hist.filter(h => h.kind === 'trade' && String(h.ticket) === t);
     if (!rows.length) return null;
