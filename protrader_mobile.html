@@ -5544,7 +5544,7 @@ const AUTOP = {
   load() {
     if (this.cfg) return this.cfg;
     let c = null; try { c = JSON.parse(localStorage.getItem(this.KEY) || 'null'); } catch (_) {}
-    this.cfg = c && typeof c === 'object' ? c : { preset: 'r1', ...this.PRESETS.r1 };
+    this.cfg = c && typeof c === 'object' ? c : { preset: 'off' };   // off by default: the rule is being tested on Sentinel first
     return this.cfg;
   },
   save() { try { localStorage.setItem(this.KEY, JSON.stringify(this.cfg)); } catch (_) {} },
@@ -8158,6 +8158,23 @@ const SENT = (() => {
       <div class="sn-meta">Became risk free: <b>${pctTxt(m.risk_free_pct)}</b> · of those, closed in profit: <b>${pctTxt(m.risk_free_positive_pct)}</b> · average peak ${Number.isFinite(m.avg_mfe_r) ? m.avg_mfe_r.toFixed(2) + 'R' : '—'} · kept ${pctTxt(m.capture_pct)} of winning moves</div>`;
   }
 
+  // Forward test: the same Sentinel trades managed by other exit rules, in parallel.
+  function shadowBlock(sh) {
+    if (!sh) return '';
+    const order = ['usd100', 'structure', 'hold'];
+    const rows = order.filter(k => sh[k]).map(k => {
+      const x = sh[k];
+      if (!x.n) return `<tr><td>${esc(x.label)}</td><td colspan="4" style="text-align:left;color:var(--tx-3)">no finished trades yet</td></tr>`;
+      const ci = x.vs_live_ci95, sig = ci && (ci[0] > 0 ? 'ev-proven' : ci[1] < 0 ? 'ev-negative' : '');
+      const r = v => (v >= 0 ? '+' : '−') + Math.abs(v).toFixed(3) + 'R';
+      return `<tr><td>${esc(x.label)}</td><td>${x.n}</td><td>${r(x.expectancy_r)}</td>
+        <td><span class="sn-chip ${sig}">${r(x.vs_live_r)}</span></td><td>${pctTxt(x.full_loss_pct)} · ${pctTxt(x.win_rate)}</td></tr>`;
+    }).join('');
+    return `<details class="sn-costs"><summary>Management test · shadow rules on Sentinel's own trades</summary>
+      <div class="sn-meta">Every Sentinel paper trade is also managed by these rules in parallel: same entry, same stop, same bars. It changes nothing Sentinel does. Green or red appears only once a difference is outside chance (95%).</div>
+      <table class="sn-tbl"><thead><tr><th>Rule</th><th>Trades</th><th>Per trade</th><th>vs Sentinel</th><th>Lost in full · in profit</th></tr></thead><tbody>${rows}</tbody></table></details>`;
+  }
+
   // The trader's own positions: how they were managed.
   function managedBlock() {
     const m = last?.managed, st = m?.stats || {};
@@ -8299,6 +8316,7 @@ const SENT = (() => {
         ? `${live.n} closed · average ${r(live.expectancy_r)} · total ${r(live.total_r)} · ${esc(live.verdict)}`
         : 'No closed paper trades yet. Results appear here as Sentinel’s setups close.'}</div>
       ${paperStages(stats.journal?.management)}
+      ${shadowBlock(stats.journal?.shadow)}
       ${closed.length ? `<table class="sn-tbl"><tbody>${closed.map(t => `<tr>
         <td>${esc(label(t.market))} <span style="color:var(--tx-3)">${esc(t.tf)}</span></td>
         <td class="${t.dir === 'buy' ? 'sn-pos' : 'sn-neg'}">${t.dir === 'buy' ? 'Long' : 'Short'} ${t.score}/${ARIA_GATE_COUNT}</td>

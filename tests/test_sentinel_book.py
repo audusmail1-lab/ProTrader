@@ -104,6 +104,36 @@ def test_trailing_records_protection():
     assert core.stage_of(t.to_dict()) == "Managed winner"
 
 
+def test_shadow_rules_run_beside_the_model_and_outlive_it():
+    t = trade()                      # buy 100, stop 98, 1R = 2
+    t.model = "7.2c"; t.stop = t.sl
+    t.shadow = core.shadow_init(t.entry, t.sl, [bar(0, 100, 100.4, 99.6, 100), bar(0, 100, 100.3, 99.7, 100)])
+    b = book_with(t)
+    T = core.shadow_rules()["usd100"]["trig"]
+    assert abs(T - 0.271) < 0.001                       # $100 on $36.9k at 1% risk
+    seq = [bar(900, 100, 101.0, 99.9, 100.9),          # +0.5R: $100 rule protects and trails
+           bar(1800, 100.9, 102.2, 100.9, 102.1),      # +1.1R: 7.2c arms; structure arms
+           bar(2700, 102.1, 102.3, 101.5, 101.6),
+           bar(3600, 101.6, 101.7, 101.2, 101.3),
+           bar(4500, 101.3, 101.4, 101.0, 101.2),      # swing low 101.0 ...
+           bar(5400, 101.2, 101.5, 101.3, 101.4),
+           bar(6300, 101.4, 101.8, 101.6, 101.7),      # ... confirmed here -> stop 101 - 0.133
+           bar(7200, 101.7, 101.8, 100.1, 100.6)]      # drop: 7.2c, $100 and structure all stopped
+    for i in range(len(seq)):
+        b.update("frxXAUUSD", "15m", seq[:i + 1])
+        b.update_shadows("frxXAUUSD", "15m", seq[:i + 1])
+    u, st, h = t.shadow["usd100"], t.shadow["structure"], t.shadow["hold"]
+    assert u["state"] == "closed" and u["protected_at"] and 0 < u["gross"] < 1.1, u
+    assert st["state"] == "closed" and abs(st["gross"] - (101.0 - 0.1 * 2 / 1.5 - 100) / 2) < 1e-3, st
+    assert t.status != "open"                           # the model trade closed too
+    assert h["state"] == "open" and t.id in b.shadowing  # hold still running after the model closed
+    more = seq + [bar(8100, 100.6, 105.2, 100.5, 105.0)]
+    b.update_shadows("frxXAUUSD", "15m", more)
+    assert h["state"] == "closed" and h["gross"] == 2.5 and t.id not in b.shadowing
+    st_ = core.shadow_stats([t.to_dict()])
+    assert st_["hold"]["n"] == 1 and st_["usd100"]["n"] == 1 and st_["hold"]["reached_2_5r_pct"] == 1.0
+
+
 if __name__ == "__main__":
     for name, fn in list(globals().items()):
         if name.startswith("test_"):

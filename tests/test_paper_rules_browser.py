@@ -101,8 +101,10 @@ def check_tags(page):
 
 def check_autoprotect(page):
     run(page, SETUP)
-    # default preset: +1R -> breakeven, trail 1R
+    assert run(page, "AUTOP.on()") is False              # off until the trader turns it on
+    # +1R -> breakeven, trail 1R
     r = run(page, """(() => {
+        AUTOP.pick('r1');
         TR.positions = [{id: 5, symbol:'R_75', label:'Vol 75', side:'buy', volume: 0.2, entry: 44000, sl: 43800, tp: null, r0: 200, margin: 1, openTime: Date.now()}];
         const p = TR.positions[0], out = {};
         __px = 44150; OT.checkProtection(); out.before = p.sl;          // +0.75R: nothing

@@ -166,6 +166,12 @@ def _restore_book() -> core.PaperBook:
         d["mode"] = LEGACY_MODE.get(d.get("mode"), d.get("mode"))
         t = core.Trade(**d)
         book.open[(t.market, t.tf)] = t
+    # closed model trades whose shadow exit rules are still running
+    for d in _load_trades("WHERE status!='open' AND closed_at > ?", (int(time.time()) - 30 * 86400,), limit=500):
+        if any(v.get("state") == "open" for v in (d.get("shadow") or {}).values()):
+            d["mode"] = LEGACY_MODE.get(d.get("mode"), d.get("mode"))
+            t = core.Trade(**d)
+            book.shadowing[t.id] = t
     return book
 
 
@@ -289,9 +295,13 @@ async def _scan_one(m: core.Market, tf: str, focused: bool = True) -> None:
     bars = (await core.fetch_candles(m.deriv, tf, 5000))[-(core.WINDOW + 10):]
     if len(bars) < core.WINDOW // 2:
         return
-    for t in _book.update(m.id, tf, bars):
+    closed_now = _book.update(m.id, tf, bars)
+    for t in closed_now:
         _save_trade(t)
         _alert_close(t)
+    for t in _book.update_shadows(m.id, tf, bars):
+        if t not in closed_now:
+            _save_trade(t)
     last = bars[-1]
     if not focused:          # dropped from focus: only finish its open trade
         t = _book.open.get((m.id, tf))
@@ -346,7 +356,8 @@ async def _loop() -> None:
         wanted = {(f["id"], tf) for f in focus for tf in f["tfs"]}
         # Slices dropped from focus keep being read until their paper trade
         # finishes, so no result is lost by editing the list.
-        jobs = sorted(wanted | set(_book.open), key=lambda x: (x[0] not in [f["id"] for f in focus], x))
+        shadow_keys = {(t.market, t.tf) for t in _book.shadowing.values()}
+        jobs = sorted(wanted | set(_book.open) | shadow_keys, key=lambda x: (x[0] not in [f["id"] for f in focus], x))
         for mid, tf in jobs:
             m = core.MARKET_BY_ID.get(mid)
             if m and tf in core.TF_SEC:
@@ -614,6 +625,7 @@ def stats() -> dict:
             "by_elliott": core.group_stats([t for t in trades if t["tier"] == "exec"],
                                            lambda t: t.get("elliott") or "no count"),
             "management": core.management_stats(trades),
+            "shadow": core.shadow_stats(trades),
             "older_rules": len(all_trades) - len(trades),
         },
         "baseline": {k: base.get(k) for k in ("generated", "period", "notes", "all", "exec", "by_slice",
