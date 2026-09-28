@@ -7891,7 +7891,10 @@ const SENT = (() => {
     if (!Number.isFinite(now) || !(t.sl_dist > 0)) return null;
     const sign = t.dir === 'buy' ? 1 : -1;
     const moved = sign * (now - t.entry) / t.sl_dist;
-    return { now, moved, dead: moved <= -1 || moved >= 2.5 };
+    const trailing = t.model && t.model !== 'fixed';
+    const stop = Number.isFinite(t.stop) ? t.stop : t.sl;
+    const pastStop = sign * (now - stop) <= 0;
+    return { now, moved, dead: trailing ? pastStop : (moved <= -1 || moved >= 2.5) };
   }
 
   function tradeCard(t, ev) {
@@ -7908,7 +7911,9 @@ const SENT = (() => {
       <div class="sn-lv">
         <div><span>Entry</span><b>${px(t.market, t.entry)}</b></div>
         <div><span>Stop</span><b>${px(t.market, t.sl)}</b></div>
-        <div><span>Target</span><b>${px(t.market, t.tp2)}</b></div>
+        ${t.model && t.model !== 'fixed'
+          ? `<div><span>Stop now</span><b>${px(t.market, Number.isFinite(t.stop) ? t.stop : t.sl)}</b></div>`
+          : `<div><span>Target</span><b>${px(t.market, t.tp2)}</b></div>`}
       </div>
       <div class="sn-meta">${esc(t.mcc)} · ${esc(t.wyckoff)}${t.pattern ? ' · ' + esc(t.pattern) : ''}${Number.isFinite(t.fib_r) ? ` · Fib ${(t.fib_r * 100).toFixed(0)}%` : ''} · signal ${ago(t.opened_at)} · ${t.bars} bar${t.bars === 1 ? '' : 's'} · best ${t.mfe_r.toFixed(2)}R${d ? ` · now ${px(t.market, d.now)}` : ''}</div>
       ${warn ? `<div class="sn-warn">${esc(warn)}</div>` : ''}
@@ -8013,6 +8018,58 @@ const SENT = (() => {
 
   function cancelFocus() { pick = null; pickErr = ''; render(); }
 
+  const STAGE_CLS = { 'Full winner': 'ev-proven', 'Managed winner': 'ev-proven', 'Protected flat': '', 'Scratch': '',
+                      'Time exit': '', 'Unprotected winner': 'ev-unproven', 'Protected loss': 'ev-unproven', 'Full loser': 'ev-negative' };
+  const money = v => Number.isFinite(v) ? (v >= 0 ? '+' : '−') + '$' + Math.abs(v).toFixed(2) : '—';
+  const pctTxt = v => Number.isFinite(v) ? (v * 100).toFixed(0) + '%' : '—';
+
+  // Sentinel's own paper trades, judged by management stage.
+  function paperStages(m) {
+    if (!m || !m.n) return '';
+    const st = m.stages || {};
+    return `<div class="sn-meta" style="margin-top:4px">${Object.entries(st).filter(([, v]) => v).map(([k, v]) =>
+      `<span class="sn-chip ${STAGE_CLS[k] || ''}" style="margin:2px 4px 2px 0;display:inline-block">${esc(k)} ${v}</span>`).join('')}</div>
+      <div class="sn-meta">Became risk free: <b>${pctTxt(m.risk_free_pct)}</b> · of those, closed in profit: <b>${pctTxt(m.risk_free_positive_pct)}</b> · average peak ${Number.isFinite(m.avg_mfe_r) ? m.avg_mfe_r.toFixed(2) + 'R' : '—'} · kept ${pctTxt(m.capture_pct)} of winning moves</div>`;
+  }
+
+  // The trader's own positions: how they were managed.
+  function managedBlock() {
+    const m = last?.managed, st = m?.stats || {};
+    const serverOpen = (m?.records || []).filter(r => !r.closed && r.tracker === 'server').map(r => ({
+      label: r.label, side: r.side, pnl_now: r.pnl_now, peak_pnl: r.peak_pnl, locked_pnl: r.locked_pnl,
+      locked_r: r.locked_r, mfe_r: r.mfe_r, be_at: r.be_at, late: r.late, sentinel: !!r.sentinel_id,
+      stops: (r.events || []).filter(e => e.type === 'stop').length, server: true,
+    }));
+    const live = (typeof MGMT !== 'undefined' ? MGMT.openSummaries() : []).concat(serverOpen);
+    const recs = (m?.records || []).filter(r => r.closed).slice(0, 8);
+    if (!live.length && !recs.length && !ownerKey()) return '';
+    const openRows = live.map(o => `<div class="sn-card">
+        <div class="sn-row"><span class="sn-mk">${esc(o.label)}</span><span class="sn-chip ${o.side}">${o.side === 'buy' ? 'BUY' : 'SELL'}</span>
+          <span class="sn-chip ${o.be_at ? 'ev-proven' : ''}">${o.be_at ? (Number.isFinite(o.locked_pnl) && o.locked_pnl > 0.005 ? 'Risk free · profit locked' : 'Risk free · at breakeven') : 'At risk'}</span>
+          ${o.sentinel ? '<span class="sn-chip">from Sentinel</span>' : ''}${o.server ? '<span class="sn-chip">MT5 · tracked 24/7</span>' : ''}</div>
+        <div class="sn-lv">
+          <div><span>Now</span><b>${money(o.pnl_now)}</b></div>
+          <div><span>Peak</span><b>${money(o.peak_pnl)}</b></div>
+          <div><span>Locked by stop</span><b>${o.be_at ? money(Math.max(0, o.locked_pnl || 0)) : '—'}</b></div>
+        </div>
+        <div class="sn-meta">${o.stops} stop move${o.stops === 1 ? '' : 's'}${Number.isFinite(o.locked_r) ? ` · locked ${o.locked_r >= 0 ? '+' : ''}${o.locked_r.toFixed(2)}R` : ''}${Number.isFinite(o.mfe_r) ? ` · peak ${o.mfe_r.toFixed(2)}R` : ''}${o.late ? ' · tracking began after entry, so the original stop (1R) is unknown' : ''}</div>
+      </div>`).join('');
+    const closedRows = recs.length ? `<table class="sn-tbl"><tbody>${recs.map(r => `<tr>
+        <td>${esc(r.label)} <span style="color:var(--tx-3)">${r.side === 'buy' ? 'L' : 'S'}</span></td>
+        <td><span class="sn-chip ${STAGE_CLS[r.stage] || ''}">${esc(r.stage || '—')}</span></td>
+        <td style="text-align:right">${money(r.pnl)}${Number.isFinite(r.exit_r) ? `<div class="sn-meta">${r.exit_r >= 0 ? '+' : ''}${r.exit_r.toFixed(2)}R · peak ${Number.isFinite(r.mfe_r) ? r.mfe_r.toFixed(2) + 'R' : '—'}</div>` : ''}${Number.isFinite(r.sentinel_r) ? `<div class="sn-meta">Sentinel ${r.sentinel_r >= 0 ? '+' : ''}${r.sentinel_r.toFixed(2)}R</div>` : ''}</td></tr>`).join('')}</tbody></table>` : '';
+    const vs = st.vs_sentinel;
+    const trackNote = m?.server_tracking ? '' : `<div class="sn-meta">MT5 trades are tracked only while this page is open. Open PROTrader once on the device where your MT5 bridge is set up to switch on 24/7 tracking.</div>`;
+    return `<div class="sn-h">Your trade management</div>${trackNote}
+      ${openRows}
+      ${st.n ? `<div class="sn-card"><div class="sn-meta">
+        ${st.n} closed · ${money(st.pnl_total)} · ${pctTxt(st.win_pct)} in profit<br>
+        Became risk free: <b>${pctTxt(st.risk_free_pct)}</b> · of those, closed in profit: <b>${pctTxt(st.risk_free_positive_pct)}</b>${Number.isFinite(st.capture_pct) ? ` · kept ${pctTxt(st.capture_pct)} of the peak on winners` : ''}
+        ${vs ? `<br>On ${vs.n} Sentinel setups: you ${vs.trader_avg_r >= 0 ? '+' : ''}${vs.trader_avg_r.toFixed(2)}R vs Sentinel's paper ${vs.sentinel_avg_r >= 0 ? '+' : ''}${vs.sentinel_avg_r.toFixed(2)}R per trade` : ''}
+        </div>${closedRows}</div>`
+        : `<div class="sn-empty">${ownerKey() ? 'Closed trades appear here with how they were managed: stop moves, when they became risk free, peak profit and the exit.' : 'Set your owner key (Choose markets) to keep this journal on the server.'}</div>`}`;
+  }
+
   // ── Trading costs: replace spread estimates with quotes from the trader's
   // own MT5 account. Uses the bridge's read-only "spec" command; nothing is
   // traded. Each run adds one sample per market; the median is used.
@@ -8076,7 +8133,9 @@ const SENT = (() => {
     const closed = (feed.closed || []).slice(0, 8);
 
     const baseTxt = bx.n
-      ? `One-year replay (${esc(base.period?.[0])} → ${esc(base.period?.[1])}): <b>${bx.n.toLocaleString()}</b> exec-ready signals averaged <b>${bx.expectancy_r >= 0 ? '+' : ''}${bx.expectancy_r.toFixed(2)}R</b> each after estimated spreads (win rate ${(bx.win_rate * 100).toFixed(1)}% vs ${(stats.model.breakeven_win_rate * 100).toFixed(1)}% break-even).`
+      ? (base.model && base.model !== 'fixed'
+        ? `One-year replay of ARIA ${esc(base.model)} on real markets (${esc(base.period?.[0])} → ${esc(base.period?.[1])}): <b>${bx.n.toLocaleString()}</b> trades averaged <b>${bx.expectancy_r >= 0 ? '+' : ''}${bx.expectancy_r.toFixed(2)}R</b> each after estimated spreads; ${(bx.win_rate * 100).toFixed(0)}% closed in profit.`
+        : `One-year replay (${esc(base.period?.[0])} → ${esc(base.period?.[1])}): <b>${bx.n.toLocaleString()}</b> exec-ready signals averaged <b>${bx.expectancy_r >= 0 ? '+' : ''}${bx.expectancy_r.toFixed(2)}R</b> each after estimated spreads (win rate ${(bx.win_rate * 100).toFixed(1)}% vs ${(stats.model.breakeven_win_rate * 100).toFixed(1)}% break-even).`)
       : 'No replay baseline loaded yet.';
     const evTxt = proven
       ? `<b>${proven}</b> market${proven === 1 ? '' : 's'} have a proven edge in both the replay and the live journal.`
@@ -8089,7 +8148,7 @@ const SENT = (() => {
         <span class="sn-sub">${running ? `Reading ${status.markets.length} of ${cat ? cat.total : 89} markets · ${status.timeframes.join(' + ')}<br>last scan ${ago(status.last_cycle)}` : status.enabled ? 'Starting up…' : 'Scanner is off on this server'}</span>
       </div>
       ${status.journal && !status.journal.persistent ? `<div class="sn-warn">Journal is temporary: ${esc(status.journal.warning || 'it resets on every deploy')}.</div>` : ''}
-      <div class="sn-note">Paper only — Sentinel prepares, you confirm. ${evTxt}<br>${baseTxt}${status.news_week ? '<br><b>News Week is ON:</b> NAS100 shorts are blocked.' : ''}</div>
+      <div class="sn-note">${status.model && status.model !== 'fixed' ? `<b>ARIA ${esc(status.model)} candidate</b> on paper: ARIA 8+/10 signals, taken only with the 4h trend and never on a completed Wave 5; stop −1R, trailing 1R once +1R. ` : ''}Paper only — Sentinel prepares, you confirm. ${evTxt}<br>${baseTxt}${status.news_week ? '<br><b>News Week is ON:</b> NAS100 shorts are blocked.' : ''}</div>
 
       ${focusBlock(status)}
 
@@ -8100,20 +8159,23 @@ const SENT = (() => {
       <table class="sn-tbl"><thead><tr><th>Market</th><th>ARIA</th><th>Score</th><th>Bias</th><th>Evidence</th></tr></thead><tbody>
       ${(board.rows || []).map(b => `<tr class="go" onclick="SENT.chart('${esc(b.market)}','${esc(b.tf)}')" title="${esc(b.mcc)} · ${esc(b.wyckoff)}${b.elliott ? ' · EW ' + esc(b.elliott) + ' (soft)' : ''}">
         <td><b style="color:var(--tx-1)">${esc(label(b.market))}</b> <span style="color:var(--tx-3)">${esc(b.tf)}${b.mode === 'synthetic' ? ' · syn' : ''}</span></td>
-        <td class="sn-v-${esc(b.verdict)}">${V_LABEL[b.verdict] || esc(b.verdict)}</td>
+        <td class="sn-v-${esc(b.verdict)}">${V_LABEL[b.verdict] || esc(b.verdict)}${b.block && (b.verdict === 'EXEC_READY' || b.verdict === 'QUALIFIED') ? `<div class="sn-meta" style="font-weight:600;color:var(--amber)">held: ${esc(b.block)}</div>` : ''}</td>
         <td>${b.score}/${ARIA_GATE_COUNT}</td>
-        <td class="${b.dir === 'buy' ? 'sn-pos' : 'sn-neg'}">${b.dir === 'buy' ? 'Long' : 'Short'}</td>
+        <td class="${b.dir === 'buy' ? 'sn-pos' : 'sn-neg'}">${b.dir === 'buy' ? 'Long' : 'Short'}${b.trend_4h ? `<div class="sn-meta">4h ${b.trend_4h === 'up' ? '↑' : b.trend_4h === 'down' ? '↓' : '→'}</div>` : ''}</td>
         <td>${evChip(b.evidence)}</td></tr>`).join('') || '<tr><td colspan="5" class="sn-empty">Waiting for the first scan…</td></tr>'}
       </tbody></table>
 
-      <div class="sn-h">Paper results · exec-ready · all focus markets</div>
+      ${managedBlock()}
+
+      <div class="sn-h">Paper results · current model · all focus markets</div>
       <div class="sn-card"><div class="sn-meta">${live.n
-        ? `${live.n} closed · win ${(live.win_rate * 100).toFixed(1)}% · average ${r(live.expectancy_r)} · total ${r(live.total_r)} · ${esc(live.verdict)}`
-        : 'No closed paper trades yet. Results appear here as Sentinel’s setups hit their stop or target.'}</div>
+        ? `${live.n} closed · average ${r(live.expectancy_r)} · total ${r(live.total_r)} · ${esc(live.verdict)}`
+        : 'No closed paper trades yet. Results appear here as Sentinel’s setups close.'}</div>
+      ${paperStages(stats.journal?.management)}
       ${closed.length ? `<table class="sn-tbl"><tbody>${closed.map(t => `<tr>
         <td>${esc(label(t.market))} <span style="color:var(--tx-3)">${esc(t.tf)}</span></td>
         <td class="${t.dir === 'buy' ? 'sn-pos' : 'sn-neg'}">${t.dir === 'buy' ? 'Long' : 'Short'} ${t.score}/${ARIA_GATE_COUNT}</td>
-        <td>${esc(t.status)}</td><td style="text-align:right">${r(t.r)}</td></tr>`).join('')}</tbody></table>` : ''}
+        <td><span class="sn-chip ${STAGE_CLS[t.stage] || ''}">${esc(t.stage || t.status)}</span></td><td style="text-align:right">${r(t.r)}</td></tr>`).join('')}</tbody></table>` : ''}
       </div>
 
       ${costBlock()}
@@ -8132,8 +8194,15 @@ const SENT = (() => {
     busy = true;
     try {
       const [status, board, feed, stats, costs] = await Promise.all([get('status'), get('board'), get('feed?limit=30'), get('stats'), get('costs').catch(() => null)]);
+      let managed = null;
+      if (ownerKey()) {
+        try {
+          const res = await fetch(`${BOT_BASE}/api/sentinel/managed`, { cache: 'no-store', signal: AbortSignal.timeout(15000), headers: { 'X-Sentinel-Key': ownerKey() } });
+          if (res.ok) managed = await res.json();
+        } catch (_) {}
+      }
       if (!cat) get('markets').then(c => { c.byId = {}; c.groups.forEach(g => g.markets.forEach(m => { c.byId[m.id] = m; })); cat = cat || c; render(); }).catch(() => {});
-      last = { status, board, feed, stats, costs };
+      last = { status, board, feed, stats, costs, managed };
       render();
     } catch (e) {
       const el = document.getElementById('sentinel-panel');
@@ -8164,12 +8233,248 @@ const SENT = (() => {
     if (!t) return showToast('That setup has closed — refreshing Sentinel.', 2600), refresh();
     const d = drift(t);
     if (d?.dead) return;
+    MGMT.link(t);                      // the next matching fill is this setup
     chart(t.market, t.tf);
-    applyARIA(t.sl, t.tp2, t.dir);   // fills the ticket and opens the Trade tab; the trader still decides
+    if (t.model && t.model !== 'fixed') {
+      // 7.2 candidate: no fixed target. Fill the stop only; the plan is to
+      // trail it 1R behind the best price once the trade reaches +1R.
+      applyARIA(Number.isFinite(t.stop) ? t.stop : t.sl, NaN, t.dir);
+      showToast(`Stop filled. ARIA 7.2 candidate: no fixed target — once +1R (${px(t.market, t.entry + (t.dir === 'buy' ? 1 : -1) * t.sl_dist)}), trail the stop 1R behind the best price.`, 6500);
+    } else {
+      applyARIA(t.sl, t.tp2, t.dir);   // fills the ticket and opens the Trade tab; the trader still decides
+    }
   }
 
   return { open, refresh, load, chart, editFocus, toggle, toggleTf, saveFocus, cancelFocus, measureCosts };
 })();
+
+/* ════════════════════════════════════════════════════════════
+   TRADE MANAGEMENT JOURNAL
+   Watches the trader's own positions (paper and MT5) and records how each
+   was MANAGED, not just whether it hit the final target: initial stop, every
+   stop move, when it became risk free, partials, peak profit, the exit.
+   A position opened from Sentinel's "Load setup" is linked to Sentinel's
+   paper trade, so the system's part and the trader's part can be compared.
+   Stored on this device and, with the owner key, on the server.
+════════════════════════════════════════════════════════════ */
+const MGMT = {
+  KEY: 'protrader.mgmt.v1', LINK_KEY: 'protrader.mgmt.link',
+  recs: {}, dirty: new Set(), _last: 0, _sync: 0,
+  serverMt5: false, _bindTried: 0, _linked: {},
+
+  start() {
+    try { this.recs = JSON.parse(localStorage.getItem(this.KEY) || '{}') || {}; } catch (_) { this.recs = {}; }
+    setInterval(() => this.observe(), 2000);
+    setInterval(() => this.push(), 15000);
+  },
+
+  // Once per session: tell the server which bridge channel is the owner's MT5
+  // account, so it tracks MT5 management 24/7 without this page open.
+  async bind() {
+    const key = this.ownerKey();
+    if (this.serverMt5 || !key || typeof LIVE === 'undefined' || !LIVE.key) return;
+    if (Date.now() - this._bindTried < 60000) return;
+    this._bindTried = Date.now();
+    try {
+      const res = await fetch(`${BOT_BASE}/api/sentinel/managed/bind`, {
+        method: 'POST', cache: 'no-store', signal: AbortSignal.timeout(15000),
+        headers: { 'Content-Type': 'application/json', 'X-Sentinel-Key': key, 'X-Bridge-Key': LIVE.key },
+        body: '{}',
+      });
+      if (res.ok) {
+        this.serverMt5 = true;
+        // The server owns MT5 records from now on; drop local copies of open ones.
+        Object.keys(this.recs).forEach(k => { if (k.startsWith('mt5:') && !this.recs[k].closed) delete this.recs[k]; });
+        this.save();
+      }
+    } catch (_) {}
+  },
+
+  // Server-tracked MT5 position just appeared: attach a pending Sentinel setup.
+  async linkServer(p) {
+    if (this._linked[p.key]) return;
+    this._linked[p.key] = 1;
+    const lk = this.takeLink(null, p.symbol, p.side);
+    if (!lk) return;
+    try {
+      await fetch(`${BOT_BASE}/api/sentinel/managed/link`, {
+        method: 'POST', cache: 'no-store', signal: AbortSignal.timeout(15000),
+        headers: { 'Content-Type': 'application/json', 'X-Sentinel-Key': this.ownerKey() },
+        body: JSON.stringify({ key: p.key, sentinel_id: lk.id, sl: lk.sl, sl_dist: lk.sl_dist, model: lk.model }),
+      });
+    } catch (_) {}
+  },
+  save() { try { localStorage.setItem(this.KEY, JSON.stringify(this.recs)); } catch (_) {} },
+  ownerKey() { try { return localStorage.getItem('protrader.sentinelKey') || ''; } catch (_) { return ''; } },
+
+  // Called by Sentinel's "Load setup": the next matching fill is this setup.
+  link(t) {
+    const l = { id: t.id, market: t.market, dir: t.dir, entry: t.entry, sl: t.sl, sl_dist: t.sl_dist, model: t.model, at: Date.now() };
+    try { localStorage.setItem(this.LINK_KEY, JSON.stringify(l)); } catch (_) {}
+  },
+  takeLink(appId, mt5Sym, side) {
+    let l = null;
+    try { l = JSON.parse(localStorage.getItem(this.LINK_KEY) || 'null'); } catch (_) {}
+    if (!l || Date.now() - l.at > 20 * 60000) return null;
+    const same = l.market === appId || (typeof LIVE !== 'undefined' && mt5Sym && LIVE.mt5Symbol(l.market) === mt5Sym);
+    if (!same || l.dir !== side) return null;
+    try { localStorage.removeItem(this.LINK_KEY); } catch (_) {}
+    return l;
+  },
+
+  livePositions() {
+    const out = [];
+    TR.positions.forEach(p => {
+      const q = otQuote(p.symbol);
+      const px = q.ok ? (p.side === 'buy' ? q.bid : q.ask) : null;
+      out.push({ key: 'paper:' + p.id, src: 'paper', appId: p.symbol, symbol: p.symbol, label: p.label,
+                 side: p.side, volume: p.volume, entry: p.entry, sl: p.sl, tp: p.tp, price: px,
+                 pnl: px != null ? otPnl(p.side, p.entry, px, p.volume, p.symbol) : null, openTime: p.openTime });
+    });
+    const online = typeof LIVE !== 'undefined' && LIVE.online && LIVE.online();
+    const snap = online ? LIVE.snap() : null;
+    (snap && snap.positions || []).forEach(p => {
+      out.push({ key: 'mt5:' + p.ticket, src: 'mt5', appId: null, symbol: p.symbol, label: p.symbol,
+                 side: p.side, volume: +p.volume, entry: +p.entry, sl: p.sl > 0 ? +p.sl : null, tp: p.tp > 0 ? +p.tp : null,
+                 price: +p.price, pnl: +p.profit, openTime: p.time ? p.time * 1000 : null });
+    });
+    return { out, mt5Visible: !!snap };
+  },
+
+  observe() {
+    const now = Date.now();
+    this.bind();
+    const { out, mt5Visible } = this.livePositions();
+    const seen = new Set();
+    out.forEach(p => {
+      if (p.src === 'mt5' && this.serverMt5) { this.linkServer(p); return; }   // server tracks MT5
+      seen.add(p.key);
+      let r = this.recs[p.key];
+      if (!r) {
+        const late = p.openTime ? now - p.openTime > 90000 : false;
+        const lk = this.takeLink(p.appId, p.src === 'mt5' ? p.symbol : null, p.side);
+        r = this.recs[p.key] = {
+          key: p.key, src: p.src, symbol: p.symbol, label: p.label, side: p.side, entry: p.entry,
+          opened: p.openTime || now, first_seen: now, late,
+          initial_sl: lk ? lk.sl : (late ? null : p.sl), r_dist: null,
+          sentinel_id: lk ? lk.id : null, sentinel_model: lk ? lk.model : null,
+          events: [{ t: now, type: late ? 'joined' : 'open', sl: p.sl, tp: p.tp, volume: p.volume, price: p.price }],
+          sl: p.sl, tp: p.tp, volume: p.volume, max_volume: p.volume,
+          be_at: null, lock_at: null, locked_r: null, locked_pnl: null,
+          mfe_price: p.price, peak_pnl: p.pnl, pnl_now: p.pnl, closed: null,
+        };
+        if (lk && lk.sl_dist > 0) r.r_dist = lk.sl_dist;
+        else if (r.initial_sl != null) r.r_dist = Math.abs(p.entry - r.initial_sl);
+        this.dirty.add(p.key);
+      }
+      const s = p.side === 'buy' ? 1 : -1;
+      // First stop set after entry (no stop at fill) defines 1R.
+      if (r.r_dist == null && p.sl != null && !r.late && s * (p.sl - p.entry) < 0) {
+        r.initial_sl = p.sl; r.r_dist = Math.abs(p.entry - p.sl);
+      }
+      if (p.sl !== r.sl) {
+        r.events.push({ t: now, type: 'stop', from: r.sl, to: p.sl, price: p.price, pnl: p.pnl });
+        r.sl = p.sl; this.dirty.add(p.key);
+      }
+      if (p.tp !== r.tp) { r.events.push({ t: now, type: 'target', from: r.tp, to: p.tp }); r.tp = p.tp; this.dirty.add(p.key); }
+      if (p.volume < r.volume - 1e-9) {
+        r.events.push({ t: now, type: 'partial', closed: +(r.volume - p.volume).toFixed(6), price: p.price, pnl: p.pnl });
+        this.dirty.add(p.key);
+      }
+      r.volume = p.volume;
+      if (p.price != null && (r.mfe_price == null || s * (p.price - r.mfe_price) > 0)) r.mfe_price = p.price;
+      if (p.pnl != null) { r.pnl_now = p.pnl; if (r.peak_pnl == null || p.pnl > r.peak_pnl) r.peak_pnl = p.pnl; }
+      // Protection: stop at breakeven or better.
+      if (p.sl != null && s * (p.sl - p.entry) >= -1e-9) {
+        if (!r.be_at) { r.be_at = now; r.events.push({ t: now, type: 'risk_free', sl: p.sl }); this.dirty.add(p.key); }
+        const lockedR = r.r_dist > 0 ? s * (p.sl - p.entry) / r.r_dist : null;
+        if (lockedR != null && (r.locked_r == null || lockedR > r.locked_r)) r.locked_r = +lockedR.toFixed(3);
+        // Money locked in by the stop, estimated from the live P&L per unit of price.
+        if (p.pnl != null && p.price != null && p.price !== p.entry) {
+          const lp = p.pnl * (p.sl - p.entry) / (p.price - p.entry);
+          if (Number.isFinite(lp) && (r.locked_pnl == null || lp > r.locked_pnl)) r.locked_pnl = +lp.toFixed(2);
+        }
+        if (s * (p.sl - p.entry) > 0 && !r.lock_at) r.lock_at = now;
+      }
+      if (r.r_dist > 0 && r.mfe_price != null) r.mfe_r = +(s * (r.mfe_price - r.entry) / r.r_dist).toFixed(3);
+    });
+
+    // Positions that disappeared have closed.
+    Object.values(this.recs).forEach(r => {
+      if (r.closed || seen.has(r.key)) return;
+      if (r.src === 'mt5' && (!mt5Visible || this.serverMt5)) return;   // cannot see MT5 / server owns it
+      const exit = this.exitFor(r);
+      if (!exit) { if (now - (r._gone || (r._gone = now)) < 60000) return; }   // give history a minute
+      const s = r.side === 'buy' ? 1 : -1;
+      r.closed = now;
+      r.exit_price = exit ? exit.price : null;
+      r.pnl = exit ? exit.pnl : r.pnl_now;
+      r.exit_reason = exit ? exit.reason : 'Unknown';
+      r.exit_r = r.r_dist > 0 && r.exit_price != null ? +(s * (r.exit_price - r.entry) / r.r_dist).toFixed(3) : null;
+      // A stop that fills at or beyond entry was a protected stop, even if it
+      // was moved and hit between two observations.
+      if (!r.be_at && /stop/i.test(r.exit_reason) && r.exit_price != null && s * (r.exit_price - r.entry) >= -1e-9) {
+        r.be_at = now; r.events.push({ t: now, type: 'risk_free', sl: r.exit_price });
+      }
+      r.stage = this.stage(r);
+      r.events.push({ t: now, type: 'close', price: r.exit_price, pnl: r.pnl, reason: r.exit_reason });
+      this.dirty.add(r.key);
+    });
+    // Keep the store bounded: newest 300.
+    const keys = Object.keys(this.recs);
+    if (keys.length > 300) keys.sort((a, b) => (this.recs[a].opened || 0) - (this.recs[b].opened || 0)).slice(0, keys.length - 300).forEach(k => delete this.recs[k]);
+    if (this.dirty.size || now - this._last > 30000) { this.save(); this._last = now; }
+  },
+
+  exitFor(r) {
+    if (r.src === 'paper') {
+      const id = +r.key.split(':')[1];
+      const rows = (S.trades || []).filter(t => t.id === id);
+      if (!rows.length) return null;
+      const last = rows[rows.length - 1];
+      return { price: last.exit, pnl: rows.reduce((a, t) => a + (t.pnl || 0), 0), reason: last.reason || 'Manual' };
+    }
+    const h0 = typeof LIVE !== 'undefined' && LIVE.state && LIVE.state.history;
+    const hist = (h0 && Array.isArray(h0.deals)) ? h0.deals : [];
+    const t = r.key.split(':')[1];
+    const rows = hist.filter(h => h.kind === 'trade' && String(h.ticket) === t);
+    if (!rows.length) return null;
+    return { price: +rows[0].exit, pnl: rows.reduce((a, h) => a + (+h.profit || 0), 0), reason: rows[0].reason || 'Manual' };
+  },
+
+  // How the trade was managed, not only whether it hit the target.
+  stage(r) {
+    const pnl = r.pnl || 0;
+    const flat = r.r_dist > 0 && r.exit_r != null ? Math.abs(r.exit_r) <= 0.1 : Math.abs(pnl) < 0.5;
+    if (/take profit/i.test(r.exit_reason || '')) return 'Full winner';
+    if (r.be_at) return flat ? 'Protected flat' : pnl > 0 ? 'Managed winner' : 'Protected loss';
+    if (flat) return 'Scratch';
+    return pnl > 0 ? 'Unprotected winner' : 'Full loser';
+  },
+
+  // Live description of an open tracked position, for the Sentinel pane.
+  openSummaries() {
+    return Object.values(this.recs).filter(r => !r.closed).map(r => ({
+      label: r.label, side: r.side, pnl_now: r.pnl_now, peak_pnl: r.peak_pnl, locked_pnl: r.locked_pnl,
+      locked_r: r.locked_r, mfe_r: r.mfe_r, be_at: r.be_at, late: r.late, sentinel: !!r.sentinel_id,
+      stops: r.events.filter(e => e.type === 'stop').length,
+    }));
+  },
+
+  async push() {
+    const key = this.ownerKey();
+    if (!key || !this.dirty.size) return;
+    const records = [...this.dirty].map(k => this.recs[k]).filter(Boolean).slice(0, 150);
+    try {
+      const res = await fetch(`${BOT_BASE}/api/sentinel/managed`, {
+        method: 'POST', cache: 'no-store', signal: AbortSignal.timeout(15000),
+        headers: { 'Content-Type': 'application/json', 'X-Sentinel-Key': key },
+        body: JSON.stringify({ records }),
+      });
+      if (res.ok) records.forEach(r => this.dirty.delete(r.key));
+    } catch (_) { /* try again next round */ }
+  },
+};
 
 /* ════════════════════════════════════════════════════════════
    PANEL NAVIGATION
@@ -8787,6 +9092,7 @@ function init() {
   renderPortfolio();
   OT.init();
   LIVE.init();
+  MGMT.start();
   VIEW.restore();
   applyDeepLink();
   buildTickerData();
