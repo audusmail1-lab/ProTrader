@@ -12,7 +12,7 @@ services:
     healthCheckPath: /healthz
     domains:
       - protraderacademy.company
-    autoDeployTrigger: 'off'
+    autoDeployTrigger: commit   # owner turned auto-deploy on, 29 Sep 2026
     disk:
       name: academy-data
       mountPath: /var/data
