@@ -198,6 +198,47 @@ def check_modify(page):
     run(page, "TR.positions = []")
 
 
+def check_auto_size(page):
+    run(page, SETUP)
+    r = run(page, """(() => {
+        const out = {}, sp = otSpec('R_75');
+        S.trades = []; TR.positions = []; TR.orders = []; S.balance = 36900; S.riskPct = 1; TK.auto = true;
+        const loss = () => -otPnl(TK.side, OT.entryRef(), TK.sl, TK.volume, 'R_75');
+        // a buy limit: the lot is sized from the LIMIT price, not the market
+        OT.setSide('buy'); OT.setType('limit'); OT.onPriceInput('43800'); OT.toggleSl(true); OT.onSlInput('43500');
+        out.lot1 = TK.volume; out.loss1 = loss(); out.note1 = document.getElementById('otRiskNote').textContent;
+        OT.onSlInput('43650');                                     // stop half as far -> lot doubles, same risk
+        out.lot2 = TK.volume; out.loss2 = loss();
+        OT.onPriceInput('43900');                                  // limit moved -> resized again
+        out.lot3 = TK.volume; out.loss3 = loss();
+        out.err3 = OT.validate();
+        // another trade already risks 1.5%: only the 0.5% of room left under the 2% cap is offered
+        TR.positions = [{id: 71, symbol:'R_75', label:'Vol 75', side:'buy', volume: 0.1, entry: 44000, sl: 44000 - 5535, tp: null, margin: 1, openTime: Date.now()}];
+        OT.render(); out.lot4 = TK.volume; out.loss4 = loss(); out.note4 = document.getElementById('otRiskNote').textContent; out.err4 = OT.validate();
+        TR.positions = []; OT.render();
+        // a manual lot stays put until the tile is tapped
+        OT.onVolumeInput('0.05'); OT.onSlInput('43600');
+        out.manual = TK.volume; out.manualNote = document.getElementById('otRiskNote').textContent;
+        OT.sizeToRisk(true); out.back = TK.volume; out.backLoss = loss(); out.auto = TK.auto;
+        // market order: price ticks never grow the lot, but it shrinks if a tick pushes risk over the budget
+        OT.setType('market'); OT.onSlInput('43700'); const m0 = TK.volume;
+        __px = 43990; OT.render(); out.tickSame = TK.volume <= m0;
+        __px = 44200; OT.render(); out.tickShrunk = TK.volume < m0; out.tickLoss = loss();
+        __px = 44000;
+        return out; })()""")
+    budget = 369
+    assert abs(r["loss1"] - budget) <= 0.01 * 300 * 1 + 1 and r["loss1"] <= budget + 0.01, r
+    assert abs(r["lot2"] - 2 * r["lot1"]) < 0.02 and r["loss2"] <= budget + 0.01, r
+    assert r["lot3"] != r["lot2"] and r["loss3"] <= budget + 0.01 and not r["err3"].get("volume"), r
+    assert r["note1"] == "$369.00 ÷ $300.00 per lot", r            # the working: risk ÷ loss per lot at the stop
+    assert r["loss4"] <= 0.005 * 36900 + 0.01 and "2% open-risk cap" in r["note4"] and not r["err4"].get("general"), r
+    assert r["manual"] == 0.05 and r["manualNote"].startswith("manual"), r
+    assert r["auto"] is True and r["back"] > 0.05 and r["backLoss"] <= budget + 0.01, r
+    assert r["tickSame"] and r["tickShrunk"] and r["tickLoss"] <= budget + 0.01, r
+
+    run(page, "TR.positions = []; TR.orders = []; S.trades = []; OT.setType('market'); OT.toggleSl(false)")
+
+
 def main():
     httpd = serve()
     port = httpd.server_address[1]
@@ -212,7 +253,7 @@ def main():
         page.goto(f"http://127.0.0.1:{port}/protrader_mobile.html", wait_until="domcontentloaded")
         page.wait_for_function("typeof OT !== 'undefined' && typeof LEVELS !== 'undefined' && typeof AUTOP !== 'undefined'")
         page.wait_for_timeout(1500)
-        for name, fn in [("risk rules", check_rules), ("chart tags", check_tags), ("auto-protect", check_autoprotect), ("positions not fills", check_positions), ("modify SL/TP", check_modify)]:
+        for name, fn in [("risk rules", check_rules), ("chart tags", check_tags), ("auto-protect", check_autoprotect), ("positions not fills", check_positions), ("modify SL/TP", check_modify), ("auto size from risk", check_auto_size)]:
             fn(page)
             print(f"ok  {name}")
         assert not errs, errs
