@@ -200,28 +200,12 @@ def check_auto_size(page):
     assert abs(r["loss1"] - budget) <= 0.01 * 300 * 1 + 1 and r["loss1"] <= budget + 0.01, r
     assert abs(r["lot2"] - 2 * r["lot1"]) < 0.02 and r["loss2"] <= budget + 0.01, r
     assert r["lot3"] != r["lot2"] and r["loss3"] <= budget + 0.01 and not r["err3"].get("volume"), r
-    assert r["note1"] == "follows your stop", r
+    assert r["note1"] == "$369.00 ÷ $300.00 per lot", r            # the working: risk ÷ loss per lot at the stop
     assert r["loss4"] <= 0.005 * 36900 + 0.01 and "2% open-risk cap" in r["note4"] and not r["err4"].get("general"), r
     assert r["manual"] == 0.05 and r["manualNote"].startswith("manual"), r
     assert r["auto"] is True and r["back"] > 0.05 and r["backLoss"] <= budget + 0.01, r
     assert r["tickSame"] and r["tickShrunk"] and r["tickLoss"] <= budget + 0.01, r
 
-    # ATR judges the stop and can set it; the lot then shrinks to keep the same money at risk
-    r = run(page, """(() => {
-        const out = {};
-        S.candles = Array.from({length: 60}, (_, i) => ({ time: i, open: 44000, high: 44100, low: 43900, close: 44000 }));   // ATR = 200
-        OT.setType('limit'); OT.onPriceInput('44000'); OT.onSlInput('43920');          // 0.4 x ATR
-        const box = document.getElementById('otAtr');
-        out.warn = !box.hidden && box.classList.contains('warn'); out.text = box.textContent; out.lotTight = TK.volume;
-        box.querySelector('button').click();
-        out.sl = TK.sl; out.lotWide = TK.volume; out.warnAfter = box.classList.contains('warn');
-        out.loss = -otPnl('buy', 44000, TK.sl, TK.volume, 'R_75');
-        OT.toggleSl(false); TK.sl = null; OT.toggleSl(true); out.defaultSl = TK.sl;     // default stop starts at 1.5 x ATR
-        return out; })()""")
-    assert r["warn"] and "0.40× ATR" in r["text"] and "8 in 10" in r["text"], r
-    assert r["sl"] == 43700 and not r["warnAfter"], r
-    assert r["lotWide"] < r["lotTight"] and r["loss"] <= 369.01, r
-    assert r["defaultSl"] == 43700, r
     run(page, "TR.positions = []; TR.orders = []; S.trades = []; OT.setType('market'); OT.toggleSl(false)")
 
 

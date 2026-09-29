@@ -1202,9 +1202,6 @@ svg.ico{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.7;st
 .risk-row{display:grid;grid-template-columns:1fr 1fr;gap:6px}
 .risk-tile{padding:9px 11px;border-radius:9px;background:var(--bg-3);border:1px solid var(--bd-1);text-align:left;color:var(--tx-1);display:flex;flex-direction:column;gap:2px;min-width:0}
 .risk-btn{cursor:pointer;transition:border-color var(--t1)}.risk-btn:hover{border-color:var(--bd-3)}.risk-btn.on{border-color:rgba(59,130,246,.55)}
-.ot-atr{display:flex;align-items:center;gap:8px;justify-content:space-between;margin:4px 0 6px;font-size:var(--fs-1);color:var(--tx-3);line-height:1.4}.ot-atr[hidden]{display:none}.ot-atr b{color:var(--tx-1);font-weight:600}
-.ot-atr.warn{padding:7px 9px;border-radius:8px;background:rgba(245,158,11,.1);color:var(--amber-lt,#fbbf24)}.ot-atr.warn b{color:inherit}
-.ot-atr button{flex:none;min-height:32px;padding:0 10px;border-radius:7px;border:1px solid currentColor;background:transparent;color:inherit;font:600 12px var(--font-display);cursor:pointer}
 .risk-lbl{text-align:left;font-size:var(--fs-1);letter-spacing:.06em;text-transform:uppercase;color:var(--tx-3);font-weight:600}
 .risk-val{font-family:var(--font-mono);font-size:var(--fs-3);font-weight:600;display:flex;align-items:center;justify-content:space-between;gap:6px;font-variant-numeric:tabular-nums}
 .risk-sub{text-align:left;font-size:var(--fs-1);color:var(--tx-3)}
@@ -1865,7 +1862,6 @@ svg.ico{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.7;st
               <input class="ot-inp" id="otSl" type="number" inputmode="decimal" oninput="OT.onSlInput(this.value)"/>
               <span class="ot-prot-meta" id="otSlMeta">—</span>
             </div>
-            <div class="ot-atr" id="otAtr" hidden></div>
             <div class="ot-err" id="otSlErr" style="display:none"></div>
 
             <label class="ot-tog">
@@ -5656,14 +5652,6 @@ function sizeBudget() {
   return { budget: L.locked ? 0 : Math.max(0, pick.v), why: L.locked ? 'locked' : pick.why, perTrade: base * S.riskPct / 100, base, L };
 }
 
-/* The chart's ATR(14), for judging a stop against the instrument's normal range. */
-function chartATR() {
-  const c = S.candles || [];
-  if (c.length < 20) return NaN;
-  const a = calcATR(c.slice(-120), 14);
-  return a[a.length - 1];
-}
-
 /* ── limits: the risk framework, always visible while a trade is open ── */
 function renderLimits() {
   const box = document.getElementById('limitsBox'); if (!box) return;
@@ -7211,9 +7199,7 @@ const OT = {
     if (on && !Number.isFinite(TK.sl)) {
       const ref = this.entryRef(), s = otSpec(S.sym);
       if (Number.isFinite(ref)) {
-        // start outside the normal noise: 1.5x the chart's ATR when known
-        const atr = chartATR();
-        const d = atr > 0 ? Math.max(1.5 * atr, otMinDist(S.sym)) : otMinDist(S.sym) * 10;
+        const d = otMinDist(S.sym) * 10;
         TK.sl = +(TK.side === 'buy' ? ref - d : ref + d).toFixed(s.dp);
         const el = document.getElementById('otSl');
         if (el) el.value = TK.sl.toFixed(s.dp);
@@ -8024,34 +8010,6 @@ const OT = {
     return r;
   },
 
-  /* ATR judges the STOP, not the lot: the lot already shrinks as the stop
-     widens. On 1-minute data across our markets a stop at 0.5×ATR(14) was
-     touched within 4 candles about 2 times in 3, at 1×ATR about 4 in 10,
-     at 1.5×ATR about 1 in 4 (research_sizing.py). */
-  renderAtr(entry) {
-    const box = document.getElementById('otAtr'); if (!box) return;
-    const atr = chartATR();
-    if (!(TK.slOn && Number.isFinite(TK.sl) && Number.isFinite(entry) && atr > 0)) { box.hidden = true; return; }
-    const k = Math.abs(entry - TK.sl) / atr;
-    const tf = S.tf || '';
-    const odds = k < 0.5 ? '8 in 10' : k < 0.75 ? '2 in 3' : k < 1 ? 'about half' : null;
-    box.hidden = false;
-    box.className = 'ot-atr' + (odds ? ' warn' : '');
-    box.innerHTML = odds
-      ? `<span>Stop is <b>${k.toFixed(2)}× ATR</b> (${tf}). Stops this tight are touched within 4 candles ${odds} times — often by normal noise.</span><button type="button" onclick="OT.atrStop(1.5)">Use 1.5× ATR</button>`
-      : `<span>Stop is <b>${k.toFixed(2)}× ATR</b> (${tf}) — outside the normal ${tf} range.</span>`;
-  },
-  atrStop(mult) {
-    const atr = chartATR(), entry = this.entryRef(), s = otSpec(S.sym);
-    if (!(atr > 0) || !Number.isFinite(entry)) { showToast('Needs a price and enough candles first.', 3000); return; }
-    TK.sl = +(TK.side === 'buy' ? entry - mult * atr : entry + mult * atr).toFixed(s.dp);
-    TK.slOn = true; TK.auto = true;
-    const inp = document.getElementById('otSl'); if (inp) inp.value = TK.sl.toFixed(s.dp);
-    this.render();
-    if (typeof CH !== 'undefined' && CH.ready && CH.refreshLevels) CH.refreshLevels();
-    showToast(`Stop set ${mult}× ATR away; the lot was resized to keep the same risk.`, 4000);
-  },
-
   renderRisk() {
     const el = id => document.getElementById(id);
     const risk = S.balance * S.riskPct / 100;
@@ -8070,8 +8028,8 @@ const OT = {
     if (el('otRiskNote')) el('otRiskNote').textContent = !r ? 'needs a stop loss'
       : r.lots < r.min ? (B && B.why !== 'trade' && B.why !== 'equity' ? this.budgetWhy(B) : 'stop too wide for the minimum lot')
       : !TK.auto ? (matches ? 'manual · matches' : 'manual · tap for auto')
-      : B && B.why !== 'trade' ? this.budgetWhy(B).replace(/\.$/, '') : 'follows your stop';
-    this.renderAtr(entry);
+      : B && B.why !== 'trade' ? this.budgetWhy(B).replace(/\.$/, '')
+      : `${otMoney(live ? r.budget : B.budget)} ÷ ${otMoney(r.riskPerLot)} per lot`;
   },
 
   canBreakeven(p) {
