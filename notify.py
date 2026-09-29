@@ -207,14 +207,15 @@ def _send_push(sub: dict, title: str, body: str, data: dict) -> int:
         return 0
 
 
-def _send_tg(chat_id: str, title: str, body: str) -> bool:
+def _send_tg(chat_id: str, title: str, body: str, button: Optional[tuple] = None) -> bool:
     if not TG_TOKEN or not chat_id:
         return False
     text = f"<b>{_esc(title)}</b>\n{_esc(body)}"
+    msg = {"chat_id": chat_id, "text": text, "parse_mode": "HTML", "disable_web_page_preview": True}
+    if button:
+        msg["reply_markup"] = {"inline_keyboard": [[{"text": button[0], "url": button[1]}]]}
     try:
-        r = requests.post(f"https://api.telegram.org/bot{TG_TOKEN}/sendMessage",
-                          json={"chat_id": chat_id, "text": text, "parse_mode": "HTML",
-                                "disable_web_page_preview": True}, timeout=8)
+        r = requests.post(f"https://api.telegram.org/bot{TG_TOKEN}/sendMessage", json=msg, timeout=8)
         return r.ok
     except Exception as e:
         log.info("telegram failed: %s", e)
@@ -225,6 +226,32 @@ def _esc(s: str) -> str:
     return str(s).replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
 
 
+def _account(d: dict) -> Optional[dict]:
+    """Settings of the account this device is signed in to: notification
+    choices and the linked Telegram chat live on the account, so every device
+    of that person shares them. None for a guest device."""
+    uid = d.get("user")
+    if not uid:
+        return None
+    try:
+        import accounts
+        return {"id": uid, "prefs": (accounts.get_setting(uid, "notify").get("prefs") or {}),
+                "tg": accounts.telegram_chat(uid), "tgInfo": accounts.telegram_of(uid)}
+    except Exception as e:
+        log.info("account settings unavailable: %s", e)
+        return None
+
+
+def _account_seen(uid: Any, key: str) -> bool:
+    """Telegram goes to the account's chat once per event, however many of
+    that person's devices report it."""
+    seen = _state.setdefault("acct_seen", {}).setdefault(str(uid), [])
+    if key in seen:
+        return True
+    seen.append(key); del seen[:-SEEN_KEEP]
+    return False
+
+
 def _deliver(device_id: str, d: dict, ev: dict, key: Optional[str] = None) -> dict:
     """Send one event to every channel the device has. `key` de-duplicates:
     the same (device, key) is delivered once, whoever reports it first."""
@@ -233,7 +260,8 @@ def _deliver(device_id: str, d: dict, ev: dict, key: Optional[str] = None) -> di
             return {"sent": False, "dup": True}
         d["seen"].append(key)
         del d["seen"][:-SEEN_KEEP]
-    prefs = d.get("prefs") or {}
+    acct = _account(d)
+    prefs = (acct["prefs"] if acct else d.get("prefs")) or {}
     if ev.get("type") != "test" and prefs.get(ev.get("type", ""), True) is False:
         return {"sent": False, "muted": True}
     title, body = format_event(ev)
@@ -245,7 +273,10 @@ def _deliver(device_id: str, d: dict, ev: dict, key: Optional[str] = None) -> di
         out["push"] = r == 1
         if r == -1:
             d["push"] = None
-    if d.get("tg"):
+    if acct:
+        if acct["tg"] and (not key or ev.get("type") == "test" or not _account_seen(acct["id"], key)):
+            out["tg"] = _send_tg(acct["tg"], title, body)
+    elif d.get("tg"):
         out["tg"] = _send_tg(d["tg"], title, body)
     out["sent"] = out["push"] or out["tg"]
     return out
@@ -284,8 +315,17 @@ async def register(request: Request) -> dict:
     """The app calls this on every load and whenever a channel changes. It is
     idempotent, so a redeploy that lost the state file heals itself."""
     b = await _body(request)
+    try:
+        import accounts
+        user = accounts.user_from_request(request)
+    except Exception:
+        user = None
     with _lock:
         d = _device(str(b.get("device", "")))
+        d["user"] = user["id"] if user else None          # this browser's account, if signed in
+        if user and isinstance(b.get("prefs"), dict):
+            accounts.put_setting(user["id"], "notify", {"prefs": {k: bool(v) for k, v in b["prefs"].items()}})
+            b.pop("prefs")
         if "push" in b:
             sub = b["push"]
             d["push"] = sub if isinstance(sub, dict) and sub.get("endpoint") else None
@@ -301,7 +341,14 @@ async def register(request: Request) -> dict:
 
 
 def _status(d: dict) -> dict:
-    return {"push": bool(d.get("push")), "tg": bool(d.get("tg")), "tgChat": d.get("tg"),
+    acct = _account(d)
+    if acct:
+        info = acct["tgInfo"] or {}
+        return {"push": bool(d.get("push")), "tg": bool(acct["tg"]), "tgChat": None, "account": True,
+                "tgUser": info.get("username") or info.get("name") or None,
+                "prefs": acct["prefs"], "bridge": bool(d.get("bridge")),
+                "watching": len(d.get("paper") or {}), "pendingCloses": len(d.get("closed") or [])}
+    return {"push": bool(d.get("push")), "tg": bool(d.get("tg")), "tgChat": d.get("tg"), "account": False,
             "prefs": d.get("prefs") or {}, "bridge": bool(d.get("bridge")),
             "watching": len(d.get("paper") or {}), "pendingCloses": len(d.get("closed") or [])}
 
@@ -583,9 +630,25 @@ class _TelegramPoller(threading.Thread):
                     msg = u.get("message") or {}
                     text = str(msg.get("text") or "").strip()
                     chat = msg.get("chat") or {}
-                    if not text.startswith("/start") or not chat.get("id"):
+                    sender = msg.get("from") or {}
+                    if not chat.get("id") or chat.get("type", "private") != "private":
+                        continue
+                    if text.split("@")[0] in ("/app", "/login") or text == "/start":
+                        self._login(sender, chat)
+                        continue
+                    if not text.startswith("/start"):
                         continue
                     code = text[6:].strip()
+                    if code.startswith("L"):                   # link this Telegram to a PROTrader account
+                        try:
+                            import accounts
+                            name = " ".join(x for x in (sender.get("first_name"), sender.get("last_name")) if x)
+                            title, body = accounts.telegram_start(code, sender.get("id"), chat["id"], sender.get("username") or "", name)
+                        except Exception as e:
+                            log.warning("telegram link failed: %s", e)
+                            title, body = "PROTrader", "Linking failed. Please try again in a minute."
+                        _send_tg(str(chat["id"]), title, body)
+                        continue
                     with _lock:
                         dev = _state["tg_codes"].pop(code, None)
                         if dev and dev in _state["devices"]:
@@ -600,6 +663,23 @@ class _TelegramPoller(threading.Thread):
             except Exception as e:
                 log.info("telegram poller: %s", e)
                 time.sleep(5)
+
+    @staticmethod
+    def _login(sender: dict, chat: dict) -> None:
+        """/app: a one-time link that opens PROTrader signed in as the account
+        this Telegram is linked to."""
+        try:
+            import accounts
+            path = accounts.telegram_login_path(sender.get("id"))
+        except Exception as e:
+            log.warning("telegram login link failed: %s", e); path = None
+        if path:
+            _send_tg(str(chat["id"]), "Open PROTrader", "This button signs you in. It works once, for 5 minutes.",
+                     ("Open PROTrader", accounts.APP_URL + path))
+        else:
+            _send_tg(str(chat["id"]), "PROTrader",
+                     "This Telegram is not linked to a PROTrader account yet. In PROTrader open Account → "
+                     "Link Telegram (you need to be signed in with your Academy account).")
 
 
 def start() -> None:
