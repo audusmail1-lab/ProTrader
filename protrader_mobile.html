@@ -1336,7 +1336,8 @@ svg.ico{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.7;st
 .acct-me.signed-in .ico{display:none}.acct-me:not(.signed-in)::after{content:'';position:absolute;top:6px;right:6px;width:7px;height:7px;border-radius:50%;background:var(--amber,#f59e0b)}
 .ac-who{display:grid;gap:2px;padding:12px;border:1px solid var(--bd-2);border-radius:10px;margin-bottom:12px}.ac-who strong{font-size:var(--fs-2)}.ac-who small{color:var(--tx-3)}
 .ac-tag{display:inline-block;justify-self:start;margin-top:6px;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:700;background:rgba(245,158,11,.15);color:var(--amber,#f59e0b)}.ac-tag.ok{background:rgba(16,185,129,.15);color:var(--green-lt,#34d399)}
-.ac-body{padding:0 18px 18px}.ac-actions{display:grid;gap:8px}.ac-actions .ws-button{min-height:44px;width:100%;border:1px solid var(--bd-2);border-radius:8px}.ac-actions .ws-primary{border-color:transparent}
+.ac-body{padding:0 18px 18px}.ac-h{font-size:12px;font-weight:600;color:var(--tx-3);text-transform:uppercase;letter-spacing:.06em;margin:16px 0 8px}
+.ac-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 12px;border:1px solid var(--bd-2);border-radius:10px;margin-bottom:8px}.ac-row>div{display:grid;gap:2px;min-width:0}.ac-row small{color:var(--tx-3);font-size:12px;line-height:1.4}.ac-row .ws-button{min-height:40px;flex:none;border:1px solid var(--bd-2);border-radius:8px;padding:0 14px}.ac-row .ws-primary{border-color:transparent}.ac-current{border-color:var(--blue,#3b82f6)}.ac-actions{display:grid;gap:8px}.ac-actions .ws-button{min-height:44px;width:100%;border:1px solid var(--bd-2);border-radius:8px}.ac-actions .ws-primary{border-color:transparent}
 .ws-tabs{display:flex;padding:0 18px;gap:18px;border-bottom:1px solid var(--bd-1)}.ws-tabs button{border:0;border-bottom:2px solid transparent;background:none;color:var(--tx-3);padding:10px 0;font:500 var(--fs-1) inherit;cursor:pointer}.ws-tabs button[aria-selected=true]{border-color:var(--blue);color:var(--tx-1)}
 .ws-fields{padding:16px 18px;display:grid;gap:12px}.ws-fields label{font-size:var(--fs-1);color:var(--tx-2);display:grid;grid-template-columns:1fr 160px;align-items:center;gap:12px}
 .ws-fields input,.ws-fields select{background:var(--bg-3);border:1px solid var(--bd-2);color:var(--tx-1);border-radius:6px;min-height:36px;padding:7px 10px;font:var(--fs-1) var(--font-mono);width:100%}
@@ -9137,12 +9138,16 @@ const NOTIFY = {
     if (!this.cfg) return;
     // `tg` is only sent when this device knows its chat (or is explicitly clearing it): a
     // pairing that just landed on the server must not be wiped by a routine re-register
-    const body = Object.assign({ device: this.st.device, prefs: this.st.prefs, bridgeKey: (typeof LIVE !== 'undefined' && LIVE.key) || '' }, this.st.tg ? { tg: this.st.tg } : {}, extra || {});
+    // Signed in: notification choices and Telegram live on the account, so a
+    // routine register must not send this device's (possibly stale) copy.
+    const signedIn = typeof ACCOUNT !== 'undefined' && ACCOUNT.user();
+    const body = Object.assign({ device: this.st.device, bridgeKey: (typeof LIVE !== 'undefined' && LIVE.key) || '' }, signedIn ? {} : { prefs: this.st.prefs }, !signedIn && this.st.tg ? { tg: this.st.tg } : {}, extra || {});
     if (!('push' in body)) {
       const sub = await this.currentSub();
       if (sub) body.push = sub.toJSON(); else if (this.st.wanted && this.cfg.push && this.permission() === 'granted') { const s = await this.subscribe().catch(() => null); if (s) body.push = s.toJSON(); }
     }
     try { this.status = await this.api('/register', body); } catch (e) { console.info('[notify] register failed:', e.message); }
+    if (this.status && this.status.account) { this.st.prefs = this.status.prefs || {}; this.save(); }
     this.syncPaper(true);
     return this.status;
   },
@@ -9180,6 +9185,7 @@ const NOTIFY = {
     await this.register({ push: null });
   },
   async connectTelegram() {
+    if (typeof ACCOUNT !== 'undefined' && ACCOUNT.user()) return ACCOUNT.linkTelegram();   // one Telegram for the whole account
     try {
       const r = await this.api('/telegram/code', { device: this.st.device });
       this.st.tgCode = r.code; this.save();
@@ -9190,7 +9196,7 @@ const NOTIFY = {
       return r;
     } catch (e) { showToast(e.message, 4000); }
   },
-  async disconnectTelegram() { this.st.tg = null; this.st.tgCode = null; this.save(); await this.register({ tg: null }); this.renderSheet(); },
+  async disconnectTelegram() { if (this.status && this.status.account) return ACCOUNT.unlinkTelegram(); this.st.tg = null; this.st.tgCode = null; this.save(); await this.register({ tg: null }); this.renderSheet(); },
   async sendTest() { try { const r = await this.api('/test', { device: this.st.device }); showToast(r.sent ? 'Test sent — check your phone.' : 'Nothing is connected yet.', 3500); } catch (e) { showToast(e.message, 4000); } },
 
   /* ── events the app sees itself ── */
@@ -9268,7 +9274,7 @@ const NOTIFY = {
           <button type="button" class="ws-button ${pushOn ? '' : 'ws-primary'}" data-push ${(!cfg.push || iosNeedsInstall || !this.pushSupported() || perm === 'denied') && !pushOn ? 'disabled' : ''}>${pushOn ? 'Turn off' : 'Turn on'}</button>
         </div>
         <div class="nt-channel ${tgOn ? 'on' : ''}">
-          <div><strong>Telegram</strong><small>${!cfg.telegram ? 'Telegram is not configured on the server yet.' : tgOn ? 'Connected — the bot messages this chat.' : this.st.tgCode ? 'Waiting for you to press Start in Telegram…' : 'Works on any phone, no install needed.'}</small></div>
+          <div><strong>Telegram</strong><small>${!cfg.telegram ? 'Telegram is not configured on the server yet.' : st.account ? (tgOn ? `Linked to your account${st.tgUser ? ' (@' + String(st.tgUser).replace(/[&<>"']/g, '') + ')' : ''} — all your devices report here.` : 'Link Telegram to your account: one chat for all your devices.') : tgOn ? 'Connected — the bot messages this chat.' : this.st.tgCode ? 'Waiting for you to press Start in Telegram…' : 'Works on any phone, no install needed.'}</small></div>
           <button type="button" class="ws-button ${tgOn ? '' : 'ws-primary'}" data-tg ${cfg.telegram ? '' : 'disabled'}>${tgOn ? 'Disconnect' : 'Connect'}</button>
         </div>
         <fieldset class="nt-events"><legend>Notify me about</legend>
@@ -10001,12 +10007,13 @@ init();
    is backed up in that browser first (protrader.backup.v1).
 ════════════════════════════════════════════════════════════ */
 const ACCOUNT = (() => {
-  const DOCS = { trade: 'protrader.trade.v2', mgmt: 'protrader.mgmt.v1', autoprotect: 'protrader.autoprotect.v1', favorites: 'protrader.favorites.v1', drawings: 'protrader.drawings.v1' };
+  const DOCS = { trade: 'protrader.trade.v2', mgmt: 'protrader.mgmt.v1', autoprotect: 'protrader.autoprotect.v1', favorites: 'protrader.favorites.v1', drawings: 'protrader.drawings.v1', mt5bridge: 'protrader.mt5bridge.v1' };
   const BY_LS = Object.fromEntries(Object.entries(DOCS).map(([k, v]) => [v, k]));
   const META = 'protrader.account.v1', BACKUP = 'protrader.backup.v1';
   const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const rawSet = Storage.prototype.setItem, rawRemove = Storage.prototype.removeItem;
   let user = null, meta = {}, frozen = false, timer = null, pulling = null, lastInput = Date.now(), academy = 'https://protraderacademy.company';
+  let others = [], tg = null, tgBot = false, linkPoll = null;
   const pending = new Set();
 
   try { meta = JSON.parse(localStorage.getItem(META) || '{}') || {}; } catch (_) { meta = {}; }
@@ -10166,23 +10173,90 @@ const ACCOUNT = (() => {
     renderSheet();
   }
 
+  // window.open with 'noopener' always returns null, so it cannot tell whether a
+  // tab opened; open normally and cut the link back to this page instead.
+  const openTab = url => { const w = window.open(url, '_blank'); if (w) { try { w.opener = null; } catch (_) {} } return !!w; };
   const isIOS = () => /iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
   async function handoff() {
     const { res, body } = await api('/api/account/handoff', { method: 'POST' });
     if (!res.ok) return showToast(body.detail || 'Could not make the link. Try again.', 4000);
     const url = location.origin + body.path;
     if (isIOS()) location.href = 'x-safari-' + url;              // opens Safari, signed in, from Telegram's browser
-    else if (!window.open(url, '_blank', 'noopener')) {
+    else if (!openTab(url)) {
       try { await navigator.clipboard.writeText(url); showToast('Link copied. Paste it in your browser within a minute.', 5000); } catch (_) { showToast('Open this within a minute: ' + url, 8000); }
     }
   }
-  async function signOut() {
-    await flush().catch(() => {});
-    try { await api('/api/account/logout', { method: 'POST' }); } catch (_) {}
+  // Leaving an account on this browser: save what is unsaved, then empty the
+  // local copy so the next account starts from its own workspace.
+  function wipe() {
     frozen = true;
     for (const ls of Object.values(DOCS)) { try { rawRemove.call(localStorage, ls); } catch (_) {} }
     try { rawRemove.call(localStorage, META); } catch (_) {}
+  }
+  async function leave() {
+    for (const k of Object.keys(DOCS)) { const s = norm(local(k)); if (s != null && hash(s) !== meta.h[k]) pending.add(k); }
+    await flush();
+    if (pending.size) throw new Error('Could not save your latest changes. Check your connection and try again.');
+    wipe();
+  }
+  async function signOut() {
+    try { await leave(); } catch (e) { if (!confirm(e.message + '\n\nSign out anyway?')) return; wipe(); }
+    let next = null;
+    try { const { body } = await api('/api/account/logout', { method: 'POST' }); next = body.next; } catch (_) {}
+    try { sessionStorage.setItem('pt.acct.msg', next ? `Signed out. Now using ${next.name || next.email}.` : 'Signed out of this browser.'); } catch (_) {}
     location.replace('/');
+  }
+  async function switchTo(id) {
+    try { await leave(); } catch (e) { return showToast(e.message, 5000); }
+    const { res, body } = await api('/api/account/switch', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id }) });
+    if (!res.ok) { showToast(body.detail || 'Could not switch accounts.', 5000); setTimeout(() => location.reload(), 1500); return; }
+    try { sessionStorage.setItem('pt.acct.msg', `Switched to ${body.user.name || body.user.email}.`); } catch (_) {}
+    location.replace('/');
+  }
+  async function addAccount() {
+    try { await leave(); } catch (e) { return showToast(e.message, 5000); }
+    location.href = '/auth/academy/start?add=1';
+  }
+  async function linkTelegram() {
+    const { res, body } = await api('/api/account/telegram/link', { method: 'POST' });
+    if (!res.ok) return showToast(body.detail || 'Could not start linking. Try again.', 5000);
+    // inside Telegram's own browser a t.me link opens the chat directly
+    if (!openTab(body.url)) location.href = body.url;
+    showToast('In Telegram, press Start. This page updates by itself.', 6000);
+    clearInterval(linkPoll); let n = 0;
+    linkPoll = setInterval(async () => {
+      n++;
+      try {
+        const r = await api('/api/account/me');
+        if (r.body.telegram) {
+          clearInterval(linkPoll); tg = r.body.telegram; renderSheet();
+          if (typeof NOTIFY !== 'undefined') NOTIFY.register().then(() => NOTIFY.renderSheet());
+          showToast('Telegram linked to your account.', 3500);
+        }
+      } catch (_) {}
+      if (n > 120) clearInterval(linkPoll);
+    }, 3000);
+  }
+  async function unlinkTelegram() {
+    if (!confirm('Unlink Telegram from this account? Trade notifications will stop going there.')) return;
+    await api('/api/account/telegram/unlink', { method: 'POST' });
+    tg = null; renderSheet();
+    if (typeof NOTIFY !== 'undefined') NOTIFY.register().then(() => NOTIFY.renderSheet());
+  }
+  // Opened as a Telegram Mini App: Telegram vouches for who this is.
+  async function telegramWebApp() {
+    const m = /(?:^|[#&])tgWebAppData=([^&]*)/.exec(location.hash);
+    if (!m) return false;
+    const initData = decodeURIComponent(m[1]);
+    try { history.replaceState(null, '', location.pathname + location.search); } catch (_) {}
+    const { res, body } = await api('/auth/telegram/webapp', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ initData }) });
+    if (res.ok && body.user && (!user || user.id !== body.user.id)) {
+      if (user) { try { await leave(); } catch (_) { wipe(); } }
+      try { sessionStorage.setItem('pt.acct.msg', `Signed in as ${body.user.name || body.user.email} (Telegram).`); } catch (_) {}
+      location.reload(); return true;
+    }
+    if (res.status === 404 && !user) showToast('This Telegram is not linked to a PROTrader account yet. Sign in with your Academy account, then Account → Link Telegram.', 7000);
+    return false;
   }
 
   function open() {
@@ -10207,16 +10281,30 @@ const ACCOUNT = (() => {
       body.querySelector('[data-in]').onclick = () => { location.href = '/auth/academy/start'; };
       return;
     }
+    const tgRow = tg
+      ? `<div class="ac-row"><div><strong>Telegram</strong><small>Linked${tg.username ? ' as @' + esc(tg.username) : tg.name ? ' as ' + esc(tg.name) : ''}. Notifications go there; send /app to the bot to open PROTrader signed in.</small></div><button type="button" class="ws-button" data-tgoff>Unlink</button></div>`
+      : `<div class="ac-row"><div><strong>Telegram</strong><small>${tgBot ? 'Link your Telegram: notifications go there, and the bot opens PROTrader signed in.' : 'Telegram is not set up on the server yet.'}</small></div><button type="button" class="ws-button ws-primary" data-tgon ${tgBot ? '' : 'disabled'}>Link</button></div>`;
+    const list = others.map(o => `<div class="ac-row"><div><strong>${esc(o.name || o.email)}</strong><small>${esc(o.email)}</small></div><button type="button" class="ws-button" data-switch="${o.id}">Switch</button></div>`).join('');
     body.innerHTML = `
       <div class="ac-who"><strong>${esc(user.name || 'Academy member')}</strong><small>${esc(user.email)}${user.owner ? ' · Instructor' : ''}</small><span class="ac-tag ok">Saved to your account</span></div>
-      <p>Your paper account, trade journal, auto-protect setting, favourites and drawings follow this account in Telegram, Safari, the installed app and on your other devices.${user.owner ? ' As the instructor you are also the Sentinel owner here, without typing the owner key.' : ''}</p>
+      <p>Your paper account, trade journal, auto-protect, favourites, drawings, MT5 bridge and notification settings follow this account in Telegram, Safari, the installed app and on your other devices.${user.owner ? ' As the instructor you are also the Sentinel owner here, without typing the owner key.' : ''}</p>
+      ${tgRow}
+      <h3 class="ac-h">Accounts on this browser</h3>
+      <div class="ac-row ac-current"><div><strong>${esc(user.name || user.email)}</strong><small>In use</small></div></div>
+      ${list}
       <div class="ac-actions">
+        <button type="button" class="ws-button" data-add>Add another account</button>
         <button type="button" class="ws-button" data-open>${isIOS() ? 'Open in Safari, signed in' : 'Open in another browser, signed in'}</button>
-        <button type="button" class="ws-button" data-out>Sign out of this browser</button>
+        <button type="button" class="ws-button" data-out>Sign out ${esc(String(user.name || user.email).split(' ')[0])}</button>
       </div>
-      <p style="margin-top:12px">Signing out removes the workspace from this browser only. It stays in your account.</p>`;
+      <p style="margin-top:12px">Each account keeps its own workspace. Switching saves this one first. Signing out removes it from this browser only; it stays in the account.</p>`;
     body.querySelector('[data-open]').onclick = handoff;
     body.querySelector('[data-out]').onclick = signOut;
+    body.querySelector('[data-add]').onclick = addAccount;
+    body.querySelectorAll('[data-switch]').forEach(b => b.onclick = () => switchTo(+b.dataset.switch));
+    const on = body.querySelector('[data-tgon]'), off = body.querySelector('[data-tgoff]');
+    if (on) on.onclick = linkTelegram;
+    if (off) off.onclick = unlinkTelegram;
   }
 
   async function boot() {
@@ -10226,11 +10314,13 @@ const ACCOUNT = (() => {
                   unverified: 'Verify your Academy email first (check your inbox), then sign in again.',
                   failed: 'Sign-in did not complete. Please try again.', expired: 'That sign-in link expired. Please try again.' }[result];
     if (msg) showToast(msg, 7000);
+    try { const m = sessionStorage.getItem('pt.acct.msg'); if (m) { sessionStorage.removeItem('pt.acct.msg'); showToast(m, 4000); } } catch (_) {}
     try {
       const { res, body } = await api('/api/account/me');
       if (!res.ok) return paint();
       academy = body.academy || academy;
-      user = body.user;
+      user = body.user; others = body.others || []; tg = body.telegram || null; tgBot = !!body.telegramBot;
+      if (await telegramWebApp()) return;
       if (!user && meta.uid) {                    // signed out elsewhere: this browser holds a stale account copy
         meta.owner = false; saveMeta();
       }
@@ -10239,6 +10329,7 @@ const ACCOUNT = (() => {
       if (meta.owner !== !!user.owner) { meta.owner = !!user.owner; saveMeta(); }
       if (result === 'ok') showToast(`Signed in as ${user.name || user.email}.`, 3200);
       await pull(true);
+      if (typeof NOTIFY !== 'undefined' && NOTIFY.cfg) NOTIFY.register();       // this device now counts for the account
       if (user.owner && typeof SENT !== 'undefined' && SENT.refresh) SENT.refresh();
     } catch (_) { paint(); }
   }
@@ -10247,7 +10338,7 @@ const ACCOUNT = (() => {
   });
   setInterval(() => { if (user && !document.hidden) pull().catch(() => {}); }, 120000);
 
-  return { open, boot, isOwner: () => !!(user ? user.owner : meta.owner && meta.uid), user: () => user, flush, pull };
+  return { open, boot, isOwner: () => !!(user ? user.owner : meta.owner && meta.uid), user: () => user, telegram: () => tg, flush, pull, linkTelegram, unlinkTelegram, switchTo };
 })();
 setTimeout(() => ACCOUNT.boot(), 0);   // after the other modules have loaded their saved state
 // ── PWA: installable on phone/laptop, shell cached for instant opens ──
