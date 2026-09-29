@@ -7522,7 +7522,8 @@ const OT = {
     const raw = v => v === '' ? null : parseFloat(v);
     const sl = raw(document.getElementById('modSl').value);
     const tp = raw(document.getElementById('modTp').value);
-    const ref = kind === 'position' ? rec.entry : rec.price;
+    const q = kind === 'position' ? otQuote(rec.symbol) : null;
+    const ref = kind === 'position' ? (q.ok ? (rec.side === 'buy' ? q.bid : q.ask) : rec.entry) : rec.price;
     const minDist = otMinDist(rec.symbol);
     const minPts = Math.round(minDist / s.tick);
     const err = document.getElementById('modErr');
