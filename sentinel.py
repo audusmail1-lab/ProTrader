@@ -450,6 +450,15 @@ def _evidence() -> dict[str, dict]:
 def _check_key(request: Request) -> None:
     key = os.getenv("SENTINEL_ADMIN_KEY", "")
     given = request.headers.get("x-sentinel-key", "")
+    if given == "session":                     # the instructor, signed in with the Academy account
+        try:
+            import accounts
+            u = accounts.user_from_request(request)
+        except Exception:
+            u = None
+        if u and u.get("role") == "teacher":
+            return
+        raise HTTPException(403, "Sign in with the instructor's Academy account, or use the owner key")
     if not key:
         raise HTTPException(403, "Owner key is not set on this server (SENTINEL_ADMIN_KEY)")
     if not hmac.compare_digest(key, given):

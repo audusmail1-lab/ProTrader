@@ -57,6 +57,11 @@ import notify as _notify
 app.include_router(_notify.router)
 _notify.start()
 
+# Accounts (see accounts.py): sign in with the Academy account; one saved
+# workspace per person on every device and browser. Guests stay local.
+import accounts as _accounts
+app.include_router(_accounts.router)
+
 # ARIA Sentinel (see sentinel.py): always-on ARIA scanner + paper journal.
 import sentinel as _sentinel
 app.include_router(_sentinel.router)
