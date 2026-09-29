@@ -1201,7 +1201,10 @@ svg.ico{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.7;st
 .ot-stage{display:flex;flex-direction:column;gap:7px}
 .risk-row{display:grid;grid-template-columns:1fr 1fr;gap:6px}
 .risk-tile{padding:9px 11px;border-radius:9px;background:var(--bg-3);border:1px solid var(--bd-1);text-align:left;color:var(--tx-1);display:flex;flex-direction:column;gap:2px;min-width:0}
-.risk-btn{cursor:pointer;transition:border-color var(--t1)}.risk-btn:hover{border-color:var(--bd-3)}
+.risk-btn{cursor:pointer;transition:border-color var(--t1)}.risk-btn:hover{border-color:var(--bd-3)}.risk-btn.on{border-color:rgba(59,130,246,.55)}
+.ot-atr{display:flex;align-items:center;gap:8px;justify-content:space-between;margin:4px 0 6px;font-size:var(--fs-1);color:var(--tx-3);line-height:1.4}.ot-atr[hidden]{display:none}.ot-atr b{color:var(--tx-1);font-weight:600}
+.ot-atr.warn{padding:7px 9px;border-radius:8px;background:rgba(245,158,11,.1);color:var(--amber-lt,#fbbf24)}.ot-atr.warn b{color:inherit}
+.ot-atr button{flex:none;min-height:32px;padding:0 10px;border-radius:7px;border:1px solid currentColor;background:transparent;color:inherit;font:600 12px var(--font-display);cursor:pointer}
 .risk-lbl{text-align:left;font-size:var(--fs-1);letter-spacing:.06em;text-transform:uppercase;color:var(--tx-3);font-weight:600}
 .risk-val{font-family:var(--font-mono);font-size:var(--fs-3);font-weight:600;display:flex;align-items:center;justify-content:space-between;gap:6px;font-variant-numeric:tabular-nums}
 .risk-sub{text-align:left;font-size:var(--fs-1);color:var(--tx-3)}
@@ -1819,8 +1822,8 @@ svg.ico{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.7;st
                 <span class="stepper"><button type="button" onclick="OT.stepRisk(-0.25)" aria-label="Less risk">−</button><button type="button" onclick="OT.stepRisk(0.25)" aria-label="More risk">+</button></span></div>
               <div class="risk-sub"><span id="otRiskPct">1</span>% of account · limit 1%</div>
             </div>
-            <button class="risk-tile risk-btn" type="button" onclick="OT.sizeToRisk()" title="Sets the lot so the loss at your stop equals the risk above">
-              <div class="risk-lbl">Size from risk</div>
+            <button class="risk-tile risk-btn" id="otRiskTile" type="button" onclick="OT.sizeToRisk()" title="The lot follows your stop so the loss at the stop equals the risk on the left. Typing a lot switches to manual; tap here to go back to automatic.">
+              <div class="risk-lbl" id="otRiskHead">Size from risk</div>
               <div class="risk-val" id="otRiskLots">—</div>
               <div class="risk-sub" id="otRiskNote">needs a stop loss</div>
             </button>
@@ -1862,6 +1865,7 @@ svg.ico{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.7;st
               <input class="ot-inp" id="otSl" type="number" inputmode="decimal" oninput="OT.onSlInput(this.value)"/>
               <span class="ot-prot-meta" id="otSlMeta">—</span>
             </div>
+            <div class="ot-atr" id="otAtr" hidden></div>
             <div class="ot-err" id="otSlErr" style="display:none"></div>
 
             <label class="ot-tog">
@@ -5416,14 +5420,16 @@ function checkModel() {
   return { gates, verdict, entry, mcc, wyck, oracle, rsi: rsiV[n-1], atr: atrV[n-1], patternAlign, session: getSession() };
 }
 
-/* Lot that risks exactly S.riskPct of the balance at the stop. */
-function riskLots(id, entry, sl, balance) {
+/* Lot that loses at most the budget at the stop (default: S.riskPct of the
+   balance). The lot is floored to the lot step, so it never rounds up past
+   the limit. */
+function riskLots(id, entry, sl, balance, budget) {
   const sp = otSpec(id);
   const dist = Math.abs(entry - sl);
   const perLot = otPipValue(id, 1);
   if (!(dist > 0) || !(perLot > 0) || !(sp.pip > 0)) return null;
   const riskPerLot = (dist / sp.pip) * perLot;
-  const raw = (balance * S.riskPct / 100) / riskPerLot;
+  const raw = Math.max(0, Number.isFinite(budget) ? budget : balance * S.riskPct / 100) / riskPerLot;
   const step = sp.lotStep || 0.01;
   const lots = Math.floor(raw / step + 1e-9) * step;
   return { lots: +Math.min(sp.maxLot, lots).toFixed(6), min: sp.minLot, riskPerLot };
@@ -5630,6 +5636,32 @@ function paperLimits() {
   const locked = dayLoss > 0 && dayLoss >= dayCap - 0.005 ? `Daily loss limit reached (${otMoney(dayLoss)} of ${otMoney(dayCap)}). New trades reopen tomorrow.`
     : losses >= 3 ? 'Three losing trades today — your rules stop new trades until tomorrow.' : null;
   return { balance: b, maxRisk: b * S.riskPct / 100, openRisk, openCap: b * .02, unprotected, dayLoss, dayCap, losses, locked };
+}
+
+/* What the next paper trade may lose at its stop: the per-trade risk on the
+   smaller of balance and equity (open losses count), and never more than the
+   room left under the 2% open-risk cap or the 3% daily-loss limit — so the
+   size the ticket suggests is one the rules will accept. */
+function sizeBudget() {
+  const L = paperLimits();
+  const acct = typeof otAccount === 'function' ? otAccount() : null;
+  const eq = acct && Number.isFinite(acct.equity) ? acct.equity : L.balance;
+  const base = Math.min(L.balance, eq);
+  const opts = [
+    { v: base * S.riskPct / 100, why: eq < L.balance - 0.005 ? 'equity' : 'trade' },
+    { v: L.openCap - L.openRisk, why: 'open' },
+    { v: L.dayCap - L.dayLoss, why: 'day' },
+  ];
+  const pick = opts.reduce((a, b) => (b.v < a.v - 0.005 ? b : a));
+  return { budget: L.locked ? 0 : Math.max(0, pick.v), why: L.locked ? 'locked' : pick.why, perTrade: base * S.riskPct / 100, base, L };
+}
+
+/* The chart's ATR(14), for judging a stop against the instrument's normal range. */
+function chartATR() {
+  const c = S.candles || [];
+  if (c.length < 20) return NaN;
+  const a = calcATR(c.slice(-120), 14);
+  return a[a.length - 1];
 }
 
 /* ── limits: the risk framework, always visible while a trade is open ── */
@@ -6111,7 +6143,7 @@ const TR = {
 };
 
 // Ticket state. Symbol and volume survive order-type switches.
-const TK = { side: 'buy', type: 'market', volume: 0.10, price: null, sl: null, tp: null, slOn: false, tpOn: false };
+const TK = { side: 'buy', type: 'market', volume: 0.10, price: null, sl: null, tp: null, slOn: false, tpOn: false, auto: true };
 
 // Real bid/ask straight off the Deriv tick stream, and instrument status
 // from active_symbols. Kept separate so the quote layer never guesses.
@@ -6482,27 +6514,30 @@ var LIVE = {
     if (Number.isFinite(lim.riskBudget) && (lim.maxRisk > 0 || lim.openRiskCap > 0 || lim.dailyLoss > 0)) return lim.riskBudget;
     return lim.maxRisk > 0 ? lim.maxRisk : null;
   },
-  // Largest lot whose loss at the stop fits the risk budget.
-  sizeToRisk() {
+  // Largest lot whose loss at the stop fits the EA's risk budget (null when it cannot be priced yet).
+  autoLots() {
     const id = S.sym, sp = this.specs[id], budget = this.riskBudget();
-    if (!this.routing()) { showToast('Turn on "Send my orders to MT5" first.', 3500); return; }
-    if (!(TK.slOn && Number.isFinite(TK.sl))) { showToast('Set a stop loss first — the lot is sized from it.', 3800); return; }
-    if (!sp || budget == null) { showToast('Waiting for MT5 limits…', 3000); return; }
+    if (!(TK.slOn && Number.isFinite(TK.sl)) || !sp || budget == null) return null;
     const entry = OT.entryRef();
     const perLot = this.riskAtStop(id, 1, entry, TK.sl);
-    if (!Number.isFinite(entry) || !(perLot > 0)) { showToast('Cannot price the stop distance yet.', 3500); return; }
+    if (!Number.isFinite(entry) || !(perLot > 0)) return null;
     const step = sp.volStep > 0 ? sp.volStep : 0.01;
     let lots = Math.floor((Math.max(0, budget) / perLot) / step + 1e-9) * step;
     if (sp.volMax > 0) lots = Math.min(lots, sp.volMax);
-    lots = +lots.toFixed(6);
-    if (!(lots >= (sp.volMin || step))) {
-      showToast(`Even MT5's minimum lot (${sp.volMin}) risks ${otMoney(perLot * sp.volMin)} here — more than the ${otMoney(Math.max(0, budget))} you may risk. Tighten the stop.`, 6500);
+    return { lots: +lots.toFixed(6), min: sp.volMin || step, riskPerLot: perLot, budget };
+  },
+  sizeToRisk(quiet) {
+    if (!this.routing()) { if (!quiet) showToast('Turn on "Send my orders to MT5" first.', 3500); return; }
+    if (!(TK.slOn && Number.isFinite(TK.sl))) { if (!quiet) showToast('Set a stop loss first — the lot is sized from it.', 3800); return; }
+    const r = this.autoLots();
+    if (!r) { if (!quiet) showToast(this.specs[S.sym] ? 'Cannot price the stop distance yet.' : 'Waiting for MT5 limits…', 3000); return; }
+    if (!(r.lots >= r.min)) {
+      if (!quiet) showToast(`Even MT5's minimum lot (${r.min}) risks ${otMoney(r.riskPerLot * r.min)} here — more than the ${otMoney(Math.max(0, r.budget))} you may risk. Tighten the stop.`, 6500);
       return;
     }
-    TK.volume = lots;
-    const inp = document.getElementById('otVol'); if (inp) inp.value = lots.toFixed(OT.volDp());
+    OT.setLots(r.lots);
     OT.render();
-    showToast(`Lot set to ${lots} → risks ${otMoney(perLot * lots)} of your ${otMoney(budget)} limit.`, 4500);
+    if (!quiet) showToast(`Lot set to ${r.lots} → risks ${otMoney(r.riskPerLot * r.lots)} of your ${otMoney(r.budget)} limit.`, 4500);
   },
 
   /* Early feedback only — the EA re-checks all of this and has the final say. */
@@ -7147,7 +7182,7 @@ const OT = {
     }
     this.render();
   },
-  onVolumeInput(v) { TK.volume = parseFloat(v); this.render(); },
+  onVolumeInput(v) { TK.volume = parseFloat(v); TK.auto = false; this.render(); },
   normalizeVolume() {
     const s = otSpec(S.sym);
     if (!Number.isFinite(TK.volume)) return;
@@ -7160,6 +7195,7 @@ const OT = {
     const s = otSpec(S.sym);
     const base = Number.isFinite(TK.volume) ? TK.volume : s.minLot;
     TK.volume = Math.max(s.minLot, Math.min(s.maxLot, this.snapVolume(base + dir * s.lotStep)));
+    TK.auto = false;
     const el = document.getElementById('otVol');
     if (el) el.value = TK.volume.toFixed(this.volDp());
     this.render();
@@ -7175,7 +7211,9 @@ const OT = {
     if (on && !Number.isFinite(TK.sl)) {
       const ref = this.entryRef(), s = otSpec(S.sym);
       if (Number.isFinite(ref)) {
-        const d = otMinDist(S.sym) * 10;
+        // start outside the normal noise: 1.5x the chart's ATR when known
+        const atr = chartATR();
+        const d = atr > 0 ? Math.max(1.5 * atr, otMinDist(S.sym)) : otMinDist(S.sym) * 10;
         TK.sl = +(TK.side === 'buy' ? ref - d : ref + d).toFixed(s.dp);
         const el = document.getElementById('otSl');
         if (el) el.value = TK.sl.toFixed(s.dp);
@@ -7735,6 +7773,7 @@ const OT = {
   render() {
     const pane = document.getElementById('tradePane');
     if (!pane) return;
+    this.autoSize();
     const id = S.sym, s = otSpec(id), q = otQuote(id);
     const el = i => document.getElementById(i);
     const set = (i, txt) => { const n = el(i); if (n) n.textContent = txt; };
@@ -7940,16 +7979,76 @@ const OT = {
   /* Lot that loses exactly the risk budget at the stop. On MT5 the EA's
      budget wins; on paper it is S.riskPct of the balance. */
   sizeToRisk(quiet) {
-    if (LIVE && LIVE.routing()) { LIVE.sizeToRisk(); return; }
-    if (!(TK.slOn && Number.isFinite(TK.sl))) { if (!quiet) showToast('Set a stop loss first — the lot is sized from it.', 3800); return; }
-    const entry = this.entryRef();
-    const r = riskLots(S.sym, entry, TK.sl, S.balance);
+    TK.auto = true; this._autoSig = '';                   // tapping turns automatic sizing back on
+    if (LIVE && LIVE.routing()) { LIVE.sizeToRisk(quiet); return; }
+    if (!(TK.slOn && Number.isFinite(TK.sl))) { if (!quiet) showToast('Set a stop loss first — the lot is sized from it.', 3800); this.render(); return; }
+    const entry = this.entryRef(), B = sizeBudget();
+    const r = riskLots(S.sym, entry, TK.sl, S.balance, B.budget);
     if (!r) { if (!quiet) showToast('Cannot price the stop distance yet.', 3500); return; }
-    if (r.lots < r.min) { if (!quiet) showToast(`Even the minimum lot (${r.min}) risks more than ${otMoney(S.balance * S.riskPct / 100)} here. Tighten the stop.`, 6000); return; }
-    TK.volume = r.lots;
-    const inp = document.getElementById('otVol'); if (inp) inp.value = r.lots.toFixed(this.volDp());
+    if (r.lots < r.min) { if (!quiet) showToast(`Even the minimum lot (${r.min}) risks more than ${otMoney(B.budget)} here. ${B.why === 'trade' || B.why === 'equity' ? 'Tighten the stop.' : this.budgetWhy(B)}`, 6000); this.render(); return; }
+    this.setLots(r.lots);
     this.render();
-    if (!quiet) showToast(`Lot set to ${r.lots} → risks ${otMoney(r.riskPerLot * r.lots)} (${S.riskPct}% of balance).`, 4200);
+    if (!quiet) showToast(`Lot set to ${r.lots} → risks ${otMoney(r.riskPerLot * r.lots)} at the stop.`, 4200);
+  },
+  setLots(lots) {
+    TK.volume = lots;
+    const inp = document.getElementById('otVol');
+    if (inp && document.activeElement !== inp) inp.value = lots.toFixed(this.volDp());
+  },
+  budgetWhy(B) {
+    return B.why === 'locked' ? 'Your daily limits stop new trades today.'
+      : B.why === 'open' ? `Only ${otMoney(B.budget)} of your 2% open-risk cap is left.`
+      : B.why === 'day' ? `Only ${otMoney(B.budget)} is left before today's 3% loss limit.`
+      : B.why === 'equity' ? `Sized on equity ${otMoney(B.base)} (open trades are down).` : '';
+  },
+  /* Automatic size: while on, the lot follows the stop, the entry (the limit
+     or stop price for pending orders), the risk % and the rules' remaining
+     room. Recomputed when an input changes; on a market order the moving
+     price only ever shrinks it, so the lot does not flicker with each tick. */
+  autoSize() {
+    if (!TK.auto || !TK.slOn || !Number.isFinite(TK.sl)) return null;
+    const live = LIVE && LIVE.routing();
+    let r, budget;
+    if (live) { r = LIVE.autoLots(); budget = r && r.budget; }
+    else {
+      const entry = this.entryRef(); if (!Number.isFinite(entry)) return null;
+      const B = sizeBudget(); budget = B.budget;
+      r = riskLots(S.sym, entry, TK.sl, S.balance, budget);
+      if (r) r.B = B;
+    }
+    if (!r || r.lots < r.min) return r;
+    const sig = [live ? 'mt5' : 'paper', S.sym, TK.side, TK.type, TK.type === 'market' ? '' : TK.price, TK.sl, S.riskPct, Math.round(budget * 100)].join('|');
+    const over = r.riskPerLot * TK.volume > budget + 0.01;
+    if (sig !== this._autoSig || over) { this._autoSig = sig; if (r.lots !== TK.volume) this.setLots(r.lots); }
+    return r;
+  },
+
+  /* ATR judges the STOP, not the lot: the lot already shrinks as the stop
+     widens. On 1-minute data across our markets a stop at 0.5×ATR(14) was
+     touched within 4 candles about 2 times in 3, at 1×ATR about 4 in 10,
+     at 1.5×ATR about 1 in 4 (research_sizing.py). */
+  renderAtr(entry) {
+    const box = document.getElementById('otAtr'); if (!box) return;
+    const atr = chartATR();
+    if (!(TK.slOn && Number.isFinite(TK.sl) && Number.isFinite(entry) && atr > 0)) { box.hidden = true; return; }
+    const k = Math.abs(entry - TK.sl) / atr;
+    const tf = S.tf || '';
+    const odds = k < 0.5 ? '8 in 10' : k < 0.75 ? '2 in 3' : k < 1 ? 'about half' : null;
+    box.hidden = false;
+    box.className = 'ot-atr' + (odds ? ' warn' : '');
+    box.innerHTML = odds
+      ? `<span>Stop is <b>${k.toFixed(2)}× ATR</b> (${tf}). Stops this tight are touched within 4 candles ${odds} times — often by normal noise.</span><button type="button" onclick="OT.atrStop(1.5)">Use 1.5× ATR</button>`
+      : `<span>Stop is <b>${k.toFixed(2)}× ATR</b> (${tf}) — outside the normal ${tf} range.</span>`;
+  },
+  atrStop(mult) {
+    const atr = chartATR(), entry = this.entryRef(), s = otSpec(S.sym);
+    if (!(atr > 0) || !Number.isFinite(entry)) { showToast('Needs a price and enough candles first.', 3000); return; }
+    TK.sl = +(TK.side === 'buy' ? entry - mult * atr : entry + mult * atr).toFixed(s.dp);
+    TK.slOn = true; TK.auto = true;
+    const inp = document.getElementById('otSl'); if (inp) inp.value = TK.sl.toFixed(s.dp);
+    this.render();
+    if (typeof CH !== 'undefined' && CH.ready && CH.refreshLevels) CH.refreshLevels();
+    showToast(`Stop set ${mult}× ATR away; the lot was resized to keep the same risk.`, 4000);
   },
 
   renderRisk() {
@@ -7959,9 +8058,19 @@ const OT = {
     if (el('otRiskUsd')) el('otRiskUsd').textContent = live && LIVE.riskBudget() != null ? otMoney(Math.max(0, LIVE.riskBudget())) : otMoney(risk);
     if (el('otRiskPct')) el('otRiskPct').textContent = S.riskPct;
     const entry = this.entryRef();
-    const r = (TK.slOn && Number.isFinite(TK.sl) && Number.isFinite(entry)) ? riskLots(S.sym, entry, TK.sl, S.balance) : null;
+    const B = live ? null : sizeBudget();
+    const r = live ? LIVE.autoLots() : (TK.slOn && Number.isFinite(TK.sl) && Number.isFinite(entry)) ? riskLots(S.sym, entry, TK.sl, S.balance, B.budget) : null;
+    if (!live && el('otRiskUsd') && B.budget < B.perTrade - 0.005) el('otRiskUsd').textContent = otMoney(B.budget);
+    const tile = el('otRiskTile');
+    if (tile) tile.classList.toggle('on', !!TK.auto);
+    if (el('otRiskHead')) el('otRiskHead').textContent = TK.auto ? 'Size from risk · auto' : 'Size from risk';
     if (el('otRiskLots')) el('otRiskLots').textContent = r ? (r.lots >= r.min ? r.lots.toFixed(this.volDp()) + ' lots' : 'below min') : '—';
-    if (el('otRiskNote')) el('otRiskNote').textContent = r ? (Math.abs(r.lots - TK.volume) <= (otSpec(S.sym).lotStep || 0.01) + 1e-9 ? 'ticket matches' : 'tap to apply') : 'needs a stop loss';
+    const matches = r && Math.abs(r.lots - TK.volume) <= (otSpec(S.sym).lotStep || 0.01) / 2 + 1e-9;
+    if (el('otRiskNote')) el('otRiskNote').textContent = !r ? 'needs a stop loss'
+      : r.lots < r.min ? (B && B.why !== 'trade' && B.why !== 'equity' ? this.budgetWhy(B) : 'stop too wide for the minimum lot')
+      : !TK.auto ? (matches ? 'manual · matches' : 'manual · tap for auto')
+      : B && B.why !== 'trade' ? this.budgetWhy(B).replace(/\.$/, '') : 'follows your stop';
+    this.renderAtr(entry);
   },
 
   canBreakeven(p) {
