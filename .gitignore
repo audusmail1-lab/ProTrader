@@ -16,3 +16,4 @@ sentinel.db
 sentinel.db-*
 .sentinel_src.bundle
 accounts.db
+notify_state.json
