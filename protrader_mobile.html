@@ -1420,6 +1420,57 @@ svg.ico{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.7;st
 .ws-button:disabled{opacity:.45;cursor:default}
 .nt-channel{display:flex;align-items:center;gap:12px;padding:12px;border:1px solid var(--bd-1);border-radius:10px}.nt-channel>div{flex:1;min-width:0;display:grid;gap:3px}.nt-channel small{color:var(--tx-3);line-height:1.45}.nt-channel.on{border-color:rgba(47,191,155,.5)}
 .nt-events{border:1px solid var(--bd-1);border-radius:10px;padding:6px 12px 10px;display:grid;gap:6px}.nt-events legend{font-size:var(--fs-1);color:var(--tx-3);padding:0 4px}
+/* ── ARIA Sentinel pane ── */
+.sn{display:flex;flex-direction:column;gap:8px;font-size:12px;color:var(--tx-2)}
+.sn-hd{display:flex;align-items:center;gap:8px}
+.sn-title{font-size:13px;font-weight:900;color:var(--blue-lt);letter-spacing:.4px}
+.sn-dot{width:8px;height:8px;border-radius:50%;background:var(--tx-4);flex:0 0 auto}
+.sn-dot.on{background:var(--green);box-shadow:0 0 0 3px var(--green-glow)}
+.sn-dot.warn{background:var(--amber)}
+.sn-sub{color:var(--tx-3);font-size:11px;margin-left:auto;text-align:right}
+.sn-note{background:var(--bg-3);border:1px solid var(--bd-1);border-left:3px solid var(--amber);border-radius:var(--r-sm);padding:8px 10px;line-height:1.45}
+.sn-note b{color:var(--tx-1)}
+.sn-h{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.6px;color:var(--tx-3);margin-top:4px}
+.sn-card{background:var(--bg-3);border:1px solid var(--bd-1);border-radius:var(--r-sm);padding:9px 10px;display:flex;flex-direction:column;gap:6px}
+.sn-row{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.sn-mk{font-weight:800;color:var(--tx-1);font-size:13px}
+.sn-chip{font-size:10.5px;font-weight:800;border-radius:999px;padding:2px 7px;border:1px solid var(--bd-2);color:var(--tx-2);white-space:nowrap}
+.sn-chip.buy{color:var(--green);border-color:var(--green)}
+.sn-chip.sell{color:var(--red);border-color:var(--red)}
+.sn-chip.ev-proven{color:var(--green);border-color:var(--green)}
+.sn-chip.ev-negative{color:var(--red);border-color:var(--red)}
+.sn-chip.ev-unproven{color:var(--amber);border-color:var(--amber)}
+.sn-lv{display:grid;grid-template-columns:repeat(3,1fr);gap:4px}
+.sn-lv div{background:var(--bg-2);border-radius:6px;padding:4px 6px}
+.sn-lv span{display:block;font-size:10px;color:var(--tx-3)}
+.sn-lv b{font-variant-numeric:tabular-nums;color:var(--tx-1);font-size:12px}
+.sn-meta{color:var(--tx-3);font-size:11px;line-height:1.4}
+.sn-warn{color:var(--amber);font-size:11px}
+.sn-btn{appearance:none;border:1px solid var(--blue);background:rgba(79,140,255,.12);color:var(--blue-lt);font-weight:800;border-radius:8px;padding:8px 10px;font-size:12px;cursor:pointer;min-height:36px}
+.sn-btn[disabled]{opacity:.45;cursor:not-allowed}
+.sn-tbl{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
+.sn-tbl th{font-size:10px;color:var(--tx-3);text-align:left;font-weight:700;padding:3px 4px;border-bottom:1px solid var(--bd-1)}
+.sn-tbl td{padding:6px 4px;border-bottom:1px solid var(--bd-1);color:var(--tx-2);vertical-align:middle}
+.sn-tbl tr.go{cursor:pointer}
+.sn-tbl tr.go:hover td{background:var(--bg-4)}
+.sn-tbl td.sn-v-EXEC_READY{color:var(--green);font-weight:800}
+.sn-tbl td.sn-v-QUALIFIED{color:var(--blue-lt);font-weight:700}
+.sn-tbl td.sn-v-BLOCKED{color:var(--red);font-weight:700}
+.sn .sn-pos{color:var(--green)} .sn .sn-neg{color:var(--red)}
+.sn details summary{cursor:pointer;color:var(--tx-2);font-weight:700;padding:4px 0}
+.sn-empty{color:var(--tx-3);padding:6px 2px}
+.sn-btn-2{background:transparent;border-color:var(--bd-2);color:var(--tx-2)}
+.sn-focus .sn-meta{line-height:1.5}
+.sn-grp{border-top:1px solid var(--bd-1);padding-top:4px}
+.sn-grp summary{font-size:12px}
+.sn-picks{display:flex;flex-wrap:wrap;gap:6px;padding:6px 0 4px}
+.sn-pick{appearance:none;border:1px solid var(--bd-2);background:var(--bg-2);color:var(--tx-2);border-radius:999px;padding:7px 11px;font-size:12px;font-weight:600;cursor:pointer;min-height:34px}
+.sn-pick.on{border-color:var(--blue);background:rgba(79,140,255,.14);color:var(--blue-lt)}
+.sn-pick[disabled]{opacity:.35;cursor:not-allowed}
+.sn-tfrow{gap:6px;padding:2px 0}
+.sn-tf{min-height:30px;padding:5px 10px}
+.sn-soft{border-style:dashed}
+.sn-key{width:100%;background:var(--bg-2);color:var(--tx-1);border:1px solid var(--bd-2);border-radius:8px;padding:9px 10px;font-size:16px}
 </style>
 </head>
 <body>
@@ -1619,6 +1670,7 @@ svg.ico{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.7;st
     <div class="ws-heading">Analysis &amp; execution<button type="button" aria-label="Collapse analysis panel" onclick="WS.toggle('analysis')">−</button></div>
     <div class="rpanel-tabs">
       <button class="rtab active" data-tab="check" onclick="setRTab('check',this)">Analysis</button>
+      <button class="rtab" data-tab="sentinel" onclick="setRTab('sentinel',this)">Sentinel</button>
       <button class="rtab" data-tab="trade" onclick="setRTab('trade',this)">Trade</button>
       <button class="rtab" data-tab="portfolio" onclick="setRTab('portfolio',this)">Portfolio</button>
       <button class="rtab" data-tab="mtf" onclick="setRTab('mtf',this)">Timeframes</button>
@@ -1629,6 +1681,11 @@ svg.ico{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.7;st
       <!-- Setup Check — one verdict, fed by ARIA's gates and Oracle's confidence -->
       <div class="rpane active" id="checkPane">
         <div id="check-panel"><div class="pos-empty">Waiting for enough candles to run the check…</div></div>
+      </div>
+
+      <!-- ARIA Sentinel — server-side scanner feed (sentinel.py) -->
+      <div class="rpane" id="sentinelPane">
+        <div id="sentinel-panel"><div class="pos-empty">Loading Sentinel…</div></div>
       </div>
 
       <!-- ARIA Pane -->
@@ -4973,6 +5030,14 @@ const ARIA_LAWS = [
 
 let AM = { totalSig: 0, wins: 0, lastVerdict: null };
 
+// ARIA v7.1 gate settings. sentinel_engine.py mirrors these exactly
+// (tests/sentinel-parity.test.cjs fails if they drift).
+const ARIA_GATE_COUNT = 10;
+const ARIA_EXEC_MIN = 9, ARIA_QUAL_MIN = 8, ARIA_WAIT_MIN = 6;
+const ARIA_ATR_BAND = [0.6, 1.8];
+const ARIA_PATTERN_RECENT = 3;
+const ARIA_FIB_ZONE = [0.45, 0.668], ARIA_FIB_RECENT = 5, ARIA_FIB_MIN_LEG_ATR = 3;
+
 function ariaMCC(cdles, closes, ema20v, ema50v, atrV) {
   const n = closes.length, last = closes[n-1], e20 = ema20v[n-1], e50 = ema50v[n-1];
   const atr = atrV[n-1] || last * 0.002;
@@ -5050,8 +5115,13 @@ function ariaGates(cdles, closes, ema20v, ema50v, ema200v, rsiV, macdV, stochV, 
   const g5 = eng || pin || bdy;
   G.push({ name:'Live Candle', pass:g5, detail:g5 ? `✓ ${eng?'Engulf':pin?'Pin bar':'Body confirms'}` : '✗ Current candle opposes' });
 
-  const g6 = atr > 0;
-  G.push({ name:'ATR Valid', pass:g6, detail:`ATR ${atr?.toFixed(S.dp)} — ${g6?'✓ ok':'✗ zero'}` });
+  // ATR Band (v7.1): volatility must be normal for this market — not dead
+  // (spread dominates, stops sit in noise) and not blown out (stops too wide).
+  const atrHist = atrV.slice(-100).filter(Boolean);
+  const atrMean = atrHist.length ? atrHist.reduce((a, b) => a + b, 0) / atrHist.length : 0;
+  const atrRatio = atrMean > 0 && atrV[n-1] ? atrV[n-1] / atrMean : 0;
+  const g6 = atrRatio >= ARIA_ATR_BAND[0] && atrRatio <= ARIA_ATR_BAND[1];
+  G.push({ name:'ATR Band', pass:g6, detail:`ATR ${atrRatio.toFixed(2)}× its 100-bar average — ${g6?'✓ normal':atrRatio < ARIA_ATR_BAND[0]?'✗ too quiet':'✗ too wild'}` });
 
   const e200 = ema200v?.[n-1];
   let g7;
@@ -5064,7 +5134,10 @@ function ariaGates(cdles, closes, ema20v, ema50v, ema200v, rsiV, macdV, stochV, 
   G.push({ name:'Stochastic', pass:g8, detail:g8 ? '✓ Stoch confirms' : '✗ Stoch opposing' });
 
   const g9 = !!patternAligned;
-  G.push({ name:'Pattern Gate', pass:g9, detail:g9 ? `✓ ${patternAligned}` : '✗ No scanner match' });
+  G.push({ name:'Pattern Gate', pass:g9, detail:g9 ? `✓ ${patternAligned} (last ${ARIA_PATTERN_RECENT} bars)` : `✗ No pattern in the last ${ARIA_PATTERN_RECENT} bars` });
+
+  const fib = ariaFib(cdles, atrV, dir);
+  G.push({ name:'Fibonacci Zone', pass:fib.pass, detail:fib.detail });
 
   const score = G.reduce((a, g) => a + (g.pass ? 1 : 0), 0);
   return { gates: G, score, dir };
@@ -5092,18 +5165,64 @@ function ariaVerdict(score, mcc, sym, dir) {
   if (isNAS && S.newsWeek && dir === 'sell') {
     return { v:'BLOCKED', cls:'verdict-obs', msg:`🛑 BLOCKED — NAS100 short during news week (Joel's rule)` };
   }
-  const execThreshold = isNAS ? 8 : 8; // execution-ready requires stronger confluence than setup qualification
-  const watchThreshold = 7;
-  if (score >= execThreshold) return { v:'EXEC_READY', cls:'verdict-armed', msg:`🎯 EXECUTION READY — ${score}/9 gates${isNAS?' · NAS protocol':''}` };
-  if (score >= watchThreshold) return { v:'QUALIFIED', cls:'verdict-wait', msg:`⚡ QUALIFIED SETUP — ${score}/9 gates · wait for execution trigger` };
-  if (score >= 5) return { v:'WAITING', cls:'verdict-wait', msg:`⏳ WAITING — ${score}/9 (need ≥${watchThreshold})` };
-  return { v:'OBSERVER', cls:'verdict-obs', msg:`👁 OBSERVER — ${score}/9 (insufficient confluence)` };
+  const execThreshold = ARIA_EXEC_MIN;   // execution-ready requires stronger confluence than setup qualification
+  const watchThreshold = ARIA_QUAL_MIN;
+  if (score >= execThreshold) return { v:'EXEC_READY', cls:'verdict-armed', msg:`🎯 EXECUTION READY — ${score}/${ARIA_GATE_COUNT} gates${isNAS?' · NAS protocol':''}` };
+  if (score >= watchThreshold) return { v:'QUALIFIED', cls:'verdict-wait', msg:`⚡ QUALIFIED SETUP — ${score}/${ARIA_GATE_COUNT} gates · wait for execution trigger` };
+  if (score >= ARIA_WAIT_MIN) return { v:'WAITING', cls:'verdict-wait', msg:`⏳ WAITING — ${score}/${ARIA_GATE_COUNT} (need ≥${watchThreshold})` };
+  return { v:'OBSERVER', cls:'verdict-obs', msg:`👁 OBSERVER — ${score}/${ARIA_GATE_COUNT} (insufficient confluence)` };
 }
 
-function getPatternAlignment(dir) {
-  const SCAN = runPatternScanSilent();
-  const matching = SCAN.filter(p => dir==='buy' ? (p.dir==='bull' && p.conf>=75) : (p.dir==='bear' && p.conf>=75));
-  return matching.length ? matching[0].name : null;
+// Pattern Gate (v7.1): only a pattern completed on one of the last
+// ARIA_PATTERN_RECENT candles counts. The old 30-bar lookback passed on every
+// setup (one-year replay: 100%), so it filtered nothing.
+function getPatternAlignment(dir, cdles = S.candles) {
+  const n = cdles.length, want = dir === 'buy' ? 'bull' : 'bear';
+  if (n < 20) return null;
+  let best = null;
+  PATTERNS.forEach(p => {
+    if (p.dir !== want) return;
+    for (let i = Math.max(15, n - ARIA_PATTERN_RECENT); i < n; i++) {
+      let r = null;
+      try { r = p.detect(cdles, i); } catch (_) { r = null; }
+      if (r && r.conf >= 75 && (!best || r.conf > best.conf)) best = { name: p.name, conf: r.conf };
+    }
+  });
+  return best ? best.name : null;
+}
+
+// Fibonacci Zone (v7.1, Law 10). Objective and mechanical:
+//  • impulse leg = the extreme of the last 60 bars and the opposite extreme
+//    in the 60 bars before it; it must be at least 3× ATR long
+//  • the pullback since that extreme must reach the 50–61.8% zone
+//    (tolerance: 45%–66.8%), and that touch must be within the last 5 bars
+//  • price must have turned from the touch and not broken back past the extreme
+function ariaFib(cdles, atrV, dir) {
+  const n = cdles.length, W = 60, atr = atrV[n-1] || 0;
+  const fail = d => ({ pass:false, detail:'✗ ' + d, r:null });
+  if (n < 30 || !(atr > 0)) return fail('not enough data');
+  const start = Math.max(0, n - W), last = cdles[n-1].close;
+  const hi = i => cdles[i].high, lo = i => cdles[i].low;
+  let ext = start;
+  for (let i = start; i < n; i++) if (dir === 'buy' ? hi(i) > hi(ext) : lo(i) < lo(ext)) ext = i;
+  if (ext > n - 2) return fail('no pullback yet');
+  let orig = -1;
+  for (let i = Math.max(0, ext - W); i < ext; i++) if (orig < 0 || (dir === 'buy' ? lo(i) < lo(orig) : hi(i) > hi(orig))) orig = i;
+  if (orig < 0) return fail('no swing found');
+  let pb = ext + 1;
+  for (let i = ext + 1; i < n; i++) if (dir === 'buy' ? lo(i) <= lo(pb) : hi(i) >= hi(pb)) pb = i;
+  const H = dir === 'buy' ? hi(ext) : hi(orig), L = dir === 'buy' ? lo(orig) : lo(ext);
+  const leg = H - L;
+  if (!(leg >= ARIA_FIB_MIN_LEG_ATR * atr)) return fail('last swing too small');
+  const r = dir === 'buy' ? (H - lo(pb)) / leg : (hi(pb) - L) / leg;
+  const pct = (r * 100).toFixed(0) + '%';
+  if (r < ARIA_FIB_ZONE[0]) return fail(`pullback only ${pct} (needs 50–61.8%)`);
+  if (r > 1) return fail(`swing fully retraced (${pct}) — no pullback to trade`);
+  if (r > ARIA_FIB_ZONE[1]) return fail(`pullback ${pct} — past 61.8%`);
+  if (n - 1 - pb > ARIA_FIB_RECENT) return fail(`zone touch ${n - 1 - pb} bars ago`);
+  const turned = dir === 'buy' ? (last > lo(pb) && last < H) : (last < hi(pb) && last > L);
+  if (!turned) return fail('no reaction from the zone yet');
+  return { pass:true, detail:`✓ ${pct} retrace of the last swing`, r };
 }
 
 function renderARIA() {
@@ -5160,9 +5279,9 @@ function renderARIA() {
   <div class="acard">
     <div class="acttl">
       Gate Score
-      <span style="color:${scoreColor};font-family:var(--font-mono);font-size:14px;font-weight:900">${gates.score}/9</span>
+      <span style="color:${scoreColor};font-family:var(--font-mono);font-size:14px;font-weight:900">${gates.score}/${ARIA_GATE_COUNT}</span>
       <div style="flex:1;height:4px;background:var(--bg-4);border-radius:2px;overflow:hidden;margin-left:6px">
-        <div style="height:100%;border-radius:2px;width:${(gates.score/9)*100}%;background:${scoreColor};transition:width .5s"></div>
+        <div style="height:100%;border-radius:2px;width:${(gates.score/ARIA_GATE_COUNT)*100}%;background:${scoreColor};transition:width .5s"></div>
       </div>
     </div>
     <div style="display:flex;flex-direction:column;gap:0">
@@ -5255,7 +5374,7 @@ function applyARIA(sl, tp, dir) {
 
 /* ════════════════════════════════════════════════════════════
    SETUP CHECK — one verdict, one vocabulary.
-   ARIA's nine gates and Oracle's confidence are the engine; this panel
+   ARIA's ten gates and Oracle's confidence are the engine; this panel
    is the only place a trader has to read. Each check opens a plain-
    language explainer; the numbers are referenced back to ARIA and Oracle.
 ════════════════════════════════════════════════════════════ */
@@ -5265,10 +5384,11 @@ const CHECK_TERMS = {
   'MACD Direction':   { t:'MACD agrees',                  l:4, b:'MACD compares a fast and a slow average. When its line is above its signal line momentum is building upward; below, downward. The check passes when that agrees with the trade.' },
   'Market Structure': { t:'Higher highs / lower lows',    l:2, b:'A trend leaves a staircase: in an uptrend each pullback bottoms above the last and each push tops above the last. This looks at the last ten candles for at least two such steps in the direction of the trade.' },
   'Live Candle':      { t:'Current candle confirms',      l:4, b:'The candle forming right now should already lean the way of the trade: an engulfing candle, a pin bar rejecting the other side, or at least a body in the right direction. If it opposes, entering now is fighting the last thing the market did.' },
-  'ATR Valid':        { t:'Volatility is measurable (ATR)', l:3, b:'ATR is the average candle range over the last 14. The stop is placed 1.5× that away so ordinary noise does not hit it. If ATR is zero the market is not moving and no sensible stop exists.' },
+  'ATR Band':         { t:'Volatility is normal (ATR)',  l:3, b:'ATR is the average candle range over the last 14. This passes when it is between 0.6× and 1.8× its own 100-candle average. Too quiet and the spread eats the trade while stops sit inside noise; too wild and the stop has to be so wide the risk stops making sense.' },
   'Macro Align':      { t:'Bigger picture agrees (EMA 200)', l:4, b:'The 200-period average is the slow backdrop. Trading with it means the setup goes with the larger flow rather than against it.' },
   'Stochastic':       { t:'Stochastic agrees',            l:4, b:'The stochastic compares the close to its recent range. For a buy it should still be in the lower half (room to rise); for a sell, the upper half. When it disagrees, price is already at the wrong end of its range and a bounce is likely first.' },
-  'Pattern Gate':     { t:'Scanner pattern supports',     l:4, b:'The pattern scanner looks for classic shapes — double tops, flags, engulfing bars. This passes when a pattern with at least 75% confidence points the same way as the trade.' },
+  'Pattern Gate':     { t:'Fresh pattern supports',       l:4, b:'The pattern scanner looks for classic shapes — double tops, flags, engulfing bars. This passes only when a pattern with at least 75% confidence, pointing the same way as the trade, completed on one of the last 3 candles. Older patterns no longer count.' },
+  'Fibonacci Zone':   { t:'Pullback reached 50–61.8%',   l:4, b:'Law 10. Take the last clear swing (at least 3× ATR long). This passes when price has pulled back into the 50–61.8% retracement of that swing within the last 5 candles and has started to turn away from it, without breaking the swing extreme. It is how a trend entry is timed at value instead of chased.' },
 };
 const CHECK_LESSON_URL = null;   // set when the Academy publishes per-lesson links
 
@@ -5285,7 +5405,7 @@ function checkModel() {
   const gates = ariaGates(cdles, closes, ema20v, ema50v, ema200v, rsiV, macdV, stochV, atrV, patternAlign);
   const verdict = ariaVerdict(gates.score, mcc, S.sym, gates.dir);
   const entry = ariaEntry(cdles, closes, atrV, gates.dir, mcc);
-  const oracle = Math.round((gates.score / 9) * 100);
+  const oracle = Math.round((gates.score / ARIA_GATE_COUNT) * 100);
   return { gates, verdict, entry, mcc, wyck, oracle, rsi: rsiV[n-1], atr: atrV[n-1], patternAlign, session: getSession() };
 }
 
@@ -5354,7 +5474,7 @@ function renderCheck() {
     <div class="chk-bar">${gates.gates.map(g => `<i class="${g.pass ? '' : 'f'}"></i>`).join('')}</div>
     <p class="chk-sum">${sum}</p>
     <div class="chk-engines">
-      <button onclick="setRTab('aria',null)" title="Open the ARIA engine detail">ARIA <b>${pass}/9</b> gates · ${verdict.v.replace('_', ' ')}</button>
+      <button onclick="setRTab('aria',null)" title="Open the ARIA engine detail">ARIA <b>${pass}/${ARIA_GATE_COUNT}</b> gates · ${verdict.v.replace('_', ' ')}</button>
       <button onclick="setRTab('oracle',null)" title="Open the Oracle advisor">Oracle <b>${oracle}%</b> confidence</button>
     </div>
     <div class="chk-list">${ordered.slice(0, 5).map(row).join('')}
@@ -5553,7 +5673,7 @@ function renderOracle() {
   const gates = ariaGates(cdles, closes, ema20v, ema50v, ema200v, rsiV, macdV, stochV, atrV, patternAlign);
   const entry = ariaEntry(cdles, closes, atrV, gates.dir, mcc);
   const dp = S.dp;
-  const confidence = Math.round((gates.score / 9) * 100);
+  const confidence = Math.round((gates.score / ARIA_GATE_COUNT) * 100);
   const maxRisk = S.balance * S.riskPct / 100;
   // CFD position sizing: lots = risk budget / (stop distance x value per lot).
   const _spec = otSpec(S.sym);
@@ -5916,7 +6036,7 @@ function processVoice(cmd) {
     const dir = (closes[closes.length-1]>e20[e20.length-1]&&e20[e20.length-1]>e50[e50.length-1])?'buy':'sell';
     const pa = getPatternAlignment(dir);
     const gates = ariaGates(S.candles,closes,e20,e50,calcEMA(closes,200),calcRSI(closes),calcMACD(closes),calcStoch(S.candles),calcATR(S.candles,14),pa);
-    speak(`ARIA: ${gates.score} of 9 gates confirmed. Direction: ${gates.dir}. ${gates.score>=8?'Execution ready.':gates.score>=7?'Qualified setup — wait for trigger.':gates.score>=5?'Waiting — need more confluence.':'Observer — avoid entry.'}`);
+    speak(`ARIA: ${gates.score} of ${ARIA_GATE_COUNT} gates confirmed. Direction: ${gates.dir}. ${gates.score>=ARIA_EXEC_MIN?'Execution ready.':gates.score>=ARIA_QUAL_MIN?'Qualified setup — wait for trigger.':gates.score>=ARIA_WAIT_MIN?'Waiting — need more confluence.':'Observer — avoid entry.'}`);
     return;
   }
   if (cmd.includes('breakeven') || cmd.includes('break even')) {
@@ -8739,12 +8859,13 @@ const MGMT = {
 function setRTab(tab, btn) {
   document.querySelectorAll('.rtab').forEach(b => b.classList.remove('active'));
   document.querySelectorAll('.rpane').forEach(p => p.classList.remove('active'));
-  const paneMap = { check:'checkPane', aria:'ariaPane', oracle:'oraclePane', trade:'tradePane', portfolio:'portfolioPane', mtf:'mtfPane', laws:'lawsPane' };
+  const paneMap = { check:'checkPane', sentinel:'sentinelPane', aria:'ariaPane', oracle:'oraclePane', trade:'tradePane', portfolio:'portfolioPane', mtf:'mtfPane', laws:'lawsPane' };
   const pane = document.getElementById(paneMap[tab]);
   if (pane) pane.classList.add('active');
   if (btn) btn.classList.add('active');
   else document.querySelectorAll('.rtab').forEach(b => { if (b.dataset.tab === tab) b.classList.add('active'); });
   if (tab === 'check') renderCheck();
+  if (tab === 'sentinel') SENT.open();
   if (tab === 'aria') renderARIA();
   if (tab === 'trade') { OT.render(); renderLimits(); }
   if (tab === 'mtf') renderMTF();
@@ -9540,6 +9661,7 @@ function init() {
   renderPortfolio();
   OT.init();
   LIVE.init();
+  MGMT.start();
   VIEW.restore();
   applyDeepLink();
   buildTickerData();
