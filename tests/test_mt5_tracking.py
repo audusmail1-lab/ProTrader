@@ -34,6 +34,26 @@ def test_sell_trade_managed_to_profit_and_other_channels_ignored():
     assert "mt5:9" not in s._mt5_open
 
 
+def test_rule_break_flagged_and_kept_out_of_stats():
+    s._meta_set("mt5_channel", "owner")
+    t0 = int(time.time()) - 5
+    big = {"account": {"equity": 1000.0}, "positions": [{"ticket": "77", "symbol": "Volatility 75 Index", "side": "buy",
+            "volume": 1.0, "entry": 100.0, "price": 101.0, "sl": 90.0, "tp": 0, "profit": 10.0, "time": t0}]}
+    run(lambda: s._mt5_track("owner", big, None))          # $10 per point x 10 points = $100 = 10% of $1,000
+    r = s._mt5_open["mt5:77"]
+    assert r["rule_break"].startswith("risked 10.0%") and r["risk_pct"] == 10.0
+    ok = {"account": {"equity": 1000.0}, "positions": [{"ticket": "78", "symbol": "Volatility 75 Index", "side": "buy",
+           "volume": 0.1, "entry": 100.0, "price": 101.0, "sl": 90.0, "tp": 0, "profit": 1.0, "time": t0}]}
+    run(lambda: s._mt5_track("owner", ok, None))           # $10 = 1% -> fine
+    r2 = s._mt5_open["mt5:78"]
+    assert not r2.get("rule_break") and r2["risk_pct"] == 1.0
+    recs = [{"closed": 1, "pnl": -100, "rule_break": "risked 10.0% (limit 1%)", "stage": "Full loser"},
+            {"closed": 1, "pnl": 20, "stage": "Managed winner", "be_at": 1}]
+    st = s._managed_stats(recs)
+    assert st["n"] == 1 and st["pnl_total"] == 20 and st["rule_breaks"] == {"n": 1, "pnl": -100}
+    s._mt5_open.clear()
+
+
 def test_stages():
     assert s.mgmt_stage({"pnl": -10, "r_dist": 1, "exit_r": -1.0}) == "Full loser"
     assert s.mgmt_stage({"pnl": 0.2, "r_dist": 1, "exit_r": 0.02, "be_at": 1}) == "Protected flat"
