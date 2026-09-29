@@ -411,18 +411,22 @@ def _all_symbols() -> set:
         return out
 
 
-def _on_tick(symbol: str, quote: float) -> None:
+def _on_tick(symbol: str, quote: float, tbid: Optional[float] = None, task: Optional[float] = None) -> None:
     """Runs on every Deriv tick for a watched symbol. A stop or target is
-    'hit' the way the app judges it: buys close on the bid, sells on the ask;
-    the tick is the mid, so half the last-known spread is applied each way."""
+    'hit' the way the app judges it: buys close on the bid, sells on the ask.
+    The venue's own bid/ask are used when the tick carries them; otherwise
+    half the last-known spread is applied each way around the quote."""
     fired = []
     with _lock:
         for dev_id, d in _state["devices"].items():
             for pid, p in list((d.get("paper") or {}).items()):
                 if p["symbol"] != symbol:
                     continue
-                half = (p.get("spread") or 0) / 2
-                bid, ask = quote - half, quote + half
+                if tbid is not None and task is not None and task >= tbid:
+                    bid, ask = tbid, task
+                else:
+                    half = (p.get("spread") or 0) / 2
+                    bid, ask = quote - half, quote + half
                 reason = None; price = None
                 if p["side"] == "buy":
                     if p["sl"] is not None and bid <= p["sl"]: reason, price = "sl", bid
@@ -487,7 +491,9 @@ class _DerivFeed(threading.Thread):
                         t = m.get("tick")
                         if t and t.get("symbol") in self._want:
                             try:
-                                _on_tick(t["symbol"], float(t["quote"]))
+                                _bid = float(t["bid"]) if t.get("bid") is not None else None
+                                _ask = float(t["ask"]) if t.get("ask") is not None else None
+                                _on_tick(t["symbol"], float(t["quote"]), _bid, _ask)
                             except Exception as e:
                                 log.warning("tick handler error: %s", e)
                         elif m.get("error"):
