@@ -36,6 +36,7 @@ def replay_series(m: core.Market, tf: str, bars: list[dict], h4: list[dict] | No
     W = core.WINDOW
     for i in range(W - 1, len(bars)):
         book.update(m.id, tf, [bars[i]])
+        book.update_shadows(m.id, tf, [bars[i]])
         t4 = core.trend_at(ct, tr, bars[i]["time"] + core.TF_SEC[tf]) if ct else None
         book.consider(m, tf, bars[i - W + 1:i + 1], trend_4h=t4)
     return [t.to_dict() for t in book.closed]
