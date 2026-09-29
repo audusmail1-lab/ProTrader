@@ -1420,57 +1420,6 @@ svg.ico{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.7;st
 .ws-button:disabled{opacity:.45;cursor:default}
 .nt-channel{display:flex;align-items:center;gap:12px;padding:12px;border:1px solid var(--bd-1);border-radius:10px}.nt-channel>div{flex:1;min-width:0;display:grid;gap:3px}.nt-channel small{color:var(--tx-3);line-height:1.45}.nt-channel.on{border-color:rgba(47,191,155,.5)}
 .nt-events{border:1px solid var(--bd-1);border-radius:10px;padding:6px 12px 10px;display:grid;gap:6px}.nt-events legend{font-size:var(--fs-1);color:var(--tx-3);padding:0 4px}
-/* ── ARIA Sentinel pane ── */
-.sn{display:flex;flex-direction:column;gap:8px;font-size:12px;color:var(--tx-2)}
-.sn-hd{display:flex;align-items:center;gap:8px}
-.sn-title{font-size:13px;font-weight:900;color:var(--blue-lt);letter-spacing:.4px}
-.sn-dot{width:8px;height:8px;border-radius:50%;background:var(--tx-4);flex:0 0 auto}
-.sn-dot.on{background:var(--green);box-shadow:0 0 0 3px var(--green-glow)}
-.sn-dot.warn{background:var(--amber)}
-.sn-sub{color:var(--tx-3);font-size:11px;margin-left:auto;text-align:right}
-.sn-note{background:var(--bg-3);border:1px solid var(--bd-1);border-left:3px solid var(--amber);border-radius:var(--r-sm);padding:8px 10px;line-height:1.45}
-.sn-note b{color:var(--tx-1)}
-.sn-h{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.6px;color:var(--tx-3);margin-top:4px}
-.sn-card{background:var(--bg-3);border:1px solid var(--bd-1);border-radius:var(--r-sm);padding:9px 10px;display:flex;flex-direction:column;gap:6px}
-.sn-row{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
-.sn-mk{font-weight:800;color:var(--tx-1);font-size:13px}
-.sn-chip{font-size:10.5px;font-weight:800;border-radius:999px;padding:2px 7px;border:1px solid var(--bd-2);color:var(--tx-2);white-space:nowrap}
-.sn-chip.buy{color:var(--green);border-color:var(--green)}
-.sn-chip.sell{color:var(--red);border-color:var(--red)}
-.sn-chip.ev-proven{color:var(--green);border-color:var(--green)}
-.sn-chip.ev-negative{color:var(--red);border-color:var(--red)}
-.sn-chip.ev-unproven{color:var(--amber);border-color:var(--amber)}
-.sn-lv{display:grid;grid-template-columns:repeat(3,1fr);gap:4px}
-.sn-lv div{background:var(--bg-2);border-radius:6px;padding:4px 6px}
-.sn-lv span{display:block;font-size:10px;color:var(--tx-3)}
-.sn-lv b{font-variant-numeric:tabular-nums;color:var(--tx-1);font-size:12px}
-.sn-meta{color:var(--tx-3);font-size:11px;line-height:1.4}
-.sn-warn{color:var(--amber);font-size:11px}
-.sn-btn{appearance:none;border:1px solid var(--blue);background:rgba(79,140,255,.12);color:var(--blue-lt);font-weight:800;border-radius:8px;padding:8px 10px;font-size:12px;cursor:pointer;min-height:36px}
-.sn-btn[disabled]{opacity:.45;cursor:not-allowed}
-.sn-tbl{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
-.sn-tbl th{font-size:10px;color:var(--tx-3);text-align:left;font-weight:700;padding:3px 4px;border-bottom:1px solid var(--bd-1)}
-.sn-tbl td{padding:6px 4px;border-bottom:1px solid var(--bd-1);color:var(--tx-2);vertical-align:middle}
-.sn-tbl tr.go{cursor:pointer}
-.sn-tbl tr.go:hover td{background:var(--bg-4)}
-.sn-tbl td.sn-v-EXEC_READY{color:var(--green);font-weight:800}
-.sn-tbl td.sn-v-QUALIFIED{color:var(--blue-lt);font-weight:700}
-.sn-tbl td.sn-v-BLOCKED{color:var(--red);font-weight:700}
-.sn .sn-pos{color:var(--green)} .sn .sn-neg{color:var(--red)}
-.sn details summary{cursor:pointer;color:var(--tx-2);font-weight:700;padding:4px 0}
-.sn-empty{color:var(--tx-3);padding:6px 2px}
-.sn-btn-2{background:transparent;border-color:var(--bd-2);color:var(--tx-2)}
-.sn-focus .sn-meta{line-height:1.5}
-.sn-grp{border-top:1px solid var(--bd-1);padding-top:4px}
-.sn-grp summary{font-size:12px}
-.sn-picks{display:flex;flex-wrap:wrap;gap:6px;padding:6px 0 4px}
-.sn-pick{appearance:none;border:1px solid var(--bd-2);background:var(--bg-2);color:var(--tx-2);border-radius:999px;padding:7px 11px;font-size:12px;font-weight:600;cursor:pointer;min-height:34px}
-.sn-pick.on{border-color:var(--blue);background:rgba(79,140,255,.14);color:var(--blue-lt)}
-.sn-pick[disabled]{opacity:.35;cursor:not-allowed}
-.sn-tfrow{gap:6px;padding:2px 0}
-.sn-tf{min-height:30px;padding:5px 10px}
-.sn-soft{border-style:dashed}
-.sn-key{width:100%;background:var(--bg-2);color:var(--tx-1);border:1px solid var(--bd-2);border-radius:8px;padding:9px 10px;font-size:16px}
 </style>
 </head>
 <body>
@@ -1670,7 +1619,6 @@ svg.ico{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.7;st
     <div class="ws-heading">Analysis &amp; execution<button type="button" aria-label="Collapse analysis panel" onclick="WS.toggle('analysis')">−</button></div>
     <div class="rpanel-tabs">
       <button class="rtab active" data-tab="check" onclick="setRTab('check',this)">Analysis</button>
-      <button class="rtab" data-tab="sentinel" onclick="setRTab('sentinel',this)">Sentinel</button>
       <button class="rtab" data-tab="trade" onclick="setRTab('trade',this)">Trade</button>
       <button class="rtab" data-tab="portfolio" onclick="setRTab('portfolio',this)">Portfolio</button>
       <button class="rtab" data-tab="mtf" onclick="setRTab('mtf',this)">Timeframes</button>
@@ -1681,11 +1629,6 @@ svg.ico{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.7;st
       <!-- Setup Check — one verdict, fed by ARIA's gates and Oracle's confidence -->
       <div class="rpane active" id="checkPane">
         <div id="check-panel"><div class="pos-empty">Waiting for enough candles to run the check…</div></div>
-      </div>
-
-      <!-- ARIA Sentinel — server-side scanner feed (sentinel.py) -->
-      <div class="rpane" id="sentinelPane">
-        <div id="sentinel-panel"><div class="pos-empty">Loading Sentinel…</div></div>
       </div>
 
       <!-- ARIA Pane -->
@@ -2835,7 +2778,7 @@ async function loadBotCandles(id, tf, mode = 'replace', attempt = 0) {
     }
     const last = S.candles[S.candles.length - 1].close;
     SEEDS[id] = last;
-    pairPrices[id] = { price: last, chg: pairPrices[id]?.chg || 0,
+    if (!derivFresh(id, 20000)) pairPrices[id] = { price: last, chg: pairPrices[id]?.chg || 0,
                        live: true, src: 'Bot', ts: Date.now() };
     BOT.sym = id; BOT.lastErr = null;
     clearInterval(simTimer); simTimer = null;   // real bars — stop the simulator
@@ -2885,6 +2828,7 @@ function applyBotTick(id, d) {
   const price = Number(d.price);
   if (!isFinite(price)) return;
   if (derivFresh(id)) return;      // Deriv is the live venue while it ticks
+  if (!XQ.get(id) || XQ.q[id].src !== 'Deriv') XQ.put(id, price, price, 'Bot');
   const dp = S.dp;
   const prev = S.candles.length ? S.candles[S.candles.length - 1].close : price;
 
@@ -5029,14 +4973,6 @@ const ARIA_LAWS = [
 
 let AM = { totalSig: 0, wins: 0, lastVerdict: null };
 
-// ARIA v7.1 gate settings. sentinel_engine.py mirrors these exactly
-// (tests/sentinel-parity.test.cjs fails if they drift).
-const ARIA_GATE_COUNT = 10;
-const ARIA_EXEC_MIN = 9, ARIA_QUAL_MIN = 8, ARIA_WAIT_MIN = 6;
-const ARIA_ATR_BAND = [0.6, 1.8];
-const ARIA_PATTERN_RECENT = 3;
-const ARIA_FIB_ZONE = [0.45, 0.668], ARIA_FIB_RECENT = 5, ARIA_FIB_MIN_LEG_ATR = 3;
-
 function ariaMCC(cdles, closes, ema20v, ema50v, atrV) {
   const n = closes.length, last = closes[n-1], e20 = ema20v[n-1], e50 = ema50v[n-1];
   const atr = atrV[n-1] || last * 0.002;
@@ -5114,13 +5050,8 @@ function ariaGates(cdles, closes, ema20v, ema50v, ema200v, rsiV, macdV, stochV, 
   const g5 = eng || pin || bdy;
   G.push({ name:'Live Candle', pass:g5, detail:g5 ? `✓ ${eng?'Engulf':pin?'Pin bar':'Body confirms'}` : '✗ Current candle opposes' });
 
-  // ATR Band (v7.1): volatility must be normal for this market — not dead
-  // (spread dominates, stops sit in noise) and not blown out (stops too wide).
-  const atrHist = atrV.slice(-100).filter(Boolean);
-  const atrMean = atrHist.length ? atrHist.reduce((a, b) => a + b, 0) / atrHist.length : 0;
-  const atrRatio = atrMean > 0 && atrV[n-1] ? atrV[n-1] / atrMean : 0;
-  const g6 = atrRatio >= ARIA_ATR_BAND[0] && atrRatio <= ARIA_ATR_BAND[1];
-  G.push({ name:'ATR Band', pass:g6, detail:`ATR ${atrRatio.toFixed(2)}× its 100-bar average — ${g6?'✓ normal':atrRatio < ARIA_ATR_BAND[0]?'✗ too quiet':'✗ too wild'}` });
+  const g6 = atr > 0;
+  G.push({ name:'ATR Valid', pass:g6, detail:`ATR ${atr?.toFixed(S.dp)} — ${g6?'✓ ok':'✗ zero'}` });
 
   const e200 = ema200v?.[n-1];
   let g7;
@@ -5133,10 +5064,7 @@ function ariaGates(cdles, closes, ema20v, ema50v, ema200v, rsiV, macdV, stochV, 
   G.push({ name:'Stochastic', pass:g8, detail:g8 ? '✓ Stoch confirms' : '✗ Stoch opposing' });
 
   const g9 = !!patternAligned;
-  G.push({ name:'Pattern Gate', pass:g9, detail:g9 ? `✓ ${patternAligned} (last ${ARIA_PATTERN_RECENT} bars)` : `✗ No pattern in the last ${ARIA_PATTERN_RECENT} bars` });
-
-  const fib = ariaFib(cdles, atrV, dir);
-  G.push({ name:'Fibonacci Zone', pass:fib.pass, detail:fib.detail });
+  G.push({ name:'Pattern Gate', pass:g9, detail:g9 ? `✓ ${patternAligned}` : '✗ No scanner match' });
 
   const score = G.reduce((a, g) => a + (g.pass ? 1 : 0), 0);
   return { gates: G, score, dir };
@@ -5164,64 +5092,18 @@ function ariaVerdict(score, mcc, sym, dir) {
   if (isNAS && S.newsWeek && dir === 'sell') {
     return { v:'BLOCKED', cls:'verdict-obs', msg:`🛑 BLOCKED — NAS100 short during news week (Joel's rule)` };
   }
-  const execThreshold = ARIA_EXEC_MIN;   // execution-ready requires stronger confluence than setup qualification
-  const watchThreshold = ARIA_QUAL_MIN;
-  if (score >= execThreshold) return { v:'EXEC_READY', cls:'verdict-armed', msg:`🎯 EXECUTION READY — ${score}/${ARIA_GATE_COUNT} gates${isNAS?' · NAS protocol':''}` };
-  if (score >= watchThreshold) return { v:'QUALIFIED', cls:'verdict-wait', msg:`⚡ QUALIFIED SETUP — ${score}/${ARIA_GATE_COUNT} gates · wait for execution trigger` };
-  if (score >= ARIA_WAIT_MIN) return { v:'WAITING', cls:'verdict-wait', msg:`⏳ WAITING — ${score}/${ARIA_GATE_COUNT} (need ≥${watchThreshold})` };
-  return { v:'OBSERVER', cls:'verdict-obs', msg:`👁 OBSERVER — ${score}/${ARIA_GATE_COUNT} (insufficient confluence)` };
+  const execThreshold = isNAS ? 8 : 8; // execution-ready requires stronger confluence than setup qualification
+  const watchThreshold = 7;
+  if (score >= execThreshold) return { v:'EXEC_READY', cls:'verdict-armed', msg:`🎯 EXECUTION READY — ${score}/9 gates${isNAS?' · NAS protocol':''}` };
+  if (score >= watchThreshold) return { v:'QUALIFIED', cls:'verdict-wait', msg:`⚡ QUALIFIED SETUP — ${score}/9 gates · wait for execution trigger` };
+  if (score >= 5) return { v:'WAITING', cls:'verdict-wait', msg:`⏳ WAITING — ${score}/9 (need ≥${watchThreshold})` };
+  return { v:'OBSERVER', cls:'verdict-obs', msg:`👁 OBSERVER — ${score}/9 (insufficient confluence)` };
 }
 
-// Pattern Gate (v7.1): only a pattern completed on one of the last
-// ARIA_PATTERN_RECENT candles counts. The old 30-bar lookback passed on every
-// setup (one-year replay: 100%), so it filtered nothing.
-function getPatternAlignment(dir, cdles = S.candles) {
-  const n = cdles.length, want = dir === 'buy' ? 'bull' : 'bear';
-  if (n < 20) return null;
-  let best = null;
-  PATTERNS.forEach(p => {
-    if (p.dir !== want) return;
-    for (let i = Math.max(15, n - ARIA_PATTERN_RECENT); i < n; i++) {
-      let r = null;
-      try { r = p.detect(cdles, i); } catch (_) { r = null; }
-      if (r && r.conf >= 75 && (!best || r.conf > best.conf)) best = { name: p.name, conf: r.conf };
-    }
-  });
-  return best ? best.name : null;
-}
-
-// Fibonacci Zone (v7.1, Law 10). Objective and mechanical:
-//  • impulse leg = the extreme of the last 60 bars and the opposite extreme
-//    in the 60 bars before it; it must be at least 3× ATR long
-//  • the pullback since that extreme must reach the 50–61.8% zone
-//    (tolerance: 45%–66.8%), and that touch must be within the last 5 bars
-//  • price must have turned from the touch and not broken back past the extreme
-function ariaFib(cdles, atrV, dir) {
-  const n = cdles.length, W = 60, atr = atrV[n-1] || 0;
-  const fail = d => ({ pass:false, detail:'✗ ' + d, r:null });
-  if (n < 30 || !(atr > 0)) return fail('not enough data');
-  const start = Math.max(0, n - W), last = cdles[n-1].close;
-  const hi = i => cdles[i].high, lo = i => cdles[i].low;
-  let ext = start;
-  for (let i = start; i < n; i++) if (dir === 'buy' ? hi(i) > hi(ext) : lo(i) < lo(ext)) ext = i;
-  if (ext > n - 2) return fail('no pullback yet');
-  let orig = -1;
-  for (let i = Math.max(0, ext - W); i < ext; i++) if (orig < 0 || (dir === 'buy' ? lo(i) < lo(orig) : hi(i) > hi(orig))) orig = i;
-  if (orig < 0) return fail('no swing found');
-  let pb = ext + 1;
-  for (let i = ext + 1; i < n; i++) if (dir === 'buy' ? lo(i) <= lo(pb) : hi(i) >= hi(pb)) pb = i;
-  const H = dir === 'buy' ? hi(ext) : hi(orig), L = dir === 'buy' ? lo(orig) : lo(ext);
-  const leg = H - L;
-  if (!(leg >= ARIA_FIB_MIN_LEG_ATR * atr)) return fail('last swing too small');
-  const r = dir === 'buy' ? (H - lo(pb)) / leg : (hi(pb) - L) / leg;
-  const pct = (r * 100).toFixed(0) + '%';
-  if (r < ARIA_FIB_ZONE[0]) return fail(`pullback only ${pct} (needs 50–61.8%)`);
-  if (r > 1) return fail(`swing fully retraced (${pct}) — no pullback to trade`);
-  if (r > ARIA_FIB_ZONE[1]) return fail(`pullback ${pct} — past 61.8%`);
-  if (n - 1 - pb > ARIA_FIB_RECENT) return fail(`zone touch ${n - 1 - pb} bars ago`);
-  const turned = dir === 'buy' ? (last > lo(pb) && last < H) : (last < hi(pb) && last > L);
-  if (!turned) return fail('no reaction from the zone yet');
-  return { pass:true, detail:`✓ ${pct} retrace of the last swing`, r };
+function getPatternAlignment(dir) {
+  const SCAN = runPatternScanSilent();
+  const matching = SCAN.filter(p => dir==='buy' ? (p.dir==='bull' && p.conf>=75) : (p.dir==='bear' && p.conf>=75));
+  return matching.length ? matching[0].name : null;
 }
 
 function renderARIA() {
@@ -5278,9 +5160,9 @@ function renderARIA() {
   <div class="acard">
     <div class="acttl">
       Gate Score
-      <span style="color:${scoreColor};font-family:var(--font-mono);font-size:14px;font-weight:900">${gates.score}/${ARIA_GATE_COUNT}</span>
+      <span style="color:${scoreColor};font-family:var(--font-mono);font-size:14px;font-weight:900">${gates.score}/9</span>
       <div style="flex:1;height:4px;background:var(--bg-4);border-radius:2px;overflow:hidden;margin-left:6px">
-        <div style="height:100%;border-radius:2px;width:${(gates.score/ARIA_GATE_COUNT)*100}%;background:${scoreColor};transition:width .5s"></div>
+        <div style="height:100%;border-radius:2px;width:${(gates.score/9)*100}%;background:${scoreColor};transition:width .5s"></div>
       </div>
     </div>
     <div style="display:flex;flex-direction:column;gap:0">
@@ -5373,7 +5255,7 @@ function applyARIA(sl, tp, dir) {
 
 /* ════════════════════════════════════════════════════════════
    SETUP CHECK — one verdict, one vocabulary.
-   ARIA's ten gates and Oracle's confidence are the engine; this panel
+   ARIA's nine gates and Oracle's confidence are the engine; this panel
    is the only place a trader has to read. Each check opens a plain-
    language explainer; the numbers are referenced back to ARIA and Oracle.
 ════════════════════════════════════════════════════════════ */
@@ -5383,11 +5265,10 @@ const CHECK_TERMS = {
   'MACD Direction':   { t:'MACD agrees',                  l:4, b:'MACD compares a fast and a slow average. When its line is above its signal line momentum is building upward; below, downward. The check passes when that agrees with the trade.' },
   'Market Structure': { t:'Higher highs / lower lows',    l:2, b:'A trend leaves a staircase: in an uptrend each pullback bottoms above the last and each push tops above the last. This looks at the last ten candles for at least two such steps in the direction of the trade.' },
   'Live Candle':      { t:'Current candle confirms',      l:4, b:'The candle forming right now should already lean the way of the trade: an engulfing candle, a pin bar rejecting the other side, or at least a body in the right direction. If it opposes, entering now is fighting the last thing the market did.' },
-  'ATR Band':         { t:'Volatility is normal (ATR)',  l:3, b:'ATR is the average candle range over the last 14. This passes when it is between 0.6× and 1.8× its own 100-candle average. Too quiet and the spread eats the trade while stops sit inside noise; too wild and the stop has to be so wide the risk stops making sense.' },
+  'ATR Valid':        { t:'Volatility is measurable (ATR)', l:3, b:'ATR is the average candle range over the last 14. The stop is placed 1.5× that away so ordinary noise does not hit it. If ATR is zero the market is not moving and no sensible stop exists.' },
   'Macro Align':      { t:'Bigger picture agrees (EMA 200)', l:4, b:'The 200-period average is the slow backdrop. Trading with it means the setup goes with the larger flow rather than against it.' },
   'Stochastic':       { t:'Stochastic agrees',            l:4, b:'The stochastic compares the close to its recent range. For a buy it should still be in the lower half (room to rise); for a sell, the upper half. When it disagrees, price is already at the wrong end of its range and a bounce is likely first.' },
-  'Pattern Gate':     { t:'Fresh pattern supports',       l:4, b:'The pattern scanner looks for classic shapes — double tops, flags, engulfing bars. This passes only when a pattern with at least 75% confidence, pointing the same way as the trade, completed on one of the last 3 candles. Older patterns no longer count.' },
-  'Fibonacci Zone':   { t:'Pullback reached 50–61.8%',   l:4, b:'Law 10. Take the last clear swing (at least 3× ATR long). This passes when price has pulled back into the 50–61.8% retracement of that swing within the last 5 candles and has started to turn away from it, without breaking the swing extreme. It is how a trend entry is timed at value instead of chased.' },
+  'Pattern Gate':     { t:'Scanner pattern supports',     l:4, b:'The pattern scanner looks for classic shapes — double tops, flags, engulfing bars. This passes when a pattern with at least 75% confidence points the same way as the trade.' },
 };
 const CHECK_LESSON_URL = null;   // set when the Academy publishes per-lesson links
 
@@ -5404,7 +5285,7 @@ function checkModel() {
   const gates = ariaGates(cdles, closes, ema20v, ema50v, ema200v, rsiV, macdV, stochV, atrV, patternAlign);
   const verdict = ariaVerdict(gates.score, mcc, S.sym, gates.dir);
   const entry = ariaEntry(cdles, closes, atrV, gates.dir, mcc);
-  const oracle = Math.round((gates.score / ARIA_GATE_COUNT) * 100);
+  const oracle = Math.round((gates.score / 9) * 100);
   return { gates, verdict, entry, mcc, wyck, oracle, rsi: rsiV[n-1], atr: atrV[n-1], patternAlign, session: getSession() };
 }
 
@@ -5473,7 +5354,7 @@ function renderCheck() {
     <div class="chk-bar">${gates.gates.map(g => `<i class="${g.pass ? '' : 'f'}"></i>`).join('')}</div>
     <p class="chk-sum">${sum}</p>
     <div class="chk-engines">
-      <button onclick="setRTab('aria',null)" title="Open the ARIA engine detail">ARIA <b>${pass}/${ARIA_GATE_COUNT}</b> gates · ${verdict.v.replace('_', ' ')}</button>
+      <button onclick="setRTab('aria',null)" title="Open the ARIA engine detail">ARIA <b>${pass}/9</b> gates · ${verdict.v.replace('_', ' ')}</button>
       <button onclick="setRTab('oracle',null)" title="Open the Oracle advisor">Oracle <b>${oracle}%</b> confidence</button>
     </div>
     <div class="chk-list">${ordered.slice(0, 5).map(row).join('')}
@@ -5672,7 +5553,7 @@ function renderOracle() {
   const gates = ariaGates(cdles, closes, ema20v, ema50v, ema200v, rsiV, macdV, stochV, atrV, patternAlign);
   const entry = ariaEntry(cdles, closes, atrV, gates.dir, mcc);
   const dp = S.dp;
-  const confidence = Math.round((gates.score / ARIA_GATE_COUNT) * 100);
+  const confidence = Math.round((gates.score / 9) * 100);
   const maxRisk = S.balance * S.riskPct / 100;
   // CFD position sizing: lots = risk budget / (stop distance x value per lot).
   const _spec = otSpec(S.sym);
@@ -6035,7 +5916,7 @@ function processVoice(cmd) {
     const dir = (closes[closes.length-1]>e20[e20.length-1]&&e20[e20.length-1]>e50[e50.length-1])?'buy':'sell';
     const pa = getPatternAlignment(dir);
     const gates = ariaGates(S.candles,closes,e20,e50,calcEMA(closes,200),calcRSI(closes),calcMACD(closes),calcStoch(S.candles),calcATR(S.candles,14),pa);
-    speak(`ARIA: ${gates.score} of ${ARIA_GATE_COUNT} gates confirmed. Direction: ${gates.dir}. ${gates.score>=ARIA_EXEC_MIN?'Execution ready.':gates.score>=ARIA_QUAL_MIN?'Qualified setup — wait for trigger.':gates.score>=ARIA_WAIT_MIN?'Waiting — need more confluence.':'Observer — avoid entry.'}`);
+    speak(`ARIA: ${gates.score} of 9 gates confirmed. Direction: ${gates.dir}. ${gates.score>=8?'Execution ready.':gates.score>=7?'Qualified setup — wait for trigger.':gates.score>=5?'Waiting — need more confluence.':'Observer — avoid entry.'}`);
     return;
   }
   if (cmd.includes('breakeven') || cmd.includes('break even')) {
@@ -6153,27 +6034,57 @@ function otMoneyAuto(v) {
    Deriv ticks carry a real bid/ask. The bot feed (Yahoo) publishes a
    single last price and no book, so bid and ask both report last and
    the spread reads "n/a" rather than inventing one. */
+
+/* ════════════════════════════════════════════════════════════
+   EXECUTION QUOTES
+   Stops, targets and pending orders trigger against THIS, never against the
+   display price. Only real tick streams write here (the Deriv socket, the
+   bot's live tick stream); reference rates and delayed candles (Frankfurter,
+   CoinGecko, Yahoo bars) never do. Each write also records the excursion —
+   the highest and lowest bid/ask seen since the last evaluation — so a spike
+   that crosses a level between two evaluations still triggers, the way a
+   broker's server-side stop would. Evaluation runs on every tick, not on a
+   timer.
+════════════════════════════════════════════════════════════ */
+const XQ = {
+  q: {},                                   // id → {bid, ask, ts, src, hiBid, loBid, hiAsk, loAsk}
+  STALE_MS: 12000,
+  put(id, bid, ask, src) {
+    if (!Number.isFinite(bid) || !Number.isFinite(ask) || bid <= 0 || ask <= 0) return;
+    if (ask < bid) { const m = (bid + ask) / 2; bid = m; ask = m; }
+    const now = Date.now(), c = this.q[id];
+    if (c && now - c.ts < this.STALE_MS) {
+      c.bid = bid; c.ask = ask; c.ts = now; c.src = src;
+      c.hiBid = Math.max(c.hiBid, bid); c.loBid = Math.min(c.loBid, bid);
+      c.hiAsk = Math.max(c.hiAsk, ask); c.loAsk = Math.min(c.loAsk, ask);
+    } else {
+      // after a gap the path is unknown: start the excursion afresh
+      this.q[id] = { bid, ask, ts: now, src, hiBid: bid, loBid: bid, hiAsk: ask, loAsk: ask, gap: c ? now - c.ts : null };
+    }
+    if (typeof OT !== 'undefined' && OT.onQuote) OT.onQuote(id);
+  },
+  get(id) { const c = this.q[id]; return c && Date.now() - c.ts < this.STALE_MS ? c : null; },
+  /* consume the excursion: returns it and resets the window to the current tick */
+  take(id) { const c = this.q[id]; if (!c) return null; const x = { hiBid: c.hiBid, loBid: c.loBid, hiAsk: c.hiAsk, loAsk: c.loAsk }; c.hiBid = c.loBid = c.bid; c.hiAsk = c.loAsk = c.ask; return x; },
+};
+
 function otQuote(id) {
+  // A live tick stream is the execution venue: bid/ask straight from it.
+  const x = XQ.get(id);
+  if (x) {
+    const age = Date.now() - x.ts;
+    return { ok: true, bid: x.bid, ask: x.ask, last: (x.bid + x.ask) / 2, hasSpread: x.ask > x.bid,
+             spread: x.ask > x.bid ? x.ask - x.bid : null, src: x.src, age, stale: age > NEXUS.staleMs, exec: true };
+  }
+  // No stream for this instrument: fall back to the display quote, flagged so
+  // triggers know they are working from a reference price, not a venue.
   const q = pairPrices[id];
   // Seed/simulator entries carry no timestamp; every real writer sets one.
-  // Without this gate, P&L, equity and margin were computed against the
-  // invented seed (1000.0 for most instruments) until the first tick.
   if (!q || !Number.isFinite(q.price) || !q.ts) return { ok: false, stale: true };
-  const book = otBook[id];
-  const fresh = book && Date.now() - book.ts < 15000;
-  const hasBook = fresh && Number.isFinite(book.bid) && Number.isFinite(book.ask) && book.ask > book.bid;
-  const age = q.ts ? Date.now() - q.ts : Infinity;
-  return {
-    ok: true,
-    bid: hasBook ? book.bid : q.price,
-    ask: hasBook ? book.ask : q.price,
-    last: q.price,
-    hasSpread: !!hasBook,
-    spread: hasBook ? book.ask - book.bid : null,
-    src: q.src || '—',
-    age,
-    stale: age > NEXUS.staleMs,
-  };
+  const age = Date.now() - q.ts;
+  const book = otBook[id], hasBook = !!(book && Date.now() - book.ts < 15000 && Number.isFinite(book.bid) && Number.isFinite(book.ask) && book.ask > book.bid);
+  return { ok: true, bid: hasBook ? book.bid : q.price, ask: hasBook ? book.ask : q.price, last: q.price, hasSpread: hasBook,
+           spread: hasBook ? book.ask - book.bid : null, src: q.src || '—', age, stale: age > NEXUS.staleMs, exec: false };
 }
 
 /* Tradability, most trustworthy signal first:
@@ -6959,6 +6870,7 @@ const OT = {
     setInterval(() => this.tick(), 500);
     setInterval(() => this.save(), 5000);
     setInterval(() => this.resubscribeIdle(), 120000);
+    setInterval(() => { if (TR.positions.length || TR.orders.length) this.resubscribeIdle(); }, 10000);   // working orders: never more than ~10s without a tick
   },
 
   // Deriv ticks carry bid/ask that putQuote drops; capture them here
@@ -6983,6 +6895,9 @@ const OT = {
         }
         if (Number.isFinite(+d.tick.bid) && Number.isFinite(+d.tick.ask)) {
           otBook[id] = { bid: +d.tick.bid, ask: +d.tick.ask, ts: Date.now() };
+          XQ.put(id, +d.tick.bid, +d.tick.ask, 'Deriv');
+        } else if (Number.isFinite(+d.tick.quote)) {
+          XQ.put(id, +d.tick.quote, +d.tick.quote, 'Deriv');
         }
         // A flowing tick is the only proof that an instrument is tradable.
         const info = otInfo[id] || (otInfo[id] = {});
@@ -7034,8 +6949,9 @@ const OT = {
   // subscription lost in a reconnect) get picked back up automatically.
   resubscribeIdle() {
     if (!ws || ws.readyState !== WebSocket.OPEN) return;
+    const working = new Set(TR.positions.map(p => p.symbol).concat(TR.orders.map(o => o.symbol)));
     derivQuotableIds().forEach((id, i) => {
-      if (derivFresh(id, 90000)) return;
+      if (derivFresh(id, working.has(id) ? 8000 : 90000)) return;
       _tickSubbed.delete(derivSym(id));
       setTimeout(() => subscribeTick(id), i * 60);
     });
@@ -7321,6 +7237,7 @@ const OT = {
       realized: 0,
       margin, openTime: Date.now(), accountId: order.accountId,
     };
+    XQ.take(order.symbol);
     TR.positions.push(pos);
     showToast(`${order.side === 'buy' ? '▲' : '▼'} ${order.side.toUpperCase()} ${order.volume} ${pos.label} @ ${otFmtPx(pos.symbol, fill)}`, 3200);
     if (typeof NOTIFY !== 'undefined') NOTIFY.paperEvent(order._pending ? 'pending_filled' : 'executed', pos, { price: fill, sl: pos.sl, tp: pos.tp });
@@ -7329,6 +7246,7 @@ const OT = {
   },
 
   placePending(order) {
+    XQ.take(order.symbol);
     TR.orders.push({
       id: TR.seq++, symbol: order.symbol, label: otSpec(order.symbol).label,
       side: order.side, orderType: order.orderType, volume: order.volume,
@@ -7339,16 +7257,23 @@ const OT = {
   },
 
   /* -- pending orders and protective levels -- */
-  checkPending() {
+  checkPending(onlyId) {
     if (!TR.orders.length) return;
+    const EPS = 1e-9;
     TR.orders.slice().forEach(o => {
+      if (onlyId && o.symbol !== onlyId) return;
       const q = otQuote(o.symbol);
       if (!q.ok || q.stale) return;
+      const x = q.exec ? XQ.q[o.symbol] : null;      // peek, don't consume: positions on this symbol take() it
+      const cur = o.side === 'buy' ? q.ask : q.bid;
+      const hi = x ? (o.side === 'buy' ? x.hiAsk : x.hiBid) : cur, lo = x ? (o.side === 'buy' ? x.loAsk : x.loBid) : cur;
       const trigger = o.orderType === 'limit'
-        ? (o.side === 'buy' ? q.ask <= o.price : q.bid >= o.price)
-        : (o.side === 'buy' ? q.ask >= o.price : q.bid <= o.price);
+        ? (o.side === 'buy' ? lo <= o.price + EPS : hi >= o.price - EPS)
+        : (o.side === 'buy' ? hi >= o.price - EPS : lo <= o.price + EPS);
       if (!trigger) return;
-      const fill = o.side === 'buy' ? q.ask : q.bid;
+      // limit: the level or better; stop: market at trigger (current tick if it is through, else the level)
+      const through = o.orderType === 'limit' ? (o.side === 'buy' ? cur <= o.price + EPS : cur >= o.price - EPS) : (o.side === 'buy' ? cur >= o.price - EPS : cur <= o.price + EPS);
+      const fill = o.orderType === 'limit' ? (o.side === 'buy' ? Math.min(cur, o.price) : Math.max(cur, o.price)) : (through ? cur : o.price);
       const need = otMarginFor(o.symbol, o.volume, fill);
       const acct = otAccount();
       // Cancelling is irreversible: never do it on a partial equity figure.
@@ -7366,13 +7291,27 @@ const OT = {
     });
   },
 
-  checkProtection() {
+  /* A tick arrived for `id`: evaluate everything on that instrument now. */
+  onQuote(id) {
+    // nothing working on this instrument: the path is nobody's business — keep the window at the current tick
+    if (!TR.positions.some(p => p.symbol === id) && !TR.orders.some(o => o.symbol === id)) { XQ.take(id); return; }
+    this.checkPending(id);
+    this.checkProtection(id);
+  },
+  checkProtection(onlyId) {
     if (!TR.positions.length) return;
     let moved = false;
+    const EPS = 1e-9;
     TR.positions.slice().forEach(p => {
+      if (onlyId && p.symbol !== onlyId) return;
       const q = otQuote(p.symbol);
       if (!q.ok || q.stale) return;
       const px = p.side === 'buy' ? q.bid : q.ask;
+      const sl0 = p.sl;                        // to tell whether this pass moved the stop
+      // the path since the last evaluation: a spike through a level counts
+      const x = q.exec ? XQ.take(p.symbol) : null;
+      const hi = x ? (p.side === 'buy' ? x.hiBid : x.hiAsk) : px;
+      const lo = x ? (p.side === 'buy' ? x.loBid : x.loAsk) : px;
       if (p.sl0 === undefined) {
         const lossSide = p.sl != null && (p.side === 'buy' ? p.sl < p.entry : p.sl > p.entry);
         p.sl0 = lossSide ? p.sl : null; p.sl0_inferred = true;
@@ -7383,11 +7322,32 @@ const OT = {
       // Trailing stop: follows price at a fixed distance and only ever tightens.
       if (p.trail > 0) {
         const dp = otSpec(p.symbol).dp;
-        const want = +(p.side === 'buy' ? px - p.trail : px + p.trail).toFixed(dp);
+        const best = p.side === 'buy' ? hi : lo;
+        const want = +(p.side === 'buy' ? best - p.trail : best + p.trail).toFixed(dp);
         if (p.sl == null || (p.side === 'buy' ? want > p.sl : want < p.sl)) { p.sl = want; moved = true; }
       }
-      if (p.sl != null && (p.side === 'buy' ? px <= p.sl : px >= p.sl)) this.closePosition(p.id, null, 'Stop loss');
-      else if (p.tp != null && (p.side === 'buy' ? px >= p.tp : px <= p.tp)) this.closePosition(p.id, null, 'Take profit');
+      // Chronology matters. The window is judged against the stop as it stood
+      // when the window opened (sl0); a stop moved during this pass (trail,
+      // auto-protect) post-dates the window and is judged on the current tick
+      // only. A target touched by the window fills before a stop that was only
+      // moved because of that same excursion.
+      const slMoved = p.sl !== sl0;
+      const slHitOld = sl0 != null && (p.side === 'buy' ? lo <= sl0 + EPS : hi >= sl0 - EPS);
+      const slHitNew = slMoved && p.sl != null && (p.side === 'buy' ? px <= p.sl + EPS : px >= p.sl - EPS);
+      const tpHit = p.tp != null && (p.side === 'buy' ? hi >= p.tp - EPS : lo <= p.tp + EPS);
+      const slHit = slHitOld || (slHitNew && !tpHit);
+      const slLevel = slHitOld ? sl0 : p.sl;
+      // Fill: a stop is a market order at the moment of trigger — if the current
+      // tick itself is through the level that price is the fill, otherwise the
+      // level (the crossing tick was missed). A target is a limit: the level, or
+      // the current price when that is better.
+      if (slHit) {
+        const through = p.side === 'buy' ? px <= slLevel + EPS : px >= slLevel - EPS;
+        this.closePosition(p.id, null, 'Stop loss', through ? px : slLevel, false, { q, x });
+      } else if (tpHit) {
+        const better = p.side === 'buy' ? Math.max(px, p.tp) : Math.min(px, p.tp);
+        this.closePosition(p.id, null, 'Take profit', better, false, { q, x });
+      }
     });
     if (moved) {
       this.save();
@@ -7424,7 +7384,7 @@ const OT = {
   },
 
   /* -- position management -- */
-  async closePosition(id, volume, reason, at, quiet) {
+  async closePosition(id, volume, reason, at, quiet, trig) {
     const p = TR.positions.find(x => x.id === id);
     if (!p || p._closing) return;
     p._closing = true;
@@ -7448,8 +7408,12 @@ const OT = {
     if (fullClose) TR.positions = TR.positions.filter(x => x.id !== id);
     else { p.volume = +(p.volume - vol).toFixed(6); p.margin = (p.margin || 0) - marginBack; }
 
+    const q0 = trig && trig.q, x0 = trig && trig.x;
     S.trades.push({ id: p.id, sym: p.symbol, pair: p.label, type: p.side, volume: vol,
                     entry: p.entry, exit, pnl, openTime: p.openTime || null, closeTime: Date.now(), won, reason: reason || 'Manual',
+                    level: reason === 'Stop loss' ? p.sl : reason === 'Take profit' ? p.tp : null,
+                    trigger: q0 ? { src: q0.src, bid: q0.bid, ask: q0.ask, age: Math.round(q0.age), exec: !!q0.exec,
+                                    hi: x0 ? (p.side === 'buy' ? x0.hiBid : x0.hiAsk) : null, lo: x0 ? (p.side === 'buy' ? x0.loBid : x0.loAsk) : null } : null,
                     sl0: p.sl0 ?? null, risk0: p.risk0 ?? null, sl0_inferred: !!p.sl0_inferred,
                     r: p.risk0 > 0 ? +(pnl / p.risk0).toFixed(4) : null, final: fullClose });
     if (fullClose) {   // net of every tranche of this position (older partials included)
@@ -8769,13 +8733,12 @@ const MGMT = {
 function setRTab(tab, btn) {
   document.querySelectorAll('.rtab').forEach(b => b.classList.remove('active'));
   document.querySelectorAll('.rpane').forEach(p => p.classList.remove('active'));
-  const paneMap = { check:'checkPane', sentinel:'sentinelPane', aria:'ariaPane', oracle:'oraclePane', trade:'tradePane', portfolio:'portfolioPane', mtf:'mtfPane', laws:'lawsPane' };
+  const paneMap = { check:'checkPane', aria:'ariaPane', oracle:'oraclePane', trade:'tradePane', portfolio:'portfolioPane', mtf:'mtfPane', laws:'lawsPane' };
   const pane = document.getElementById(paneMap[tab]);
   if (pane) pane.classList.add('active');
   if (btn) btn.classList.add('active');
   else document.querySelectorAll('.rtab').forEach(b => { if (b.dataset.tab === tab) b.classList.add('active'); });
   if (tab === 'check') renderCheck();
-  if (tab === 'sentinel') SENT.open();
   if (tab === 'aria') renderARIA();
   if (tab === 'trade') { OT.render(); renderLimits(); }
   if (tab === 'mtf') renderMTF();
@@ -9571,7 +9534,6 @@ function init() {
   renderPortfolio();
   OT.init();
   LIVE.init();
-  MGMT.start();
   VIEW.restore();
   applyDeepLink();
   buildTickerData();
@@ -9724,7 +9686,7 @@ function clearDerivSubs(){if(!ws||ws.readyState!==WebSocket.OPEN)return;for(cons
 function sendWS(payload){if(!ws||ws.readyState!==WebSocket.OPEN)return false;try{ws.send(JSON.stringify(payload));return true}catch(e){return false}}
 function subscribeTick(id){if(!isDerivStreamSymbol(id))return;sendWS({ticks:id,subscribe:1})}
 function subscribeHistory(id){if(!isDerivStreamSymbol(id))return;const tfSec=TF_SEC[S.tf]||900;sendWS({ticks_history:id,adjust_start_time:1,count:300,end:'latest',granularity:tfSec,style:'candles',subscribe:1})}
-connectWS=function(){try{if(ws&&(ws.readyState===WebSocket.OPEN||ws.readyState===WebSocket.CONNECTING))return;ws=new WebSocket(DERIV_WS_URL);ws.onopen=()=>{S.wsConnected=true;wsRetry=0;setWsBadge(true);updateFeedBadge();DERIV_STREAM_SYMBOLS.forEach((id,i)=>setTimeout(()=>subscribeTick(id),i*80));subscribeHistory(S.sym);clearInterval(NEXUS.wsHeartbeat);NEXUS.wsHeartbeat=setInterval(()=>sendWS({ping:1}),25000)};ws.onmessage=e=>{let d;try{d=JSON.parse(e.data)}catch(_){return}if(d.subscription?.id&&d.echo_req){const key=d.echo_req.ticks||d.echo_req.ticks_history;if(key)NEXUS.activeSubs.set(`${key}:${d.msg_type}:${d.echo_req.granularity||'tick'}`,d.subscription.id)}if(d.error){const key=d.echo_req?.ticks||d.echo_req?.ticks_history||'feed';NEXUS.errors.set(key,d.error.message||'Feed error');updateFeedBadge();return}if(d.msg_type==='tick'&&d.tick){putQuote(d.tick.symbol,+d.tick.quote,null,'Deriv',true)}const _hs=d.echo_req&&d.echo_req.ticks_history,_hOk=_hs&&appSym(_hs)===S.sym&&(!d.echo_req.granularity||d.echo_req.granularity===_histGran);if(d.msg_type==='ohlc'&&d.ohlc&&_hOk){const o=d.ohlc;mergeLiveCandle({time:+o.open_time,open:+o.open,high:+o.high,low:+o.low,close:+o.close,vol:0})}if(d.msg_type==='candles'&&d.candles&&_hOk){S.candles=aggregateCandles(d.candles.map(c=>({time:+c.epoch,open:+c.open,high:+c.high,low:+c.low,close:+c.close,vol:0})),S.tf);const last=S.candles[S.candles.length-1];if(last)putQuote(S.sym,last.close,null,'Deriv',true);drawChart();renderARIA();renderMTF();runPatternScanner()}};ws.onclose=()=>{S.wsConnected=false;setWsBadge(false);updateFeedBadge();clearInterval(NEXUS.wsHeartbeat);wsRetry++;setTimeout(connectWS,Math.min(30000,1200*Math.pow(1.7,wsRetry)))};ws.onerror=()=>{try{ws.close()}catch(e){}}}catch(e){S.wsConnected=false;setWsBadge(false);setTimeout(connectWS,5000)}};
+connectWS=function(){try{if(ws&&(ws.readyState===WebSocket.OPEN||ws.readyState===WebSocket.CONNECTING))return;ws=new WebSocket(DERIV_WS_URL);ws.onopen=()=>{S.wsConnected=true;wsRetry=0;setWsBadge(true);updateFeedBadge();DERIV_STREAM_SYMBOLS.forEach((id,i)=>setTimeout(()=>subscribeTick(id),i*80));subscribeHistory(S.sym);clearInterval(NEXUS.wsHeartbeat);NEXUS.wsHeartbeat=setInterval(()=>sendWS({ping:1}),25000)};ws.onmessage=e=>{let d;try{d=JSON.parse(e.data)}catch(_){return}if(d.subscription?.id&&d.echo_req){const key=d.echo_req.ticks||d.echo_req.ticks_history;if(key)NEXUS.activeSubs.set(`${key}:${d.msg_type}:${d.echo_req.granularity||'tick'}`,d.subscription.id)}if(d.error){const key=d.echo_req?.ticks||d.echo_req?.ticks_history||'feed';NEXUS.errors.set(key,d.error.message||'Feed error');updateFeedBadge();return}if(d.msg_type==='tick'&&d.tick){putQuote(d.tick.symbol,+d.tick.quote,null,'Deriv',true)}const _hs=d.echo_req&&d.echo_req.ticks_history,_hOk=_hs&&appSym(_hs)===S.sym&&(!d.echo_req.granularity||d.echo_req.granularity===_histGran);if(d.msg_type==='ohlc'&&d.ohlc&&_hOk){const o=d.ohlc;mergeLiveCandle({time:+o.open_time,open:+o.open,high:+o.high,low:+o.low,close:+o.close,vol:0});const _xq=XQ.q[S.sym];if(!_xq||Date.now()-_xq.ts>3000){XQ.put(S.sym,+o.close,+o.close,'Deriv');subscribeTick(S.sym)}}if(d.msg_type==='candles'&&d.candles&&_hOk){S.candles=aggregateCandles(d.candles.map(c=>({time:+c.epoch,open:+c.open,high:+c.high,low:+c.low,close:+c.close,vol:0})),S.tf);const last=S.candles[S.candles.length-1];if(last)putQuote(S.sym,last.close,null,'Deriv',true);drawChart();renderARIA();renderMTF();runPatternScanner()}};ws.onclose=()=>{S.wsConnected=false;setWsBadge(false);updateFeedBadge();clearInterval(NEXUS.wsHeartbeat);wsRetry++;setTimeout(connectWS,Math.min(30000,1200*Math.pow(1.7,wsRetry)))};ws.onerror=()=>{try{ws.close()}catch(e){}}}catch(e){S.wsConnected=false;setWsBadge(false);setTimeout(connectWS,5000)}};
 subscribeWS=function(sym){if(!isDerivStreamSymbol(sym))return;clearDerivSubs();subscribeTick(sym);subscribeHistory(sym)};
 selectPair=function(id){const p=PAIR_MAP[id];if(!p)return;S.sym=id;S.symLabel=p.label;S.dp=p.dp;chartOffset=0;S.candles=[];S.activePatterns=[];const chip=safeEl('symChip');if(chip){chip.innerHTML=`<span class="sym-flag">${p.flag}</span><span id="symLabel">${p.label}</span>`;const accent=document.documentElement.getAttribute('data-theme')==='light'?'#3B82F6':'var(--neon-cyan)';chip.style.borderColor=accent;setTimeout(()=>chip.style.borderColor='',700)}if(pairPrices[id]?.price)SEEDS[id]=pairPrices[id].price;seedCandles(200);buildPairList(safeEl('pairSearch')?.value||'');updateFeedBadge();if(isDerivStreamSymbol(id))subscribeWS(id);setTimeout(()=>{renderARIA();renderMTF();runPatternScanner();requestChartRedraw()},80)};
 
