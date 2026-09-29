@@ -7844,10 +7844,11 @@ const OT = {
     const metaFor = (lvl, isSl) => {
       if (!Number.isFinite(lvl) || !Number.isFinite(entry)) return '—';
       const dist = Math.abs(entry - lvl);
-      const pts = dist / s.pip;
+      // forex in pips; everything else as the raw price distance, like the spread
+      const away = s.isForex ? `${(dist / s.pip).toFixed(1)} pips` : `${dist.toFixed(s.dp)} away`;
       const money = otPnl(TK.side, entry, lvl, TK.volume, id);
       const cls = money == null ? '' : money < 0 ? 'neg' : 'pos';
-      return `${pts.toFixed(1)} ${s.isForex ? 'pips' : 'pts'}<br><span class="${cls}">${otMoney(money)}</span>`;
+      return `${away}<br><span class="${cls}">${otMoney(money)}</span>`;
     };
     const slMeta = el('otSlMeta'), tpMeta = el('otTpMeta');
     if (slMeta) slMeta.innerHTML = TK.slOn ? metaFor(TK.sl, true) : '—';
