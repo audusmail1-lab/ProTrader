@@ -17,7 +17,7 @@ class WSGIHandler(Handler):
     # Waitress owns request parsing, connection limits, timeouts and body limits.
     def __init__(self, academy, environ):
         self.server = SimpleNamespace(app=academy)
-        self.path = environ.get('PATH_INFO', '/')
+        self.path = environ.get('PATH_INFO', '/') + ('?' + environ['QUERY_STRING'] if environ.get('QUERY_STRING') else '')
         self.client_address = (environ.get('REMOTE_ADDR', 'unknown'), 0)
         self.headers = Message()
         for key, value in environ.items():

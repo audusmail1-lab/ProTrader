@@ -81,6 +81,17 @@ class AppSignInTests(AcademyTests):
         user = json.loads(self.exchange(code, verifier)[3])['user']
         self.assertEqual((user['status'], bool(user['verified'])), ('pending', False))
 
+    def test_production_wsgi_passes_the_query_string(self):
+        from io import BytesIO
+        from production import wsgi_app
+        verifier = secrets.token_urlsafe(48)
+        env = {'REQUEST_METHOD': 'GET', 'PATH_INFO': '/app-login', 'QUERY_STRING': f'state={secrets.token_urlsafe(24)}&challenge={challenge_of(verifier)}',
+               'REMOTE_ADDR': '127.0.0.1', 'wsgi.input': BytesIO()}
+        seen = {}
+        body = b''.join(wsgi_app(self.server.app)(env, lambda status, headers: seen.update(status=status)))
+        self.assertTrue(seen['status'].startswith('200'), (seen, body[:200]))
+        self.assertIn(b'Sign in to PROTrader', body)
+
 
 # Only this file's tests: switch off the inherited AcademyTests cases here
 # (they run in test_server), and hide the imported base from discovery.
