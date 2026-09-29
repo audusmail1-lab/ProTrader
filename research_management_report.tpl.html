@@ -1,0 +1,367 @@
+<title>$100 Breakeven Test</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:root{
+  color-scheme:light;
+  --bg:#f3f5f7; --panel:#ffffff; --ink:#16202b; --ink-2:#4a5664; --ink-3:#6f7a87; --rule:#d9dee4; --grid:#e6eaee;
+  --accent:#9a6414; --accent-soft:#f4e7d2;
+  --s1:#2a78d6; --s2:#eb6834; --s3:#1baf7a;
+  --good:#12805a; --good-soft:#dcf1e8; --bad:#c43d3d; --bad-soft:#f8e1e1;
+  --f-display:"Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --f-body:"IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --f-mono:"IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --bg:#0f141a; --panel:#161d25; --ink:#e7ecf1; --ink-2:#b3bdc8; --ink-3:#8793a0; --rule:#2a3440; --grid:#222b35;
+    --accent:#e0a54a; --accent-soft:#3a2c16;
+    --s1:#3987e5; --s2:#d95926; --s3:#199e70;
+    --good:#4cc493; --good-soft:#15322a; --bad:#ef7a7a; --bad-soft:#3a1c1e;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#0f141a; --panel:#161d25; --ink:#e7ecf1; --ink-2:#b3bdc8; --ink-3:#8793a0; --rule:#2a3440; --grid:#222b35;
+  --accent:#e0a54a; --accent-soft:#3a2c16;
+  --s1:#3987e5; --s2:#d95926; --s3:#199e70;
+  --good:#4cc493; --good-soft:#15322a; --bad:#ef7a7a; --bad-soft:#3a1c1e;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font:15px/1.6 var(--f-body);margin:0}
+.wrap{max-width:960px;margin:0 auto;padding-inline:20px;padding-block:28px 64px;display:grid;gap:40px}
+h1,h2,h3{font-family:var(--f-display);text-wrap:balance;margin:0;letter-spacing:-.01em}
+h1{font-size:clamp(28px,5vw,42px);line-height:1.1;font-weight:700}
+h2{font-size:24px;line-height:1.2;font-weight:700}
+h3{font-size:16px;font-weight:600;font-family:var(--f-body)}
+p{margin:0;max-width:66ch}
+.eyebrow{font:500 12px/1.4 var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
+.lede{font-size:18px;line-height:1.55;color:var(--ink-2)}
+.num{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+section{display:grid;gap:16px}
+.head{display:grid;gap:14px}
+.verdict{border-left:3px solid var(--accent);background:var(--panel);padding:16px 18px;border-radius:0 8px 8px 0;display:grid;gap:10px}
+.verdict p{max-width:none}
+.note{font-size:13px;color:var(--ink-3)}
+.panel{background:var(--panel);border:1px solid var(--rule);border-radius:10px;padding:18px;display:grid;gap:14px}
+.scroll{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:13.5px}
+th,td{padding:8px 10px;border-bottom:1px solid var(--rule);text-align:right;white-space:nowrap}
+th:first-child,td:first-child{text-align:left;white-space:normal;min-width:230px}
+.score th:first-child,.score td:first-child{min-width:150px}
+@media (max-width:560px){th:first-child,td:first-child{min-width:170px}}
+thead th{font:500 11.5px/1.3 var(--f-mono);text-transform:uppercase;letter-spacing:.06em;color:var(--ink-3);vertical-align:bottom}
+td{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+td:first-child{font-family:var(--f-body)}
+tr.hl td{background:var(--accent-soft)}
+.good{color:var(--good)} .bad{color:var(--bad)}
+.chip{display:inline-block;font:500 11px/1.5 var(--f-mono);padding:1px 7px;border-radius:99px;border:1px solid currentColor}
+.score td.win{background:var(--good-soft)} .score td.lose{background:var(--bad-soft)}
+.controls{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.seg{display:inline-flex;border:1px solid var(--rule);border-radius:8px;overflow:hidden}
+.seg button{font:500 13px var(--f-body);background:transparent;color:var(--ink-2);border:0;padding:7px 12px;cursor:pointer;min-height:34px}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+.seg button:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+.legend{display:flex;flex-wrap:wrap;gap:14px;font-size:13px;color:var(--ink-2)}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.sw{width:14px;height:3px;border-radius:2px;display:inline-block}
+.sw.dash{background:none!important;border-top:2px dashed}
+svg text{font-family:var(--f-mono);font-size:11px;fill:var(--ink-3)}
+svg .lbl{fill:var(--ink-2)}
+.chart{position:relative}
+.tip{position:absolute;pointer-events:none;background:var(--panel);border:1px solid var(--rule);border-radius:6px;padding:8px 10px;font:12px/1.5 var(--f-mono);color:var(--ink);box-shadow:0 6px 20px rgba(0,0,0,.12);min-width:180px}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
+.card{background:var(--panel);border:1px solid var(--rule);border-radius:10px;padding:16px;display:grid;gap:8px;align-content:start}
+.card .big{font:600 26px/1.1 var(--f-mono)}
+ul{margin:0;padding-left:20px;display:grid;gap:6px;max-width:70ch}
+a{color:var(--s1)}
+.src li{font-size:13.5px}
+@media (prefers-reduced-motion: no-preference){ .fade{animation:f .4s ease-out both} @keyframes f{from{opacity:.4}to{opacity:1}} }
+</style>
+
+<div class="wrap">
+  <header class="head">
+    <div class="eyebrow">PROTrader · trade-management research · __BUILT__</div>
+    <h1>Does moving the stop to breakeven at +$100 protect the system?</h1>
+    <p class="lede" id="lede"></p>
+    <div class="verdict" id="verdict"></div>
+  </header>
+
+  <section>
+    <h2>Your hybrid: structure first, breakeven as the fallback</h2>
+    <p id="hybText"></p>
+    <p class="note">Settings were fixed before the run and not tuned afterwards: two-bar swings, stop 0.1 × ATR beyond the swing, breakeven if no swing confirms within 4 bars of +1R or price falls back to +0.3R.</p>
+  </section>
+
+  <section>
+    <h2>Scorecard</h2>
+    <p>The same ARIA 7.2c entries, managed five ways. <span id="scoreNote"></span></p>
+    <div class="panel scroll"><table class="score" id="score"></table></div>
+    <p class="note">Green marks the best of the five on that row, red the worst. “Average per trade” is net of spread, with its 95% range in brackets.</p>
+  </section>
+
+  <section>
+    <h2>Where the trigger sits decides everything</h2>
+    <p>Each point is the same rule, “move to breakeven at +T, then trail T behind the best price”, at a different T. A dollar trigger lands at a different T on every account, because with the 1% rule 1R is 1% of the balance.</p>
+    <div class="panel">
+      <h3>Protection versus cut winners, ARIA 7.2c entries</h3>
+      <p class="note">Dashed lines: where +$100 falls on a $36.9k, $10k and $5k account at 1% risk.</p>
+      <div class="legend"><span><i class="sw" style="background:var(--bad)"></i>Trades lost in full (−1R)</span><span><i class="sw" style="background:var(--s1)"></i>Trades stopped near breakeven that would have reached +2.5R</span></div>
+      <div class="chart" id="c1"></div>
+    </div>
+    <div class="panel">
+      <h3>Average result per trade (R, after spread)</h3>
+      <div class="legend"><span><i class="sw" style="background:var(--s1)"></i>ARIA 7.2c entries</span><span><i class="sw" style="background:var(--s2)"></i>Random entries (control)</span><span><i class="sw" style="background:var(--s1);opacity:.25;height:10px"></i>95% range, ARIA</span></div>
+      <div class="chart" id="c2"></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>What breakeven saves, and what it costs</h2>
+    <p>Against simply holding to the stop or the 2.5R target, every rule saves R on trades that would have lost and gives up R on trades that would have won. Its value is the difference.</p>
+    <div class="panel">
+      <div class="legend"><span><i class="sw" style="background:var(--good);height:10px"></i>Saved on trades that would have lost</span><span><i class="sw" style="background:var(--bad);height:10px"></i>Given up on trades that would have won</span><span><i class="sw" style="background:var(--ink);height:8px;width:8px;border-radius:50%"></i>Net</span></div>
+      <div class="chart" id="c3"></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Every rule tested</h2>
+    <div class="controls">
+      <div class="seg" role="group" aria-label="Entries"><button id="bA" aria-pressed="true">ARIA 7.2c</button><button id="bR" aria-pressed="false">Random</button></div>
+      <div class="seg" role="group" aria-label="Sample"><button data-sc="all" aria-pressed="true">All</button><button data-sc="holdout" aria-pressed="false">Last 30%</button><button data-sc="real" aria-pressed="false">Real markets</button><button data-sc="synthetic" aria-pressed="false">Synthetics</button></div>
+    </div>
+    <div class="panel scroll"><table id="full"></table></div>
+    <p class="note">Full loss = closed at −1R. Protected = stop reached breakeven or better at some point. Kept of peak = exit ÷ best open profit, on trades that reached +1R. Cut winners = stopped within +0.25R of entry when holding would have reached +2.5R. Δ vs 7.2c = paired difference on the same trades, 95% range.</p>
+  </section>
+
+  <section>
+    <h2>By market</h2>
+    <div class="panel scroll"><table id="mk"></table></div>
+  </section>
+
+  <section id="built">
+    <h2>What changes in PROTrader</h2>
+    <div class="grid2" id="builtCards"></div>
+  </section>
+
+  <section>
+    <h2>How this was tested</h2>
+    <ul id="method"></ul>
+  </section>
+
+  <section>
+    <h2>What the research says</h2>
+    <ul class="src" id="sources"></ul>
+  </section>
+</div>
+
+<script>
+const D = /*__DATA__*/null;
+const K = {
+  hold: "Hold: stop & 2.5R target",
+  c72: "7.2c: BE at 1R, trail 1R",
+  off: "BE at 1R +0.1R, trail 1R",
+  str: "Structure: swing stop after 1R",
+  vol: "Volatility: 3×ATR trail after 1R",
+  hyb: "Hybrid: swings after 1R, BE fallback",
+};
+const dollar = Object.keys(D.sets["ARIA 7.2c"].all).filter(k => k.startsWith("$100 → BE, trail $100"));
+K.d = dollar.find(k => k.includes("36.9k"));
+const nice = k => ({[K.hold]: "Hold to stop or 2.5R", [K.c72]: "+1R → breakeven, trail 1R (Sentinel 7.2c)", [K.off]: "+1R → breakeven +0.1R, trail 1R",
+  [K.str]: "Swing-structure stop after +1R", [K.vol]: "3×ATR trail after +1R", [K.hyb]: "Hybrid: swings after +1R, breakeven fallback"}[k] || k.replace("$100 → BE, trail $100", "+$100 → breakeven, trail $100")
+  .replace("$100 → BE, trail 1R", "+$100 → breakeven, trail 1R").replace("$100 → BE only, TP 2.5R", "+$100 → breakeven only, 2.5R target").replace("sweep BE+trail at", "Sweep: breakeven + trail at"));
+const pct = (v, d = 0) => v == null ? "—" : (v * 100).toFixed(d) + "%";
+const r = (v, d = 3) => v == null ? "—" : (v >= 0 ? "+" : "−") + Math.abs(v).toFixed(d) + "R";
+const $ = id => document.getElementById(id);
+const A = D.sets["ARIA 7.2c"], RND = D.sets["Random"];
+const aD = A.all[K.d], aH = A.all[K.hold], aC = A.all[K.c72];
+const days = Math.round((D.period[1] - D.period[0]) / 86400);
+const nMk = D.markets.length;
+const fmtDate = t => new Date(t * 1000).toISOString().slice(0, 10);
+const vsC = A.vs_72c[K.d], vsH = A.vs_hold[K.d];
+
+/* ── headline ── */
+$("lede").textContent = `${aD.n.toLocaleString()} ARIA 7.2c trades and ${RND.all[K.hold].n.toLocaleString()} random control trades on ${nMk} markets over ${days} days, each walked minute by minute. With your 1% rule on a $36,900 account, 1R is $369, so +$100 is 0.27R.`;
+const aS = A.all[K.str], vsS = A.vs_72c[K.str], hS = A.holdout[K.str], hD = A.holdout[K.d], hC = A.holdout[K.c72], hH = A.holdout[K.hold];
+$("verdict").innerHTML = `
+  <p><b>It protects, but it does not make the system more profitable.</b> At 0.27R the rule cut trades lost in full from <b>${pct(aH.full_loss)}</b> to <b>${pct(aD.full_loss)}</b>, raised trades closed in profit from ${pct(aH.win)} to ${pct(aD.win)}, and shortened the longest losing streak from ${aH.worst_streak} to ${aD.worst_streak}. It paid for that with the winners: trades reaching +2.5R fell from ${pct(aH.big_winners)} to ${pct(aD.big_winners, 1)}, and <b>${aD.premature.toLocaleString()}</b> trades were stopped near breakeven that would have gone on to +2.5R.</p>
+  <p>Net, it averaged <b class="num">${r(aD.exp)}</b> per trade, against <b class="num">${r(aH.exp)}</b> for holding and <b class="num">${r(aC.exp)}</b> for the current Sentinel rule (+1R → breakeven, trail 1R). Against Sentinel's rule that is ${r(vsC.mean)}, with a 95% range of ${r(vsC.lo)} to ${r(vsC.hi)}: no measurable gain. Random entries show the same pattern, as theory predicts: when price has no memory, a stop rule reshapes the results but cannot lift their average.</p>
+  <p>Every rule is below zero here because this test covers all ${nMk} markets. The 7.2c edge found earlier sits in 4 market slices only, and management cannot rescue entries that have no edge. The one rule that stood out was a <b>swing-structure stop after +1R</b>: ${r(aS.exp)} per trade, ${r(vsS.mean)} better than Sentinel's rule (95% range ${r(vsS.lo)} to ${r(vsS.hi)}), and still the best in the last 30% of the year (${r(hS.exp)} vs ${r(hC.exp)}). It was one of about twenty rules compared, so it is a candidate to paper-test, not a result.</p>
+  <p><b>Recommendation:</b> measure the trigger in R, not dollars. Auto-protect in PROTrader defaults to +1R → breakeven, trail 1R. The +$100 rule is there as an option, and the app shows what $100 equals in R on your account. Choose it for a smoother ride, knowing it caps the big winners.</p>`;
+$("scoreNote").textContent = `Period ${fmtDate(D.period[0])} to ${fmtDate(D.period[1])}.`;
+
+/* ── hybrid ── */
+(function () {
+  const h = A.all[K.hyb], v = A.vs_72c[K.hyb], hh = A.holdout[K.hyb], hc = A.holdout[K.c72], hs = A.holdout[K.str];
+  $("hybText").innerHTML = `On the same ${h.n.toLocaleString()} trades the hybrid averaged <b class="num">${r(h.exp)}</b>, against <b class="num">${r(aC.exp)}</b> for Sentinel's current rule: <b>${r(v.mean)}</b> per trade, 95% range ${r(v.lo)} to ${r(v.hi)}. It lost ${pct(h.full_loss, 1)} of trades in full, level with breakeven at +1R (${pct(aC.full_loss, 1)}) and well below the pure swing stop (${pct(aS.full_loss, 1)}), so the fallback kept the protection. The pure swing stop still earned a little more (${r(aS.exp)}); the hybrid gives up about ${(aS.exp - h.exp).toFixed(2)}R a trade for that protection. In the last 30% of the year: hybrid ${r(hh.exp)}, current rule ${r(hc.exp)}, swing stop ${r(hs.exp)}. It now runs as a fourth shadow on Sentinel's trades.`;
+})();
+
+/* ── scorecard ── */
+(function () {
+  const cols = [[K.hold, "Hold to stop or 2.5R"], [K.d, "+$100 → BE, trail $100"], [K.c72, "+1R → BE, trail 1R (now)"], [K.str, "Swing stop after +1R"], [K.hyb, "Hybrid"]];
+  const rows = [
+    ["Trades lost in full (−1R)", s => s.full_loss, v => pct(v), "low"],
+    ["Trades closed in profit", s => s.win, v => pct(v), "high"],
+    ["Trades reaching +2.5R or more", s => s.big_winners, v => pct(v, 1), "high"],
+    ["Became risk free", s => s.protected, v => pct(v), "high"],
+    ["Kept of the peak, trades that reached +1R", s => s.capture, v => pct(v), "high"],
+    ["Cut winners (stopped near BE, would have hit +2.5R)", s => s.premature, v => v.toLocaleString(), "low"],
+    ["Average per trade", s => s.exp, (v, s) => `${r(v)} <span class="note">[${r(s.lo, 2)}, ${r(s.hi, 2)}]</span>`, "high"],
+    ["Spread of results (standard deviation)", s => s.sd, v => v.toFixed(2) + "R", "low"],
+    ["Deepest drawdown", s => s.dd, v => v.toFixed(0) + "R", "low"],
+    ["Longest losing streak", s => s.worst_streak, v => String(v), "low"],
+  ];
+  let h = `<thead><tr><th></th>${cols.map(c => `<th>${c[1]}</th>`).join("")}</tr></thead><tbody>`;
+  rows.forEach(([lab, get, fmt, dir]) => {
+    const vals = cols.map(c => get(A.all[c[0]]));
+    const best = dir === "high" ? Math.max(...vals) : Math.min(...vals), worst = dir === "high" ? Math.min(...vals) : Math.max(...vals);
+    h += `<tr><td>${lab}</td>${cols.map((c, i) => `<td class="${vals[i] === best ? "win" : vals[i] === worst ? "lose" : ""}">${fmt(vals[i], A.all[c[0]])}</td>`).join("")}</tr>`;
+  });
+  $("score").innerHTML = h + "</tbody>";
+})();
+
+/* ── charts ── */
+const SW = [0.1, 0.25, 0.5, 0.75, 1, 1.5, 2];
+const sk = t => `sweep BE+trail at ${t}R`;
+function frame(host, H, yMin, yMax, yFmt, ticks) {
+  const W = Math.max(320, host.clientWidth || 800), m = { l: 52, r: 16, t: 14, b: 40 };
+  const x = i => m.l + (W - m.l - m.r) * (Math.log(SW[i] / SW[0]) / Math.log(SW[SW.length - 1] / SW[0]));
+  const xv = v => m.l + (W - m.l - m.r) * (Math.log(v / SW[0]) / Math.log(SW[SW.length - 1] / SW[0]));
+  const y = v => m.t + (H - m.t - m.b) * (1 - (v - yMin) / (yMax - yMin));
+  let s = `<svg viewBox="0 0 ${W} ${H}" width="100%" role="img">`;
+  ticks.forEach(v => { s += `<line x1="${m.l}" x2="${W - m.r}" y1="${y(v)}" y2="${y(v)}" stroke="var(--grid)"/><text x="${m.l - 8}" y="${y(v) + 4}" text-anchor="end">${yFmt(v)}</text>`; });
+  SW.forEach((t, i) => { s += `<text x="${x(i)}" y="${H - 20}" text-anchor="middle">${t}R</text>`; });
+  s += `<text x="${(W + m.l) / 2}" y="${H - 4}" text-anchor="middle" class="lbl">trigger = trail distance (log scale)</text>`;
+  [[0.271, "$36.9k acct"], [1, "$10k"], [2, "$5k"]].forEach(([v, l], j) => {
+    s += `<line x1="${xv(v)}" x2="${xv(v)}" y1="${m.t}" y2="${H - m.b}" stroke="var(--accent)" stroke-dasharray="3 3"/>`;
+    s += `<text x="${xv(v) + (j === 2 ? -4 : 4)}" y="${m.t + 10 + (j === 1 ? 14 : 0)}" text-anchor="${j === 2 ? "end" : "start"}" style="fill:var(--accent)">${l}</text>`;
+  });
+  return { W, H, m, x, y, s };
+}
+function line(f, vals, color, width = 2) {
+  const pts = vals.map((v, i) => `${f.x(i)},${f.y(v)}`).join(" ");
+  let s = `<polyline fill="none" stroke="${color}" stroke-width="${width}" stroke-linejoin="round" points="${pts}"/>`;
+  vals.forEach((v, i) => { s += `<circle cx="${f.x(i)}" cy="${f.y(v)}" r="4.5" fill="${color}" stroke="var(--panel)" stroke-width="2"/>`; });
+  return s;
+}
+function hover(host, f, rowsFor) {
+  const tip = document.createElement("div"); tip.className = "tip"; tip.hidden = true; host.appendChild(tip);
+  const svg = host.querySelector("svg");
+  const move = ev => {
+    const b = svg.getBoundingClientRect(), px = (ev.clientX - b.left) * f.W / b.width;
+    let best = 0, bd = 1e9; SW.forEach((_, i) => { const d = Math.abs(f.x(i) - px); if (d < bd) { bd = d; best = i; } });
+    tip.innerHTML = `<b>Trigger ${SW[best]}R</b><br>` + rowsFor(best);
+    tip.hidden = false;
+    const left = Math.min(b.width - 200, Math.max(0, f.x(best) * b.width / f.W + 12));
+    tip.style.left = left + "px"; tip.style.top = "8px";
+  };
+  svg.addEventListener("pointermove", move); svg.addEventListener("pointerleave", () => tip.hidden = true);
+}
+function drawC1() {
+  const host = $("c1"); host.innerHTML = "";
+  const fl = SW.map(t => A.all[sk(t)].full_loss), pr = SW.map(t => A.all[sk(t)].premature / A.all[sk(t)].n);
+  const top = Math.ceil(Math.max(...fl, ...pr) * 10) / 10;
+  const f = frame(host, 280, 0, top, v => Math.round(v * 100) + "%", [0, top / 4, top / 2, 3 * top / 4, top]);
+  let s = f.s + line(f, fl, "var(--bad)") + line(f, pr, "var(--s1)");
+  s += `<text x="${f.x(SW.length - 2) + 6}" y="${f.y(fl[SW.length - 2]) + 18}" class="lbl">lost in full</text>`;
+  s += `<text x="${f.x(0) + 6}" y="${f.y(pr[0]) - 10}" class="lbl">cut winners</text>`;
+  host.insertAdjacentHTML("afterbegin", s + "</svg>");
+  hover(host, f, i => { const a = A.all[sk(SW[i])]; return `lost in full ${pct(a.full_loss)}<br>cut winners ${a.premature} (${pct(a.premature / a.n, 1)})<br>closed in profit ${pct(a.win)}`; });
+}
+function drawC2() {
+  const host = $("c2"); host.innerHTML = "";
+  const a = SW.map(t => A.all[sk(t)]), b = SW.map(t => RND.all[sk(t)]);
+  const lo = Math.min(...a.map(s => s.lo), ...b.map(s => s.exp)), hi = Math.max(...a.map(s => s.hi), ...b.map(s => s.exp));
+  const yMin = Math.floor(lo * 20) / 20, yMax = Math.ceil(hi * 20) / 20;
+  const ticks = []; for (let v = yMin; v <= yMax + 1e-9; v += 0.05) ticks.push(+v.toFixed(2));
+  const f = frame(host, 300, yMin, yMax, v => (v > 0 ? "+" : "") + v.toFixed(2), ticks);
+  let band = a.map((s, i) => `${f.x(i)},${f.y(s.hi)}`).join(" ") + " " + a.map((s, i) => `${f.x(i)},${f.y(s.lo)}`).reverse().join(" ");
+  let s = f.s + `<polygon points="${band}" fill="var(--s1)" opacity=".14"/>`;
+  s += `<line x1="${f.m.l}" x2="${f.W - f.m.r}" y1="${f.y(0)}" y2="${f.y(0)}" stroke="var(--ink-3)"/>`;
+  s += line(f, b.map(x => x.exp), "var(--s2)") + line(f, a.map(x => x.exp), "var(--s1)");
+  host.insertAdjacentHTML("afterbegin", s + "</svg>");
+  hover(host, f, i => `ARIA ${r(a[i].exp)} [${r(a[i].lo, 2)}, ${r(a[i].hi, 2)}]<br>Random ${r(b[i].exp)}<br>n ${a[i].n} / ${b[i].n}`);
+}
+function drawC3() {
+  const host = $("c3"); host.innerHTML = "";
+  const keys = [K.c72, K.off, K.str, K.hyb, K.vol, ...Object.keys(A.all).filter(k => k.startsWith("$100"))];
+  const rows = keys.map(k => ({ k, s: A.all[k].saved_r, c: A.all[k].cut_r, n: A.all[k].saved_r + A.all[k].cut_r }));
+  const mx = Math.max(...rows.map(x => Math.max(Math.abs(x.s), Math.abs(x.c)))) * 1.05;
+  const W = Math.max(320, host.clientWidth || 800), narrow = W < 560, lw = narrow ? 0 : 270, rowH = narrow ? 50 : 28, H = rows.length * rowH + 30;
+  const mid = lw + (W - lw - 16) / 2, half = (W - lw - 16) / 2, xs = v => mid + v / mx * half;
+  let s = `<svg viewBox="0 0 ${W} ${H}" width="100%" role="img">`;
+  s += `<line x1="${mid}" x2="${mid}" y1="0" y2="${H - 24}" stroke="var(--ink-3)"/>`;
+  [-mx * .66, -mx * .33, mx * .33, mx * .66].forEach(v => { s += `<line x1="${xs(v)}" x2="${xs(v)}" y1="0" y2="${H - 24}" stroke="var(--grid)"/><text x="${xs(v)}" y="${H - 8}" text-anchor="middle">${v > 0 ? "+" : "−"}${Math.abs(v).toFixed(0)}R</text>`; });
+  rows.forEach((x, i) => {
+    const y0 = i * rowH + (narrow ? 24 : 6), bh = 14;
+    const lab = nice(x.k).replace(/\s\(\$[\d.]+k acct = [\d.]+R\)/, m => " ·" + m.slice(1, -1).replace(" acct =", ","));
+    s += narrow ? `<text x="0" y="${y0 - 7}" class="lbl">${lab}</text>` : `<text x="${lw - 10}" y="${y0 + 11}" text-anchor="end" class="lbl">${lab}</text>`;
+    s += `<rect x="${mid}" y="${y0}" width="${Math.max(1, xs(x.s) - mid)}" height="${bh}" rx="3" fill="var(--good)"/>`;
+    s += `<rect x="${xs(x.c)}" y="${y0}" width="${Math.max(1, mid - xs(x.c))}" height="${bh}" rx="3" fill="var(--bad)"/>`;
+    s += `<circle cx="${xs(x.n)}" cy="${y0 + bh / 2}" r="5" fill="var(--ink)" stroke="var(--panel)" stroke-width="2"><title>net ${x.n >= 0 ? "+" : ""}${x.n.toFixed(0)}R</title></circle>`;
+  });
+  host.innerHTML = s + "</svg>";
+}
+
+/* ── full table ── */
+let SET = "ARIA 7.2c", SC = "all";
+function drawFull() {
+  const b = D.sets[SET], rows = b[SC];
+  const keys = Object.keys(rows);
+  let h = `<thead><tr><th>Rule</th><th>Trades</th><th>Avg / trade</th><th>95% range</th><th>Δ vs 7.2c</th><th>In profit</th><th>Full loss</th><th>Protected</th><th>Kept of peak</th><th>Cut winners</th><th>Max DD</th></tr></thead><tbody>`;
+  keys.forEach(k => {
+    const s = rows[k]; if (!s.n) return;
+    const v = SC === "all" ? b.vs_72c[k] : null;
+    const cls = k === K.d ? "hl" : "";
+    h += `<tr class="${cls}"><td>${nice(k)}</td><td>${s.n}</td><td class="${s.exp >= 0 ? "good" : "bad"}">${r(s.exp)}</td><td>${r(s.lo, 2)} … ${r(s.hi, 2)}</td>
+      <td>${v && k !== K.c72 ? `${r(v.mean)} <span class="note">[${r(v.lo, 2)}, ${r(v.hi, 2)}]</span>` : "—"}</td>
+      <td>${pct(s.win)}</td><td>${pct(s.full_loss)}</td><td>${pct(s.protected)}</td><td>${pct(s.capture)}</td><td>${s.premature}</td><td>${s.dd.toFixed(0)}R</td></tr>`;
+  });
+  $("full").innerHTML = h + "</tbody>";
+}
+$("bA").onclick = () => { SET = "ARIA 7.2c"; $("bA").setAttribute("aria-pressed", "true"); $("bR").setAttribute("aria-pressed", "false"); drawFull(); };
+$("bR").onclick = () => { SET = "Random"; $("bR").setAttribute("aria-pressed", "true"); $("bA").setAttribute("aria-pressed", "false"); drawFull(); };
+document.querySelectorAll("[data-sc]").forEach(bt => bt.onclick = () => { SC = bt.dataset.sc; document.querySelectorAll("[data-sc]").forEach(x => x.setAttribute("aria-pressed", String(x === bt))); drawFull(); });
+
+/* ── by market ── */
+(function () {
+  const names = { R_75: "Volatility 75", "1HZ75V": "Volatility 75 (1s)", frxXAUUSD: "Gold", frxNAS100: "US Tech 100", cryBTCUSD: "Bitcoin", frxEURUSD: "EUR/USD", frxGBPUSD: "GBP/USD", frxUSDJPY: "USD/JPY" };
+  let h = `<thead><tr><th>Market (ARIA entries)</th><th>Trades</th><th>Hold</th><th>+$100 at $36.9k</th><th>+1R (7.2c)</th><th>Full loss: hold → $100</th></tr></thead><tbody>`;
+  Object.entries(A.by_market).forEach(([mk, s]) => {
+    const H = s[K.hold], Dd = s[K.d], C = s[K.c72];
+    const best = Math.max(H.exp, Dd.exp, C.exp);
+    const c = v => v === best ? "good" : "";
+    h += `<tr><td>${names[mk] || mk}</td><td>${H.n}</td><td class="${c(H.exp)}">${r(H.exp)}</td><td class="${c(Dd.exp)}">${r(Dd.exp)}</td><td class="${c(C.exp)}">${r(C.exp)}</td><td>${pct(H.full_loss)} → ${pct(Dd.full_loss)}</td></tr>`;
+  });
+  $("mk").innerHTML = h + "</tbody>";
+})();
+
+/* ── built, method, sources ── */
+$("builtCards").innerHTML = [
+  ["Auto-protect", "On by default for paper trades: at +1R the stop moves to breakeven and trails 1R behind the best price. Choose a dollar trigger instead and the app shows what it equals in R on your account, with a warning under 0.5R. It only ever tightens a stop."],
+  ["Your risk rules, enforced", "Paper orders now need a stop, can risk at most 1% of the balance, cannot lift open risk past 2%, and stop for the day after a 3% loss or three losing trades. The ticket offers the correct lot size in one tap."],
+  ["Rule breaks tagged", "A trade that risked more than 1%, or had no stop, is marked in the journal and kept out of the management stats, on paper and on MT5."],
+  ["Clearer chart", "Stop and target tags read SL and TP. Paper stops cannot be removed, only moved. Tap a trade to fade the others on the same market."],
+].map(([h, p]) => `<div class="card"><h3>${h}</h3><p class="note" style="font-size:14px;color:var(--ink-2)">${p}</p></div>`).join("");
+$("method").innerHTML = [
+  `Entries: every ARIA 7.1 signal scoring 8+/10 with the 4h trend aligned and no completed Wave 5 (the Sentinel 7.2c filter), on 15m and 1h, at least 8 bars apart. Control: random time and direction, stop 1.5 × ATR(14).`,
+  `Every trade is walked on 1-minute candles from the close of its signal bar for up to 96 bars of its timeframe. Within each minute the stop is checked before any favourable move, so the test leans against tight stops rather than for them.`,
+  `All rules start with the same −1R stop (ARIA's ATR stop). Results are net of each market's spread estimate. A dollar trigger is converted to R with the 1% rule: 1R = 1% of the balance.`,
+  `“Last 30%” is a hold-out: the final ${Math.round(100 * 0.3)}% of the period, reported separately.`,
+  `Limits: no slippage on stop fills, spreads are estimates, and synthetic indices follow a random walk by design. Management rules were compared on identical entries, so the differences between rules are measured more precisely than each rule's average.`,
+].map(x => `<li>${x}</li>`).join("");
+$("sources").innerHTML = [
+  [`Kaminski & Lo, “When do stop-loss rules stop losses?” (Journal of Financial Markets, 2014)`, "https://papers.ssrn.com/sol3/papers.cfm?abstract_id=968338", "On a random walk a stop rule always lowers expected return; it can help only when price moves persist (momentum)."],
+  [`Chandelier Exit, StockCharts ChartSchool`, "https://chartschool.stockcharts.com/table-of-contents/technical-indicators-and-overlays/technical-overlays/chandelier-exit", "Charles Le Beau's volatility trail: highest high minus 3 × ATR(22), built to stay in a trend through normal pullbacks."],
+  [`“Break Even Stop Loss: Helpful or Hidden Cost?”, Arrow Algo`, "https://arrowalgo.com/break-even-stop-loss/", "Breakeven raises the win rate and lowers the average win; a stop at entry sits inside normal noise."],
+  [`“The Best Time To Move Your Stop Loss To Breakeven”, Daily Price Action`, "https://dailypriceaction.com/blog/the-best-time-move-stop-loss-breakeven/", "Argues for trailing to market structure (swing lows) instead of the entry price."],
+  [`“The IB breakeven stop algo”, edgeful`, "https://www.edgeful.com/blog/posts/ib-breakeven-stop-algo", "Uses a breakeven trigger set as a share of the distance to the first target, tuned per market."],
+].map(([t, u, n]) => `<li><a href="${u}" target="_blank" rel="noopener">${t}</a>. ${n}</li>`).join("");
+
+function drawAll() { drawC1(); drawC2(); drawC3(); }
+drawFull(); drawAll();
+let rt; addEventListener("resize", () => { clearTimeout(rt); rt = setTimeout(drawAll, 150); });
+</script>

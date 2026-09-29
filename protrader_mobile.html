@@ -1213,6 +1213,10 @@ svg.ico{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.7;st
 .limits{display:flex;flex-direction:column;gap:9px;padding:11px 12px;border-radius:10px;border:1px solid var(--bd-1);background:var(--bg-3)}
 .lim-hd{font-size:var(--fs-1);letter-spacing:.06em;text-transform:uppercase;color:var(--tx-3);font-weight:600;display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}
 .lim-hd .mut{text-transform:none;letter-spacing:0;font-weight:500}
+.lim.ap-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:6px}.ap-sel{flex:1;min-width:0;background:var(--bg-3);border:1px solid var(--bd-2);color:var(--tx-1);border-radius:6px;min-height:30px;padding:3px 6px;font:var(--fs-1) var(--font-display)}
+.ap-usd{width:80px;background:var(--bg-3);border:1px solid var(--bd-2);color:var(--tx-1);border-radius:6px;min-height:30px;padding:3px 6px;font:var(--fs-1) var(--font-mono)}
+.lim-note{font-size:var(--fs-1);color:var(--tx-3);line-height:1.45;margin:2px 0 4px}
+.lim-lock{margin:6px 0 2px;padding:7px 9px;border-radius:6px;background:rgba(239,68,68,.12);color:var(--red-lt);font-size:var(--fs-1);line-height:1.45}
 .lim{display:grid;grid-template-columns:1fr auto;gap:4px 10px;font-size:var(--fs-1)}
 .lim-l{color:var(--tx-2)}.lim-v{color:var(--tx-1);text-align:right}
 .lim-m{grid-column:1/3;height:4px;background:var(--bd-1);border-radius:2px;overflow:hidden}
@@ -1360,6 +1364,7 @@ svg.ico{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.7;st
 .ws-trade-label.is-selected .c-x{color:var(--tx-1)}
 .ws-trade-label.is-dragging{box-shadow:0 0 0 1px var(--blue)}
 .ws-trade-label.is-offscreen{opacity:.55}
+.ws-trade-label.is-faded{opacity:.28}.ws-trade-label.is-faded:hover{opacity:.7}
 .ws-trade-label:focus-visible{outline:2px solid var(--blue-lt);outline-offset:2px}
 .ws-trade-label::before{content:'';position:absolute;right:-3px;top:calc(50% + var(--connector-offset,0px));width:2px;height:var(--connector,0px);border-right:1px solid var(--tx-3);pointer-events:none}
 .lvl-adds{padding:0 4px;gap:4px;border-left:1px solid var(--bd-2)}.lvl-adds:empty{display:none}
@@ -1873,9 +1878,11 @@ svg.ico{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.7;st
           <div class="port-stats">
             <div class="port-stat"><div class="ps-lbl">P&amp;L Today</div><div class="ps-val" id="pnlToday">$0.00</div></div>
             <div class="port-stat"><div class="ps-lbl">Win Rate</div><div class="ps-val" id="winRate">—</div></div>
-            <div class="port-stat"><div class="ps-lbl">Trades</div><div class="ps-val" id="totalTrades">0</div></div>
-            <div class="port-stat"><div class="ps-lbl">Best Trade</div><div class="ps-val" id="bestTrade">—</div></div>
+            <div class="port-stat"><div class="ps-lbl">Positions</div><div class="ps-val" id="totalTrades">0</div></div>
+            <div class="port-stat"><div class="ps-lbl">Best Position</div><div class="ps-val" id="bestTrade">—</div></div>
+            <div class="port-stat" style="grid-column:1/-1"><div class="ps-lbl">Avg R per position</div><div class="ps-val" id="avgR">—</div></div>
           </div>
+          <div id="portRNote" style="font-size:12px;color:var(--tx-3);margin-top:6px;line-height:1.45"></div>
           <div style="margin-top:8px">
             <div style="font-size:12px;color:var(--tx-3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px;font-weight:700">Portfolio Health</div>
             <div class="health-bar"><div class="health-fill" id="healthFill" style="width:100%"></div></div>
@@ -4434,15 +4441,17 @@ const LEVELS = {
       e._item = { kind: 'ticket', which: t.which, price: t.price };
       const y = CH.toY(t.price); if (y == null) { e.hidden = true; return; }
       const entry = OT.entryRef(), m = Number.isFinite(entry) ? otPnl(TK.side, entry, t.price, TK.volume, S.sym) : null;
-      e.querySelector('.c-qty').textContent = TK.volume;
+      e.querySelector('.c-qty').textContent = t.which.toUpperCase();
       e.querySelector('.c-amt').textContent = Number.isFinite(entry) ? this.outcome(TK.side, entry, t.price, TK.volume) : '—';
       e.classList.toggle('is-positive', m != null && m >= 0); e.classList.toggle('is-negative', m != null && m < 0);
       e.title = `Ticket ${t.which === 'sl' ? 'stop' : 'target'} · drag to move`; e.setAttribute('aria-label', e.title + ' ' + otFmtPx(S.sym, t.price));
       put(e, y);
     });
     // positions
-    this.groups().forEach(g => {
+    const gs = this.groups(), focus = gs.length > 1 && gs.some(x => x.key === this.selected) ? this.selected : null;
+    gs.forEach(g => {
       const isSel = this.selected === g.key, d = this.draft && this.draft.key === g.key ? this.draft : null;
+      const faded = !!focus && g.key !== focus;
       // entry label: side · size · floating P&L · × close · add-handles for absent levels
       const ent = this.el(g.key + ':entry', 'ws-trade-label entry', `<span class="c-qty"></span><strong class="c-amt"></strong><span class="lvl-adds"></span><span class="lvl-x c-x" role="button" tabindex="0" title="Close position" aria-label="Close position">×</span>`, el => {
         el.addEventListener('click', ev => { if (ev.target.closest('.lvl-x') || ev.target.closest('.lvl-add')) return; this.select(el._g.key); });
@@ -4456,6 +4465,7 @@ const LEVELS = {
       ent.querySelector('.c-amt').textContent = this.fmt(fl);
       ent.classList.toggle('buy', g.side === 'buy'); ent.classList.toggle('sell', g.side !== 'buy');
       ent.classList.toggle('is-positive', fl != null && fl >= 0); ent.classList.toggle('is-negative', fl != null && fl < 0); ent.classList.toggle('is-selected', isSel);
+      ent.classList.toggle('is-faded', faded);
       ent.title = `${g.side.toUpperCase()} ${g.vol} ${g.label} at ${otFmtPx(S.sym, g.entry)} · floating ${this.fmt(fl)} · click to select`;
       // drag-to-add handles for absent levels
       const adds = ent.querySelector('.lvl-adds'); adds.innerHTML = '';
@@ -4482,11 +4492,13 @@ const LEVELS = {
         e._item = { kind: g.kind, which: f, price, g };
         const y = CH.toY(price); if (y == null) { e.hidden = true; return; }
         const m = this.money(g, price), drafted = d && d[f].intent === 'set';
-        e.querySelector('.c-qty').textContent = (g.trail && f === 'sl' && !drafted ? '↟ ' : '') + g.vol;
+        e.querySelector('.c-qty').textContent = (g.trail && f === 'sl' && !drafted ? '↟ ' : '') + f.toUpperCase();
         e.querySelector('.c-amt').textContent = m != null ? this.fmt(m) : this.outcome(g.side, g.entry, price, g.vol);
         e.classList.toggle('is-draft', !!drafted); e.classList.toggle('is-selected', isSel);
         e.classList.toggle('is-positive', m != null && m >= 0); e.classList.toggle('is-negative', m != null && m < 0);
         const x = e.querySelector('.lvl-x'); x.title = f === 'sl' ? 'Remove stop loss' : 'Remove take profit'; x.setAttribute('aria-label', x.title);
+        x.hidden = f === 'sl' && g.kind === 'paper';   // your rules: a paper trade always keeps a stop — drag it instead
+        e.classList.toggle('is-faded', faded);
         e.title = `${f === 'sl' ? 'Stop' : 'Target'} ${otFmtPx(S.sym, price)} · ${this.fmt(m)} if hit${m != null && ((f === 'tp' && m < 0) || (f === 'sl' && m > 0)) ? ' (' + (f === 'tp' ? 'a target below entry still loses' : 'a stop past entry locks in profit') + ')' : ''} · drag or use arrow keys`;
         e.setAttribute('aria-label', e.title);
         put(e, y);
@@ -4502,7 +4514,8 @@ const LEVELS = {
   },
 
   /* ── selection and drafts ── */
-  select(key) { this.selected = key; this.schedule(); },
+  /* tapping the selected trade again clears the focus */
+  select(key) { this.selected = this.selected === key && !this.draft ? null : key; this.schedule(); },
   begin(g, quiet) {
     if (this.draft && this.draft.key !== g.key) { showToast('Confirm or discard the current draft first.', 2400); return null; }
     if (!this.draft) this.draft = { key: g.key, g, sl: { intent: 'unchanged', price: g.sl }, tp: { intent: 'unchanged', price: g.tp } };
@@ -4510,6 +4523,7 @@ const LEVELS = {
   },
   discard(silent) { this.draft = null; this.editor.hidden = true; this.schedule(); if (!silent) showToast('Draft discarded. Saved levels unchanged.', 2200); },
   remove(g, f) {
+    if (f === 'sl' && g.kind === 'paper') { showToast('Your rules keep a stop on every trade. Drag it to move it, or use BE.', 3600); return; }
     const d = this.begin(g); if (!d) return;
     d[f] = { intent: 'remove', price: null };
     this.renderEditor(); this.schedule();
@@ -5403,6 +5417,94 @@ function renderAcctChip() {
   if (pl) pl.textContent = live ? (real ? 'MT5 real balance' : 'MT5 demo balance') : 'Paper balance';
 }
 
+/* ── Auto-protect (paper): once a trade is far enough in profit, move the
+   stop to breakeven (plus an optional offset) and trail it from there.
+   The trigger and the trail are measured either in R (the trade's own
+   initial risk) or in account currency. Research (research_management.py,
+   Sep 2026): a trigger measured in R behaves the same on every account
+   size; a fixed dollar amount does not — $100 is 0.27R on a $36.9k account
+   but 2R on a $5k one. It only ever tightens a stop, never widens it. ── */
+const AUTOP = {
+  KEY: 'protrader.autoprotect.v1',
+  PRESETS: {
+    off: null,
+    r1: { unit: 'r', trig: 1, off: 0, trail: 1, label: 'At +1R → breakeven, trail 1R' },
+    usd: { unit: 'usd', trig: 100, off: 0, trail: 100, label: 'At +$100 → breakeven, trail $100' },
+  },
+  cfg: null,
+  load() {
+    if (this.cfg) return this.cfg;
+    let c = null; try { c = JSON.parse(localStorage.getItem(this.KEY) || 'null'); } catch (_) {}
+    // Default: the research recommendation (+1R → breakeven, trail 1R). The +$100 rule runs as a
+    // shadow on Sentinel's trades so its forward results can be compared before anyone relies on it.
+    this.cfg = c && typeof c === 'object' ? c : { preset: 'r1', ...this.PRESETS.r1 };
+    return this.cfg;
+  },
+  save() { try { localStorage.setItem(this.KEY, JSON.stringify(this.cfg)); } catch (_) {} },
+  on() { const c = this.load(); return c.preset !== 'off' && c.trig > 0; },
+  pick(preset, amount) {
+    const base = this.PRESETS[preset];
+    if (preset === 'off' || !base) this.cfg = { preset: 'off' };
+    else {
+      const a = preset === 'usd' && Number.isFinite(+amount) && +amount > 0 ? +amount : base.trig;
+      this.cfg = { preset, unit: base.unit, trig: a, off: base.off, trail: preset === 'usd' ? a : base.trail };
+    }
+    this.save(); renderLimits();
+    showToast(this.on() ? `Auto-protect: ${this.describe()}. Applies to open and new paper trades.` : 'Auto-protect off. Your stops stay where you put them.', 3800);
+  },
+  describe() {
+    const c = this.load(); if (!this.on()) return 'off';
+    const u = v => c.unit === 'usd' ? otMoney(v) : v + 'R';
+    return `at +${u(c.trig)} → breakeven${c.off ? ' +' + u(c.off) : ''}, then trail ${u(c.trail)}`;
+  },
+  /* One price check for one paper position. Returns true when the stop moved. */
+  apply(p, px) {
+    if (!this.on() || p.ap || !Number.isFinite(px)) return false;
+    const c = this.cfg, s = p.side === 'buy' ? 1 : -1;
+    if (p.r0 == null && p.sl != null && s * (p.sl - p.entry) < 0) p.r0 = Math.abs(p.entry - p.sl);
+    const move = s * (px - p.entry);
+    if (!(move > 0)) return false;
+    const pnl = otPnl(p.side, p.entry, px, p.volume, p.symbol);
+    const perPx = pnl != null && pnl > 0 ? pnl / move : null;         // money per 1.0 of price, this size
+    const toPx = v => c.unit === 'usd' ? (perPx ? v / perPx : null) : (p.r0 > 0 ? v * p.r0 : null);
+    const need = toPx(c.trig);
+    if (!(need > 0) || move + 1e-12 < need) return false;
+    const dp = otSpec(p.symbol).dp;
+    const be = +(p.entry + s * (toPx(c.off || 0) || 0)).toFixed(dp);
+    let moved = false;
+    if (p.sl == null || s * (be - p.sl) > 0) { p.sl = be; moved = true; }
+    const dist = toPx(c.trail);
+    if (dist > 0 && !(p.trail > 0 && p.trail <= dist)) { p.trail = +dist.toFixed(dp); moved = true; }
+    p.ap = { at: Date.now(), px, rule: this.describe() };
+    showToast(`🛡 ${p.label}: stop to breakeven${c.off ? ' +' + (c.unit === 'usd' ? otMoney(c.off) : c.off + 'R') : ''}, trailing from here (auto-protect).`, 4200);
+    return moved;
+  },
+};
+
+/* ── the paper account's risk framework: 1% per trade · 2% open · 3% daily · 3 losses ── */
+function paperLimits() {
+  const b = S.balance;
+  const pos = typeof TR !== 'undefined' ? TR.positions : [];
+  const ords = typeof TR !== 'undefined' ? TR.orders.filter(o => o.state === 'working') : [];
+  const lossAt = (side, entry, sl, vol, sym) => {
+    if (sl == null || !Number.isFinite(entry)) return 0;
+    const v = otPnl(side, entry, sl, vol, sym);
+    return v != null && v < 0 ? -v : 0;
+  };
+  const openRisk = pos.reduce((a, p) => a + lossAt(p.side, p.entry, p.sl, p.volume, p.symbol), 0)
+    + ords.reduce((a, o) => a + lossAt(o.side, o.price, o.sl, o.volume, o.symbol), 0);
+  const unprotected = pos.filter(p => p.sl == null).length;
+  const day0 = new Date(); day0.setHours(0, 0, 0, 0);
+  const today = (S.trades || []).filter(t => (t.closeTime || 0) >= day0.getTime());
+  const dayNet = today.reduce((a, t) => a + (t.pnl || 0), 0);
+  const dayLoss = Math.max(0, -dayNet);
+  const losses = paperPositions(today).filter(p => p.pnl < -0.005).length;   // losing positions, partials netted
+  const dayCap = (b - dayNet) * .03;                  // 3% of the balance at the start of today
+  const locked = dayLoss > 0 && dayLoss >= dayCap - 0.005 ? `Daily loss limit reached (${otMoney(dayLoss)} of ${otMoney(dayCap)}). New trades reopen tomorrow.`
+    : losses >= 3 ? 'Three losing trades today — your rules stop new trades until tomorrow.' : null;
+  return { balance: b, maxRisk: b * S.riskPct / 100, openRisk, openCap: b * .02, unprotected, dayLoss, dayCap, losses, locked };
+}
+
 /* ── limits: the risk framework, always visible while a trade is open ── */
 function renderLimits() {
   const box = document.getElementById('limitsBox'); if (!box) return;
@@ -5419,22 +5521,20 @@ function renderLimits() {
     box.innerHTML = `<div class="lim-hd">Your limits · MT5 <span class="mut">enforced by the EA</span></div>${rows}`;
     return;
   }
-  const b = S.balance;
-  const openRisk = (typeof TR !== 'undefined' ? TR.positions : []).reduce((a, p) => {
-    if (p.sl == null) return a;
-    const v = otPnl(p.side, p.entry, p.sl, p.volume, p.symbol);
-    return a + (v != null && v < 0 ? -v : 0);
-  }, 0);
-  const unprotected = (typeof TR !== 'undefined' ? TR.positions : []).filter(p => p.sl == null).length;
-  const day0 = new Date(); day0.setHours(0, 0, 0, 0);
-  const today = (S.trades || []).filter(t => (t.closeTime || 0) >= day0.getTime());
-  const dayLoss = Math.max(0, -today.reduce((a, t) => a + (t.pnl || 0), 0));
-  const losses = today.filter(t => (t.pnl || 0) < 0).length;
-  rows = meter('Risk per trade', `${otMoney(b * S.riskPct / 100)} · ${S.riskPct}%`, S.riskPct * 100, false)
-    + meter('Open risk', `${otMoney(openRisk)} of ${otMoney(b * .02)}${unprotected ? ' · ' + unprotected + ' without a stop' : ''}`, openRisk / (b * .02) * 100, unprotected > 0 || openRisk > b * .016)
-    + meter('Daily loss', `${otMoney(dayLoss)} of ${otMoney(b * .03)}`, dayLoss / (b * .03) * 100, dayLoss > b * .02)
-    + meter('Losing trades', `${losses} of 3`, losses / 3 * 100, losses >= 2);
-  box.innerHTML = `<div class="lim-hd">Your limits · paper <span class="mut">1% · 2% open · 3% daily · 3 losses</span></div>${rows}`;
+  const L = paperLimits();
+  rows = meter('Risk per trade', `${otMoney(L.maxRisk)} · ${S.riskPct}%`, S.riskPct * 100, false)
+    + meter('Open risk', `${otMoney(L.openRisk)} of ${otMoney(L.openCap)}${L.unprotected ? ' · ' + L.unprotected + ' without a stop' : ''}`, L.openRisk / L.openCap * 100, L.unprotected > 0 || L.openRisk > L.openCap * .8)
+    + meter('Daily loss', `${otMoney(L.dayLoss)} of ${otMoney(L.dayCap)}`, L.dayLoss / L.dayCap * 100, L.dayLoss > L.dayCap * .66)
+    + meter('Losing trades', `${L.losses} of 3`, L.losses / 3 * 100, L.losses >= 2);
+  const ap = AUTOP.load();
+  const apRow = `<div class="lim ap-row"><span class="lim-l">Auto-protect</span>
+    <select class="ap-sel" aria-label="Auto-protect rule" onchange="AUTOP.pick(this.value, document.getElementById('apUsd') && document.getElementById('apUsd').value)">
+      <option value="r1"${ap.preset === 'r1' ? ' selected' : ''}>+1R → breakeven, trail 1R</option>
+      <option value="usd"${ap.preset === 'usd' ? ' selected' : ''}>+$ amount → breakeven, trail same</option>
+      <option value="off"${ap.preset === 'off' ? ' selected' : ''}>Off</option>
+    </select>${ap.preset === 'usd' ? `<input id="apUsd" class="ap-usd" type="number" inputmode="decimal" min="1" step="10" value="${ap.trig}" aria-label="Dollar trigger" onchange="AUTOP.pick('usd', this.value)"/>` : ''}</div>`
+    + (ap.preset === 'usd' ? `<div class="lim-note">$${ap.trig} is ${(ap.trig / Math.max(1, L.maxRisk)).toFixed(2)}R on this account (1R = ${otMoney(L.maxRisk)}). Research: a trigger under ~0.5R stops out many trades that would have gone on to win.</div>` : '');
+  box.innerHTML = `<div class="lim-hd">Your limits · paper <span class="mut">enforced · 1% · 2% open · 3% daily · 3 losses</span></div>${L.locked ? `<div class="lim-lock">${L.locked}</div>` : ''}${rows}${apRow}`;
 }
 
 /* ════════════════════════════════════════════════════════════
@@ -5504,7 +5604,7 @@ function renderOracle() {
     <div class="acttl">Risk Management</div>
     <div class="arow"><span class="al">Max Risk/Trade</span><span class="av">$${maxRisk.toFixed(2)}</span></div>
     <div class="arow"><span class="al">Portfolio Health</span><span class="av" style="color:var(--green-lt)">${Math.round((S.balance/S.startBal)*100)}%</span></div>
-    <div class="arow"><span class="al">Consecutive Losses</span><span class="av" style="color:${S.losses>=3?'var(--red-lt)':'var(--green-lt)'}">${S.losses>=3?'⚠ STOP TRADING':'✓ OK'}</span></div>
+    <div class="arow"><span class="al">Consecutive Losses</span><span class="av" style="color:${paperLimits().losses>=3?'var(--red-lt)':'var(--green-lt)'}">${paperLimits().losses>=3?'⚠ STOP TRADING':'✓ OK · ' + paperLimits().losses + ' today'}</span></div>
     <div class="arow"><span class="al">Session Quality</span><span class="av" style="color:${mcc.code==='DEAD_ZONE'?'var(--red-lt)':'var(--green-lt)'}">${mcc.code==='DEAD_ZONE'?'⚠ Dead Zone':'✓ Active'}</span></div>
   </div>
   ${confidence>=70?`<button class="xbtn ${dir==='buy'?'buy':'sell'}" style="font-size:12px;padding:8px" onclick="applyARIA(${entry.slLevel.toFixed(dp)},${entry.tp2.toFixed(dp)},'${dir}')">⚡ Apply Oracle Signal</button>`:''}`;
@@ -7039,8 +7139,33 @@ const OT = {
       else if (acct.unpriced > 0) e.general = `Equity unknown — ${acct.unpriced} open position${acct.unpriced === 1 ? '' : 's'} without a live price.`;
       else if (need > acct.free) e.general = `Insufficient margin: needs ${otMoney(need)}, free ${otMoney(acct.free)}.`;
     }
+    if (!(LIVE && LIVE.routing())) this.ruleCheck(e, id, v, entry);
     this.errs = e;
     return e;
+  },
+
+  /* Paper account: the risk framework is a hard rule, not a meter. Every
+     order needs a stop, may lose at most S.riskPct of the balance at that
+     stop, may not lift open risk past 2%, and nothing opens once the day
+     has lost 3% or three trades. There is no override on purpose. */
+  ruleCheck(e, id, v, entry) {
+    const L = paperLimits();
+    if (L.locked) { e.general = e.general || L.locked; return; }
+    if (L.unprotected) { e.general = e.general || `${L.unprotected} open trade${L.unprotected === 1 ? ' has' : 's have'} no stop loss — add one before opening another.`; return; }
+    if (!TK.slOn) { e.sl = e.sl || 'Your rules need a stop loss on every trade.'; return; }
+    if (e.volume || e.sl || !Number.isFinite(TK.sl) || !Number.isFinite(entry) || !Number.isFinite(v)) return;
+    const loss = otPnl(TK.side, entry, TK.sl, v, id);
+    if (loss == null) return;
+    const risk = Math.max(0, -loss);
+    if (risk > L.maxRisk * 1.005 + 0.01) {
+      const r = riskLots(id, entry, TK.sl, L.balance);
+      const fix = r && r.lots >= r.min ? ` At this stop the most you can trade is ${r.lots} lots — tap “Size from risk”.` : ' Even the minimum lot is too big here — tighten the stop.';
+      const pc = risk / L.balance * 100;
+      e.volume = `Risks ${otMoney(risk)} (${pc < 10 ? pc.toFixed(1) : pc.toFixed(0)}% of balance). Your limit is ${S.riskPct}% = ${otMoney(L.maxRisk)}.${fix}`;
+      return;
+    }
+    if (L.openRisk + risk > L.openCap * 1.005 + 0.01)
+      e.general = e.general || `Open risk would reach ${otMoney(L.openRisk + risk)}, over your 2% cap of ${otMoney(L.openCap)}. Close a trade or move its stop to breakeven first.`;
   },
 
   /* -- submission -- */
@@ -7106,6 +7231,10 @@ const OT = {
       id: TR.seq++, symbol: order.symbol, label: otSpec(order.symbol).label,
       side: order.side, volume: order.volume, entry: fill,
       sl: order.stopLoss, tp: order.takeProfit,
+      r0: order.stopLoss != null ? Math.abs(fill - order.stopLoss) : null,   // 1R, fixed at the fill
+      sl0: order.stopLoss != null ? order.stopLoss : null,                   // the stop at entry, never changes
+      risk0: order.stopLoss != null ? Math.abs(otPnl(order.side, fill, order.stopLoss, order.volume, order.symbol) || 0) || null : null,
+      realized: 0,
       margin, openTime: Date.now(), accountId: order.accountId,
     };
     XQ.take(order.symbol);
@@ -7182,6 +7311,13 @@ const OT = {
       const x = q.exec ? XQ.take(p.symbol) : null;
       const hi = x ? (p.side === 'buy' ? x.hiBid : x.hiAsk) : px;
       const lo = x ? (p.side === 'buy' ? x.loBid : x.loAsk) : px;
+      if (p.sl0 === undefined) {
+        const lossSide = p.sl != null && (p.side === 'buy' ? p.sl < p.entry : p.sl > p.entry);
+        p.sl0 = lossSide ? p.sl : null; p.sl0_inferred = true;
+        p.risk0 = lossSide ? Math.abs(otPnl(p.side, p.entry, p.sl, p.volume, p.symbol) || 0) || null : null;
+        moved = true;
+      }
+      if (AUTOP.apply(p, px)) moved = true;
       // Trailing stop: follows price at a fixed distance and only ever tightens.
       if (p.trail > 0) {
         const dp = otSpec(p.symbol).dp;
@@ -7208,6 +7344,13 @@ const OT = {
       const now = Date.now();
       if (!this._trailDrawn || now - this._trailDrawn > 800) { this._trailDrawn = now; this.renderBook(); if (typeof CH !== 'undefined' && CH.ready) CH.refreshLevels(); }
     }
+  },
+
+  /* Positions list → chart: switch to the trade's market if needed and focus it. */
+  focus(id) {
+    const p = TR.positions.find(x => x.id === id); if (!p || typeof LEVELS === 'undefined') return;
+    if (p.symbol !== S.sym && typeof selectPair === 'function') selectPair(p.symbol);
+    LEVELS.selected = 'paper:' + id; LEVELS.schedule();
   },
 
   /* Trail on: the stop follows price at the current stop distance (or 1.5×ATR
@@ -7248,9 +7391,11 @@ const OT = {
     S.balance += pnl;
     S.pnlToday += pnl;
     const won = pnl >= 0;
-    if (won) { S.wins++; if (pnl > S.bestTrade) S.bestTrade = pnl; } else { S.losses++; }
+    if (won) { S.wins++; } else { S.losses++; }     // legacy per-fill tallies; the Portfolio counts positions
+    p.realized = (p.realized || 0) + pnl;
+    const fullClose = vol >= p.volume - 1e-9;
 
-    if (vol >= p.volume - 1e-9) TR.positions = TR.positions.filter(x => x.id !== id);
+    if (fullClose) TR.positions = TR.positions.filter(x => x.id !== id);
     else { p.volume = +(p.volume - vol).toFixed(6); p.margin = (p.margin || 0) - marginBack; }
 
     const q0 = trig && trig.q, x0 = trig && trig.x;
@@ -7258,7 +7403,13 @@ const OT = {
                     entry: p.entry, exit, pnl, openTime: p.openTime || null, closeTime: Date.now(), won, reason: reason || 'Manual',
                     level: reason === 'Stop loss' ? p.sl : reason === 'Take profit' ? p.tp : null,
                     trigger: q0 ? { src: q0.src, bid: q0.bid, ask: q0.ask, age: Math.round(q0.age), exec: !!q0.exec,
-                                    hi: x0 ? (p.side === 'buy' ? x0.hiBid : x0.hiAsk) : null, lo: x0 ? (p.side === 'buy' ? x0.loBid : x0.loAsk) : null } : null });
+                                    hi: x0 ? (p.side === 'buy' ? x0.hiBid : x0.hiAsk) : null, lo: x0 ? (p.side === 'buy' ? x0.loBid : x0.loAsk) : null } : null,
+                    sl0: p.sl0 ?? null, risk0: p.risk0 ?? null, sl0_inferred: !!p.sl0_inferred,
+                    r: p.risk0 > 0 ? +(pnl / p.risk0).toFixed(4) : null, final: fullClose });
+    if (fullClose) {   // net of every tranche of this position (older partials included)
+      const net = S.trades.filter(t => t.id === p.id && t.entry === p.entry).reduce((a, t) => a + (t.pnl || 0), 0);
+      posTally(net, p.risk0);
+    }
     this.renderHistory();
     updateBalDisplay(); renderPortfolio(); updateGarden(won, pnl);
     this.renderBook(); this.render(); this.save();
@@ -7395,7 +7546,7 @@ const OT = {
   save() {
     try {
       localStorage.setItem(TRADE_STORE_KEY, JSON.stringify({
-        balance: S.balance, pnlToday: S.pnlToday, wins: S.wins, losses: S.losses,
+        balance: S.balance, pnlToday: S.pnlToday, wins: S.wins, losses: S.losses, posStats: S.posStats || null,
         bestTrade: S.bestTrade, trades: S.trades.slice(-500),
         positions: TR.positions, orders: TR.orders, seq: TR.seq,
         ticket: { volume: TK.volume, type: TK.type, side: TK.side },
@@ -7414,6 +7565,7 @@ const OT = {
       if (Number.isFinite(d.losses)) S.losses = d.losses;
       if (Number.isFinite(d.bestTrade)) S.bestTrade = d.bestTrade;
       if (Array.isArray(d.trades)) S.trades = d.trades;
+      S.posStats = d.posStats && Number.isFinite(d.posStats.wins) ? d.posStats : null;   // null: rebuilt from the fills
       if (Array.isArray(d.positions)) TR.positions = d.positions;
       if (Array.isArray(d.orders)) TR.orders = d.orders;
       if (Number.isFinite(d.seq)) TR.seq = d.seq;
@@ -7690,7 +7842,7 @@ const OT = {
     const cls = pnl == null ? '' : pnl >= 0 ? 'pos' : 'neg';
     return `<div class="pos-row">
       <span class="pos-side ${p.side}">${p.side.toUpperCase()}</span>
-      <span class="pos-main">
+      <span class="pos-main" onclick="OT.focus(${p.id})" style="cursor:pointer" title="Show this trade on the chart">
         <span class="pos-l1"><span class="pos-sym">${p.label}</span><span class="pos-lots">${p.volume} lot</span></span>
         <span class="pos-l2">${otFmtPx(p.symbol, p.entry)} → ${q.ok ? otFmtPx(p.symbol, cur) : '—'}
           · SL ${p.sl != null ? otFmtPx(p.symbol, p.sl) : '—'}${p.trail > 0 ? ' ↟' : ''} · TP ${p.tp != null ? otFmtPx(p.symbol, p.tp) : '—'}
@@ -7755,22 +7907,83 @@ function updateBalDisplay() {
   set('depDemoBal', fmt(S.balance));
 }
 
+/* ── Fills → positions ──
+   A partial close writes one fill per tranche, so counting fills counts one
+   trade several times. Group the fills of a position (same position id and
+   entry price; entry price alone for old records without an id), net their
+   P&L, and count the position once. A position still open is not counted. */
+function paperPositions(trades) {
+  const open = new Set((typeof TR !== 'undefined' ? TR.positions : []).map(p => 'id' + p.id + '@' + p.entry));
+  const g = new Map();
+  (trades || []).forEach(t => {
+    const key = (t.id != null ? 'id' + t.id : t.sym + '|' + t.type) + '@' + t.entry;
+    let p = g.get(key);
+    if (!p) g.set(key, p = { key, id: t.id, sym: t.sym, pair: t.pair, type: t.type, entry: t.entry, pnl: 0, volume: 0, fills: 0,
+                             openTime: t.openTime || null, closeTime: 0, sl0: null, risk0: null, sl0_inferred: false });
+    p.pnl += t.pnl || 0; p.volume += t.volume || 0; p.fills++;
+    p.closeTime = Math.max(p.closeTime, t.closeTime || 0);
+    if (p.sl0 == null && t.sl0 != null) { p.sl0 = t.sl0; p.sl0_inferred = !!t.sl0_inferred; }
+    if (p.risk0 == null && t.risk0 > 0) p.risk0 = t.risk0;
+  });
+  return [...g.values()].filter(p => !open.has(p.key)).map(p => ({
+    ...p, pnl: +p.pnl.toFixed(2), won: p.pnl > 0.005, flat: Math.abs(p.pnl) <= 0.005, r: p.risk0 > 0 ? p.pnl / p.risk0 : null }));
+}
+
+/* Running per-position tallies (the fill list is capped at 500, the tallies are not).
+   Built once from the stored fills, then updated on every full close. */
+function posStats() {
+  if (!S.posStats) {
+    const ps = paperPositions(S.trades);
+    S.posStats = { wins: ps.filter(p => p.won).length, losses: ps.filter(p => !p.won && !p.flat).length, flat: ps.filter(p => p.flat).length,
+                   best: Math.max(0, ...ps.map(p => p.pnl)), rSum: ps.reduce((a, p) => a + (p.r ?? 0), 0), rN: ps.filter(p => p.r != null).length };
+  }
+  return S.posStats;
+}
+function posTally(net, risk0) {
+  const st = posStats();
+  if (net > 0.005) st.wins++; else if (net < -0.005) st.losses++; else st.flat++;
+  if (net > st.best) st.best = net;
+  S.bestTrade = st.best;
+  if (risk0 > 0) { st.rSum += net / risk0; st.rN++; }
+}
+
+let _sentGrades = null, _sentGradesAt = 0;
+async function sentinelGrades() {
+  if (Date.now() - _sentGradesAt < 5 * 60000) return _sentGrades;
+  _sentGradesAt = Date.now();
+  try {
+    const r = await fetch(`${BOT_BASE}/api/sentinel/stats`, { cache: 'no-store', signal: AbortSignal.timeout(15000) });
+    if (r.ok) { _sentGrades = (await r.json())?.journal?.by_grade || null; renderPortfolio(); }
+  } catch (_) {}
+  return _sentGrades;
+}
+
 function renderPortfolio() {
-  // Count from the win/loss tallies: S.trades is a capped list, so its length
-  // under-counts once the cap is hit and would push the win rate past 100%.
-  const total = Math.max(S.wins + S.losses, S.trades.length);
+  const st = posStats();
+  const total = st.wins + st.losses + st.flat;
   // "Today" means trades closed since local midnight, not the all-time gain.
   const day0 = new Date(); day0.setHours(0, 0, 0, 0);
   S.pnlToday = S.trades.reduce((a, t) => a + ((t.closeTime || 0) >= day0.getTime() ? (t.pnl || 0) : 0), 0);
-  const wr = total > 0 ? ((S.wins / total) * 100).toFixed(0) + '%' : '—';
+  const wr = total > 0 ? ((st.wins / total) * 100).toFixed(0) + '%' : '—';
   const el = id => document.getElementById(id);
   if (el('pnlToday')) {
     el('pnlToday').textContent = (S.pnlToday >= 0 ? '+$' : '-$') + Math.abs(S.pnlToday).toFixed(2);
     el('pnlToday').style.color = S.pnlToday >= 0 ? 'var(--green-lt)' : 'var(--red-lt)';
   }
-  if (el('winRate')) el('winRate').textContent = wr;
+  if (el('winRate')) { el('winRate').textContent = wr; el('winRate').title = `${st.wins} won · ${st.losses} lost · ${st.flat} flat, counted per position (partial closes netted)`; }
   if (el('totalTrades')) el('totalTrades').textContent = total;
-  if (el('bestTrade')) el('bestTrade').textContent = S.bestTrade > 0 ? '+$' + S.bestTrade.toFixed(2) : '—';
+  if (el('bestTrade')) el('bestTrade').textContent = st.best > 0 ? '+$' + st.best.toFixed(2) : '—';
+  if (el('avgR')) {
+    el('avgR').textContent = st.rN ? (st.rSum / st.rN >= 0 ? '+' : '−') + Math.abs(st.rSum / st.rN).toFixed(2) + 'R' : '—';
+    el('avgR').style.color = !st.rN ? '' : st.rSum >= 0 ? 'var(--green-lt)' : 'var(--red-lt)';
+  }
+  if (el('portRNote')) {
+    const g = _sentGrades, a = g && g.A, ap = g && g['A+'];
+    const n = (a?.n || 0) + (ap?.n || 0), sr = n ? (((a?.expectancy_r || 0) * (a?.n || 0)) + ((ap?.expectancy_r || 0) * (ap?.n || 0))) / n : null;
+    el('portRNote').innerHTML = `Average R on ${st.rN} of ${total} position${total === 1 ? '' : 's'} with a stop recorded at entry`
+      + (n ? ` · Sentinel A setups: <b>${sr >= 0 ? '+' : '−'}${Math.abs(sr).toFixed(2)}R</b> on ${n}` : '');
+    sentinelGrades();
+  }
   const health = Math.max(0, Math.min(100, (S.balance / S.startBal) * 100));
   if (el('healthFill')) {
     el('healthFill').style.width = health + '%';
@@ -7818,6 +8031,690 @@ function renderLaws() {
         <div class="law-body">${l.body}</div>
       </div>`).join('');
 }
+
+/* ════════════════════════════════════════════════════════════
+   ARIA SENTINEL — always-on scanner (server: sentinel.py)
+   Sentinel prepares, the trader confirms: "Load setup" only fills the
+   ticket. Nothing here places an order.
+════════════════════════════════════════════════════════════ */
+const SENT = (() => {
+  let timer = null, busy = false, last = null, cat = null, pick = null, saving = false, pickErr = '';
+  const KEY_STORE = 'protrader.sentinelKey';
+  const ownerKey = () => { try { return localStorage.getItem(KEY_STORE) || ''; } catch (_) { return ''; } };
+  const EV_LABEL = { proven:'Proven edge', negative:'Negative edge', unproven:'Unproven' };
+  const EV_CLS = { proven:'ev-proven', negative:'ev-negative', unproven:'ev-unproven' };
+  const V_LABEL = { EXEC_READY:'Exec ready', QUALIFIED:'Qualified', WAITING:'Waiting', OBSERVER:'Observer', BLOCKED:'Blocked' };
+  const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const label = id => PAIR_MAP[id]?.label || cat?.byId?.[id]?.label || id;
+  const dp = id => PAIR_MAP[id]?.dp ?? 2;
+  const px = (id, v) => Number.isFinite(v) ? Number(v).toFixed(dp(id)) : '—';
+  const r = v => Number.isFinite(v) ? `<span class="${v >= 0 ? 'sn-pos' : 'sn-neg'}">${v >= 0 ? '+' : ''}${v.toFixed(2)}R</span>` : '—';
+  const ago = ts => {
+    if (!ts) return '—';
+    const m = Math.round((Date.now() / 1000 - ts) / 60);
+    return m < 1 ? 'just now' : m < 60 ? `${m} min ago` : m < 1440 ? `${Math.round(m / 60)} h ago` : `${Math.round(m / 1440)} d ago`;
+  };
+  const evChip = ev => `<span class="sn-chip ${EV_CLS[ev] || 'ev-unproven'}">${EV_LABEL[ev] || esc(ev)}</span>`;
+
+  async function get(path) {
+    const res = await fetch(`${BOT_BASE}/api/sentinel/${path}`, { cache:'no-store', signal: AbortSignal.timeout(15000) });
+    if (!res.ok) throw new Error(path + ' ' + res.status);
+    return res.json();
+  }
+
+  // Where is price now relative to the paper trade? Uses the live quote when
+  // the terminal has one; otherwise the setup is shown as of its bar close.
+  function drift(t) {
+    const now = pairPrices[t.market]?.price;
+    if (!Number.isFinite(now) || !(t.sl_dist > 0)) return null;
+    const sign = t.dir === 'buy' ? 1 : -1;
+    const moved = sign * (now - t.entry) / t.sl_dist;
+    const trailing = t.model && t.model !== 'fixed';
+    const stop = Number.isFinite(t.stop) ? t.stop : t.sl;
+    const pastStop = sign * (now - stop) <= 0;
+    return { now, moved, dead: trailing ? pastStop : (moved <= -1 || moved >= 2.5) };
+  }
+
+  // Setup grade: A+ / A = Sentinel's conditions on the four candidate markets (A+ adds 9-10/10).
+  function gradeChip(g) {
+    if (g === 'A+') return '<span class="sn-chip ev-proven" title="A+ setup: candidate market, 4h aligned, 9-10/10. Tracked separately; not required.">A+</span>';
+    if (g === 'A') return '<span class="sn-chip ev-proven" title="A setup: candidate market (NAS100 15m, gold 15m/1h, Bitcoin 1h), 4h aligned, 8+/10, no Wave 5">A</span>';
+    return '';
+  }
+  function gradeBlock(bg) {
+    if (!bg) return '';
+    const rr = v => Number.isFinite(v) ? (v >= 0 ? '+' : '−') + Math.abs(v).toFixed(2) + 'R' : '—';
+    const rows = [['A+', 'A+ · candidate market, 9–10/10'], ['A', 'A · candidate market, 8/10'], ['other', 'Other markets (comparison)']].map(([k, lab]) => {
+      const s = bg[k] || {};
+      return `<tr><td>${lab}</td><td>${s.n || 0}</td><td>${s.n ? rr(s.expectancy_r) : '—'}</td><td>${s.ci95_r ? rr(s.ci95_r[0]) + ' … ' + rr(s.ci95_r[1]) : '—'}</td></tr>`;
+    }).join('');
+    return `<details class="sn-costs" open><summary>By setup grade</summary>
+      <div class="sn-meta">You trade A setups: Sentinel's conditions on NAS100 15m, gold 15m and 1h, and Bitcoin 1h. A+ is tracked, not required. The other markets keep running on paper as the comparison: the candidate markets should beat them on new trades.</div>
+      <table class="sn-tbl"><thead><tr><th>Grade</th><th>Trades</th><th>Per trade</th><th>95% range</th></tr></thead><tbody>${rows}</tbody></table></details>`;
+  }
+
+  function tradeCard(t, ev) {
+    const d = drift(t), syn = t.mode === 'synthetic';
+    const warn = d?.dead ? 'Price has already moved past the stop or target. This setup is no longer valid.'
+      : d && Math.abs(d.moved) > 0.5 ? `Price has moved ${d.moved >= 0 ? '+' : ''}${d.moved.toFixed(2)}R from the signal entry. Re-check before trading.`
+      : '';
+    return `<div class="sn-card">
+      <div class="sn-row">
+        <span class="sn-mk">${esc(label(t.market))}</span><span class="sn-chip">${esc(t.tf)}</span>
+        <span class="sn-chip ${t.dir}">${t.dir === 'buy' ? 'BUY' : 'SELL'}</span>
+        <span class="sn-chip">${t.score}/${ARIA_GATE_COUNT}</span>${gradeChip(t.grade)}${evChip(ev)}${syn ? '<span class="sn-chip">Synthetic</span>' : ''}${t.elliott ? `<span class="sn-chip sn-soft" title="Elliott Wave is a soft context layer: it never changes the score">EW ${esc(t.elliott)}</span>` : ''}
+      </div>
+      <div class="sn-lv">
+        <div><span>Entry</span><b>${px(t.market, t.entry)}</b></div>
+        <div><span>Stop</span><b>${px(t.market, t.sl)}</b></div>
+        ${t.model && t.model !== 'fixed'
+          ? `<div><span>Stop now</span><b>${px(t.market, Number.isFinite(t.stop) ? t.stop : t.sl)}</b></div>`
+          : `<div><span>Target</span><b>${px(t.market, t.tp2)}</b></div>`}
+      </div>
+      <div class="sn-meta">${esc(t.mcc)} · ${esc(t.wyckoff)}${t.pattern ? ' · ' + esc(t.pattern) : ''}${Number.isFinite(t.fib_r) ? ` · Fib ${(t.fib_r * 100).toFixed(0)}%` : ''} · signal ${ago(t.opened_at)} · ${t.bars} bar${t.bars === 1 ? '' : 's'} · best ${t.mfe_r.toFixed(2)}R${d ? ` · now ${px(t.market, d.now)}` : ''}</div>
+      ${warn ? `<div class="sn-warn">${esc(warn)}</div>` : ''}
+      <button class="sn-btn" ${d?.dead ? 'disabled' : ''} onclick="SENT.load('${esc(t.id)}')">Load setup on chart</button>
+    </div>`;
+  }
+
+  // ── Focus list: Sentinel can read every market; the owner picks which
+  // ones (up to the server's cap) it spends each 15-minute cycle on.
+  function focusBlock(status) {
+    const n = status.markets.length, max = status.max_markets || n;
+    const TFS = status.supported_tfs || ['15m', '1h', '4h'];
+    if (!pick) {
+      const names = status.markets.map(m => `${esc(label(m.id))} <span style="color:var(--tx-3)">${esc((m.tfs || []).join('·'))}</span>`).join(' &nbsp;·&nbsp; ');
+      return `<div class="sn-card sn-focus">
+        <div class="sn-row"><span class="sn-mk" style="font-size:12px">Focus · ${n} of ${max}</span>
+          <span class="sn-meta" style="margin-left:auto">${cat ? cat.total : '89'} markets available</span></div>
+        <div class="sn-meta">${names}</div>
+        <button class="sn-btn sn-btn-2" onclick="SENT.editFocus()">Choose markets &amp; timeframes</button></div>`;
+    }
+    const chosen = pick.size, full = chosen >= max;
+    const groups = (cat?.groups || []).map(g => {
+      const on = g.markets.filter(m => pick.has(m.id)).length;
+      return `<details class="sn-grp" ${on ? 'open' : ''}><summary>${esc(g.name)} <span class="sn-meta">${on ? on + ' selected' : g.markets.length}</span></summary>
+        <div class="sn-picks">${g.markets.map(m => {
+          const sel = pick.has(m.id);
+          return `<button class="sn-pick ${sel ? 'on' : ''}" ${!sel && full ? 'disabled' : ''} onclick="SENT.toggle('${esc(m.id)}')">${esc(m.label)}</button>`;
+        }).join('')}</div></details>`;
+    }).join('');
+    const tfRows = [...pick.entries()].map(([id, tfs]) => `<div class="sn-row sn-tfrow">
+        <span class="sn-meta" style="flex:1;color:var(--tx-1)">${esc(label(id))}</span>
+        ${TFS.map(tf => `<button class="sn-pick sn-tf ${tfs.includes(tf) ? 'on' : ''}" onclick="SENT.toggleTf('${esc(id)}','${tf}')">${tf}</button>`).join('')}
+      </div>`).join('');
+    const needKey = !ownerKey() || /owner key/i.test(pickErr);
+    return `<div class="sn-card sn-focus">
+      <div class="sn-row"><span class="sn-mk" style="font-size:12px">Choose up to ${max} markets</span>
+        <span class="sn-chip ${full ? 'ev-unproven' : ''}" style="margin-left:auto">${chosen} / ${max}</span></div>
+      <div class="sn-meta">Sentinel can read all ${cat ? cat.total : ''} markets but scans only these, at every 15-minute close. Markets you remove keep their open paper trade until it finishes.</div>
+      ${groups}
+      ${chosen ? `<div class="sn-h" style="margin-top:6px">Timeframes per market</div>
+        <div class="sn-meta">Tip: the one-year test lost money on every 15m forex pair (spread ≈ 17% of the stop). 1h and 4h are cheaper to trade.</div>${tfRows}` : ''}
+      ${needKey ? `<label class="sn-meta" for="snKey">Owner key (set as SENTINEL_ADMIN_KEY on the server)</label>
+        <input id="snKey" class="sn-key" type="password" autocomplete="off" value="${esc(ownerKey())}" placeholder="Owner key">` : ''}
+      ${pickErr ? `<div class="sn-warn">${esc(pickErr)}</div>` : ''}
+      <div class="sn-row"><button class="sn-btn" style="flex:1" ${chosen && !saving ? '' : 'disabled'} onclick="SENT.saveFocus()">${saving ? 'Saving…' : 'Save focus'}</button>
+        <button class="sn-btn sn-btn-2" onclick="SENT.cancelFocus()">Cancel</button></div>
+    </div>`;
+  }
+
+  async function editFocus() {
+    pickErr = '';
+    if (!cat) {
+      try {
+        cat = await get('markets');
+        cat.byId = {};
+        cat.groups.forEach(g => g.markets.forEach(m => { cat.byId[m.id] = m; }));
+      } catch (e) { return showToast('Could not load the market list.', 2600); }
+    }
+    pick = new Map(last.status.markets.map(m => [m.id, (m.tfs || ['15m', '1h']).slice()]));
+    render();
+  }
+
+  function toggle(id) {
+    if (!pick) return;
+    const max = last?.status?.max_markets || 12;
+    if (pick.has(id)) pick.delete(id);
+    else if (pick.size < max) pick.set(id, ['1h']);
+    render();
+  }
+
+  function toggleTf(id, tf) {
+    const tfs = pick?.get(id);
+    if (!tfs) return;
+    const i = tfs.indexOf(tf);
+    if (i >= 0) { if (tfs.length > 1) tfs.splice(i, 1); else return showToast('Each market needs at least one timeframe.', 2200); }
+    else tfs.push(tf);
+    render();
+  }
+
+  async function saveFocus() {
+    if (!pick || saving) return;
+    const input = document.getElementById('snKey');
+    if (input) { try { localStorage.setItem(KEY_STORE, input.value.trim()); } catch (_) {} }
+    saving = true; pickErr = ''; render();
+    try {
+      const res = await fetch(`${BOT_BASE}/api/sentinel/focus`, {
+        method:'POST', cache:'no-store', signal: AbortSignal.timeout(15000),
+        headers:{ 'Content-Type':'application/json', 'X-Sentinel-Key': ownerKey() },
+        body: JSON.stringify({ markets: [...pick.entries()].map(([id, tfs]) => ({ id, tfs })) }),
+      });
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(body.detail || ('HTTP ' + res.status));
+      cat.focus = body.focus; pick = null;
+      const slices = body.focus.reduce((a, f) => a + f.tfs.length, 0);
+      showToast(`Sentinel now reads ${body.focus.length} markets (${slices} market-timeframes). New ones appear within a minute.`, 3800);
+      setTimeout(refresh, 20000);
+      await refresh();
+    } catch (e) {
+      pickErr = e.message;
+    } finally { saving = false; render(); }
+  }
+
+  function cancelFocus() { pick = null; pickErr = ''; render(); }
+
+  const STAGE_CLS = { 'Full winner': 'ev-proven', 'Managed winner': 'ev-proven', 'Protected flat': '', 'Scratch': '',
+                      'Time exit': '', 'Unprotected winner': 'ev-unproven', 'Protected loss': 'ev-unproven', 'Full loser': 'ev-negative' };
+  const money = v => Number.isFinite(v) ? (v >= 0 ? '+' : '−') + '$' + Math.abs(v).toFixed(2) : '—';
+  const pctTxt = v => Number.isFinite(v) ? (v * 100).toFixed(0) + '%' : '—';
+
+  // Sentinel's own paper trades, judged by management stage.
+  function paperStages(m) {
+    if (!m || !m.n) return '';
+    const st = m.stages || {};
+    return `<div class="sn-meta" style="margin-top:4px">${Object.entries(st).filter(([, v]) => v).map(([k, v]) =>
+      `<span class="sn-chip ${STAGE_CLS[k] || ''}" style="margin:2px 4px 2px 0;display:inline-block">${esc(k)} ${v}</span>`).join('')}</div>
+      <div class="sn-meta">Became risk free: <b>${pctTxt(m.risk_free_pct)}</b> · of those, closed in profit: <b>${pctTxt(m.risk_free_positive_pct)}</b> · average peak ${Number.isFinite(m.avg_mfe_r) ? m.avg_mfe_r.toFixed(2) + 'R' : '—'} · kept ${pctTxt(m.capture_pct)} of winning moves</div>`;
+  }
+
+  // Forward test: the same Sentinel trades managed by other exit rules, in parallel.
+  function shadowBlock(sh) {
+    if (!sh) return '';
+    const order = ['usd100', 'hybrid', 'structure', 'hold'];
+    const rows = order.filter(k => sh[k]).map(k => {
+      const x = sh[k];
+      if (!x.n) return `<tr><td>${esc(x.label)}</td><td colspan="4" style="text-align:left;color:var(--tx-3)">no finished trades yet</td></tr>`;
+      const ci = x.vs_live_ci95, sig = ci && (ci[0] > 0 ? 'ev-proven' : ci[1] < 0 ? 'ev-negative' : '');
+      const r = v => (v >= 0 ? '+' : '−') + Math.abs(v).toFixed(3) + 'R';
+      return `<tr><td>${esc(x.label)}</td><td>${x.n}</td><td>${r(x.expectancy_r)}</td>
+        <td><span class="sn-chip ${sig}">${r(x.vs_live_r)}</span></td><td>${pctTxt(x.full_loss_pct)} · ${pctTxt(x.win_rate)}</td></tr>`;
+    }).join('');
+    return `<details class="sn-costs"><summary>Management test · shadow rules on Sentinel's own trades</summary>
+      <div class="sn-meta">Every Sentinel paper trade is also managed by these rules in parallel: same entry, same stop, same bars. It changes nothing Sentinel does. Green or red appears only once a difference is outside chance (95%).</div>
+      <table class="sn-tbl"><thead><tr><th>Rule</th><th>Trades</th><th>Per trade</th><th>vs Sentinel</th><th>Lost in full · in profit</th></tr></thead><tbody>${rows}</tbody></table></details>`;
+  }
+
+  // The trader's own positions: how they were managed.
+  function managedBlock() {
+    const m = last?.managed, st = m?.stats || {};
+    const serverOpen = (m?.records || []).filter(r => !r.closed && r.tracker === 'server').map(r => ({
+      label: r.label, side: r.side, pnl_now: r.pnl_now, peak_pnl: r.peak_pnl, locked_pnl: r.locked_pnl,
+      locked_r: r.locked_r, mfe_r: r.mfe_r, be_at: r.be_at, late: r.late, sentinel: !!r.sentinel_id, rule_break: r.rule_break,
+      stops: (r.events || []).filter(e => e.type === 'stop').length, server: true,
+    }));
+    const live = (typeof MGMT !== 'undefined' ? MGMT.openSummaries() : []).concat(serverOpen);
+    const recs = (m?.records || []).filter(r => r.closed).slice(0, 8);
+    if (!live.length && !recs.length && !ownerKey()) return '';
+    const openRows = live.map(o => `<div class="sn-card">
+        <div class="sn-row"><span class="sn-mk">${esc(o.label)}</span><span class="sn-chip ${o.side}">${o.side === 'buy' ? 'BUY' : 'SELL'}</span>
+          <span class="sn-chip ${o.be_at ? 'ev-proven' : ''}">${o.be_at ? (Number.isFinite(o.locked_pnl) && o.locked_pnl > 0.005 ? 'Risk free · profit locked' : 'Risk free · at breakeven') : 'At risk'}</span>
+          ${o.sentinel ? '<span class="sn-chip">from Sentinel</span>' : ''}${o.server ? '<span class="sn-chip">MT5 · tracked 24/7</span>' : ''}${o.rule_break ? `<span class="sn-chip ev-negative" title="Kept out of your management stats">Rule break · ${esc(o.rule_break)}</span>` : ''}</div>
+        <div class="sn-lv">
+          <div><span>Now</span><b>${money(o.pnl_now)}</b></div>
+          <div><span>Peak</span><b>${money(o.peak_pnl)}</b></div>
+          <div><span>Locked by stop</span><b>${o.be_at ? money(Math.max(0, o.locked_pnl || 0)) : '—'}</b></div>
+        </div>
+        <div class="sn-meta">${o.stops} stop move${o.stops === 1 ? '' : 's'}${Number.isFinite(o.locked_r) ? ` · locked ${o.locked_r >= 0 ? '+' : ''}${o.locked_r.toFixed(2)}R` : ''}${Number.isFinite(o.mfe_r) ? ` · peak ${o.mfe_r.toFixed(2)}R` : ''}${o.late ? ' · tracking began after entry, so the original stop (1R) is unknown' : ''}</div>
+      </div>`).join('');
+    const closedRows = recs.length ? `<table class="sn-tbl"><tbody>${recs.map(r => `<tr>
+        <td>${esc(r.label)} <span style="color:var(--tx-3)">${r.side === 'buy' ? 'L' : 'S'}</span></td>
+        <td><span class="sn-chip ${STAGE_CLS[r.stage] || ''}">${esc(r.stage || '—')}</span>${r.rule_break ? `<div class="sn-meta" style="color:var(--red-lt)">Rule break · ${esc(r.rule_break)}</div>` : ''}</td>
+        <td style="text-align:right">${money(r.pnl)}${Number.isFinite(r.exit_r) ? `<div class="sn-meta">${r.exit_r >= 0 ? '+' : ''}${r.exit_r.toFixed(2)}R · peak ${Number.isFinite(r.mfe_r) ? r.mfe_r.toFixed(2) + 'R' : '—'}</div>` : ''}${Number.isFinite(r.sentinel_r) ? `<div class="sn-meta">Sentinel ${r.sentinel_r >= 0 ? '+' : ''}${r.sentinel_r.toFixed(2)}R</div>` : ''}</td></tr>`).join('')}</tbody></table>` : '';
+    const vs = st.vs_sentinel;
+    const trackNote = m?.server_tracking ? '' : `<div class="sn-meta">MT5 trades are tracked only while this page is open. Open PROTrader once on the device where your MT5 bridge is set up to switch on 24/7 tracking.</div>`;
+    return `<div class="sn-h">Your trade management</div>${trackNote}
+      ${openRows}
+      ${st.n ? `<div class="sn-card"><div class="sn-meta">
+        ${st.n} closed · ${money(st.pnl_total)} · ${pctTxt(st.win_pct)} in profit<br>
+        Became risk free: <b>${pctTxt(st.risk_free_pct)}</b> · of those, closed in profit: <b>${pctTxt(st.risk_free_positive_pct)}</b>${Number.isFinite(st.capture_pct) ? ` · kept ${pctTxt(st.capture_pct)} of the peak on winners` : ''}
+        ${st.rule_breaks ? `<br><span style="color:var(--red-lt)">${st.rule_breaks.n} rule-break trade${st.rule_breaks.n === 1 ? '' : 's'} (${money(st.rule_breaks.pnl)}) kept out of these numbers</span>` : ''}
+        ${vs ? `<br>On ${vs.n} Sentinel setups: you ${vs.trader_avg_r >= 0 ? '+' : ''}${vs.trader_avg_r.toFixed(2)}R vs Sentinel's paper ${vs.sentinel_avg_r >= 0 ? '+' : ''}${vs.sentinel_avg_r.toFixed(2)}R per trade` : ''}
+        </div>${closedRows}</div>`
+        : `<div class="sn-empty">${ownerKey() ? 'Closed trades appear here with how they were managed: stop moves, when they became risk free, peak profit and the exit.' : 'Set your owner key (Choose markets) to keep this journal on the server.'}</div>`}`;
+  }
+
+  // ── Trading costs: replace spread estimates with quotes from the trader's
+  // own MT5 account. Uses the bridge's read-only "spec" command; nothing is
+  // traded. Each run adds one sample per market; the median is used.
+  let measuring = '';
+  function costBlock() {
+    const rows = last?.costs?.rows || [];
+    if (!rows.length) return '';
+    const bridge = typeof LIVE !== 'undefined' && LIVE.online && LIVE.online();
+    const pct = v => Number.isFinite(v) ? (v * 100).toFixed(v < 0.001 ? 4 : 3) + '%' : '—';
+    return `<details class="sn-costs"><summary>Trading costs · ${rows.filter(r => r.measured_pct).length}/${rows.length} measured on MT5</summary>
+      <table class="sn-tbl"><thead><tr><th>Market</th><th>Estimate</th><th>MT5</th><th>Samples</th></tr></thead><tbody>
+      ${rows.map(r => `<tr><td>${esc(label(r.market))}</td><td>${pct(r.estimate_pct)}</td>
+        <td>${r.measured_pct ? `<b style="color:var(--tx-1)">${pct(r.measured_pct)}</b>` : '—'}</td><td>${r.samples}</td></tr>`).join('')}
+      </tbody></table>
+      <div class="sn-meta" style="margin:6px 0">Spread as a share of price. Sentinel uses the MT5 median once a market has a sample. Spreads widen at rollover and around news, so measure a few times at the hours you trade.</div>
+      ${measuring ? `<div class="sn-warn">${esc(measuring)}</div>` : ''}
+      <button class="sn-btn sn-btn-2" ${bridge && !measuring ? '' : 'disabled'} onclick="SENT.measureCosts()">${bridge ? 'Measure spreads from MT5 now' : 'Connect the MT5 bridge (Trade tab) to measure'}</button>
+    </details>`;
+  }
+
+  async function measureCosts() {
+    if (measuring || typeof LIVE === 'undefined' || !LIVE.online()) return;
+    const ids = (last?.status?.markets || []).map(m => m.id);
+    const samples = [], missed = [];
+    for (let i = 0; i < ids.length; i++) {
+      const id = ids[i], name = LIVE.mt5Symbol(id);
+      measuring = `Asking MT5 for ${name} (${i + 1}/${ids.length})…`; render();
+      const r = await LIVE.send({ type: 'spec', symbol: name }, 9000);
+      if (r && r.ok && r.spec && r.spec.ask > 0 && r.spec.bid > 0) samples.push({ market: id, symbol: r.spec.symbol, bid: r.spec.bid, ask: r.spec.ask });
+      else missed.push(`${label(id)} (${(r && r.msg) || 'no reply'})`);
+    }
+    measuring = samples.length ? 'Saving…' : '';
+    render();
+    if (samples.length) {
+      try {
+        const res = await fetch(`${BOT_BASE}/api/sentinel/costs`, {
+          method:'POST', cache:'no-store', signal: AbortSignal.timeout(15000),
+          headers:{ 'Content-Type':'application/json', 'X-Sentinel-Key': ownerKey() },
+          body: JSON.stringify({ samples }),
+        });
+        const body = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(body.detail || ('HTTP ' + res.status));
+        last.costs = { rows: body.rows };
+        showToast(`Recorded ${body.recorded} MT5 spreads${missed.length ? ` · ${missed.length} not found` : ''}.`, 3600);
+      } catch (e) { showToast('Could not save spreads: ' + e.message + (/owner key/i.test(e.message) ? ' — set it under Choose markets.' : ''), 4200); }
+    }
+    if (missed.length) showToast('MT5 could not quote: ' + missed.join(', '), 5200);
+    measuring = ''; render();
+  }
+
+  function render() {
+    const el = document.getElementById('sentinel-panel');
+    if (!el || !last) return;
+    const { status, board, feed, stats } = last;
+    const ev = stats.evidence || {};
+    const base = stats.baseline || {}, bx = base.exec || {};
+    const live = stats.journal?.exec || {};
+    const proven = new Set(Object.entries(ev).filter(([, v]) => v === 'proven').map(([k]) => k.split(' ')[0])).size;
+    const running = status.running && status.last_cycle && (Date.now() / 1000 - status.last_cycle) < 1800;
+    const open = (feed.open || []).slice().sort((a, b) => b.opened_at - a.opened_at);
+    const closed = (feed.closed || []).slice(0, 8);
+
+    const baseTxt = bx.n
+      ? (base.model && base.model !== 'fixed'
+        ? `One-year replay of ARIA ${esc(base.model)} on real markets (${esc(base.period?.[0])} → ${esc(base.period?.[1])}): <b>${bx.n.toLocaleString()}</b> trades averaged <b>${bx.expectancy_r >= 0 ? '+' : ''}${bx.expectancy_r.toFixed(2)}R</b> each after estimated spreads; ${(bx.win_rate * 100).toFixed(0)}% closed in profit.`
+        : `One-year replay (${esc(base.period?.[0])} → ${esc(base.period?.[1])}): <b>${bx.n.toLocaleString()}</b> exec-ready signals averaged <b>${bx.expectancy_r >= 0 ? '+' : ''}${bx.expectancy_r.toFixed(2)}R</b> each after estimated spreads (win rate ${(bx.win_rate * 100).toFixed(1)}% vs ${(stats.model.breakeven_win_rate * 100).toFixed(1)}% break-even).`)
+      : 'No replay baseline loaded yet.';
+    const evTxt = proven
+      ? `<b>${proven}</b> market${proven === 1 ? '' : 's'} have a proven edge in both the replay and the live journal.`
+      : `<b>No market has a proven edge yet.</b> Treat every signal as a candidate to confirm with your own read, not a trade.`;
+
+    el.innerHTML = `<div class="sn">
+      <div class="sn-hd">
+        <span class="sn-dot ${running ? 'on' : status.enabled ? 'warn' : ''}"></span>
+        <span class="sn-title">ARIA SENTINEL</span>
+        <span class="sn-sub">${running ? `Reading ${status.markets.length} of ${cat ? cat.total : 89} markets · ${status.timeframes.join(' + ')}<br>last scan ${ago(status.last_cycle)}` : status.enabled ? 'Starting up…' : 'Scanner is off on this server'}</span>
+      </div>
+      ${status.journal && !status.journal.persistent ? `<div class="sn-warn">Journal is temporary: ${esc(status.journal.warning || 'it resets on every deploy')}.</div>` : ''}
+      <div class="sn-note">${status.model && status.model !== 'fixed' ? `<b>ARIA ${esc(status.model)} candidate</b> on paper: ARIA 8+/10 signals, taken only with the 4h trend and never on a completed Wave 5; stop −1R, trailing 1R once +1R. ` : ''}Paper only — Sentinel prepares, you confirm. ${evTxt}<br>${baseTxt}${status.news_week ? '<br><b>News Week is ON:</b> NAS100 shorts are blocked.' : ''}</div>
+
+      ${focusBlock(status)}
+
+      <div class="sn-h">Open setups · ${open.length}</div>
+      ${open.length ? open.map(t => tradeCard(t, ev[`${t.market} ${t.tf}`])).join('') : '<div class="sn-empty">No open setups. Sentinel checks every market at each 15-minute close.</div>'}
+
+      <div class="sn-h">Market board</div>
+      <table class="sn-tbl"><thead><tr><th>Market</th><th>ARIA</th><th>Score</th><th>Bias</th><th>Evidence</th></tr></thead><tbody>
+      ${(board.rows || []).map(b => `<tr class="go" onclick="SENT.chart('${esc(b.market)}','${esc(b.tf)}')" title="${esc(b.mcc)} · ${esc(b.wyckoff)}${b.elliott ? ' · EW ' + esc(b.elliott) + ' (soft)' : ''}">
+        <td><b style="color:var(--tx-1)">${esc(label(b.market))}</b> <span style="color:var(--tx-3)">${esc(b.tf)}${b.mode === 'synthetic' ? ' · syn' : ''}</span></td>
+        <td class="sn-v-${esc(b.verdict)}">${V_LABEL[b.verdict] || esc(b.verdict)}${b.block && (b.verdict === 'EXEC_READY' || b.verdict === 'QUALIFIED') ? `<div class="sn-meta" style="font-weight:600;color:var(--amber)">held: ${esc(b.block)}</div>` : ''}</td>
+        <td>${b.score}/${ARIA_GATE_COUNT}</td>
+        <td class="${b.dir === 'buy' ? 'sn-pos' : 'sn-neg'}">${b.dir === 'buy' ? 'Long' : 'Short'}${b.trend_4h ? `<div class="sn-meta">4h ${b.trend_4h === 'up' ? '↑' : b.trend_4h === 'down' ? '↓' : '→'}</div>` : ''}</td>
+        <td>${evChip(b.evidence)}</td></tr>`).join('') || '<tr><td colspan="5" class="sn-empty">Waiting for the first scan…</td></tr>'}
+      </tbody></table>
+
+      ${managedBlock()}
+
+      <div class="sn-h">Paper results · current model · all focus markets</div>
+      <div class="sn-card"><div class="sn-meta">${live.n
+        ? `${live.n} closed · average ${r(live.expectancy_r)} · total ${r(live.total_r)} · ${esc(live.verdict)}`
+        : 'No closed paper trades yet. Results appear here as Sentinel’s setups close.'}</div>
+      ${gradeBlock(stats.journal?.by_grade)}
+      ${paperStages(stats.journal?.management)}
+      ${shadowBlock(stats.journal?.shadow)}
+      ${closed.length ? `<table class="sn-tbl"><tbody>${closed.map(t => `<tr>
+        <td>${esc(label(t.market))} <span style="color:var(--tx-3)">${esc(t.tf)}</span></td>
+        <td class="${t.dir === 'buy' ? 'sn-pos' : 'sn-neg'}">${t.dir === 'buy' ? 'Long' : 'Short'} ${t.score}/${ARIA_GATE_COUNT} ${gradeChip(t.grade)}</td>
+        <td><span class="sn-chip ${STAGE_CLS[t.stage] || ''}">${esc(t.stage || t.status)}</span></td><td style="text-align:right">${r(t.r)}</td></tr>`).join('')}</tbody></table>` : ''}
+      </div>
+
+      ${costBlock()}
+
+      <details><summary>Replay evidence by market</summary>
+        <table class="sn-tbl"><thead><tr><th>Market</th><th>Trades</th><th>Avg R</th><th>95% range</th></tr></thead><tbody>
+        ${Object.entries(base.by_slice || {}).map(([k, s]) => `<tr><td>${esc(label(k.split(' ')[0]))} <span style="color:var(--tx-3)">${esc(k.split(' ')[1] || '')}</span></td><td>${s.n}</td><td>${r(s.expectancy_r)}</td><td>${s.ci95_r ? s.ci95_r.map(x => (x >= 0 ? '+' : '') + x.toFixed(2)).join(' … ') : '—'}</td></tr>`).join('')}
+        </tbody></table>
+        <div class="sn-meta" style="margin-top:6px">${esc(base.notes || '')} A market is marked proven only when both the replay and ${stats.model.evidence_min_trades}+ live paper trades (ARIA ${esc(stats.model.engine)}) stay above zero even at ${stats.model.evidence_z}× the standard error, a 95% test corrected for the ${stats.model.slices} market-timeframes being watched.</div>
+      </details>
+    </div>`;
+  }
+
+  async function refresh() {
+    if (busy) return;
+    busy = true;
+    try {
+      const [status, board, feed, stats, costs] = await Promise.all([get('status'), get('board'), get('feed?limit=30'), get('stats'), get('costs').catch(() => null)]);
+      let managed = null;
+      if (ownerKey()) {
+        try {
+          const res = await fetch(`${BOT_BASE}/api/sentinel/managed`, { cache: 'no-store', signal: AbortSignal.timeout(15000), headers: { 'X-Sentinel-Key': ownerKey() } });
+          if (res.ok) managed = await res.json();
+        } catch (_) {}
+      }
+      if (!cat) get('markets').then(c => { c.byId = {}; c.groups.forEach(g => g.markets.forEach(m => { c.byId[m.id] = m; })); cat = cat || c; render(); }).catch(() => {});
+      last = { status, board, feed, stats, costs, managed };
+      render();
+    } catch (e) {
+      const el = document.getElementById('sentinel-panel');
+      if (el && !last) el.innerHTML = `<div class="pos-empty">Sentinel is not reachable on this server (${esc(e.message)}).</div>`;
+    } finally { busy = false; }
+  }
+
+  function open() {
+    refresh();
+    clearInterval(timer);
+    timer = setInterval(() => {
+      if (document.getElementById('sentinelPane')?.classList.contains('active') && !document.hidden) refresh();
+      else { clearInterval(timer); timer = null; }
+    }, 30000);
+  }
+
+  function chart(market, tf) {
+    if (!PAIR_MAP[market]) return;
+    if (S.sym !== market) selectPair(market);
+    if (S.tf !== tf) {
+      const btn = [...document.querySelectorAll('.tf-btn')].find(b => (b.getAttribute('onclick') || '').includes(`'${tf}'`));
+      setTF(tf, btn || null);
+    }
+  }
+
+  function load(id) {
+    const t = (last?.feed?.open || []).find(x => x.id === id);
+    if (!t) return showToast('That setup has closed — refreshing Sentinel.', 2600), refresh();
+    const d = drift(t);
+    if (d?.dead) return;
+    MGMT.link(t);                      // the next matching fill is this setup
+    chart(t.market, t.tf);
+    if (t.model && t.model !== 'fixed') {
+      // 7.2 candidate: no fixed target. Fill the stop only; the plan is to
+      // trail it 1R behind the best price once the trade reaches +1R.
+      applyARIA(Number.isFinite(t.stop) ? t.stop : t.sl, NaN, t.dir);
+      showToast(`Stop filled. ARIA 7.2 candidate: no fixed target — once +1R (${px(t.market, t.entry + (t.dir === 'buy' ? 1 : -1) * t.sl_dist)}), trail the stop 1R behind the best price.`, 6500);
+    } else {
+      applyARIA(t.sl, t.tp2, t.dir);   // fills the ticket and opens the Trade tab; the trader still decides
+    }
+  }
+
+  return { open, refresh, load, chart, editFocus, toggle, toggleTf, saveFocus, cancelFocus, measureCosts };
+})();
+
+/* ════════════════════════════════════════════════════════════
+   TRADE MANAGEMENT JOURNAL
+   Watches the trader's own positions (paper and MT5) and records how each
+   was MANAGED, not just whether it hit the final target: initial stop, every
+   stop move, when it became risk free, partials, peak profit, the exit.
+   A position opened from Sentinel's "Load setup" is linked to Sentinel's
+   paper trade, so the system's part and the trader's part can be compared.
+   Stored on this device and, with the owner key, on the server.
+════════════════════════════════════════════════════════════ */
+const MGMT = {
+  KEY: 'protrader.mgmt.v1', LINK_KEY: 'protrader.mgmt.link',
+  recs: {}, dirty: new Set(), _last: 0, _sync: 0,
+  serverMt5: false, _bindTried: 0, _linked: {},
+
+  start() {
+    try { this.recs = JSON.parse(localStorage.getItem(this.KEY) || '{}') || {}; } catch (_) { this.recs = {}; }
+    setInterval(() => this.observe(), 2000);
+    setInterval(() => this.push(), 15000);
+  },
+
+  // Once per session: tell the server which bridge channel is the owner's MT5
+  // account, so it tracks MT5 management 24/7 without this page open.
+  async bind() {
+    const key = this.ownerKey();
+    if (this.serverMt5 || !key || typeof LIVE === 'undefined' || !LIVE.key) return;
+    if (Date.now() - this._bindTried < 60000) return;
+    this._bindTried = Date.now();
+    try {
+      const res = await fetch(`${BOT_BASE}/api/sentinel/managed/bind`, {
+        method: 'POST', cache: 'no-store', signal: AbortSignal.timeout(15000),
+        headers: { 'Content-Type': 'application/json', 'X-Sentinel-Key': key, 'X-Bridge-Key': LIVE.key },
+        body: '{}',
+      });
+      if (res.ok) {
+        this.serverMt5 = true;
+        // The server owns MT5 records from now on; drop local copies of open ones.
+        Object.keys(this.recs).forEach(k => { if (k.startsWith('mt5:') && !this.recs[k].closed) delete this.recs[k]; });
+        this.save();
+      }
+    } catch (_) {}
+  },
+
+  // Server-tracked MT5 position just appeared: attach a pending Sentinel setup.
+  async linkServer(p) {
+    if (this._linked[p.key]) return;
+    this._linked[p.key] = 1;
+    const lk = this.takeLink(null, p.symbol, p.side);
+    if (!lk) return;
+    try {
+      await fetch(`${BOT_BASE}/api/sentinel/managed/link`, {
+        method: 'POST', cache: 'no-store', signal: AbortSignal.timeout(15000),
+        headers: { 'Content-Type': 'application/json', 'X-Sentinel-Key': this.ownerKey() },
+        body: JSON.stringify({ key: p.key, sentinel_id: lk.id, sl: lk.sl, sl_dist: lk.sl_dist, model: lk.model }),
+      });
+    } catch (_) {}
+  },
+  save() { try { localStorage.setItem(this.KEY, JSON.stringify(this.recs)); } catch (_) {} },
+  ownerKey() { try { return localStorage.getItem('protrader.sentinelKey') || ''; } catch (_) { return ''; } },
+
+  // Called by Sentinel's "Load setup": the next matching fill is this setup.
+  link(t) {
+    const l = { id: t.id, market: t.market, dir: t.dir, entry: t.entry, sl: t.sl, sl_dist: t.sl_dist, model: t.model, at: Date.now() };
+    try { localStorage.setItem(this.LINK_KEY, JSON.stringify(l)); } catch (_) {}
+  },
+  takeLink(appId, mt5Sym, side) {
+    let l = null;
+    try { l = JSON.parse(localStorage.getItem(this.LINK_KEY) || 'null'); } catch (_) {}
+    if (!l || Date.now() - l.at > 20 * 60000) return null;
+    const same = l.market === appId || (typeof LIVE !== 'undefined' && mt5Sym && LIVE.mt5Symbol(l.market) === mt5Sym);
+    if (!same || l.dir !== side) return null;
+    try { localStorage.removeItem(this.LINK_KEY); } catch (_) {}
+    return l;
+  },
+
+  livePositions() {
+    const out = [];
+    TR.positions.forEach(p => {
+      const q = otQuote(p.symbol);
+      const px = q.ok ? (p.side === 'buy' ? q.bid : q.ask) : null;
+      out.push({ key: 'paper:' + p.id, src: 'paper', appId: p.symbol, symbol: p.symbol, label: p.label,
+                 side: p.side, volume: p.volume, entry: p.entry, sl: p.sl, tp: p.tp, price: px, sl0: p.sl0 ?? null,
+                 pnl: px != null ? otPnl(p.side, p.entry, px, p.volume, p.symbol) : null, openTime: p.openTime });
+    });
+    const online = typeof LIVE !== 'undefined' && LIVE.online && LIVE.online();
+    const snap = online ? LIVE.snap() : null;
+    (snap && snap.positions || []).forEach(p => {
+      out.push({ key: 'mt5:' + p.ticket, src: 'mt5', appId: null, symbol: p.symbol, label: p.symbol,
+                 side: p.side, volume: +p.volume, entry: +p.entry, sl: p.sl > 0 ? +p.sl : null, tp: p.tp > 0 ? +p.tp : null,
+                 price: +p.price, pnl: +p.profit, openTime: p.time ? p.time * 1000 : null });
+    });
+    return { out, mt5Visible: !!snap };
+  },
+
+  observe() {
+    const now = Date.now();
+    this.bind();
+    const { out, mt5Visible } = this.livePositions();
+    const seen = new Set();
+    out.forEach(p => {
+      if (p.src === 'mt5' && this.serverMt5) { this.linkServer(p); return; }   // server tracks MT5
+      seen.add(p.key);
+      let r = this.recs[p.key];
+      if (!r) {
+        const late = p.openTime ? now - p.openTime > 90000 : false;
+        const lk = this.takeLink(p.appId, p.src === 'mt5' ? p.symbol : null, p.side);
+        r = this.recs[p.key] = {
+          key: p.key, src: p.src, symbol: p.symbol, label: p.label, side: p.side, entry: p.entry,
+          opened: p.openTime || now, first_seen: now, late,
+          initial_sl: lk ? lk.sl : (p.sl0 != null ? p.sl0 : (late ? null : p.sl)), r_dist: null,
+          sentinel_id: lk ? lk.id : null, sentinel_model: lk ? lk.model : null,
+          events: [{ t: now, type: late ? 'joined' : 'open', sl: p.sl, tp: p.tp, volume: p.volume, price: p.price }],
+          sl: p.sl, tp: p.tp, volume: p.volume, max_volume: p.volume,
+          be_at: null, lock_at: null, locked_r: null, locked_pnl: null,
+          mfe_price: p.price, peak_pnl: p.pnl, pnl_now: p.pnl, closed: null,
+        };
+        if (lk && lk.sl_dist > 0) r.r_dist = lk.sl_dist;
+        else if (r.initial_sl != null) r.r_dist = Math.abs(p.entry - r.initial_sl);
+        this.dirty.add(p.key);
+      }
+      const s = p.side === 'buy' ? 1 : -1;
+      // First stop set after entry (no stop at fill) defines 1R.
+      if (r.r_dist == null && p.sl != null && !r.late && s * (p.sl - p.entry) < 0) {
+        r.initial_sl = p.sl; r.r_dist = Math.abs(p.entry - p.sl);
+      }
+      if (!r.rule_checked && !r.late) this.ruleCheck(r, p, now);
+      if (p.sl !== r.sl) {
+        r.events.push({ t: now, type: 'stop', from: r.sl, to: p.sl, price: p.price, pnl: p.pnl });
+        r.sl = p.sl; this.dirty.add(p.key);
+      }
+      if (p.tp !== r.tp) { r.events.push({ t: now, type: 'target', from: r.tp, to: p.tp }); r.tp = p.tp; this.dirty.add(p.key); }
+      if (p.volume < r.volume - 1e-9) {
+        r.events.push({ t: now, type: 'partial', closed: +(r.volume - p.volume).toFixed(6), price: p.price, pnl: p.pnl });
+        this.dirty.add(p.key);
+      }
+      r.volume = p.volume;
+      if (p.price != null && (r.mfe_price == null || s * (p.price - r.mfe_price) > 0)) r.mfe_price = p.price;
+      if (p.pnl != null) { r.pnl_now = p.pnl; if (r.peak_pnl == null || p.pnl > r.peak_pnl) r.peak_pnl = p.pnl; }
+      // Protection: stop at breakeven or better.
+      if (p.sl != null && s * (p.sl - p.entry) >= -1e-9) {
+        if (!r.be_at) { r.be_at = now; r.events.push({ t: now, type: 'risk_free', sl: p.sl }); this.dirty.add(p.key); }
+        const lockedR = r.r_dist > 0 ? s * (p.sl - p.entry) / r.r_dist : null;
+        if (lockedR != null && (r.locked_r == null || lockedR > r.locked_r)) r.locked_r = +lockedR.toFixed(3);
+        // Money locked in by the stop, estimated from the live P&L per unit of price.
+        if (p.pnl != null && p.price != null && p.price !== p.entry) {
+          const lp = p.pnl * (p.sl - p.entry) / (p.price - p.entry);
+          if (Number.isFinite(lp) && (r.locked_pnl == null || lp > r.locked_pnl)) r.locked_pnl = +lp.toFixed(2);
+        }
+        if (s * (p.sl - p.entry) > 0 && !r.lock_at) r.lock_at = now;
+      }
+      if (r.r_dist > 0 && r.mfe_price != null) r.mfe_r = +(s * (r.mfe_price - r.entry) / r.r_dist).toFixed(3);
+    });
+
+    // Positions that disappeared have closed.
+    Object.values(this.recs).forEach(r => {
+      if (r.closed || seen.has(r.key)) return;
+      if (r.src === 'mt5' && (!mt5Visible || this.serverMt5)) return;   // cannot see MT5 / server owns it
+      const exit = this.exitFor(r);
+      if (!exit) { if (now - (r._gone || (r._gone = now)) < 60000) return; }   // give history a minute
+      const s = r.side === 'buy' ? 1 : -1;
+      r.closed = now;
+      r.exit_price = exit ? exit.price : null;
+      r.pnl = exit ? exit.pnl : r.pnl_now;
+      r.exit_reason = exit ? exit.reason : 'Unknown';
+      r.exit_r = r.r_dist > 0 && r.exit_price != null ? +(s * (r.exit_price - r.entry) / r.r_dist).toFixed(3) : null;
+      // A stop that fills at or beyond entry was a protected stop, even if it
+      // was moved and hit between two observations.
+      if (!r.be_at && /stop/i.test(r.exit_reason) && r.exit_price != null && s * (r.exit_price - r.entry) >= -1e-9) {
+        r.be_at = now; r.events.push({ t: now, type: 'risk_free', sl: r.exit_price });
+      }
+      r.stage = this.stage(r);
+      r.events.push({ t: now, type: 'close', price: r.exit_price, pnl: r.pnl, reason: r.exit_reason });
+      this.dirty.add(r.key);
+    });
+    // Keep the store bounded: newest 300.
+    const keys = Object.keys(this.recs);
+    if (keys.length > 300) keys.sort((a, b) => (this.recs[a].opened || 0) - (this.recs[b].opened || 0)).slice(0, keys.length - 300).forEach(k => delete this.recs[k]);
+    if (this.dirty.size || now - this._last > 30000) { this.save(); this._last = now; }
+  },
+
+  exitFor(r) {
+    if (r.src === 'paper') {
+      const id = +r.key.split(':')[1];
+      const rows = (S.trades || []).filter(t => t.id === id);
+      if (!rows.length) return null;
+      const last = rows[rows.length - 1];
+      return { price: last.exit, pnl: rows.reduce((a, t) => a + (t.pnl || 0), 0), reason: last.reason || 'Manual' };
+    }
+    const h0 = typeof LIVE !== 'undefined' && LIVE.state && LIVE.state.history;
+    const hist = (h0 && Array.isArray(h0.deals)) ? h0.deals : [];
+    const t = r.key.split(':')[1];
+    const rows = hist.filter(h => h.kind === 'trade' && String(h.ticket) === t);
+    if (!rows.length) return null;
+    return { price: +rows[0].exit, pnl: rows.reduce((a, h) => a + (+h.profit || 0), 0), reason: rows[0].reason || 'Manual' };
+  },
+
+  // How the trade was managed, not only whether it hit the target.
+  stage(r) {
+    const pnl = r.pnl || 0;
+    const flat = r.r_dist > 0 && r.exit_r != null ? Math.abs(r.exit_r) <= 0.1 : Math.abs(pnl) < 0.5;
+    if (/take profit/i.test(r.exit_reason || '')) return 'Full winner';
+    if (r.be_at) return flat ? 'Protected flat' : pnl > 0 ? 'Managed winner' : 'Protected loss';
+    if (flat) return 'Scratch';
+    return pnl > 0 ? 'Unprotected winner' : 'Full loser';
+  },
+
+  // Live description of an open tracked position, for the Sentinel pane.
+  /* A trade that broke the risk rules (no stop within a minute, or more than
+     1% of the account at its first stop) is flagged. It stays in the journal
+     but out of the management stats — same rule as the server. */
+  ruleCheck(r, p, now) {
+    if (r.r_dist == null) {
+      if (now - (r.opened || now) > 60000) { r.rule_break = 'no stop loss'; r.rule_checked = true; this.dirty.add(r.key); }
+      return;
+    }
+    let risk = null, eq = null;
+    if (p.src === 'paper') {
+      const v = otPnl(p.side, p.entry, p.entry - (p.side === 'buy' ? 1 : -1) * r.r_dist, p.volume, p.symbol);
+      risk = v != null ? Math.abs(v) : null; eq = S.balance;
+    } else {
+      if (p.price != null && Math.abs(p.price - p.entry) > 1e-12 && p.pnl) risk = Math.abs(p.pnl / (p.price - p.entry)) * r.r_dist;
+      const a = typeof LIVE !== 'undefined' && LIVE.acct ? LIVE.acct() : null; eq = a ? (+a.equity || +a.balance) : null;
+    }
+    if (!(risk > 0 && eq > 0)) return;
+    const pct = 100 * risk / eq;
+    r.risk_pct = +pct.toFixed(2); r.rule_checked = true;
+    if (pct > 1.05) r.rule_break = `risked ${pct.toFixed(1)}% (limit 1%)`;
+    this.dirty.add(r.key);
+  },
+
+  openSummaries() {
+    return Object.values(this.recs).filter(r => !r.closed).map(r => ({
+      label: r.label, side: r.side, pnl_now: r.pnl_now, peak_pnl: r.peak_pnl, locked_pnl: r.locked_pnl,
+      locked_r: r.locked_r, mfe_r: r.mfe_r, be_at: r.be_at, late: r.late, sentinel: !!r.sentinel_id, rule_break: r.rule_break,
+      stops: r.events.filter(e => e.type === 'stop').length,
+    }));
+  },
+
+  async push() {
+    const key = this.ownerKey();
+    if (!key || !this.dirty.size) return;
+    const records = [...this.dirty].map(k => this.recs[k]).filter(Boolean).slice(0, 150);
+    try {
+      const res = await fetch(`${BOT_BASE}/api/sentinel/managed`, {
+        method: 'POST', cache: 'no-store', signal: AbortSignal.timeout(15000),
+        headers: { 'Content-Type': 'application/json', 'X-Sentinel-Key': key },
+        body: JSON.stringify({ records }),
+      });
+      if (res.ok) records.forEach(r => this.dirty.delete(r.key));
+    } catch (_) { /* try again next round */ }
+  },
+};
 
 /* ════════════════════════════════════════════════════════════
    PANEL NAVIGATION

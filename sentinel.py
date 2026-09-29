@@ -166,6 +166,12 @@ def _restore_book() -> core.PaperBook:
         d["mode"] = LEGACY_MODE.get(d.get("mode"), d.get("mode"))
         t = core.Trade(**d)
         book.open[(t.market, t.tf)] = t
+    # closed model trades whose shadow exit rules are still running
+    for d in _load_trades("WHERE status!='open' AND closed_at > ?", (int(time.time()) - 30 * 86400,), limit=500):
+        if any(v.get("state") == "open" for v in (d.get("shadow") or {}).values()):
+            d["mode"] = LEGACY_MODE.get(d.get("mode"), d.get("mode"))
+            t = core.Trade(**d)
+            book.shadowing[t.id] = t
     return book
 
 
@@ -193,7 +199,7 @@ def _alert_open(t: core.Trade) -> None:
         return
     ev = _evidence().get(f"{t.market} {t.tf}", {}).get("status", "unproven")
     _telegram(
-        f"ARIA Sentinel · {m.label}{' (synthetic)' if m.mode == 'synthetic' else ''} {t.tf} · {t.dir.upper()} {t.score}/{core.eng.GATE_COUNT}\n"
+        f"ARIA Sentinel · {(t.grade + ' setup · ') if t.grade in ('A', 'A+') else ''}{m.label}{' (synthetic)' if m.mode == 'synthetic' else ''} {t.tf} · {t.dir.upper()} {t.score}/{core.eng.GATE_COUNT}\n"
         f"{'EW ' + t.elliott + ' (soft) · ' if t.elliott else ''}"
         + (f"Entry {_fmt_px(t.entry)} · SL {_fmt_px(t.sl)} · TP {_fmt_px(t.tp2)}\n" if t.model == "fixed" else
            f"Entry {_fmt_px(t.entry)} · SL {_fmt_px(t.sl)} · no fixed target: at +1R trail the stop 1R behind the best price\n"
@@ -289,9 +295,13 @@ async def _scan_one(m: core.Market, tf: str, focused: bool = True) -> None:
     bars = (await core.fetch_candles(m.deriv, tf, 5000))[-(core.WINDOW + 10):]
     if len(bars) < core.WINDOW // 2:
         return
-    for t in _book.update(m.id, tf, bars):
+    closed_now = _book.update(m.id, tf, bars)
+    for t in closed_now:
         _save_trade(t)
         _alert_close(t)
+    for t in _book.update_shadows(m.id, tf, bars):
+        if t not in closed_now:
+            _save_trade(t)
     last = bars[-1]
     if not focused:          # dropped from focus: only finish its open trade
         t = _book.open.get((m.id, tf))
@@ -346,7 +356,8 @@ async def _loop() -> None:
         wanted = {(f["id"], tf) for f in focus for tf in f["tfs"]}
         # Slices dropped from focus keep being read until their paper trade
         # finishes, so no result is lost by editing the list.
-        jobs = sorted(wanted | set(_book.open), key=lambda x: (x[0] not in [f["id"] for f in focus], x))
+        shadow_keys = {(t.market, t.tf) for t in _book.shadowing.values()}
+        jobs = sorted(wanted | set(_book.open) | shadow_keys, key=lambda x: (x[0] not in [f["id"] for f in focus], x))
         for mid, tf in jobs:
             m = core.MARKET_BY_ID.get(mid)
             if m and tf in core.TF_SEC:
@@ -592,6 +603,8 @@ def feed(limit: int = 40) -> dict:
         t["mode"] = LEGACY_MODE.get(t.get("mode"), t.get("mode"))
     for t in closed:
         t["stage"] = core.stage_of(t)
+    for t in open_ + closed:
+        t["grade"] = t.get("grade") or core.grade_of(t)
     return {"open": open_, "closed": closed}
 
 
@@ -614,6 +627,8 @@ def stats() -> dict:
             "by_elliott": core.group_stats([t for t in trades if t["tier"] == "exec"],
                                            lambda t: t.get("elliott") or "no count"),
             "management": core.management_stats(trades),
+            "shadow": core.shadow_stats(trades),
+            "by_grade": core.group_stats(trades, lambda t: t.get("grade") or core.grade_of(t)),
             "older_rules": len(all_trades) - len(trades),
         },
         "baseline": {k: base.get(k) for k in ("generated", "period", "notes", "all", "exec", "by_slice",
@@ -643,11 +658,38 @@ def _managed_rows() -> list[dict]:
     return [json.loads(r[0]) for r in rows]
 
 
+RISK_LIMIT_PCT = 1.0      # the framework's per-trade limit
+RULE_TOLERANCE = 1.05     # lot steps round; 1.05% still counts as within 1%
+
+
+def rule_break(r: dict, equity: Optional[float], risk_money: Optional[float], now_ms: int) -> None:
+    """Mark a position that broke the risk rules: no stop within a minute of
+    opening, or more than 1% of the account lost at its first stop. Such
+    trades are counted, and shown, but kept out of the management stats so
+    one oversized mistake cannot drown out the real record."""
+    if r.get("rule_checked") or r.get("late"):
+        return
+    if r.get("r_dist") is None:
+        if now_ms - int(r.get("opened") or now_ms) > 60_000:
+            r["rule_break"], r["rule_checked"] = "no stop loss", True
+        return
+    if not (equity and equity > 0 and risk_money and risk_money > 0):
+        return
+    pct = 100 * risk_money / equity
+    r["risk_pct"] = round(pct, 2)
+    r["rule_checked"] = True
+    if pct > RISK_LIMIT_PCT * RULE_TOLERANCE:
+        r["rule_break"] = f"risked {pct:.1f}% (limit {RISK_LIMIT_PCT:g}%)"
+
+
 def _managed_stats(recs: list[dict]) -> dict:
-    done = [r for r in recs if r.get("closed")]
+    done_all = [r for r in recs if r.get("closed")]
+    broke = [r for r in done_all if r.get("rule_break")]
+    rb = {"n": len(broke), "pnl": round(sum(r.get("pnl") or 0 for r in broke), 2)} if broke else None
+    done = [r for r in done_all if not r.get("rule_break")]
     n = len(done)
     if not n:
-        return {"n": 0, "open": sum(1 for r in recs if not r.get("closed"))}
+        return {"n": 0, "open": sum(1 for r in recs if not r.get("closed")), "rule_breaks": rb}
     stages: dict[str, int] = {}
     for r in done:
         stages[r.get("stage") or "Unclassified"] = stages.get(r.get("stage") or "Unclassified", 0) + 1
@@ -657,7 +699,7 @@ def _managed_stats(recs: list[dict]) -> dict:
     pnl = [r.get("pnl") or 0 for r in done]
     linked = [r for r in with_r if isinstance(r.get("sentinel_r"), (int, float))]
     return {
-        "n": n, "open": sum(1 for r in recs if not r.get("closed")), "stages": stages,
+        "n": n, "open": sum(1 for r in recs if not r.get("closed")), "stages": stages, "rule_breaks": rb,
         "pnl_total": round(sum(pnl), 2),
         "win_pct": round(sum(1 for x in pnl if x > 0) / n, 4),
         "risk_free_pct": round(len(prot) / n, 4),
@@ -829,6 +871,14 @@ def _mt5_track(cid: str, snap: dict, deals) -> None:
                 r["lock_at"] = t_ms
         if r.get("r_dist"):
             r["mfe_r"] = round(s * (r["mfe_price"] - entry) / r["r_dist"], 3)
+        if not r.get("rule_checked"):
+            # money per unit of price from the live P&L (linear), times the 1R distance
+            per = abs(pnl / (price - entry)) if abs(price - entry) > 1e-12 and pnl else None
+            acct = (snap or {}).get("account") or {}
+            eq = _num_or_none(acct.get("equity")) or _num_or_none(acct.get("balance"))
+            was = r.get("rule_break")
+            rule_break(r, eq, per * r["r_dist"] if per and r.get("r_dist") else None, t_ms)
+            dirty = dirty or r.get("rule_break") != was
         r["_saved"] = r.get("_saved", 0)
         if dirty or t_ms - r["_saved"] > 30_000:
             r["_saved"] = t_ms

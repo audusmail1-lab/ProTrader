@@ -104,6 +104,81 @@ def test_trailing_records_protection():
     assert core.stage_of(t.to_dict()) == "Managed winner"
 
 
+def test_shadow_rules_run_beside_the_model_and_outlive_it():
+    t = trade()                      # buy 100, stop 98, 1R = 2
+    t.model = "7.2c"; t.stop = t.sl
+    t.shadow = core.shadow_init(t.entry, t.sl, [bar(0, 100, 100.4, 99.6, 100), bar(0, 100, 100.3, 99.7, 100)])
+    b = book_with(t)
+    T = core.shadow_rules()["usd100"]["trig"]
+    assert abs(T - 0.271) < 0.001                       # $100 on $36.9k at 1% risk
+    seq = [bar(900, 100, 101.0, 99.9, 100.9),          # +0.5R: $100 rule protects and trails
+           bar(1800, 100.9, 102.2, 100.9, 102.1),      # +1.1R: 7.2c arms; structure arms
+           bar(2700, 102.1, 102.3, 101.5, 101.6),
+           bar(3600, 101.6, 101.7, 101.2, 101.3),
+           bar(4500, 101.3, 101.4, 101.0, 101.2),      # swing low 101.0 ...
+           bar(5400, 101.2, 101.5, 101.3, 101.4),
+           bar(6300, 101.4, 101.8, 101.6, 101.7),      # ... confirmed here -> stop 101 - 0.133
+           bar(7200, 101.7, 101.8, 100.1, 100.6)]      # drop: 7.2c, $100 and structure all stopped
+    for i in range(len(seq)):
+        b.update("frxXAUUSD", "15m", seq[:i + 1])
+        b.update_shadows("frxXAUUSD", "15m", seq[:i + 1])
+    u, st, h = t.shadow["usd100"], t.shadow["structure"], t.shadow["hold"]
+    assert u["state"] == "closed" and u["protected_at"] and 0 < u["gross"] < 1.1, u
+    assert st["state"] == "closed" and abs(st["gross"] - (101.0 - 0.1 * 2 / 1.5 - 100) / 2) < 1e-3, st
+    assert t.status != "open"                           # the model trade closed too
+    assert h["state"] == "open" and t.id in b.shadowing  # hold still running after the model closed
+    more = seq + [bar(8100, 100.6, 105.2, 100.5, 105.0)]
+    b.update_shadows("frxXAUUSD", "15m", more)
+    assert h["state"] == "closed" and h["gross"] == 2.5 and t.id not in b.shadowing
+    st_ = core.shadow_stats([t.to_dict()])
+    assert st_["hold"]["n"] == 1 and st_["usd100"]["n"] == 1 and st_["hold"]["reached_2_5r_pct"] == 1.0
+
+
+def _hybrid_run(seq):
+    t = trade(); t.model = "7.2c"; t.stop = t.sl
+    t.shadow = core.shadow_init(t.entry, t.sl, [bar(0, 100, 100.4, 99.6, 100), bar(0, 100, 100.3, 99.7, 100)])
+    b = book_with(t)
+    for i in range(len(seq)):
+        b.update("frxXAUUSD", "15m", seq[:i + 1])
+        b.update_shadows("frxXAUUSD", "15m", seq[:i + 1])
+    return t.shadow["hybrid"]
+
+
+def test_hybrid_follows_a_swing_after_1R():
+    h = _hybrid_run([bar(900, 100, 102.2, 99.9, 102.1),        # +1.1R: armed
+                     bar(1800, 102.1, 102.3, 101.4, 101.5),
+                     bar(2700, 101.5, 101.6, 100.9, 101.0),
+                     bar(3600, 101.0, 101.2, 100.7, 100.9),    # swing low 100.7 (above +0.3R = 100.6)
+                     bar(4500, 100.9, 101.5, 101.0, 101.4),
+                     bar(5400, 101.4, 101.8, 101.1, 101.7),    # confirmed -> stop 100.7 - 0.133
+                     bar(6300, 101.7, 101.7, 100.2, 100.3)])
+    assert h["state"] == "closed" and abs(h["gross"] - (100.7 - 0.1 * 2 / 1.5 - 100) / 2) < 1e-3, h
+
+
+def test_hybrid_breakeven_when_no_swing_confirms():
+    h = _hybrid_run([bar(900, 100, 102.2, 99.9, 102.1)] +
+                    [bar(900 * (k + 2), 102 + k * .3, 102.4 + k * .3, 101.9 + k * .3, 102.3 + k * .3) for k in range(4)] +
+                    [bar(900 * 6, 103, 103.1, 99.5, 99.6)])
+    assert h["fb"] and h["state"] == "closed" and h["gross"] == 0.0, h
+
+
+def test_hybrid_breakeven_on_fall_back_to_0_3R():
+    h = _hybrid_run([bar(900, 100, 102.2, 99.9, 102.1),
+                     bar(1800, 102.1, 102.2, 100.5, 100.6),      # back below +0.3R: stop -> entry
+                     bar(2700, 100.6, 100.8, 99.0, 99.2)])
+    assert h["fb"] and h["state"] == "closed" and h["gross"] == 0.0, h
+
+
+def test_setup_grades():
+    base = {"market": "frxXAUUSD", "tf": "15m", "dir": "buy", "score": 8, "trend_4h": "up", "elliott": None}
+    assert core.grade_of(base) == "A"
+    assert core.grade_of({**base, "score": 9}) == "A+"
+    assert core.grade_of({**base, "trend_4h": "flat"}) == "other"
+    assert core.grade_of({**base, "elliott": "Wave 5 up"}) == "other"
+    assert core.grade_of({**base, "market": "frxEURUSD"}) == "other"
+    assert core.grade_of({**base, "tf": "1h", "market": "cryBTCUSD", "dir": "sell", "trend_4h": "down", "score": 10}) == "A+"
+
+
 if __name__ == "__main__":
     for name, fn in list(globals().items()):
         if name.startswith("test_"):
