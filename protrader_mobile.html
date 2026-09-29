@@ -7302,14 +7302,20 @@ const OT = {
     if (!TR.positions.length) return;
     let moved = false;
     const EPS = 1e-9;
+    // One excursion window per symbol, shared by every position on it and
+    // consumed only once all of them have been judged against it. A position
+    // that is mid-close is skipped and keeps the window alive for its retry.
+    const windows = {}, keep = new Set();
+    const peek = id => { if (!(id in windows)) { const c = XQ.q[id]; windows[id] = c ? { hiBid: c.hiBid, loBid: c.loBid, hiAsk: c.hiAsk, loAsk: c.loAsk } : null; } return windows[id]; };
     TR.positions.slice().forEach(p => {
       if (onlyId && p.symbol !== onlyId) return;
+      if (p._closing) { keep.add(p.symbol); return; }
       const q = otQuote(p.symbol);
-      if (!q.ok || q.stale) return;
+      if (!q.ok || q.stale) { keep.add(p.symbol); return; }
       const px = p.side === 'buy' ? q.bid : q.ask;
       const sl0 = p.sl;                        // to tell whether this pass moved the stop
       // the path since the last evaluation: a spike through a level counts
-      const x = q.exec ? XQ.take(p.symbol) : null;
+      const x = q.exec ? peek(p.symbol) : null;
       const hi = x ? (p.side === 'buy' ? x.hiBid : x.hiAsk) : px;
       const lo = x ? (p.side === 'buy' ? x.loBid : x.loAsk) : px;
       if (p.sl0 === undefined) {
@@ -7349,6 +7355,7 @@ const OT = {
         this.closePosition(p.id, null, 'Take profit', better, false, { q, x });
       }
     });
+    Object.keys(windows).forEach(id => { if (!keep.has(id)) XQ.take(id); });
     if (moved) {
       this.save();
       const now = Date.now();
