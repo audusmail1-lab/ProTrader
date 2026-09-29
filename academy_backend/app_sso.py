@@ -82,6 +82,7 @@ def login_get(handler) -> None:
     q = parse_qs(urlsplit(handler.path).query)
     state = (q.get('state') or [''])[0]
     challenge = (q.get('challenge') or [''])[0]
+    fresh = (q.get('prompt') or [''])[0] == 'login'     # "Add another account": always ask
     if not app.app_url:
         raise handler.api_error(503, 'The PROTrader app address is not configured.')
     if not TOKEN.fullmatch(state) or not TOKEN.fullmatch(challenge):
@@ -90,8 +91,10 @@ def login_get(handler) -> None:
         user = handler.user()
     except handler.api_error:
         user = None
-    if not user:
-        return handler.output(PAGE, content_type='text/html; charset=utf-8')
+    if not user or fresh:
+        page = PAGE if not fresh else PAGE.replace('<h1>Sign in to PROTrader</h1>', '<h1>Add another account</h1>').replace(
+            'Use your Academy email and password.', 'Sign in with the other Academy account you want to add to PROTrader.')
+        return handler.output(page, content_type='text/html; charset=utf-8')
     raw = secrets.token_urlsafe(32)
     with app.db() as db:
         db.execute('DELETE FROM app_codes WHERE expires<?', (time.time(),))

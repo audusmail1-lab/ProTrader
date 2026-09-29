@@ -81,6 +81,15 @@ class AppSignInTests(AcademyTests):
         user = json.loads(self.exchange(code, verifier)[3])['user']
         self.assertEqual((user['status'], bool(user['verified'])), ('pending', False))
 
+    def test_add_account_always_asks_for_a_sign_in(self):
+        self.teacher()
+        verifier = secrets.token_urlsafe(48)
+        path = f'/app-login?state={secrets.token_urlsafe(24)}&challenge={challenge_of(verifier)}'
+        self.assertEqual(self.raw('GET', path, cookie=self.teacher_cookie)[0], 302)
+        status, _, _, body = self.raw('GET', path + '&prompt=login', cookie=self.teacher_cookie)
+        self.assertEqual(status, 200)
+        self.assertIn(b'Add another account', body)
+
     def test_production_wsgi_passes_the_query_string(self):
         from io import BytesIO
         from production import wsgi_app

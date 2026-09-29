@@ -13,7 +13,9 @@
       const body = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(body.error || 'Sign-in failed. Try again.');
       button.textContent = 'Signed in. Opening PROTrader…';
-      location.reload();
+      // continue without prompt=login, so the server now issues the code
+      const next = new URL(location.href); next.searchParams.delete('prompt');
+      location.replace(next.toString());
     } catch (e) {
       status.textContent = e.message;
       button.disabled = false;
