@@ -7307,6 +7307,7 @@ const OT = {
       const q = otQuote(p.symbol);
       if (!q.ok || q.stale) return;
       const px = p.side === 'buy' ? q.bid : q.ask;
+      const sl0 = p.sl;                        // to tell whether this pass moved the stop
       // the path since the last evaluation: a spike through a level counts
       const x = q.exec ? XQ.take(p.symbol) : null;
       const hi = x ? (p.side === 'buy' ? x.hiBid : x.hiAsk) : px;
@@ -7325,15 +7326,24 @@ const OT = {
         const want = +(p.side === 'buy' ? best - p.trail : best + p.trail).toFixed(dp);
         if (p.sl == null || (p.side === 'buy' ? want > p.sl : want < p.sl)) { p.sl = want; moved = true; }
       }
-      const slHit = p.sl != null && (p.side === 'buy' ? lo <= p.sl + EPS : hi >= p.sl - EPS);
+      // Chronology matters. The window is judged against the stop as it stood
+      // when the window opened (sl0); a stop moved during this pass (trail,
+      // auto-protect) post-dates the window and is judged on the current tick
+      // only. A target touched by the window fills before a stop that was only
+      // moved because of that same excursion.
+      const slMoved = p.sl !== sl0;
+      const slHitOld = sl0 != null && (p.side === 'buy' ? lo <= sl0 + EPS : hi >= sl0 - EPS);
+      const slHitNew = slMoved && p.sl != null && (p.side === 'buy' ? px <= p.sl + EPS : px >= p.sl - EPS);
       const tpHit = p.tp != null && (p.side === 'buy' ? hi >= p.tp - EPS : lo <= p.tp + EPS);
+      const slHit = slHitOld || (slHitNew && !tpHit);
+      const slLevel = slHitOld ? sl0 : p.sl;
       // Fill: a stop is a market order at the moment of trigger — if the current
       // tick itself is through the level that price is the fill, otherwise the
       // level (the crossing tick was missed). A target is a limit: the level, or
       // the current price when that is better.
       if (slHit) {
-        const through = p.side === 'buy' ? px <= p.sl + EPS : px >= p.sl - EPS;
-        this.closePosition(p.id, null, 'Stop loss', through ? px : p.sl, false, { q, x });
+        const through = p.side === 'buy' ? px <= slLevel + EPS : px >= slLevel - EPS;
+        this.closePosition(p.id, null, 'Stop loss', through ? px : slLevel, false, { q, x });
       } else if (tpHit) {
         const better = p.side === 'buy' ? Math.max(px, p.tp) : Math.min(px, p.tp);
         this.closePosition(p.id, null, 'Take profit', better, false, { q, x });
