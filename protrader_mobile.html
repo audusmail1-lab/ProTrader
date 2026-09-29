@@ -1332,6 +1332,11 @@ svg.ico{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.7;st
 .ws-dialog::backdrop{background:rgba(2,6,13,.55);backdrop-filter:blur(3px)}
 .ws-dialog header{display:flex;align-items:center;justify-content:space-between;padding:16px 18px 12px}.ws-dialog h2{font-size:var(--fs-3);font-weight:600;margin:0}.ws-dialog p{font-size:var(--fs-1);color:var(--tx-3);line-height:1.6;margin:0 0 12px}
 .ws-dialog header .ws-button{font-size:18px;min-width:34px}
+.acct-me{position:relative}.acct-me .acct-initials{display:grid;place-items:center;width:24px;height:24px;border-radius:50%;background:var(--blue,#3b82f6);color:#fff;font:700 11px/1 var(--font-display);letter-spacing:.02em}
+.acct-me.signed-in .ico{display:none}.acct-me:not(.signed-in)::after{content:'';position:absolute;top:6px;right:6px;width:7px;height:7px;border-radius:50%;background:var(--amber,#f59e0b)}
+.ac-who{display:grid;gap:2px;padding:12px;border:1px solid var(--bd-2);border-radius:10px;margin-bottom:12px}.ac-who strong{font-size:var(--fs-2)}.ac-who small{color:var(--tx-3)}
+.ac-tag{display:inline-block;justify-self:start;margin-top:6px;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:700;background:rgba(245,158,11,.15);color:var(--amber,#f59e0b)}.ac-tag.ok{background:rgba(16,185,129,.15);color:var(--green-lt,#34d399)}
+.ac-body{padding:0 18px 18px}.ac-actions{display:grid;gap:8px}.ac-actions .ws-button{min-height:44px;width:100%;border:1px solid var(--bd-2);border-radius:8px}.ac-actions .ws-primary{border-color:transparent}
 .ws-tabs{display:flex;padding:0 18px;gap:18px;border-bottom:1px solid var(--bd-1)}.ws-tabs button{border:0;border-bottom:2px solid transparent;background:none;color:var(--tx-3);padding:10px 0;font:500 var(--fs-1) inherit;cursor:pointer}.ws-tabs button[aria-selected=true]{border-color:var(--blue);color:var(--tx-1)}
 .ws-fields{padding:16px 18px;display:grid;gap:12px}.ws-fields label{font-size:var(--fs-1);color:var(--tx-2);display:grid;grid-template-columns:1fr 160px;align-items:center;gap:12px}
 .ws-fields input,.ws-fields select{background:var(--bg-3);border:1px solid var(--bd-2);color:var(--tx-1);border-radius:6px;min-height:36px;padding:7px 10px;font:var(--fs-1) var(--font-mono);width:100%}
@@ -1532,6 +1537,7 @@ svg.ico{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.7;st
     </button>
 
     <button class="voice-btn" id="voiceBtn" onclick="handleVoiceClick(event)" title="Click: listen for voice commands. Shift+click: toggle spoken responses (default off)." aria-label="Voice commands"><svg class="ico" viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0014 0M12 18v3"/></svg></button>
+    <button class="icon-btn acct-me" onclick="ACCOUNT.open()" id="acctBtn" title="Account: guest (this browser only)" aria-label="Account"><svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0116 0"/></svg><span class="acct-initials" hidden></span></button>
     <button class="icon-btn" onclick="NOTIFY.open()" id="notifyBtn" title="Notifications" aria-label="Notifications"><svg class="ico" viewBox="0 0 24 24"><path d="M18 16v-5a6 6 0 10-12 0v5l-2 2h16zM10 20a2 2 0 004 0"/></svg></button>
     <button class="icon-btn" onclick="toggleTheme()" id="themeBtn" title="Toggle light/dark mode" aria-label="Toggle light and dark mode"><svg class="ico" viewBox="0 0 24 24"><path d="M20 14.5A8 8 0 019.5 4a8 8 0 1010.5 10.5z"/></svg></button>
     <button class="icon-btn" onclick="toggleShortcutsHelp()" title="Keyboard shortcuts (press ?)" aria-label="Help and support" style="font-weight:800">?</button>
@@ -8177,7 +8183,7 @@ function renderLaws() {
 const SENT = (() => {
   let timer = null, busy = false, last = null, cat = null, pick = null, saving = false, pickErr = '';
   const KEY_STORE = 'protrader.sentinelKey';
-  const ownerKey = () => { try { return localStorage.getItem(KEY_STORE) || ''; } catch (_) { return ''; } };
+  const ownerKey = () => { try { return localStorage.getItem(KEY_STORE) || (typeof ACCOUNT !== 'undefined' && ACCOUNT.isOwner() ? 'session' : ''); } catch (_) { return ''; } };
   const EV_LABEL = { proven:'Proven edge', negative:'Negative edge', unproven:'Unproven' };
   const EV_CLS = { proven:'ev-proven', negative:'ev-negative', unproven:'ev-unproven' };
   const V_LABEL = { EXEC_READY:'Exec ready', QUALIFIED:'Qualified', WAITING:'Waiting', OBSERVER:'Observer', BLOCKED:'Blocked' };
@@ -8289,7 +8295,7 @@ const SENT = (() => {
       ${chosen ? `<div class="sn-h" style="margin-top:6px">Timeframes per market</div>
         <div class="sn-meta">Tip: the one-year test lost money on every 15m forex pair (spread ≈ 17% of the stop). 1h and 4h are cheaper to trade.</div>${tfRows}` : ''}
       ${needKey ? `<label class="sn-meta" for="snKey">Owner key (set as SENTINEL_ADMIN_KEY on the server)</label>
-        <input id="snKey" class="sn-key" type="password" autocomplete="off" value="${esc(ownerKey())}" placeholder="Owner key">` : ''}
+        <input id="snKey" class="sn-key" type="password" autocomplete="off" value="${esc(ownerKey() === 'session' ? '' : ownerKey())}" placeholder="Owner key">` : ''}
       ${pickErr ? `<div class="sn-warn">${esc(pickErr)}</div>` : ''}
       <div class="sn-row"><button class="sn-btn" style="flex:1" ${chosen && !saving ? '' : 'disabled'} onclick="SENT.saveFocus()">${saving ? 'Saving…' : 'Save focus'}</button>
         <button class="sn-btn sn-btn-2" onclick="SENT.cancelFocus()">Cancel</button></div>
@@ -8658,7 +8664,7 @@ const MGMT = {
     } catch (_) {}
   },
   save() { try { localStorage.setItem(this.KEY, JSON.stringify(this.recs)); } catch (_) {} },
-  ownerKey() { try { return localStorage.getItem('protrader.sentinelKey') || ''; } catch (_) { return ''; } },
+  ownerKey() { try { return localStorage.getItem('protrader.sentinelKey') || (typeof ACCOUNT !== 'undefined' && ACCOUNT.isOwner() ? 'session' : ''); } catch (_) { return ''; } },
 
   // Called by Sentinel's "Load setup": the next matching fill is this setup.
   link(t) {
@@ -9982,6 +9988,268 @@ updateFeedBadge = function () {
 
 init();
 
+/* ════════════════════════════════════════════════════════════
+   ACCOUNT — one person, one account, in every browser.
+   Sign in with the Pro Trader Academy account (accepted students and the
+   instructor). The paper account, trade-management journal, auto-protect,
+   favourites and drawings then live on the server and follow the account
+   to Telegram, Safari, the installed app and any other device. Without
+   signing in the app works as before, as a guest: saved in this browser only.
+   Sync: the listed localStorage documents are mirrored. Pull when the app
+   opens or comes back to the foreground; push changes a few seconds after
+   they happen. The device you are using wins; a copy that would be replaced
+   is backed up in that browser first (protrader.backup.v1).
+════════════════════════════════════════════════════════════ */
+const ACCOUNT = (() => {
+  const DOCS = { trade: 'protrader.trade.v2', mgmt: 'protrader.mgmt.v1', autoprotect: 'protrader.autoprotect.v1', favorites: 'protrader.favorites.v1', drawings: 'protrader.drawings.v1' };
+  const BY_LS = Object.fromEntries(Object.entries(DOCS).map(([k, v]) => [v, k]));
+  const META = 'protrader.account.v1', BACKUP = 'protrader.backup.v1';
+  const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const rawSet = Storage.prototype.setItem, rawRemove = Storage.prototype.removeItem;
+  let user = null, meta = {}, frozen = false, timer = null, pulling = null, lastInput = Date.now(), academy = 'https://protraderacademy.company';
+  const pending = new Set();
+
+  try { meta = JSON.parse(localStorage.getItem(META) || '{}') || {}; } catch (_) { meta = {}; }
+  meta.v = meta.v || {}; meta.h = meta.h || {};
+  const saveMeta = () => { try { rawSet.call(localStorage, META, JSON.stringify(meta)); } catch (_) {} };
+  const norm = raw => { if (raw == null) return null; try { return JSON.stringify(JSON.parse(raw)); } catch (_) { return raw; } };
+  const hash = str => { let a = 0x811c9dc5, b = 0x9e3779b9; for (let i = 0; i < (str || '').length; i++) { const c = str.charCodeAt(i); a = Math.imul(a ^ c, 16777619); b = Math.imul(b ^ c, 2246822519); } return (a >>> 0).toString(36) + (b >>> 0).toString(36); };
+  const empty = raw => raw == null || raw === '' || raw === '[]' || raw === '{}' || raw === 'null';
+  const local = key => { try { return localStorage.getItem(DOCS[key]); } catch (_) { return null; } };
+
+  // Every module already saves with localStorage.setItem: watch those writes.
+  Storage.prototype.setItem = function (k, v) {
+    if (this === localStorage && BY_LS[k]) { if (frozen) return; rawSet.call(this, k, v); changed(BY_LS[k]); return; }
+    return rawSet.call(this, k, v);
+  };
+  Storage.prototype.removeItem = function (k) {
+    if (this === localStorage && BY_LS[k] && frozen) return;
+    return rawRemove.call(this, k);
+  };
+  ['pointerdown', 'keydown'].forEach(t => addEventListener(t, () => { lastInput = Date.now(); }, { capture: true, passive: true }));
+
+  function changed(key) {
+    if (!user) return;
+    pending.add(key);
+    clearTimeout(timer); timer = setTimeout(flush, 3000);
+  }
+  function backup(key, raw) {
+    if (empty(raw)) return;
+    try { const b = JSON.parse(localStorage.getItem(BACKUP) || '{}'); b[key] = { raw, at: Date.now() }; rawSet.call(localStorage, BACKUP, JSON.stringify(b)); } catch (_) {}
+  }
+  function write(key, data) {
+    const str = data == null ? null : JSON.stringify(data);
+    try { if (str == null) rawRemove.call(localStorage, DOCS[key]); else rawSet.call(localStorage, DOCS[key], str); } catch (_) {}
+    meta.h[key] = hash(str);
+  }
+  function reload() {
+    frozen = true; saveMeta();                       // nothing may overwrite what was just written
+    let last = 0; try { last = +sessionStorage.getItem('pt.acct.reload') || 0; } catch (_) {}
+    if (Date.now() - last < 8000) { frozen = false; return; }
+    try { sessionStorage.setItem('pt.acct.reload', String(Date.now())); } catch (_) {}
+    location.reload();
+  }
+  async function api(path, opt = {}) {
+    const res = await fetch(path, Object.assign({ cache: 'no-store', credentials: 'same-origin', signal: AbortSignal.timeout(20000) }, opt));
+    const body = await res.json().catch(() => ({}));
+    return { res, body };
+  }
+
+  async function put(key, force) {
+    const str = norm(local(key));
+    if (str == null) return true;
+    const h = hash(str);
+    if (!force && h === meta.h[key]) return true;
+    const { res, body } = await api('/api/account/workspace/' + key, {
+      method: 'PUT', headers: { 'Content-Type': 'application/json' }, keepalive: str.length < 60000,
+      body: JSON.stringify({ data: JSON.parse(str), version: meta.v[key] || 0 }),
+    });
+    if (res.ok) { meta.v[key] = body.version; meta.h[key] = h; saveMeta(); return true; }
+    if (res.status === 401) { signedOutElsewhere(); return true; }
+    if (res.status === 409) {
+      const cur = body.current || {};
+      // Someone else (another of your devices) saved since. If you are using
+      // this one right now, your copy wins; otherwise take the newer one.
+      if (Date.now() - lastInput < 120000 && document.visibilityState === 'visible') { meta.v[key] = cur.version || 0; return put(key, true); }
+      backup(key, str); write(key, cur.data); meta.v[key] = cur.version || 0; reload(); return true;
+    }
+    if (res.status === 413) { showToast('Your ' + key + ' data is too large to save to your account.', 5000); meta.h[key] = h; return true; }
+    return false;
+  }
+  async function flush() {
+    if (!user || frozen) return;
+    for (const key of [...pending]) {
+      pending.delete(key);
+      try { if (!(await put(key))) pending.add(key); } catch (_) { pending.add(key); }
+    }
+    if (pending.size) { clearTimeout(timer); timer = setTimeout(flush, 30000); }
+  }
+
+  // Bring this browser up to date with the account.
+  async function pull(first) {
+    if (!user || frozen) return;
+    const { res, body } = await api('/api/account/workspace');
+    if (res.status === 401) return signedOutElsewhere();
+    if (!res.ok) return;
+    const docs = body.docs || {};
+    const known = meta.uid === user.id;
+    if (!known) return adopt(docs, first);
+    let replaced = false;
+    for (const key of Object.keys(DOCS)) {
+      const doc = docs[key], str = norm(local(key));
+      if (doc && doc.version !== (meta.v[key] || 0)) {
+        const theirs = JSON.stringify(doc.data);
+        if (theirs !== str) {
+          if (str != null && hash(str) !== meta.h[key]) backup(key, str);    // unsaved edits here: keep a copy
+          write(key, doc.data); replaced = true;
+        } else meta.h[key] = hash(str);
+        meta.v[key] = doc.version;
+      } else if (str != null && hash(str) !== meta.h[key]) pending.add(key);
+    }
+    saveMeta();
+    if (replaced) return reload();
+    if (pending.size) flush();
+  }
+
+  // First time this account is used in this browser.
+  async function adopt(docs, first) {
+    const has = Object.keys(DOCS).filter(k => docs[k] && !empty(JSON.stringify(docs[k].data)));
+    const mine = Object.keys(DOCS).filter(k => !empty(norm(local(k))));
+    let choice = 'account';
+    if (!has.length) choice = 'device';
+    else if (mine.length && mine.some(k => !docs[k] || JSON.stringify(docs[k].data) !== norm(local(k)))) choice = await ask();
+    meta = { uid: user.id, owner: !!user.owner, v: {}, h: {} };
+    for (const key of Object.keys(DOCS)) {
+      const doc = docs[key];
+      meta.v[key] = doc ? doc.version : 0;
+      if (choice === 'account') { backup(key, norm(local(key))); if (doc) write(key, doc.data); else if (!empty(norm(local(key)))) { write(key, null); } }
+      else { meta.h[key] = ''; if (!empty(norm(local(key)))) pending.add(key); }
+    }
+    saveMeta();
+    if (choice === 'account') return reload();
+    await flush();
+    showToast('This browser’s workspace is now saved to your account.', 4200);
+  }
+  function ask() {
+    return new Promise(done => {
+      document.querySelectorAll('dialog.ws-dialog').forEach(d => d.remove());
+      const d = document.createElement('dialog'); d.className = 'ws-dialog'; d.id = 'acctAdopt';
+      d.innerHTML = `<header><h2>Which workspace should this account use?</h2></header>
+        <div class="ac-body">
+          <p>Your account already has a saved workspace, and this browser has its own (paper trades, journal, drawings). One account keeps one workspace.</p>
+          <div class="ac-actions">
+            <button type="button" class="ws-button ws-primary" data-a="account">Use my account’s workspace</button>
+            <button type="button" class="ws-button" data-a="device">Replace my account with this browser’s</button>
+          </div>
+          <p style="margin-top:12px">Either way, the copy that is replaced is backed up in this browser.</p>
+        </div>`;
+      let picked = 'account';
+      d.querySelectorAll('[data-a]').forEach(b => b.onclick = () => { picked = b.dataset.a; d.close(); });
+      d.addEventListener('close', () => { d.remove(); done(picked); });
+      document.body.appendChild(d); d.showModal();
+    });
+  }
+  function signedOutElsewhere() {
+    user = null; paint();
+    showToast('You were signed out. Sign in again to keep saving to your account.', 5000);
+  }
+
+  function paint() {
+    const b = document.getElementById('acctBtn'); if (!b) return;
+    const i = b.querySelector('.acct-initials');
+    b.classList.toggle('signed-in', !!user);
+    i.hidden = !user;
+    if (user) {
+      i.textContent = (user.name || user.email || '?').split(/\s+/).map(w => w[0]).join('').slice(0, 2).toUpperCase();
+      b.title = `Signed in as ${user.name || user.email} · saved to your account`;
+    } else b.title = 'Guest: saved in this browser only. Tap to sign in.';
+    renderSheet();
+  }
+
+  const isIOS = () => /iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  async function handoff() {
+    const { res, body } = await api('/api/account/handoff', { method: 'POST' });
+    if (!res.ok) return showToast(body.detail || 'Could not make the link. Try again.', 4000);
+    const url = location.origin + body.path;
+    if (isIOS()) location.href = 'x-safari-' + url;              // opens Safari, signed in, from Telegram's browser
+    else if (!window.open(url, '_blank', 'noopener')) {
+      try { await navigator.clipboard.writeText(url); showToast('Link copied. Paste it in your browser within a minute.', 5000); } catch (_) { showToast('Open this within a minute: ' + url, 8000); }
+    }
+  }
+  async function signOut() {
+    await flush().catch(() => {});
+    try { await api('/api/account/logout', { method: 'POST' }); } catch (_) {}
+    frozen = true;
+    for (const ls of Object.values(DOCS)) { try { rawRemove.call(localStorage, ls); } catch (_) {} }
+    try { rawRemove.call(localStorage, META); } catch (_) {}
+    location.replace('/');
+  }
+
+  function open() {
+    document.querySelectorAll('dialog.ws-dialog').forEach(d => d.remove());
+    const d = document.createElement('dialog'); d.className = 'ws-dialog'; d.id = 'acctSheet';
+    d.innerHTML = `<header><h2>Account</h2><button type="button" class="ws-button" aria-label="Close">×</button></header><div class="ac-body" id="acctBody"></div>`;
+    d.querySelector('header button').onclick = () => d.close();
+    d.addEventListener('close', () => d.remove()); document.body.appendChild(d); d.showModal();
+    renderSheet();
+  }
+  function renderSheet() {
+    const body = document.getElementById('acctBody'); if (!body) return;
+    if (!user) {
+      body.innerHTML = `
+        <div class="ac-who"><strong>Guest</strong><small>Saved in this browser only</small><span class="ac-tag">Not saved to an account</span></div>
+        <p>As a guest, Telegram, Safari and each of your devices keep a separate copy of your paper account, journal and drawings.</p>
+        <p>Sign in with your Pro Trader Academy account to keep one workspace everywhere. Open to the instructor and to accepted students with a verified email.</p>
+        <div class="ac-actions">
+          <button type="button" class="ws-button ws-primary" data-in>Sign in with Pro Trader Academy</button>
+          <a class="ws-button" href="${esc(academy)}/classroom#enroll" target="_blank" rel="noopener" style="display:grid;place-items:center;text-decoration:none">Apply to the Academy</a>
+        </div>`;
+      body.querySelector('[data-in]').onclick = () => { location.href = '/auth/academy/start'; };
+      return;
+    }
+    body.innerHTML = `
+      <div class="ac-who"><strong>${esc(user.name || 'Academy member')}</strong><small>${esc(user.email)}${user.owner ? ' · Instructor' : ''}</small><span class="ac-tag ok">Saved to your account</span></div>
+      <p>Your paper account, trade journal, auto-protect setting, favourites and drawings follow this account in Telegram, Safari, the installed app and on your other devices.${user.owner ? ' As the instructor you are also the Sentinel owner here, without typing the owner key.' : ''}</p>
+      <div class="ac-actions">
+        <button type="button" class="ws-button" data-open>${isIOS() ? 'Open in Safari, signed in' : 'Open in another browser, signed in'}</button>
+        <button type="button" class="ws-button" data-out>Sign out of this browser</button>
+      </div>
+      <p style="margin-top:12px">Signing out removes the workspace from this browser only. It stays in your account.</p>`;
+    body.querySelector('[data-open]').onclick = handoff;
+    body.querySelector('[data-out]').onclick = signOut;
+  }
+
+  async function boot() {
+    const q = new URLSearchParams(location.search), result = q.get('signin');
+    if (result) { q.delete('signin'); history.replaceState(null, '', location.pathname + (q.toString() ? '?' + q : '') + location.hash); }
+    const msg = { pending: 'Your Academy application is still under review. You can keep using PROTrader as a guest; your workspace is saved in this browser only.',
+                  unverified: 'Verify your Academy email first (check your inbox), then sign in again.',
+                  failed: 'Sign-in did not complete. Please try again.', expired: 'That sign-in link expired. Please try again.' }[result];
+    if (msg) showToast(msg, 7000);
+    try {
+      const { res, body } = await api('/api/account/me');
+      if (!res.ok) return paint();
+      academy = body.academy || academy;
+      user = body.user;
+      if (!user && meta.uid) {                    // signed out elsewhere: this browser holds a stale account copy
+        meta.owner = false; saveMeta();
+      }
+      paint();
+      if (!user) return;
+      if (meta.owner !== !!user.owner) { meta.owner = !!user.owner; saveMeta(); }
+      if (result === 'ok') showToast(`Signed in as ${user.name || user.email}.`, 3200);
+      await pull(true);
+      if (user.owner && typeof SENT !== 'undefined' && SENT.refresh) SENT.refresh();
+    } catch (_) { paint(); }
+  }
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) flush(); else if (user) pull().catch(() => {});
+  });
+  setInterval(() => { if (user && !document.hidden) pull().catch(() => {}); }, 120000);
+
+  return { open, boot, isOwner: () => !!(user ? user.owner : meta.owner && meta.uid), user: () => user, flush, pull };
+})();
+setTimeout(() => ACCOUNT.boot(), 0);   // after the other modules have loaded their saved state
 // ── PWA: installable on phone/laptop, shell cached for instant opens ──
 if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
   window.addEventListener('load', () => {

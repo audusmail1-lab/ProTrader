@@ -15,3 +15,4 @@ Trading Bot.app/
 sentinel.db
 sentinel.db-*
 .sentinel_src.bundle
+accounts.db
