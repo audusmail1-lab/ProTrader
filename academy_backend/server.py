@@ -10,6 +10,7 @@ from mailer import SMTPConfig, safe_error
 from welcome import acceptance_message
 from invitations import class_message
 import support
+import app_sso
 import teacher as teacher_dashboard
 from telegram_bot import public_links
 from contextlib import contextmanager
@@ -18,7 +19,7 @@ from urllib.parse import urlsplit
 
 ROOT = Path(__file__).resolve().parent.parent
 LESSONS = json.loads((ROOT / 'academy_backend/lessons.json').read_text())
-PUBLIC = {f'posters/polished-{i}.jpg' for i in range(10)} | {'posters/polished-7-portrait.jpg'} | {f'captions/polished-{i}.vtt' for i in range(7)} | {'posters/callan-1.jpg', 'captions/callan-3.vtt', 'captions/callan-6.vtt', 'posters/callan-3.jpg', 'posters/callan-9.jpg', 'posters/callan-4.jpg', 'posters/callan-0.jpg', 'captions/callan-2.vtt', 'captions/callan-4.vtt', 'academy-intelligence.js', 'posters/callan-5.jpg', 'captions/callan-7.vtt', 'captions/callan-8.vtt', 'captions/callan-9.vtt', 'posters/callan-7.jpg', 'academy-site.js', 'academy-design.css', 'academy-films.js', 'academy-guides.js', 'posters/callan-6.jpg', 'captions/callan-5.vtt', 'posters/callan-7-portrait.jpg', 'academy-library-toggle.js', 'posters/callan-2.jpg', 'captions/callan-1.vtt', 'captions/callan-0.vtt', 'posters/callan-8.jpg'} | {'academy-premium.js','academy-premium.css','landing-assets/workspace-chart.png','journey-videos.js','landing-assets/protrader-workspace.webp','posters/guide-0.jpg','posters/guide-1.jpg','captions/guide-0.vtt','captions/guide-1.vtt','teacher.js','teacher.css','support-chat.js','support-chat.css','homepage.js','homepage.css','landing-assets/barlow-400.woff2','landing-assets/barlow-500.woff2','landing-assets/barlow-700.woff2','landing-assets/barlow-condensed-600.woff2','landing-assets/landing-terminal-800.webp','landing-assets/landing-terminal.webp','styles.css','favicon.svg','live.js','live.css','public-content.js','public-intro.js','public-pages.js','video-player.js','video-library.js','intro-video.js','captions/intro.vtt','posters/intro-landscape.jpg','posters/intro-portrait.jpg'} | {f'captions/tutorial-{i}.vtt' for i in range(7)} | {f'posters/tutorial-{i}.jpg' for i in range(7)}
+PUBLIC = {f'posters/polished-{i}.jpg' for i in range(10)} | {'posters/polished-7-portrait.jpg'} | {f'captions/polished-{i}.vtt' for i in range(7)} | {'posters/callan-1.jpg', 'captions/callan-3.vtt', 'captions/callan-6.vtt', 'posters/callan-3.jpg', 'posters/callan-9.jpg', 'posters/callan-4.jpg', 'posters/callan-0.jpg', 'captions/callan-2.vtt', 'captions/callan-4.vtt', 'academy-intelligence.js', 'posters/callan-5.jpg', 'captions/callan-7.vtt', 'captions/callan-8.vtt', 'captions/callan-9.vtt', 'posters/callan-7.jpg', 'academy-site.js', 'academy-design.css', 'academy-films.js', 'academy-guides.js', 'posters/callan-6.jpg', 'captions/callan-5.vtt', 'posters/callan-7-portrait.jpg', 'academy-library-toggle.js', 'posters/callan-2.jpg', 'captions/callan-1.vtt', 'captions/callan-0.vtt', 'posters/callan-8.jpg'} | {'academy-premium.js','academy-premium.css','app-login.js','landing-assets/workspace-chart.png','journey-videos.js','landing-assets/protrader-workspace.webp','posters/guide-0.jpg','posters/guide-1.jpg','captions/guide-0.vtt','captions/guide-1.vtt','teacher.js','teacher.css','support-chat.js','support-chat.css','homepage.js','homepage.css','landing-assets/barlow-400.woff2','landing-assets/barlow-500.woff2','landing-assets/barlow-700.woff2','landing-assets/barlow-condensed-600.woff2','landing-assets/landing-terminal-800.webp','landing-assets/landing-terminal.webp','styles.css','favicon.svg','live.js','live.css','public-content.js','public-intro.js','public-pages.js','video-player.js','video-library.js','intro-video.js','captions/intro.vtt','posters/intro-landscape.jpg','posters/intro-portrait.jpg'} | {f'captions/tutorial-{i}.vtt' for i in range(7)} | {f'posters/tutorial-{i}.jpg' for i in range(7)}
 POLICY = json.loads((ROOT / 'academy_backend/public_policy.json').read_text())
 EMAIL = re.compile(r'^[^\s@]+@[^\s@]+\.[^\s@]+$')
 
@@ -44,6 +45,7 @@ class Academy:
             CREATE TABLE IF NOT EXISTS agreements(user_id INTEGER PRIMARY KEY,version TEXT NOT NULL,adult INTEGER NOT NULL,accepted REAL NOT NULL);
             ''')
             support.initialize(db)
+            app_sso.initialize(db)
             columns = {r[1] for r in db.execute('PRAGMA table_info(mail)')}
             if 'delivery_key' not in columns:
                 db.execute('ALTER TABLE mail ADD COLUMN delivery_key TEXT')
@@ -195,6 +197,7 @@ class Handler(BaseHTTPRequestHandler):
             path=urlsplit(self.path).path
             if path=='/api/teacher-overview': return teacher_dashboard.route(self,path)
             if path in ('/api/support','/api/support-admin'): return support.route(self,path)
+            if path=='/app-login': return app_sso.login_get(self)
             if path=='/healthz':
                 with self.app.db() as db: db.execute('SELECT 1').fetchone()
                 return self.output({'ok':True})
@@ -240,6 +243,7 @@ class Handler(BaseHTTPRequestHandler):
 
     def do_POST(self):
         try:
+            if urlsplit(self.path).path=='/api/app-exchange': return app_sso.exchange_post(self)   # server-to-server from the app
             data=self.read_json(); path=urlsplit(self.path).path; app=self.app
             if path in ('/api/class-save','/api/class-cancel'): return teacher_dashboard.route(self,path,data)
             if path.startswith('/api/support'): return support.route(self,path,data)
