@@ -7,7 +7,7 @@ const modal=$('#modal');function openModal(title,body,kicker='PRO TRADER ACADEMY
 $$('[data-page]').forEach(b=>b.onclick=showPage);
 $$('[data-open]').forEach(b=>b.onclick=()=>location.href='/classroom#'+(b.dataset.open==='classroom'?'classroom':'privacy'));
 // One Alex experience across the public site and classroom.
-const alexSupportReady=import('./cinematic/alex-support.js').then(({initAlexSupport})=>initAlexSupport());
+const alexSupportReady=import('./cinematic/alex-support.js?v=20260930-release2').then(({initAlexSupport})=>initAlexSupport());
 function openAlexSupport(mode='text'){return alexSupportReady.then(support=>support.open(mode))}
 function openAlexVoice(){return openAlexSupport('voice')}
 

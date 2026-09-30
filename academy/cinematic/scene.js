@@ -1,5 +1,5 @@
 import { CatmullRomCurve3, Matrix4, PerspectiveCamera, Vector3 } from './vendor/three.core.js';
-import { terminalHTML, heroChartHTML, heroChartState } from './terminal-preview.js';
+import { terminalHTML, heroChartHTML, heroChartState } from './terminal-preview.js?v=20260930-release2';
 
 // Original hero choreography. Project the current HTML terminal onto the same
 // 9.1 × 5.6 world-space console instead of loading the earlier GLB artwork.

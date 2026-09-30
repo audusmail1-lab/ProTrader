@@ -1,4 +1,4 @@
-import {chartSVG,calculatePlan,money,price} from './market-example.js';
+import {chartSVG,calculatePlan,money,price} from './market-example.js?v=20260930-release2';
 const $=s=>document.querySelector(s);
 const guide=key=>document.dispatchEvent(new CustomEvent('academy:tool-guide',{detail:key}));
 const read=id=>document.dispatchEvent(new CustomEvent('academy:guide',{detail:id}));

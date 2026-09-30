@@ -1,4 +1,4 @@
-import { videos, lessons } from './public-content.js';
+import { videos, lessons } from './public-content.js?v=20260930-release2';
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const button=(label,href,secondary=false)=>`<a class="button ${secondary?'secondary':''}" href="${href}">${label}<span>↗︎</span></a>`;
 export const academyVideoCard=v=>`<article class="video-card"><button class="video-image" data-video="${v.id}" aria-label="Play ${esc(v.title)}"><img src="${v.poster}" alt="" loading="lazy"><b aria-hidden="true"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m9 5 11 7-11 7Z" fill="currentColor"/></svg></b><span>${v.duration}</span></button><small>${esc(v.topic)}</small><h3>${esc(v.title)}</h3><p>${esc(v.summary)}</p></article>`;

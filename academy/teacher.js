@@ -1,4 +1,4 @@
-import {supportInbox,bindSupportInbox} from './support-chat.js';
+import {supportInbox,bindSupportInbox} from './support-chat.js?v=20260930-release2';
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const label=s=>({pending:'Awaiting review',accepted:'Accepted',needs_information:'More information needed',declined:'Not accepted'})[s]||s;
 const badge=(text,tone='')=>`<span class="td-badge ${tone}">${esc(text)}</span>`;

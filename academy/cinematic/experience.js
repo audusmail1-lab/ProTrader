@@ -79,7 +79,7 @@
   $('.closing h2').innerHTML='Make your next step<br><em>a deliberate one.</em>';
   $('.closing-actions').innerHTML='<a class="dark-button" href="/classroom#start">Start learning <span aria-hidden="true">↗</span></a><a class="outline-button" href="https://app.protraderacademy.company/">Open the paper workspace <span aria-hidden="true">↗</span></a><span>Educational tools. No guaranteed outcomes.</span>';
   // Static/reduced-motion visitors receive the same readable product visual.
-  import('./scene.js').then(m=>m.mountScene($('#workspace-scene'),queue,{staticView:staticMode()})).catch(()=>{sceneFailed=true;syncMotion()});
-  import('./product-refinement.js').then(m=>m.refineProduct());
+  import('./scene.js?v=20260930-release2').then(m=>m.mountScene($('#workspace-scene'),queue,{staticView:staticMode()})).catch(()=>{sceneFailed=true;syncMotion()});
+  import('./product-refinement.js?v=20260930-release2').then(m=>m.refineProduct());
   update();
 })();
