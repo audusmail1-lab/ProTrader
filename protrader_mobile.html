@@ -1437,6 +1437,8 @@ svg.ico{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.7;st
 .sn-note{background:var(--bg-3);border:1px solid var(--bd-1);border-left:3px solid var(--amber);border-radius:var(--r-sm);padding:8px 10px;line-height:1.45}
 .sn-note b{color:var(--tx-1)}
 .sn-h{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.6px;color:var(--tx-3);margin-top:4px}
+.sn-kpis{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:8px 12px;margin:4px 0}.sn-kpis b{font-size:13px;color:var(--tx-1)}
+.sn-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px}.sn-btn{min-height:36px;padding:0 12px;border-radius:8px;border:1px solid var(--bd-2);background:transparent;color:var(--tx-1);font:600 12px var(--font-display);cursor:pointer}.sn-btn[disabled]{opacity:.5;cursor:default}.sn-btn-p{background:var(--blue,#3b82f6);border-color:transparent;color:#fff}
 .sn-card{background:var(--bg-3);border:1px solid var(--bd-1);border-radius:var(--r-sm);padding:9px 10px;display:flex;flex-direction:column;gap:6px}
 .sn-row{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
 .sn-mk{font-weight:800;color:var(--tx-1);font-size:13px}
@@ -8457,6 +8459,65 @@ const SENT = (() => {
       <table class="sn-tbl"><thead><tr><th>Rule</th><th>Trades</th><th>Per trade</th><th>vs Sentinel</th><th>Lost in full · in profit</th></tr></thead><tbody>${rows}</tbody></table></details>`;
   }
 
+  // Sentinel Live test: Sentinel trades its own A setups on the owner's MT5 demo.
+  function liveBlock() {
+    const L = last?.live; if (!L) return '';
+    const m = L.metrics || {}, b = L.bridge || {};
+    const money = v => v == null ? '—' : (v < 0 ? '−$' : '$') + Math.abs(v).toFixed(2);
+    const day = t => t ? new Date(t * 1000).toLocaleDateString(undefined, { day: 'numeric', month: 'short' }) : '—';
+    const left = L.ends ? Math.max(0, Math.ceil((L.ends - Date.now() / 1000) / 86400)) : null;
+    const state = L.active ? `<span class="sn-chip ev-proven">Running</span> day ${DAYS_TOTAL - left + 1} of ${DAYS_TOTAL} · ends ${day(L.ends)}`
+      : L.started ? `<span class="sn-chip">Stopped</span> ran ${day(L.started)} → ${day(L.stopped || L.ends)}` : '<span class="sn-chip">Not started</span>';
+    const bridge = !b.bound ? 'MT5 bridge not connected (Trade → Trade live).'
+      : !b.online ? 'MT5 bridge offline — open MT5 with the EA running.'
+      : b.mode !== 'demo' ? `<b style="color:var(--red-lt)">Connected account is ${esc(b.mode || '?')} — the test only runs on demo.</b>`
+      : `Demo account online · equity ${money(b.equity)}`;
+    const syms = Object.entries(L.symbols || {}).map(([k, v]) => `${esc(label(k))} → <b>${esc(v)}</b>${L.specs?.[v] ? ' ✓' : L.spec_errors?.[v] ? ` <span style="color:var(--amber)">(${esc(L.spec_errors[v])})</span>` : ''}`).join(' · ');
+    const kpi = (lbl, v) => `<div><div class="sn-meta">${lbl}</div><b>${v}</b></div>`;
+    const rows = (L.trades || []).slice(0, 12).map(t => `<tr><td>${esc(label(t.market))} <span style="color:var(--tx-3)">${esc(t.tf)}</span></td>
+      <td class="${t.dir === 'buy' ? 'sn-pos' : 'sn-neg'}">${t.dir === 'buy' ? 'Long' : 'Short'}${t.lots ? ' ' + t.lots : ''}</td>
+      <td>${t.state === 'skipped' || t.state === 'rejected' ? `<span class="sn-meta">${esc(t.state)}: ${esc(t.reason || '')}</span>` : esc(t.state) + (t.exit_reason ? ' · ' + esc(t.exit_reason) : '')}</td>
+      <td style="text-align:right">${t.r != null ? r(t.r) : t.state === 'open' ? money(t.risk_actual) + ' at risk' : ''}</td></tr>`).join('');
+    return `<div class="sn-h">Sentinel Live test · MT5 demo</div>
+      <div class="sn-card">
+        <div class="sn-meta">${state}</div>
+        <div class="sn-meta">Sentinel places and manages its own A setups: ${L.rules.risk_pct}% risk at the stop, stop to breakeven at +1R then trailing 1R, 2% open-risk cap, stop for the day after −3% or 3 losses. The EA has the final say and refuses real accounts. Judged on quality, adherence and drawdown — not profit alone.</div>
+        <div class="sn-meta">${bridge}</div>
+        <div class="sn-meta">${syms}</div>
+        ${m.signals ? `<div class="sn-kpis">${kpi('Taken', `${m.taken} / ${m.signals}`)}${kpi('Net', `${r(m.total_r || 0)} · ${money(m.net)}`)}${kpi('Return', m.return_pct != null ? (m.return_pct >= 0 ? '+' : '') + m.return_pct + '%' : '—')}${kpi('Max drawdown', m.max_dd_pct != null ? m.max_dd_pct + '%' : '—')}${kpi('Win rate', m.win_rate != null ? Math.round(m.win_rate * 100) + '%' : '—')}${kpi('Risk ≤ 1%', m.risk_within_limit || '—')}${kpi('Stop moves done', m.stop_moves_ok || '—')}${kpi('Slippage', m.avg_slippage_r != null ? r(m.avg_slippage_r) : '—')}${kpi('Live vs paper', m.live_vs_paper_r != null ? r(m.live_vs_paper_r) : '—')}${kpi('Hand changes', m.manual_interventions)}</div>` : ''}
+        ${Object.keys(m.skip_reasons || {}).length ? `<div class="sn-meta">Not taken: ${Object.entries(m.skip_reasons).map(([k, v]) => `${esc(k)} ×${v}`).join(' · ')}</div>` : ''}
+        ${rows ? `<table class="sn-tbl"><tbody>${rows}</tbody></table>` : ''}
+        <div class="sn-actions">
+          ${L.active ? `<button type="button" class="sn-btn" onclick="SENT.live('stop')">Stop the test</button>`
+            : `<button type="button" class="sn-btn sn-btn-p" onclick="SENT.live('start')" ${b.online && b.mode === 'demo' ? '' : 'disabled'}>Start the ${DAYS_TOTAL}-day test</button>`}
+          <button type="button" class="sn-btn" onclick="SENT.live('check')">Check symbols</button>
+          <button type="button" class="sn-btn" onclick="SENT.live('symbols')">MT5 names</button>
+        </div>
+      </div>`;
+  }
+  const DAYS_TOTAL = 30;
+  async function live(action) {
+    let body = { action };
+    if (action === 'start' && !confirm('Start the 30-day Sentinel Live test on your MT5 DEMO account?\n\nSentinel will place and manage its own A setups there (1% risk each). The EA refuses real accounts. You can stop it at any time.')) return;
+    if (action === 'stop' && !confirm('Stop the test? No new trades will be placed; open positions keep their stops and are still managed.')) return;
+    if (action === 'symbols') {
+      const cur = last?.live?.symbols || {}, next = {};
+      for (const [k, v] of Object.entries(cur)) {
+        const n = prompt(`MT5 symbol name for ${label(k)}`, v);
+        if (n === null) return;
+        next[k] = n.trim();
+      }
+      body.symbols = next;
+    }
+    try {
+      const res = await fetch(`${BOT_BASE}/api/sentinel/live`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Sentinel-Key': ownerKey() }, body: JSON.stringify(body) });
+      const out = await res.json().catch(() => ({}));
+      if (!res.ok) return showToast(out.detail || 'That did not work.', 6000);
+      showToast(action === 'start' ? 'Sentinel Live test started on your demo account.' : action === 'stop' ? 'Test stopped.' : 'Asked MT5 for the contract specs — refresh in a few seconds.', 4500);
+      setTimeout(refresh, action === 'start' || action === 'stop' ? 300 : 5000);
+    } catch (e) { showToast(e.message, 4000); }
+  }
+
   // The trader's own positions: how they were managed.
   function managedBlock() {
     const m = last?.managed, st = m?.stats || {};
@@ -8578,6 +8639,8 @@ const SENT = (() => {
 
       ${focusBlock(status)}
 
+      ${liveBlock()}
+
       <div class="sn-h">Open setups · ${open.length}</div>
       ${open.length ? open.map(t => tradeCard(t, ev[`${t.market} ${t.tf}`])).join('') : '<div class="sn-empty">No open setups. Sentinel checks every market at each 15-minute close.</div>'}
 
@@ -8622,15 +8685,13 @@ const SENT = (() => {
     busy = true;
     try {
       const [status, board, feed, stats, costs] = await Promise.all([get('status'), get('board'), get('feed?limit=30'), get('stats'), get('costs').catch(() => null)]);
-      let managed = null;
+      let managed = null, liveTest = null;
       if (ownerKey()) {
-        try {
-          const res = await fetch(`${BOT_BASE}/api/sentinel/managed`, { cache: 'no-store', signal: AbortSignal.timeout(15000), headers: { 'X-Sentinel-Key': ownerKey() } });
-          if (res.ok) managed = await res.json();
-        } catch (_) {}
+        const own = p => fetch(`${BOT_BASE}/api/sentinel/${p}`, { cache: 'no-store', signal: AbortSignal.timeout(15000), headers: { 'X-Sentinel-Key': ownerKey() } }).then(r => r.ok ? r.json() : null).catch(() => null);
+        [managed, liveTest] = await Promise.all([own('managed'), own('live')]);
       }
       if (!cat) get('markets').then(c => { c.byId = {}; c.groups.forEach(g => g.markets.forEach(m => { c.byId[m.id] = m; })); cat = cat || c; render(); }).catch(() => {});
-      last = { status, board, feed, stats, costs, managed };
+      last = { status, board, feed, stats, costs, managed, live: liveTest };
       render();
     } catch (e) {
       const el = document.getElementById('sentinel-panel');
@@ -8673,7 +8734,7 @@ const SENT = (() => {
     }
   }
 
-  return { open, refresh, load, chart, editFocus, toggle, toggleTf, saveFocus, cancelFocus, measureCosts };
+  return { open, refresh, load, chart, editFocus, toggle, toggleTf, saveFocus, cancelFocus, measureCosts, live };
 })();
 
 /* ════════════════════════════════════════════════════════════

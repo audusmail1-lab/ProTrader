@@ -11,8 +11,12 @@ What it does, every time a 15m / 1h bar closes:
      (each focus market has its own timeframes: 15m, 1h and/or 4h)
   4. journals everything to SQLite and, if configured, pings Telegram
 
-What it never does: place an order. Sentinel prepares, the trader confirms —
-the terminal's "Load setup" button only fills the trade ticket.
+What it does not do on its own: place an order. Sentinel prepares, the
+trader confirms — the terminal's "Load setup" button only fills the ticket.
+The one exception is the Sentinel Live test (sentinel_live.py): when the
+owner starts it, Sentinel trades its A setups on the owner's MT5 DEMO
+account for 30 days, under the same risk rules, with the EA refusing real
+accounts.
 
 Endpoints (all read-only except config):
   GET  /api/sentinel/status   scanner health, focus markets, news-week flag
@@ -299,6 +303,9 @@ async def _scan_one(m: core.Market, tf: str, focused: bool = True) -> None:
     for t in closed_now:
         _save_trade(t)
         _alert_close(t)
+        _live_call("on_update", t)
+    if _book.open.get((m.id, tf)):
+        _live_call("on_update", _book.open[(m.id, tf)])
     for t in _book.update_shadows(m.id, tf, bars):
         if t not in closed_now:
             _save_trade(t)
@@ -338,9 +345,20 @@ async def _scan_one(m: core.Market, tf: str, focused: bool = True) -> None:
     if new:
         _save_trade(new)
         _alert_open(new)
+        _live_call("on_open", new)
 
 
 _wake: Optional[asyncio.Event] = None
+
+
+def _live_call(fn: str, *a) -> None:
+    """The live test (sentinel_live) must never break the scanner."""
+    if _live is None:
+        return
+    try:
+        getattr(_live, fn)(*a)
+    except Exception as e:
+        log.warning("live %s: %s", fn, e)
 
 
 async def _loop() -> None:
@@ -349,6 +367,8 @@ async def _loop() -> None:
     _apply_costs(_load_costs())
     _wake = asyncio.Event()
     _state.update(running=True, started_at=time.time())
+    if _live is not None:
+        _live.start_loop()
     log.info("Sentinel started: focus %s", _slices())
     while True:
         cycle_start = time.time()
@@ -1012,3 +1032,14 @@ async def config(request: Request) -> dict:
         if _book:
             _book.news_week = nw
     return status()
+
+
+# ── Live test on the owner's MT5 demo account (see sentinel_live.py) ─────────
+try:
+    import sentinel_live as _live
+    import sys as _sys
+    _live.attach(_sys.modules[__name__], _bridge)
+    router.include_router(_live.router)
+except Exception as e:                  # the scanner runs without it
+    log.warning("sentinel live test unavailable: %s", e)
+    _live = None
