@@ -35,13 +35,48 @@ export function alexErrorMessage(raw='',mode='text'){
   return mode==='voice'?'The call couldn’t connect. Try again, or choose Text Alex to keep getting help.':'Alex couldn’t connect. Try again, or contact the Academy team.';
 }
 
+// Widget 0.18.3 strips audio tags from voice transcripts only. Its N2 renderer
+// exclusively wraps agent replies in .pr-8 > .markdown; user bubbles do not use
+// that structure. Remove only known leading delivery cues, never all brackets.
+const ALEX_STAGE_PREFIX=/^(?:\s*\[(?:warmly|calmly|gently|softly|reassuringly|thoughtfully)\])+\s*/i;
+export function refineAlexAgentStagePrefixes(root){
+  let changes=0;
+  root.querySelectorAll('.pr-8 > .markdown').forEach(markdown=>{
+    const paragraph=markdown.firstElementChild;
+    if(paragraph?.tagName!=='P')return;
+    const nodes=[];
+    // Keep semantic/literal content and links intact. Delivery cues can span
+    // harmless emphasis, but must precede any code, link or other content.
+    const collect=parent=>{
+      for(const node of parent.childNodes){
+        if(node.nodeType===3)nodes.push(node);
+        else if(node.nodeType===1){
+          if(!['SPAN','EM','STRONG','B','I'].includes(node.tagName)||!collect(node))return false;
+        }
+      }
+      return true;
+    };
+    collect(paragraph);
+    const prefix=nodes.map(node=>node.data).join('').match(ALEX_STAGE_PREFIX)?.[0];
+    if(!prefix)return;
+    let remaining=prefix.length;
+    for(const node of nodes){
+      if(!remaining)break;
+      const count=Math.min(remaining,node.data.length);
+      if(count){node.data=node.data.slice(count);remaining-=count;changes++}
+    }
+  });
+  return changes;
+}
+
 // The pinned widget does not expose startup failures as a lifecycle event.
-// Adapt ONLY its dedicated error elements, never user or assistant messages.
+// Adapt its dedicated errors and the narrow agent-only text prefix above.
 function refineWidget(widget,{mode,onError,onReady,onIdle}){
   const root=widget.shadowRoot;if(!root)return ()=>{};
   const styles=document.createElement('link');styles.rel='stylesheet';styles.href='/cinematic/alex-support.css';root.append(styles);
   let ready=false;const errors=new WeakMap();
   const inspect=()=>{
+    refineAlexAgentStagePrefixes(root);
     if(!ready&&root.querySelector('textarea,button')){ready=true;onReady()}
     if(!root.querySelector('button[aria-label="End call"],button[aria-label="End chat"]'))onIdle();
     root.querySelectorAll('.text-base-error.text-center').forEach(node=>{
