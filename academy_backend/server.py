@@ -20,8 +20,29 @@ from urllib.parse import urlsplit
 ROOT = Path(__file__).resolve().parent.parent
 LESSONS = json.loads((ROOT / 'academy_backend/lessons.json').read_text())
 PUBLIC = {f'posters/polished-{i}.jpg' for i in range(10)} | {'posters/polished-7-portrait.jpg'} | {f'captions/polished-{i}.vtt' for i in range(7)} | {'posters/callan-1.jpg', 'captions/callan-3.vtt', 'captions/callan-6.vtt', 'posters/callan-3.jpg', 'posters/callan-9.jpg', 'posters/callan-4.jpg', 'posters/callan-0.jpg', 'captions/callan-2.vtt', 'captions/callan-4.vtt', 'academy-intelligence.js', 'posters/callan-5.jpg', 'captions/callan-7.vtt', 'captions/callan-8.vtt', 'captions/callan-9.vtt', 'posters/callan-7.jpg', 'academy-site.js', 'academy-design.css', 'academy-films.js', 'academy-guides.js', 'posters/callan-6.jpg', 'captions/callan-5.vtt', 'posters/callan-7-portrait.jpg', 'academy-library-toggle.js', 'posters/callan-2.jpg', 'captions/callan-1.vtt', 'captions/callan-0.vtt', 'posters/callan-8.jpg'} | {'academy-premium.js','academy-premium.css','app-login.js','landing-assets/workspace-chart.png','journey-videos.js','landing-assets/protrader-workspace.webp','posters/guide-0.jpg','posters/guide-1.jpg','captions/guide-0.vtt','captions/guide-1.vtt','teacher.js','teacher.css','support-chat.js','support-chat.css','homepage.js','homepage.css','landing-assets/barlow-400.woff2','landing-assets/barlow-500.woff2','landing-assets/barlow-700.woff2','landing-assets/barlow-condensed-600.woff2','landing-assets/landing-terminal-800.webp','landing-assets/landing-terminal.webp','styles.css','favicon.svg','live.js','live.css','public-content.js','public-intro.js','public-pages.js','video-player.js','video-library.js','intro-video.js','captions/intro.vtt','posters/intro-landscape.jpg','posters/intro-portrait.jpg'} | {f'captions/tutorial-{i}.vtt' for i in range(7)} | {f'posters/tutorial-{i}.jpg' for i in range(7)}
+PUBLIC |= {f'posters/motion-{i}.jpg' for i in range(10)} | {f'captions/motion-{i}.vtt' for i in range(10)}
+PUBLIC |= {str(p.relative_to(ROOT/'academy')) for p in (ROOT/'academy/cinematic').rglob('*') if p.is_file() and p.suffix in {'.js','.css','.png','.webp','.glb'}}
 POLICY = json.loads((ROOT / 'academy_backend/public_policy.json').read_text())
 EMAIL = re.compile(r'^[^\s@]+@[^\s@]+\.[^\s@]+$')
+
+# ElevenLabs uses this pinned resampler when the browser cannot select an audio
+# sample rate (notably Safari). Older WebKit checks AudioWorklets against
+# worker-src; current engines correctly use script-src. Permit this one file in
+# both directives rather than allowing the whole CDN or eval/data scripts.
+ALEX_RESAMPLER_URL = 'https://cdn.jsdelivr.net/npm/@alexanderolsen/libsamplerate-js@2.1.2/dist/libsamplerate.worklet.js'
+CONTENT_SECURITY_POLICY = '; '.join((
+    "default-src 'self'",
+    "script-src 'self' blob: https://unpkg.com https://elevenlabs.io https://*.elevenlabs.io " + ALEX_RESAMPLER_URL,
+    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+    "font-src 'self' https://fonts.gstatic.com",
+    "media-src 'self' blob: https://*.elevenlabs.io https://d2ol7oe51mr4n9.cloudfront.net",
+    "img-src 'self' data: blob: https://*.elevenlabs.io https://storage.googleapis.com",
+    "connect-src 'self' https://elevenlabs.io https://*.elevenlabs.io wss://*.elevenlabs.io https://*.livekit.cloud wss://*.livekit.cloud",
+    "worker-src 'self' blob: " + ALEX_RESAMPLER_URL,
+    "frame-ancestors 'none'",
+    "base-uri 'self'",
+    "form-action 'self'",
+))
 
 class Academy:
     def __init__(self, directory, origin):
@@ -142,15 +163,20 @@ class Handler(BaseHTTPRequestHandler):
     @property
     def app(self): return self.server.app
 
-    def output(self,data,status=200,content_type='application/json; charset=utf-8',cookie=None):
+    def output(self,data,status=200,content_type='application/json; charset=utf-8',cookie=None,content_encoding=None,cache_control='no-store',etag=None,vary_encoding=False):
         payload=json.dumps(data).encode() if content_type.startswith('application/json') else data.encode() if isinstance(data,str) else data
         self.send_response(status); self.send_header('Content-Type',content_type)
-        self.send_header('Content-Length',str(len(payload))); self.send_header('Cache-Control','no-store')
+        if status!=304: self.send_header('Content-Length',str(len(payload)))
+        if content_encoding: self.send_header('Content-Encoding',content_encoding)
+        if content_encoding or vary_encoding: self.send_header('Vary','Accept-Encoding')
+        self.send_header('Cache-Control',cache_control)
+        if etag: self.send_header('ETag',etag)
         self.send_header('X-Content-Type-Options','nosniff'); self.send_header('Referrer-Policy','no-referrer')
         self.send_header('X-Frame-Options','DENY')
-        self.send_header('Content-Security-Policy',"default-src 'self'; script-src 'self' blob: https://unpkg.com https://elevenlabs.io https://*.elevenlabs.io; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; media-src 'self' blob: https://*.elevenlabs.io https://d2ol7oe51mr4n9.cloudfront.net; img-src 'self' data: blob: https://*.elevenlabs.io https://storage.googleapis.com; connect-src 'self' https://elevenlabs.io https://*.elevenlabs.io wss://*.elevenlabs.io https://*.livekit.cloud wss://*.livekit.cloud; worker-src 'self' blob:; frame-ancestors 'none'; base-uri 'self'; form-action 'self'")
+        self.send_header('Content-Security-Policy',CONTENT_SECURITY_POLICY)
         if cookie: self.send_header('Set-Cookie',cookie)
-        self.end_headers(); self.wfile.write(payload)
+        self.end_headers()
+        if status!=304: self.wfile.write(payload)
 
     def read_json(self):
         if self.headers.get('Origin') != self.app.origin: raise APIError(403,'This request must come from the academy site.')
@@ -234,8 +260,19 @@ class Handler(BaseHTTPRequestHandler):
                 return self.output(html,content_type='text/html; charset=utf-8')
             name=path.removeprefix('/')
             if name in PUBLIC:
-                mime='font/woff2' if name.endswith('.woff2') else 'image/webp' if name.endswith('.webp') else 'image/png' if name.endswith('.png') else 'image/jpeg' if name.endswith('.jpg') else 'text/vtt' if name.endswith('.vtt') else 'text/javascript' if name.endswith('.js') else 'text/css' if name.endswith('.css') else 'image/svg+xml'
-                return self.output((ROOT/'academy'/name).read_bytes(),content_type=mime if name.endswith(('.webp','.woff2')) else mime+'; charset=utf-8')
+                mime='model/gltf-binary' if name.endswith('.glb') else 'font/woff2' if name.endswith('.woff2') else 'image/webp' if name.endswith('.webp') else 'image/png' if name.endswith('.png') else 'image/jpeg' if name.endswith('.jpg') else 'text/vtt' if name.endswith('.vtt') else 'text/javascript' if name.endswith('.js') else 'text/css' if name.endswith('.css') else 'image/svg+xml'
+                asset=ROOT/'academy'/name
+                packed=asset.with_suffix(asset.suffix+'.gz')
+                accepts_gzip=any(v.strip().split(';')[0]=='gzip' and not any(part.strip() in ('q=0','q=0.0','q=0.00','q=0.000') for part in v.split(';')[1:]) for v in self.headers.get('Accept-Encoding','').split(','))
+                use_gzip=name.startswith('cinematic/') and accepts_gzip and packed.exists() and packed.stat().st_mtime>=asset.stat().st_mtime
+                payload=(packed if use_gzip else asset).read_bytes()
+                etag='"'+hashlib.sha256(payload).hexdigest()+'"'
+                previous=self.headers.get('If-None-Match','')
+                unchanged=previous.strip()=='*' or any(tag.strip().removeprefix('W/')==etag for tag in previous.split(','))
+                # Fixed asset URLs must revalidate after a preview edit or deploy.
+                # Each encoding has its own validator; HTML and private APIs keep
+                # the no-store default and never take this public-asset path.
+                return self.output(b'' if unchanged else payload,status=304 if unchanged else 200,content_type=mime if name.endswith(('.webp','.woff2','.glb','.png','.jpg')) else mime+'; charset=utf-8',content_encoding='gzip' if use_gzip else None,cache_control='no-cache',etag=etag,vary_encoding=name.startswith('cinematic/'))
             raise APIError(404,'Not found.')
         except APIError as e: self.output({'error':e.message},e.status)
         except (BrokenPipeError,ConnectionResetError): pass
@@ -415,7 +452,7 @@ class Handler(BaseHTTPRequestHandler):
                         raw=secrets.token_urlsafe(32); db.execute("DELETE FROM tokens WHERE user_id=? AND kind='reset'",(user['id'],))
                         db.execute('INSERT INTO tokens VALUES(?,?,?,?)',(app.digest(raw),user['id'],'reset',time.time()+1800))
                         app.enqueue(db,email,'Reset your academy password',f'Use this link within 30 minutes: {app.origin}/#reset/{raw}\nIf you did not request this, ignore this email.')
-                return self.output({'ok':True,'message':'If an account matches, reset instructions have been queued. Delivery requires the instructor’s email service to be connected.'})
+                return self.output({'ok':True,'message':'If an account matches this email, you will receive password reset instructions. Check your inbox and spam folder.'})
             if path=='/api/reset':
                 raw=self.text(data,'token',20,200);password=self.text(data,'password',12,128)
                 with app.db() as db:

@@ -14,7 +14,7 @@ export function contact(policy, enrolled, telegram = {}) {
     <h2>Get help without leaving the website</h2>
     <p>Ask about enrollment, your account or joining a class through our on-site support chat.</p>
     <p><button type="button" class="button" data-open-support>Open support chat</button></p>
-    <p>Your message goes to the Academy team, and our reply appears in the same chat. You can also open it using <strong>Need help?</strong> on any page. Replies may not be immediate; leave your question and return to the conversation.</p>
+    <p>Your message goes to the Academy team, and our reply appears in the same chat. You can also open it using <strong>Ask Alex → Academy team</strong> on any page. Replies may not be immediate; leave your question and return to the conversation.</p>
     <p>Sign in to keep support conversations with your Academy account. If you message as a guest, return in the same browser to see replies.</p>
     <h2>Questions about a lesson</h2>
     <p>${enrolled ? '<a href="#questions">Use Questions &amp; replies</a>' : '<a href="#login">Sign in to your Academy account</a>'} to keep a lesson question and your instructor’s reply together.</p>
@@ -35,7 +35,7 @@ export function privacy(policy, telegram = {}) {
   return page('Privacy Policy', 'How the academy uses your information, who helps us run it, and how to contact us about your data.', `
     <h2>1. Who is responsible</h2>
     <p>Pro Trader Academy is operated by ${esc(policy.operatorName || '[operator name pending]')}, at ${esc(policy.operatorAddress || '[contact address pending]')}. This operator decides how academy personal data is used. Contact: ${emailLink(policy)}.</p>
-    <p>This notice covers the academy website, applications, classroom and academy emails. The linked Pro Trader app has a separate sign-in system. This notice does not describe broker connections, trading records or other processing inside that app; check its information before using it.</p>
+    <p>This notice covers the academy website, applications, classroom, academy emails and the account information shared when you choose to sign in to the linked PROTrader app. Use your Academy email and password; the app keeps a separate sign-in session. The app’s own information covers broker connections, trading records and other processing inside that app; check it before using those features.</p>
     <h2>2. What the academy collects</h2>
     <ul><li><strong>Applications and accounts:</strong> name, email, experience level, learning difficulty and learning goal; application decisions and instructor messages; and your acknowledgment of the published terms and privacy notice${policy.adultOnly ? ', including confirmation that you are at least 18' : ''}.</li>
     <li><strong>Account security:</strong> a salted password hash, sign-in session records and temporary password-reset records. Your password is not stored as readable text.</li>
@@ -51,6 +51,7 @@ export function privacy(policy, telegram = {}) {
     <p>The academy uses an essential <code>academy_session</code> cookie to keep you signed in. It contains a random identifier, expires after 24 hours and is cleared when you sign out. Blocking it prevents account features from working. Password-reset links expire after 30 minutes and can be used once.</p>
     <p>Account and learning records are stored in a database on our hosted server. Access is restricted, connections use HTTPS, and private backups are access-controlled. No online service can promise absolute security.</p>
     <h2>5. Who receives information</h2>
+    <p><strong>PROTrader app sign-in:</strong> when you choose to sign in to the app, the Academy shares your account ID, name, email, role, account status and email verification status to establish your app session. Your password and password hash are not shared with the app.</p>
     <p><strong>ElevenLabs AI assistant:</strong> the optional voice and text assistant processes the messages and audio you choose to share with it through ElevenLabs. Microphone access requires your permission. Your Academy account records are not automatically sent to this assistant. You can also use the Academy support inbox to contact our team.</p>
     <p>The academy operator and authorized instructors handle applications and student conversations. Other students cannot see your account, notes or questions through the academy.</p>
     <ul><li><strong>Render:</strong> hosts the academy service and database in Frankfurt, Germany.</li>

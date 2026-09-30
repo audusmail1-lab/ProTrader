@@ -1,7 +1,7 @@
 // Public guides only. Lesson IDs and access rules remain owned by the classroom.
 export const guideCategories = [
-  {id:'all', name:'All guides', ids:[1,0,3,2,5,6,4], description:'Choose a guide for the tool you want to understand.'},
-  {id:'getting-started', name:'Getting Started', ids:[1], description:'Begin with the public introduction, then learn to read and mark your chart.'},
+  {id:'all', name:'All guides', ids:[7,8,1,0,3,2,5,6,4,9], description:'Explore the complete collection, from your first introduction to class attendance.'},
+  {id:'getting-started', name:'Getting Started', ids:[7,8,1,9], description:'Get your bearings, understand how the Academy and app connect, and prepare for a class.'},
   {id:'app-walkthroughs', name:'App Walkthroughs', ids:[2,5,6,4], description:'Explore the scanner, analysis views and optional desktop shortcuts.'},
   {id:'trade-execution', name:'Trade Execution', ids:[0,3], description:'Understand the paper ticket and journal. These guides do not connect a broker or submit a live trade.'},
   {id:'risk-management', name:'Risk Management', ids:[0,3,5,6], description:'Related guides on loss estimates, reviewing outcomes and understanding when to wait.'}
@@ -38,7 +38,7 @@ export function videoLibrary(videos, card, hash) {
 }
 
 function emptyState() {
-  return '<div class="guide-empty"><h2>No matching guides</h2><p>Try another topic, or clear the search and browse all seven guides.</p><button type="button" class="button secondary" data-reset-guides>Show all guides</button></div>';
+  return '<div class="guide-empty"><h2>No matching guides</h2><p>Try another topic, or clear the search to browse the complete collection.</p><button type="button" class="button secondary" data-reset-guides>Show all guides</button></div>';
 }
 
 export function bindVideoLibrary(main, videos, card, openVideo) {

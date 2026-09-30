@@ -3,6 +3,8 @@ import json
 import secrets
 import time
 import re
+import hashlib
+import hmac
 import support_ai
 from http.cookies import SimpleCookie
 
@@ -14,6 +16,10 @@ def initialize(db):
     CREATE INDEX IF NOT EXISTS support_owner ON support_threads(user_id,updated);
     CREATE INDEX IF NOT EXISTS support_guest ON support_threads(guest_hash);
     ''')
+    # Authenticate guest identities issued before a first message. The private
+    # settings table makes this stable across restarts without creating empty
+    # conversations or trusting a client-chosen cookie.
+    db.execute("INSERT OR IGNORE INTO settings(key,value) VALUES('support_cookie_key',?)",(secrets.token_hex(32),))
     db.execute("UPDATE support_threads SET status='waiting' WHERE status='assistant_pending'")
 
 
@@ -66,6 +72,17 @@ def route(h, path, data=None):
         if not thread and guest_hash:
             thread=db.execute('SELECT * FROM support_threads WHERE guest_hash=? AND user_id IS NULL AND updated>? ORDER BY updated DESC LIMIT 1',(guest_hash,time.time()-604800)).fetchone()
         cookie=None
+        if not user and not thread:
+            signing_key=bytes.fromhex(db.execute("SELECT value FROM settings WHERE key='support_cookie_key'").fetchone()[0])
+            valid=False
+            if re.fullmatch(r'[A-Za-z0-9_-]{43}\.[a-f0-9]{64}',raw):
+                token,signature=raw.split('.')
+                valid=hmac.compare_digest(signature,hmac.new(signing_key,token.encode(),hashlib.sha256).hexdigest())
+            if not valid:
+                token=secrets.token_urlsafe(32)
+                raw=token+'.'+hmac.new(signing_key,token.encode(),hashlib.sha256).hexdigest()
+                guest_hash=app.digest(raw)
+                cookie=f'academy_support={raw}; HttpOnly; SameSite=Strict; Path=/; Max-Age=604800'+('; Secure' if app.secure else '')
         if data is not None:
             body=h.text(data,'body',1,3000);key=h.text(data,'clientId',10,100)
             if app.limited('support-ip:'+h.client_address[0],60,3600): raise APIError(429,'Please wait before sending more messages.')
@@ -73,9 +90,13 @@ def route(h, path, data=None):
             if app.limited('support-user:'+identity,30,3600): raise APIError(429,'Please wait before sending more messages.')
             db.execute('BEGIN IMMEDIATE')
             if not thread:
-                raw=secrets.token_urlsafe(32)
+                # A parallel first send may have created the thread since the
+                # initial lookup. Recheck under the write lock before inserting.
+                thread=db.execute('SELECT * FROM support_threads WHERE user_id=? ORDER BY updated DESC LIMIT 1',(user['id'],)).fetchone() if user else db.execute('SELECT * FROM support_threads WHERE guest_hash=? AND user_id IS NULL AND updated>? ORDER BY updated DESC LIMIT 1',(guest_hash,time.time()-604800)).fetchone()
+            if not thread:
+                if user: raw=secrets.token_urlsafe(32)
                 tid=db.execute('INSERT INTO support_threads(user_id,guest_hash,created,updated) VALUES(?,?,?,?)',(user['id'] if user else None,app.digest(raw),time.time(),time.time())).lastrowid
-                cookie=f'academy_support={raw}; HttpOnly; SameSite=Strict; Path=/; Max-Age=604800'+('; Secure' if app.secure else '')
+                if user: cookie=f'academy_support={raw}; HttpOnly; SameSite=Strict; Path=/; Max-Age=604800'+('; Secure' if app.secure else '')
             else:
                 tid=thread['id']
                 if user and not thread['user_id']: db.execute('UPDATE support_threads SET user_id=?,guest_hash=NULL WHERE id=?',(user['id'],tid))

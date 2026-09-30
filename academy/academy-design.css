@@ -33,3 +33,26 @@ dialog{border:1px solid #d5ddcb;border-radius:15px;max-width:510px;width:calc(10
 .footer-links{display:flex;flex-wrap:wrap;gap:16px}.skip-link{position:absolute;left:12px;top:-80px;z-index:10001;background:#fff;padding:12px}.skip-link:focus{top:12px}
 
 .video-playback-status{font-size:11px;line-height:1.5;color:#d6dfd4;padding:10px 14px;margin:0}.video-stage #video-error{padding:0 14px 14px;color:#f0e4d1}.video-stage #retry-video{color:#eef5e8;text-decoration:underline}
+
+/* Optional resolution control; native playback controls remain available. */
+.lesson-quality{display:flex;align-items:center;justify-content:space-between;gap:14px;margin:0;padding:10px 14px;border-top:1px solid #344238;color:#b7c7b9;background:#111a16;font-size:11px;line-height:1.5}
+.lesson-quality select{width:auto;max-width:180px;min-height:40px;margin:0;padding:8px 32px 8px 10px;border:1px solid #45574a;border-radius:6px;background:#1a2820;color:#edf3e7;font:inherit;color-scheme:dark;cursor:pointer}
+.lesson-quality select:focus-visible{outline:2px solid #cdddac;outline-offset:3px}
+.video-fallback .retry-lesson{display:inline-flex;min-height:44px;align-items:center;margin-right:12px;color:#dceacb;text-decoration:underline}
+@media(max-width:600px){.lesson-quality{flex-direction:column;align-items:stretch;gap:6px}.lesson-quality select{width:100%;max-width:none;font-size:16px;min-height:44px}}
+
+/* A voluntary reflection, separate from playback and account progress. */
+.lesson-practice{margin:0;border-top:1px solid #344238;background:#142019;color:#edf3e7;font-size:13px}
+.lesson-practice summary{display:list-item;cursor:pointer;min-height:48px;padding:15px 18px;font-weight:600;line-height:1.5;list-style-position:inside}
+.lesson-practice summary span{float:right;margin-left:12px;font-size:10px;color:#aabfae;font-weight:400;text-transform:uppercase;letter-spacing:.08em;line-height:20px}
+.lesson-practice summary:focus-visible,.practice-answers button:focus-visible{outline:2px solid #cdddac;outline-offset:-3px}
+.lesson-practice fieldset{min-width:0;margin:4px 18px 0;padding:0;border:0}
+.lesson-practice legend{float:none;width:100%;margin:0 0 14px;padding:0;font-size:14px;font-weight:500;line-height:1.65;color:#e6eddf}
+.practice-answers{display:grid;gap:8px}
+.practice-answers button{display:block;width:100%;min-height:44px;margin:0;padding:12px 14px;border:1px solid #405449;border-radius:6px;background:#1b2a21;color:#dae5d4;font:inherit;font-size:12px;line-height:1.65;text-align:left;cursor:pointer;transition:background .16s,border-color .16s}
+.practice-answers button:hover{border-color:#8aab77;background:#223428}
+.practice-answers button[aria-pressed="true"]{background:#2b3e2b;border-color:#cdddac;color:#f2f7e8}
+.lesson-practice .practice-feedback{margin:16px 18px 18px;padding:12px 0 0;border-top:1px solid #425848;color:#c4d4bd;font-size:12px;line-height:1.8}
+.lesson-practice .practice-feedback:empty{margin-top:0;padding-top:0;border:0;min-height:0}
+.lesson-practice[open] summary{margin-bottom:2px;color:#d7e8be}
+@media(prefers-reduced-motion:reduce){.practice-answers button{transition:none}}

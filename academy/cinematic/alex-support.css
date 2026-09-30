@@ -1,0 +1,53 @@
+/* Shared Academy support. The widget version is pinned in alex-support.js. */
+#alex.academy-alex-launch{position:fixed;bottom:calc(20px + env(safe-area-inset-bottom,0px));right:22px;z-index:45;display:flex;align-items:center;gap:11px;min-height:44px;padding:11px 18px;border:1px solid #cdddac;border-radius:30px;background:#cdddac;color:#182315;font:600 12px/1.4 'DM Sans',Arial,sans-serif;box-shadow:0 8px 28px #0003;cursor:pointer}
+#alex.academy-alex-launch .alex-dot{width:6px;height:6px;background:#4e6541;border-radius:50%}
+#alex.academy-alex-launch[hidden]{display:none!important}
+#alex.academy-alex-launch:focus-visible,.academy-alex-panel button:focus-visible,.academy-alex-panel a:focus-visible{outline:2px solid #d9e9bf;outline-offset:3px}
+#alex-voice-host.academy-alex-panel{position:fixed;right:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px) + var(--alex-keyboard-inset,0px));width:min(400px,calc(100vw - 32px));height:min(630px,calc(var(--alex-available-height,100dvh) - 32px - env(safe-area-inset-bottom,0px)));max-height:calc(100dvh - 24px);z-index:10000;display:flex;flex-direction:column;gap:0;margin:0;padding:0;background:#141d18;border:1px solid #344638;border-radius:16px;box-shadow:0 20px 70px #0007;color:#edf1e9;font:13px/1.5 'DM Sans',Arial,sans-serif;isolation:isolate}
+.academy-alex-panel .alex-support-bar{position:relative;inset:auto;flex:none;display:flex;flex-wrap:wrap;align-items:center;gap:8px;width:100%;padding:12px 14px 8px;border:0;border-bottom:1px solid #344638;border-radius:14px 14px 0 0;background:transparent;box-shadow:none;color:#edf1e9;z-index:2}
+.academy-alex-panel .alex-support-bar>div:first-child{flex:1;min-width:90px}
+.academy-alex-panel .alex-support-bar b{font-size:15px;font-weight:600}
+.academy-alex-panel .alex-support-bar small{display:block;margin:1px 0 0;font-size:11px;color:#aab9ad}
+.academy-alex-panel .alex-support-bar button{font:600 12px/1.4 'DM Sans',Arial,sans-serif;min-height:44px;border:1px solid #45593b;background:transparent;color:#dce9c6;border-radius:8px;padding:8px 10px;cursor:pointer}
+.academy-alex-panel .alex-support-bar button:hover{background:#243229}
+.academy-alex-panel .alex-support-bar button:disabled{opacity:.45;cursor:wait}
+.academy-alex-panel .alex-support-bar #alex-close{font-size:23px;min-width:44px;padding:4px 10px}
+.academy-alex-panel .alex-support-bar nav{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-basis:100%;font-size:11px}
+.academy-alex-panel .alex-support-bar nav a,.academy-alex-panel .alex-support-bar nav button{font:500 11px/1.4 'DM Sans',Arial,sans-serif;color:#cdddac;min-height:32px;display:inline-flex;align-items:center;text-decoration:underline;text-underline-offset:4px;padding:0;border:0;background:transparent}
+.academy-alex-panel .alex-support-bar .alex-status{position:static;display:block;flex-basis:100%;width:100%;padding:0;margin:0;background:transparent;color:#aab9ad;font-size:11px!important;line-height:1.5}
+.academy-alex-panel[data-connection=error] .alex-status{color:#e5ccad}
+.academy-alex-panel .alex-widget-slot{position:relative;flex:1 1 0;min-height:0}
+.academy-alex-panel .alex-widget-slot elevenlabs-convai{position:absolute;inset:0;width:100%;height:100%;max-width:none;z-index:1}
+.academy-alex-panel .alex-recovery[hidden]{display:none}
+.academy-alex-panel .alex-switch{flex-basis:100%;padding-top:10px;border-top:1px solid #344638}
+.academy-alex-panel .alex-switch p{font-size:12px;color:#c0cdbb;line-height:1.5;margin:8px 0}
+.academy-alex-panel .alex-switch button{margin:3px 6px 0 0}
+body #academy-chat.team-support{right:16px!important;left:auto;bottom:16px;z-index:10001}
+body #academy-chat.team-support #chat-window{left:auto;right:0;bottom:0;width:min(400px,calc(100vw - 32px));max-height:calc(100dvh - 32px);background:#141d18;border-color:#344638}
+body #academy-chat.team-support #chat-launch[hidden],body #academy-chat.team-support #chat-human[hidden]{display:none!important}
+body #academy-chat.team-support .chat-actions{justify-content:flex-end}
+@media(max-width:600px){
+ #alex.academy-alex-launch{right:16px;bottom:calc(14px + env(safe-area-inset-bottom,0px))}
+ #alex-voice-host.academy-alex-panel{right:8px;width:calc(100vw - 16px);bottom:calc(8px + env(safe-area-inset-bottom,0px) + var(--alex-keyboard-inset,0px));height:min(590px,calc(var(--alex-available-height,100dvh) - 16px - env(safe-area-inset-bottom,0px)))}
+ .academy-alex-panel .alex-support-bar{padding:10px 12px 8px;gap:4px 8px}
+ .academy-alex-panel .alex-support-bar nav a,.academy-alex-panel .alex-support-bar nav button{min-height:40px}
+}
+@media(max-height:500px){.academy-alex-panel .alex-support-bar nav,.academy-alex-panel .alex-support-bar small{display:none}.academy-alex-panel .alex-support-bar{padding:6px 10px}.academy-alex-panel .alex-support-bar .alex-status{font-size:10px!important}}
+/* Loaded inside the embed's shadow root: keep our header and conversation in
+   one measured viewport. Attribution and all conversation controls remain. */
+:host .overlay{inset:0 0 22px!important}
+:host .sheet[data-variant]{width:100%!important;max-width:none!important;height:100%!important;max-height:100%!important;border-radius:0 0 14px 14px!important;transition:none!important}
+:host .sheet .overflow-y-auto{overscroll-behavior:contain;padding-top:62px;padding-bottom:12px}
+:host .sheet .gap-6{gap:16px}
+:host .sheet .markdown{font-size:14px;line-height:1.55}
+:host .sheet textarea{font-size:16px;min-height:92px;max-height:160px;padding-bottom:54px}
+:host .sheet button{min-height:44px;min-width:44px}
+:host .sheet .h-16{height:48px}
+:host .sheet .top-16{top:48px}
+:host [data-alex-private]{display:none!important}
+:host .overlay>p{font-size:10px;padding:0 12px}
+:host .overlay>p .opacity-30,:host .overlay>p a{opacity:.7}
+@media(max-height:500px){:host .sheet .overflow-y-auto{padding-top:50px}:host .sheet textarea{min-height:78px;max-height:100px}}
+@media(prefers-reduced-motion:reduce){:host *, :host *::before,:host *::after{animation:none!important;transition:none!important}}
+
+#alex-voice-host.academy-alex-panel:not(:has(.alex-widget-slot)){height:auto;min-height:132px}

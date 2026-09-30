@@ -1,4 +1,5 @@
 import http.client
+import gzip
 import json
 import os
 from pathlib import Path
@@ -46,6 +47,137 @@ class AcademyTests(unittest.TestCase):
         return self.request('/api/session')['user']['id']
     def approve(self,uid):
         self.request('/api/admission',{'student':uid,'status':'accepted','verified':True,'note':'Welcome to the class.'},cookie=self.teacher_cookie)
+
+    def test_alex_audio_policy_allows_only_pinned_safari_resampler(self):
+        resampler='https://cdn.jsdelivr.net/npm/@alexanderolsen/libsamplerate-js@2.1.2/dist/libsamplerate.worklet.js'
+        for path in ('/', '/classroom'):
+            with self.subTest(path=path):
+                conn=http.client.HTTPConnection('127.0.0.1',self.port,timeout=5)
+                conn.request('GET',path)
+                response=conn.getresponse()
+                response.read()
+                policy={part.split()[0]:part.split()[1:] for part in response.getheader('Content-Security-Policy').split(';') if part.strip()}
+                conn.close()
+                self.assertEqual(response.status,200)
+                # Modern browsers use script-src; pre-fix Safari uses worker-src.
+                for directive in ('script-src','worker-src'):
+                    self.assertIn(resampler,policy[directive])
+                    self.assertIn('blob:',policy[directive])
+                    for overly_broad in ('*','https:', 'https://cdn.jsdelivr.net', 'https://*.jsdelivr.net', 'data:', "'unsafe-eval'", "'unsafe-inline'"):
+                        self.assertNotIn(overly_broad,policy[directive])
+                self.assertIn('wss://*.elevenlabs.io',policy['connect-src'])
+                self.assertIn('wss://*.livekit.cloud',policy['connect-src'])
+                self.assertEqual(policy['frame-ancestors'],["'none'"])
+                self.assertEqual(policy['base-uri'],["'self'"])
+                self.assertEqual(policy['form-action'],["'self'"])
+
+    def test_motion_assets_use_exact_public_paths_and_correct_types(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root=Path(directory)
+            allowed={f'posters/motion-{i}.jpg':'image/jpeg' for i in range(10)}
+            allowed.update({f'captions/motion-{i}.vtt':'text/vtt; charset=utf-8' for i in range(10)})
+            blocked=('posters/motion-10.jpg','captions/motion-10.vtt','posters/motion-0.jpg.bak','captions/motion-0.json')
+            for name in (*allowed,*blocked):
+                asset=root/'academy'/name
+                asset.parent.mkdir(parents=True,exist_ok=True)
+                asset.write_bytes(b'WEBVTT\n\n' if name.endswith('.vtt') else b'test asset')
+            # Keep the real allowlist: files merely existing must not expose them.
+            with patch('server.ROOT',root):
+                for name,mime in allowed.items():
+                    with self.subTest(name=name):
+                        conn=http.client.HTTPConnection('127.0.0.1',self.port,timeout=5)
+                        conn.request('GET','/'+name)
+                        response=conn.getresponse();body=response.read()
+                        self.assertEqual(response.status,200)
+                        self.assertEqual(response.getheader('Content-Type'),mime)
+                        self.assertEqual(response.getheader('Cache-Control'),'no-cache')
+                        self.assertEqual(body,(root/'academy'/name).read_bytes())
+                        self.assertTrue(response.getheader('ETag'))
+                        conn.close()
+                for name in (*blocked,'posters/../posters/motion-0.jpg','captions/%2e%2e/captions/motion-0.vtt'):
+                    with self.subTest(blocked=name):
+                        self.request('/'+name,expected=404)
+
+    def test_film_media_policy_allows_the_exact_distribution_on_both_pages(self):
+        for path in ('/','/classroom'):
+            with self.subTest(path=path):
+                conn=http.client.HTTPConnection('127.0.0.1',self.port,timeout=5)
+                conn.request('GET',path)
+                response=conn.getresponse();html=response.read().decode()
+                directives={part.split()[0]:part.split()[1:] for part in response.getheader('Content-Security-Policy').split(';') if part.strip()}
+                self.assertEqual(response.status,200)
+                self.assertIn('https://d2ol7oe51mr4n9.cloudfront.net',directives['media-src'])
+                self.assertIn("'self'",directives['media-src'])
+                self.assertIn("'self'",directives['img-src'])
+                for broad in ('*','https:','https://*.cloudfront.net'):
+                    self.assertNotIn(broad,directives['media-src'])
+                self.assertNotIn('content-security-policy',html.lower())
+                conn.close()
+
+    def test_recovery_copy_is_private_and_visitor_facing(self):
+        self.teacher();self.student()
+        known=self.request('/api/reset-request',{'email':'student@example.com'})
+        unknown=self.request('/api/reset-request',{'email':'unknown@example.com'})
+        self.assertEqual(known,unknown)
+        self.assertIn('Check your inbox and spam folder.',known['message'])
+        for term in ('instructor','service','connected','queued'):
+            self.assertNotIn(term,known['message'])
+
+    def test_public_assets_revalidate_across_encodings_and_file_edits(self):
+        def fetch(headers):
+            conn=http.client.HTTPConnection('127.0.0.1',self.port,timeout=5)
+            conn.request('GET','/cinematic/cache-test.js',headers=headers)
+            response=conn.getresponse();body=response.read()
+            result=response.status,dict(response.getheaders()),body
+            conn.close();return result
+        with tempfile.TemporaryDirectory() as directory:
+            root=Path(directory);asset=root/'academy/cinematic/cache-test.js'
+            asset.parent.mkdir(parents=True)
+            original=b'export const version = 1;\n'
+            asset.write_bytes(original)
+            compressed=gzip.compress(original,mtime=0)
+            asset.with_suffix('.js.gz').write_bytes(compressed)
+            with patch('server.ROOT',root),patch('server.PUBLIC',{'cinematic/cache-test.js'}):
+                status,headers,body=fetch({})
+                self.assertEqual((status,body),(200,original))
+                self.assertEqual(headers['Content-Type'],'text/javascript; charset=utf-8')
+                self.assertEqual(headers['Cache-Control'],'no-cache')
+                self.assertEqual(headers['Vary'],'Accept-Encoding')
+                plain_tag=headers['ETag']
+                status,headers,body=fetch({'If-None-Match':'"different", W/'+plain_tag})
+                self.assertEqual((status,body),(304,b''))
+                self.assertEqual(headers['ETag'],plain_tag)
+                self.assertNotIn('Content-Length',headers)
+                status,headers,body=fetch({'Accept-Encoding':'gzip','If-None-Match':plain_tag})
+                self.assertEqual((status,body),(200,compressed))
+                self.assertEqual(headers['Content-Encoding'],'gzip')
+                gzip_tag=headers['ETag']
+                self.assertNotEqual(gzip_tag,plain_tag)
+                status,headers,body=fetch({'Accept-Encoding':'gzip','If-None-Match':gzip_tag})
+                self.assertEqual((status,body),(304,b''))
+                self.assertEqual(headers['Vary'],'Accept-Encoding')
+                status,headers,body=fetch({'Accept-Encoding':'gzip;q=0','If-None-Match':gzip_tag})
+                self.assertEqual((status,body),(200,original))
+                self.assertNotIn('Content-Encoding',headers)
+                asset.write_bytes(b'export const version = 2;\n')
+                os.utime(asset.with_suffix('.js.gz'),(0,0))
+                status,headers,body=fetch({'If-None-Match':plain_tag})
+                self.assertEqual((status,body),(200,b'export const version = 2;\n'))
+                self.assertNotEqual(headers['ETag'],plain_tag)
+                status,headers,body=fetch({'Accept-Encoding':'gzip','If-None-Match':gzip_tag})
+                self.assertEqual((status,body),(200,b'export const version = 2;\n'))
+                self.assertNotIn('Content-Encoding',headers)
+
+    def test_documents_and_private_responses_cannot_use_asset_cache(self):
+        for path,status in [('/',200),('/classroom',200),('/api/session',200),('/api/support',200),('/api/classroom',401),('/api/materials.js',401),('/not-public.js',404)]:
+            with self.subTest(path=path):
+                conn=http.client.HTTPConnection('127.0.0.1',self.port,timeout=5)
+                conn.request('GET',path,headers={'If-None-Match':'*'})
+                response=conn.getresponse();response.read();conn.close()
+                self.assertEqual(response.status,status)
+                self.assertEqual(response.getheader('Cache-Control'),'no-store')
+                self.assertIsNone(response.getheader('ETag'))
+
     def test_acceptance_verification_and_repeat_saves(self):
         self.teacher();uid=self.student()
         payload={'student':uid,'status':'accepted'}

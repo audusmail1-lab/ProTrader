@@ -1,6 +1,8 @@
 import json
 import os
 import unittest
+import http.client
+from concurrent.futures import ThreadPoolExecutor
 from unittest.mock import patch,MagicMock
 import test_server as fixtures
 import support_ai
@@ -12,6 +14,59 @@ class SupportTests(unittest.TestCase):
     teacher=fixtures.AcademyTests.teacher
     student=fixtures.AcademyTests.student
     approve=fixtures.AcademyTests.approve
+
+    def test_guest_preflight_cookie_survives_lost_first_post_response(self):
+        result=self.request('/api/support',cookie='')
+        guest=self.cookie
+        self.assertIsNone(result['thread'])
+        self.assertEqual(result['messages'],[])
+        with self.server.app.db() as db:
+            self.assertEqual(db.execute('SELECT count(*) FROM support_threads').fetchone()[0],0)
+        # Keep the already-received cookie and ignore all response state from the
+        # first write, as happens when a mobile connection drops after saving.
+        message={'body':'Please help me find my next lesson.','clientId':'first-send-lost-response','human':True}
+        self.request('/api/support-message',message,cookie=guest)
+        result=self.request('/api/support-message',message,cookie=guest)
+        self.assertEqual(len([m for m in result['messages'] if m['role']=='visitor']),1)
+        with self.server.app.db() as db:
+            self.assertEqual(db.execute('SELECT count(*) FROM support_threads').fetchone()[0],1)
+
+    def test_guest_preflight_is_signed_private_and_survives_restart(self):
+        self.server.app.secure=True
+        conn=http.client.HTTPConnection('127.0.0.1',self.port,timeout=5)
+        conn.request('GET','/api/support',headers={'Cookie':'academy_support=client-chosen-identity'})
+        response=conn.getresponse();result=json.loads(response.read());cookie=response.getheader('Set-Cookie');conn.close()
+        self.assertIn('HttpOnly',cookie);self.assertIn('SameSite=Strict',cookie);self.assertIn('Secure',cookie)
+        self.assertNotIn('client-chosen-identity',cookie)
+        self.assertEqual(set(result),{'aiAvailable','thread','status','messages'})
+        guest=cookie.split(';')[0]
+        # A fresh server instance must verify the same pending identity.
+        self.server.app=fixtures.Academy(self.tmp.name,self.origin)
+        message={'body':'Please explain how lessons work.','clientId':'identity-after-restart','human':True}
+        result=self.request('/api/support-message',message,cookie=guest)
+        self.assertEqual(self.request('/api/support',cookie=guest)['thread'],result['thread'])
+        token=guest.split('=',1)[1]
+        forged=guest[:-1]+('0' if guest[-1]!='0' else '1')
+        self.assertEqual(self.request('/api/support',cookie=forged)['messages'],[])
+        self.assertNotEqual(self.cookie,forged)
+        with self.server.app.db() as db:
+            self.assertEqual(db.execute('SELECT guest_hash FROM support_threads').fetchone()[0],self.server.app.digest(token))
+
+    def test_parallel_first_sends_share_preissued_identity(self):
+        self.request('/api/support',cookie='');guest=self.cookie
+        body=json.dumps({'body':'I need help with the classroom.','clientId':'parallel-first-message','human':True})
+        def send(_):
+            conn=http.client.HTTPConnection('127.0.0.1',self.port,timeout=5)
+            conn.request('POST','/api/support-message',body,{'Cookie':guest,'Content-Type':'application/json','Origin':self.origin})
+            response=conn.getresponse();result=json.loads(response.read());conn.close()
+            return response.status,result
+        with ThreadPoolExecutor(max_workers=2) as executor:
+            results=list(executor.map(send,range(2)))
+        self.assertEqual([status for status,_ in results],[200,200])
+        self.assertEqual(results[0][1]['thread'],results[1][1]['thread'])
+        with self.server.app.db() as db:
+            self.assertEqual(db.execute('SELECT count(*) FROM support_threads').fetchone()[0],1)
+            self.assertEqual(db.execute("SELECT count(*) FROM support_messages WHERE role='visitor'").fetchone()[0],1)
 
     def test_guest_isolation_and_human_reply_and_retry(self):
         self.teacher();teacher=self.teacher_cookie
@@ -78,3 +133,6 @@ class SupportTests(unittest.TestCase):
             payload=json.loads(request.call_args.args[0].data)
             self.assertFalse(payload['store']);self.assertEqual(payload['max_output_tokens'],450)
             self.assertNotIn('tools',payload);self.assertEqual(request.call_args.kwargs['timeout'],12)
+            self.assertIn('same account and maintain separate sessions',payload['instructions'])
+            self.assertIn('not your password or password hash',payload['instructions'])
+            self.assertNotIn('accounts are separate',payload['instructions'])
