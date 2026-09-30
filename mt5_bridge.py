@@ -136,69 +136,97 @@ def _fmt(v: float | None) -> str:
 async def queue_command(request: Request):
     body = await _json_body(request)
     with _lock:
-        ch = _channel(request)
-        now = _now()
-        if now - ch["ea_seen"] > EA_ONLINE_S:
+        return _enqueue(_channel(request), body)
+
+
+def enqueue(cid: str, body: dict) -> dict:
+    """Queue a command for the EA on channel `cid` from inside the server
+    (Sentinel's live test). Same checks and expiry as the app's commands;
+    raises HTTPException when the EA is offline or the command is invalid.
+    Never call from a SNAPSHOT_HOOK: those run with the relay lock held."""
+    with _lock:
+        ch = _channels.get(cid)
+        if ch is None:
             raise HTTPException(503, "MT5 bridge is offline — open MT5 and check the EA is running")
+        return _enqueue(ch, body)
 
-        cid = str(body.get("id", ""))
-        ctype = str(body.get("type", ""))
-        if not _ID_RE.match(cid):
-            raise HTTPException(422, "Bad command id")
-        if ctype not in CMD_TYPES:
-            raise HTTPException(422, "Unknown command type")
-        if cid in ch["seen_ids"]:
-            raise HTTPException(409, "Duplicate command id")
 
-        cmd = {"id": cid, "type": ctype, "ts": now,
-               "symbol": "", "side": "", "volume": None, "price": None,
-               "sl": None, "tp": None, "ticket": ""}
+def view(cid: str) -> dict | None:
+    """Read-only copy of a channel's latest snapshot, deal history and results."""
+    with _lock:
+        ch = _channels.get(cid)
+        if ch is None:
+            return None
+        now = _now()
+        return {"online": bool(ch["ea_seen"]) and now - ch["ea_seen"] <= EA_ONLINE_S,
+                "snapshot": ch["snapshot"], "history": ch["history"], "results": list(ch["results"])}
 
-        if ctype in ("market", "limit", "stop"):
-            cmd["symbol"] = _clean_text(body.get("symbol"))
-            cmd["side"] = str(body.get("side", ""))
-            if not cmd["symbol"]:
-                raise HTTPException(422, "symbol is required")
-            if cmd["side"] not in ("buy", "sell"):
-                raise HTTPException(422, "side must be buy or sell")
-            cmd["volume"] = _num(body.get("volume"), "volume", required=True, positive=True)
-            cmd["price"] = _num(body.get("price"), "price", required=ctype != "market", positive=True)
-            cmd["sl"] = _num(body.get("sl"), "sl", positive=True)
-            cmd["tp"] = _num(body.get("tp"), "tp", positive=True)
-        elif ctype in ("close", "modify", "cancel"):
-            ticket = str(body.get("ticket", ""))
-            if not ticket.isdigit():
-                raise HTTPException(422, "ticket must be the MT5 ticket number")
-            cmd["ticket"] = ticket
-            if ctype == "close":
-                cmd["volume"] = _num(body.get("volume"), "volume", positive=True)  # None = full
-            if ctype == "modify":
-                cmd["sl"] = _num(body.get("sl"), "sl")
-                cmd["tp"] = _num(body.get("tp"), "tp")
-        elif ctype == "trail":
-            ticket = str(body.get("ticket", ""))
-            if not ticket.isdigit():
-                raise HTTPException(422, "ticket must be the MT5 ticket number")
-            cmd["ticket"] = ticket
-            # distance travels in the price field; 0 switches trailing off
-            dist = _num(body.get("distance"), "distance", required=True)
-            if dist < 0:
-                raise HTTPException(422, "distance cannot be negative")
-            cmd["price"] = dist
-            cmd["side"] = "be" if body.get("mode") == "be" else "now"
-        elif ctype == "spec":
-            cmd["symbol"] = _clean_text(body.get("symbol"))
-            if not cmd["symbol"]:
-                raise HTTPException(422, "symbol is required")
 
-        # drop expired, then enforce the cap
-        while ch["queue"] and now - ch["queue"][0]["ts"] > CMD_TTL_S:
-            ch["queue"].popleft()
-        if len(ch["queue"]) >= MAX_QUEUE:
-            raise HTTPException(429, "Too many commands waiting")
-        ch["queue"].append(cmd)
-        ch["seen_ids"].append(cid)
-        return {"ok": True, "id": cid, "ttl": CMD_TTL_S}
+def _enqueue(ch: dict, body: Any) -> dict:
+    if not isinstance(body, dict):
+        raise HTTPException(400, "Expected a JSON object")
+    now = _now()
+    if now - ch["ea_seen"] > EA_ONLINE_S:
+        raise HTTPException(503, "MT5 bridge is offline — open MT5 and check the EA is running")
+
+    cid = str(body.get("id", ""))
+    ctype = str(body.get("type", ""))
+    if not _ID_RE.match(cid):
+        raise HTTPException(422, "Bad command id")
+    if ctype not in CMD_TYPES:
+        raise HTTPException(422, "Unknown command type")
+    if cid in ch["seen_ids"]:
+        raise HTTPException(409, "Duplicate command id")
+
+    cmd = {"id": cid, "type": ctype, "ts": now,
+           "symbol": "", "side": "", "volume": None, "price": None,
+           "sl": None, "tp": None, "ticket": ""}
+
+    if ctype in ("market", "limit", "stop"):
+        cmd["symbol"] = _clean_text(body.get("symbol"))
+        cmd["side"] = str(body.get("side", ""))
+        if not cmd["symbol"]:
+            raise HTTPException(422, "symbol is required")
+        if cmd["side"] not in ("buy", "sell"):
+            raise HTTPException(422, "side must be buy or sell")
+        cmd["volume"] = _num(body.get("volume"), "volume", required=True, positive=True)
+        cmd["price"] = _num(body.get("price"), "price", required=ctype != "market", positive=True)
+        cmd["sl"] = _num(body.get("sl"), "sl", positive=True)
+        cmd["tp"] = _num(body.get("tp"), "tp", positive=True)
+    elif ctype in ("close", "modify", "cancel"):
+        ticket = str(body.get("ticket", ""))
+        if not ticket.isdigit():
+            raise HTTPException(422, "ticket must be the MT5 ticket number")
+        cmd["ticket"] = ticket
+        if ctype == "close":
+            cmd["volume"] = _num(body.get("volume"), "volume", positive=True)  # None = full
+        if ctype == "modify":
+            cmd["sl"] = _num(body.get("sl"), "sl")
+            cmd["tp"] = _num(body.get("tp"), "tp")
+    elif ctype == "trail":
+        ticket = str(body.get("ticket", ""))
+        if not ticket.isdigit():
+            raise HTTPException(422, "ticket must be the MT5 ticket number")
+        cmd["ticket"] = ticket
+        # distance travels in the price field; 0 switches trailing off
+        dist = _num(body.get("distance"), "distance", required=True)
+        if dist < 0:
+            raise HTTPException(422, "distance cannot be negative")
+        cmd["price"] = dist
+        cmd["side"] = "be" if body.get("mode") == "be" else "now"
+    elif ctype == "spec":
+        cmd["symbol"] = _clean_text(body.get("symbol"))
+        if not cmd["symbol"]:
+            raise HTTPException(422, "symbol is required")
+
+    # drop expired, then enforce the cap
+    while ch["queue"] and now - ch["queue"][0]["ts"] > CMD_TTL_S:
+        ch["queue"].popleft()
+    if len(ch["queue"]) >= MAX_QUEUE:
+        raise HTTPException(429, "Too many commands waiting")
+    ch["queue"].append(cmd)
+    ch["seen_ids"].append(cid)
+    return {"ok": True, "id": cid, "ttl": CMD_TTL_S}
 
 
 @router.get("/state")
