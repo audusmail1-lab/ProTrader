@@ -6264,18 +6264,25 @@ function otMinDist(id) {
 /* ── Money maths ─────────────────────────────────────────────
    Everything resolves to the account currency (USD). Pairs quoted in a
    non-USD currency convert through a live cross rate; if that rate is
-   missing the figure reports "—" instead of a guess. */
-function otConv(id) {
+   missing the figure reports "—" instead of a guess.
+   `allowStale`: for finalizing a fill that has already executed (closePosition),
+   where "—" isn't an option — a stale rate is still far closer to the truth
+   than silently booking exactly $0 P&L, which is what a careless null → 0
+   coercion would do. Never used for margin or running (open) P&L, where a
+   guess could drive a risk decision. */
+function otConv(id, allowStale) {
   const p = PAIR_MAP[id] || {};
   // Quote currency: explicit on indices (Japan 225 is yen, DAX is euro), the
   // pair's second leg for forex, USD for everything else.
   const quote = p.ccy || (p.market === 'forex' ? String(p.label || '').split('/')[1] : 'USD');
   if (!quote || quote === 'USD') return 1;
   if (quote === 'HKD') return 1 / 7.80;         // currency-board peg (7.75–7.85), no live feed
-  // Cross rates must come from a real, recent quote — never a seed.
+  // Cross rates must come from a real quote — recent, unless the caller
+  // explicitly accepts a stale one.
   const px = k => {
     const q = pairPrices[k];
-    return (q && q.ts && Number.isFinite(q.price) && Date.now() - q.ts < 6 * 3600 * 1000) ? q.price : null;
+    if (!q || !q.ts || !Number.isFinite(q.price)) return null;
+    return (allowStale || Date.now() - q.ts < 6 * 3600 * 1000) ? q.price : null;
   };
   // USD-quoted crosses invert; xxx/USD pairs are the rate directly.
   if (quote === 'JPY') { const r = px('frxUSDJPY'); return r ? 1 / r : null; }
@@ -6290,8 +6297,8 @@ function otConv(id) {
   return null;
 }
 
-function otPnl(side, entry, exit, volume, id) {
-  const c = otConv(id);
+function otPnl(side, entry, exit, volume, id, allowStale) {
+  const c = otConv(id, allowStale);
   if (c == null || !Number.isFinite(entry) || !Number.isFinite(exit)) return null;
   const dir = side === 'buy' ? 1 : -1;
   return (exit - entry) * dir * volume * otSpec(id).contractSize * c;
@@ -7555,7 +7562,13 @@ const OT = {
 
     const vol = Math.min(volume == null ? p.volume : volume, p.volume);
     const exit = res.fillPrice;
-    const pnl = otPnl(p.side, p.entry, exit, vol, p.symbol) || 0;
+    // The fill already happened — unlike an open position's running P&L,
+    // there is no "—" option here, so a missing *recent* cross rate falls
+    // back to the last known one (however stale) rather than silently
+    // booking $0, which would misrecord a real win or loss as a scratch.
+    let pnl = otPnl(p.side, p.entry, exit, vol, p.symbol);
+    const estimated = pnl == null;
+    if (estimated) pnl = otPnl(p.side, p.entry, exit, vol, p.symbol, true) ?? 0;
     const marginBack = (p.margin || 0) * (vol / p.volume);
 
     S.balance += pnl;
@@ -7575,7 +7588,7 @@ const OT = {
                     trigger: q0 ? { src: q0.src, bid: q0.bid, ask: q0.ask, age: Math.round(q0.age), exec: !!q0.exec,
                                     hi: x0 ? (p.side === 'buy' ? x0.hiBid : x0.hiAsk) : null, lo: x0 ? (p.side === 'buy' ? x0.loBid : x0.loAsk) : null } : null,
                     sl0: p.sl0 ?? null, risk0: p.risk0 ?? null, sl0_inferred: !!p.sl0_inferred,
-                    r: p.risk0 > 0 ? +(pnl / p.risk0).toFixed(4) : null, final: fullClose });
+                    r: p.risk0 > 0 ? +(pnl / p.risk0).toFixed(4) : null, final: fullClose, pnlEstimated: estimated });
     if (fullClose) {   // net of every tranche of this position (older partials included)
       const net = S.trades.filter(t => t.id === p.id && t.entry === p.entry).reduce((a, t) => a + (t.pnl || 0), 0);
       posTally(net, p.risk0);
@@ -7583,7 +7596,7 @@ const OT = {
     this.renderHistory();
     updateBalDisplay(); renderPortfolio(); updateGarden(won, pnl);
     this.renderBook(); this.render(); this.save();
-    showToast(`${won ? '✓' : '✕'} Closed ${vol} ${p.label} @ ${otFmtPx(p.symbol, exit)} · ${otMoney(pnl)}${reason ? ' · ' + reason : ''}`, 4000);
+    showToast(`${won ? '✓' : '✕'} Closed ${vol} ${p.label} @ ${otFmtPx(p.symbol, exit)} · ${estimated ? '≈' : ''}${otMoney(pnl)}${reason ? ' · ' + reason : ''}`, 4000);
     if (!quiet && typeof NOTIFY !== 'undefined') {
       const full = !TR.positions.some(x => x.id === id);   // a partial close gets its own key so the final close still notifies
       NOTIFY.paperEvent(reason === 'Stop loss' ? 'sl' : reason === 'Take profit' ? 'tp' : 'closed', Object.assign({}, p, { volume: vol, id: full ? p.id : `${p.id}p${Date.now()}` }), { price: exit, pnl });
