@@ -29,7 +29,7 @@ export function enhanceWorkspace(main,{route,user,canLearn,lessons,progress}){
   nav.querySelectorAll('a').forEach(a=>{const hash=a.getAttribute('href');const active=hash==='#'+route||hash==='#classroom'&&(route.startsWith('lesson/')||route.startsWith('questions'));a.toggleAttribute('data-active',active);if(active)a.setAttribute('aria-current','page');else a.removeAttribute('aria-current')});
   if(route==='classes'&&canLearn){
    const invitation=main.querySelector('.next-class + .panel');
-   if(invitation)invitation.innerHTML='<h3>Bring a better question.</h3><p>Your classroom is ready. Keep your practice notes and ask about the step you want to understand before your next session.</p><a class="button secondary" href="#questions">Questions & replies <span aria-hidden="true">↗</span></a>';
+   if(invitation)invitation.innerHTML='<h3>Bring a better question.</h3><p>Your classroom is ready. Keep your practice notes and ask about the step you want to understand before your next session.</p><a class="button secondary" href="#questions">Questions & replies</a>';
   }
  if(document.body.classList.contains('teacher-mode'))return;
  const auth=main.querySelector('#auth-form,#reset-form,#verify-form');
@@ -55,7 +55,7 @@ export function enhanceWorkspace(main,{route,user,canLearn,lessons,progress}){
  main.prepend(crumb);
  if(canLearn&&['classroom','account','questions','lesson','library','classes','start'].includes(route.split('/')[0])){
   const frame=document.createElement('div');frame.className='learning-shell';
-  const rail=document.createElement('aside');rail.className='learning-rail';rail.innerHTML='<div class="rail-identity"><span class="rail-avatar">'+escapeText(user.name.trim().slice(0,1).toUpperCase())+'</span><div><b>'+escapeText(user.name)+'</b><small>'+escapeText(user.role==='teacher'?'Instructor view':'Your learning space')+'</small></div></div><nav aria-label="Learning navigation">'+[['classroom','My classroom','01'],['library','Learning library','02'],['classes','Live classes','03'],['questions','Questions & replies','04'],['account','My account','05']].map(([key,label,n])=>'<a href="#'+key+'" '+(route.split('/')[0]===key||(key==='classroom'&&route.startsWith('lesson/'))?'aria-current="page"':'')+'><span>'+n+'</span>'+label+'</a>').join('')+'</nav><div class="rail-foot"><span class="eyebrow">YOUR NEXT STEP. CLEARER.</span><p>Understand.<br>Practise.<br>Return with a question.</p><a href="#start">Revisit the introduction ↗</a></div>';
+  const rail=document.createElement('aside');rail.className='learning-rail';rail.innerHTML='<div class="rail-identity"><span class="rail-avatar">'+escapeText(user.name.trim().slice(0,1).toUpperCase())+'</span><div><b>'+escapeText(user.name)+'</b><small>'+escapeText(user.role==='teacher'?'Instructor view':'Your learning space')+'</small></div></div><nav aria-label="Learning navigation">'+[['classroom','My classroom','01'],['library','Learning library','02'],['classes','Live classes','03'],['questions','Questions & replies','04'],['account','My account','05']].map(([key,label,n])=>'<a href="#'+key+'" '+(route.split('/')[0]===key||(key==='classroom'&&route.startsWith('lesson/'))?'aria-current="page"':'')+'><span>'+n+'</span>'+label+'</a>').join('')+'</nav><div class="rail-foot"><span class="eyebrow">YOUR NEXT STEP. CLEARER.</span><p>Understand.<br>Practise.<br>Return with a question.</p><a href="#start">Revisit the introduction</a></div>';
   const content=document.createElement('div');content.className='learning-content';while(main.firstChild)content.append(main.firstChild);frame.append(rail,content);main.append(frame);
   // Preserve orientation when the mobile navigation becomes a horizontal rail.
   requestAnimationFrame(()=>{
@@ -65,7 +65,7 @@ export function enhanceWorkspace(main,{route,user,canLearn,lessons,progress}){
   });
  }
  if(route.startsWith('lesson/')&&canLearn){
-  const i=Number(route.split('/')[1]);const article=document.createElement('article');article.className='panel lesson-map';article.innerHTML='<span class="eyebrow">YOUR LEARNING PATH</span><nav aria-label="Lesson navigation">'+lessons.map((l,n)=>'<a href="#lesson/'+n+'" '+(n===i?'aria-current="step"':'')+'><span>'+String(n+1).padStart(2,'0')+'</span><b>'+escapeText(l.title)+'</b>'+(progress.some(p=>p.lesson===n&&p.complete)?'<small aria-label="Practised">✓</small>':'')+'</a>').join('')+'</nav>';
+  const i=Number(route.split('/')[1]);const article=document.createElement('article');article.className='panel lesson-map';article.innerHTML='<span class="eyebrow">YOUR LEARNING PATH</span><nav aria-label="Lesson navigation">'+lessons.map((l,n)=>'<a href="#lesson/'+n+'" '+(n===i?'aria-current="step"':'')+'><span>'+String(n+1).padStart(2,'0')+'</span><b>'+escapeText(l.title)+'</b>'+(progress.some(p=>p.lesson===n&&p.complete)?'<small role="img" aria-label="Practised"><svg class="academy-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="/ui-icons.svg#check"></use></svg></small>':'')+'</a>').join('')+'</nav>';
   main.querySelector('.dashboard>aside')?.prepend(article);
  }
 }

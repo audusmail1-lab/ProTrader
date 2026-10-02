@@ -26,14 +26,14 @@ export function matchingGuides(videos, category, search = '') {
 }
 
 export function categoryRibbon() {
-  return `<nav class="guide-ribbon" aria-label="Explore learning guides">${guideCategories.slice(1).map(c=>`<a href="#library?category=${c.id}">${c.name} <span aria-hidden="true">↗</span></a>`).join('')}</nav>`;
+  return `<nav class="guide-ribbon" aria-label="Explore learning guides">${guideCategories.slice(1).map(c=>`<a href="#library?category=${c.id}">${c.name}</a>`).join('')}</nav>`;
 }
 
 export function videoLibrary(videos, card, hash) {
   const selection = readLibraryLocation(hash);
   const category = guideCategories.find(c=>c.id===selection.category);
   const rows = matchingGuides(videos, selection.category, selection.search);
-  return `<section class="page-heading compact"><p class="eyebrow">PUBLIC VIDEO GUIDES</p><h1>Understand first.<br><em>Go deeper when ready.</em></h1><p>New to the Academy? Begin with the introduction. Then find a short, narrated guide for the task in front of you.</p><a class="button secondary" href="#start">Begin the basics ↗</a></section>
+  return `<section class="page-heading compact"><p class="eyebrow">PUBLIC VIDEO GUIDES</p><h1>Understand first.<br><em>Go deeper when ready.</em></h1><p>New to the Academy? Begin with the introduction. Then find a short, narrated guide for the task in front of you.</p><a class="button secondary" href="#start">Begin the basics</a></section>
     <section class="library-section"><div class="library-tools"><label for="guide-search">Find a guide<input id="guide-search" type="search" maxlength="120" value="${escapeHtml(selection.search)}" placeholder="Search charts, tickets, ARIA…" aria-controls="guide-results"></label><div class="guide-filters" role="group" aria-label="Guide categories">${guideCategories.map(c=>`<button type="button" data-guide-category="${c.id}" aria-pressed="${c.id===selection.category}">${c.name}</button>`).join('')}</div><p id="guide-category-description">${category.description}</p><p id="guide-result-count" role="status" aria-live="polite">${rows.length} ${rows.length===1?'guide':'guides'}</p></div><div id="guide-results" class="video-grid">${rows.length?rows.map(card).join(''):emptyState()}</div></section>`;
 }
 

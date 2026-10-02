@@ -6,7 +6,7 @@ const page = (title, introduction, body, policy) => `<section class="narrow page
 
 export function telegramLinks(telegram = {}, buttons = false) {
   const destinations = [['support','Chat on Telegram'],['community','Join Telegram Community'],['updates','Get Updates on Telegram']];
-  return destinations.filter(([key]) => /^https:\/\/t\.me\/[A-Za-z0-9_+\-]+$/.test(telegram[key] || '')).map(([key,label]) => `<a ${buttons ? 'class="button secondary"' : ''} href="${esc(telegram[key])}" target="_blank" rel="noopener noreferrer">${label} ↗</a>`).join('');
+  return destinations.filter(([key]) => /^https:\/\/t\.me\/[A-Za-z0-9_+\-]+$/.test(telegram[key] || '')).map(([key,label]) => `<a ${buttons ? 'class="button secondary"' : ''} href="${esc(telegram[key])}" target="_blank" rel="noopener noreferrer">${label}</a>`).join('');
 }
 
 export function contact(policy, enrolled, telegram = {}) {
@@ -14,14 +14,14 @@ export function contact(policy, enrolled, telegram = {}) {
     <h2>Get help without leaving the website</h2>
     <p>Ask about enrollment, your account or joining a class through our on-site support chat.</p>
     <p><button type="button" class="button" data-open-support>Open support chat</button></p>
-    <p>Your message goes to the Academy team, and our reply appears in the same chat. You can also open it using <strong>Ask Alex → Academy team</strong> on any page. Replies may not be immediate; leave your question and return to the conversation.</p>
+    <p>Your message goes to the Academy team, and our reply appears in the same chat. You can also open it using <strong>Ask Alex, then Academy team</strong> on any page. Replies may not be immediate; leave your question and return to the conversation.</p>
     <p>Sign in to keep support conversations with your Academy account. If you message as a guest, return in the same browser to see replies.</p>
     <h2>Questions about a lesson</h2>
     <p>${enrolled ? '<a href="#questions">Use Questions &amp; replies</a>' : '<a href="#login">Sign in to your Academy account</a>'} to keep a lesson question and your instructor’s reply together.</p>
     <h2>Prefer email?</h2>
     <p>Email ${emailLink(policy)} for support, partnerships or privacy requests.</p>
     ${policy.responseTarget ? `<p>${esc(policy.responseTarget)}</p>` : ''}
-    ${policy.contactEmail ? `<p><a class="button secondary" href="mailto:${esc(policy.contactEmail)}?subject=Pro%20Trader%20Academy%20inquiry">Write an email ↗</a></p>` : ''}
+    ${policy.contactEmail ? `<p><a class="button secondary" href="mailto:${esc(policy.contactEmail)}?subject=Pro%20Trader%20Academy%20inquiry">Write an email</a></p>` : ''}
     <p>Include a short description of what you need. Please leave out passwords, broker keys, bank details and identity documents.</p>
     ${telegramLinks(telegram) ? `<h2>Telegram and community</h2><p>Prefer Telegram? Use our private support bot, follow official updates or join the educational community. Telegram is optional; you can get support here on the website.</p><div class="actions">${telegramLinks(telegram, true)}</div><p>Group posts are visible to other members. Keep account information out of the community.</p>` : ''}
     <h2>Your information</h2>

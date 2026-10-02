@@ -1,4 +1,4 @@
-import {ALEX_PRODUCT_CONTEXT} from './alex-context.js?v=20260930-release2';
+import {ALEX_PRODUCT_CONTEXT} from './alex-context.js?v=20261002-controls';
 
 const AGENT_ID='agent_4801m3by5dhceh5rwx83ynt33ra3';
 // Pin the embed because our compact layout adapter targets this tested release.
@@ -73,7 +73,7 @@ export function refineAlexAgentStagePrefixes(root){
 // Adapt its dedicated errors and the narrow agent-only text prefix above.
 function refineWidget(widget,{mode,onError,onReady,onIdle}){
   const root=widget.shadowRoot;if(!root)return ()=>{};
-  const styles=document.createElement('link');styles.rel='stylesheet';styles.href='/cinematic/alex-support.css?v=20260930-release2';root.append(styles);
+  const styles=document.createElement('link');styles.rel='stylesheet';styles.href='/cinematic/alex-support.css?v=20261002-controls';root.append(styles);
   let ready=false;const errors=new WeakMap();
   const inspect=()=>{
     refineAlexAgentStagePrefixes(root);
@@ -107,7 +107,7 @@ export function initAlexSupport({classroom=false,onTeam}={}){
   let launcher=document.querySelector('#alex'),host=null,cleanup=()=>{};
   if(!launcher){
     launcher=document.createElement('button');launcher.id='alex';launcher.type='button';
-    launcher.innerHTML='<span class="alex-dot" aria-hidden="true"></span>Ask Alex<span aria-hidden="true">↗</span>';
+    launcher.innerHTML='<span class="alex-dot" aria-hidden="true"></span>Ask Alex';
     document.body.append(launcher);
   }
   launcher.setAttribute('aria-controls','alex-voice-host');
@@ -123,7 +123,7 @@ export function initAlexSupport({classroom=false,onTeam}={}){
     const panel=document.createElement('section');host=panel;
     panel.id='alex-voice-host';panel.className='academy-alex-panel';
     panel.setAttribute('role','dialog');panel.setAttribute('aria-label','Ask Alex');
-    panel.innerHTML=`<div class="alex-support-bar"><div><b>Ask Alex</b><small>Your AI Academy guide</small></div><button type="button" id="alex-mode">${mode==='text'?'Call Alex':'Text Alex'}</button><button type="button" id="alex-close" aria-label="Close Alex support">×</button><nav aria-label="Alex help links"><a href="/#intelligence">Tool guides</a><a href="${classroom?'#library':'/#learn'}">Lessons</a>${onTeam?'<button type="button" id="alex-team">Academy team</button>':'<a href="/classroom#contact">Academy team</a>'}</nav><p class="alex-status" role="status">Opening Alex…</p></div>`;
+    panel.innerHTML=`<div class="alex-support-bar"><div><b>Ask Alex</b><small>Your AI Academy guide</small></div><button type="button" id="alex-mode">${mode==='text'?'Call Alex':'Text Alex'}</button><button type="button" id="alex-close" aria-label="Close Alex support"><svg class="academy-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="/ui-icons.svg#close"></use></svg></button><nav aria-label="Alex help links"><a href="/#intelligence">Tool guides</a><a href="${classroom?'#library':'/#learn'}">Lessons</a>${onTeam?'<button type="button" id="alex-team">Academy team</button>':'<a href="/classroom#contact">Academy team</a>'}</nav><p class="alex-status" role="status">Opening Alex…</p></div>`;
     document.body.append(panel);launcher.hidden=true;launcher.setAttribute('aria-expanded','true');
     const bar=panel.querySelector('.alex-support-bar'),toggle=panel.querySelector('#alex-mode'),status=panel.querySelector('.alex-status');
     panel.querySelector('#alex-close').onclick=()=>close();

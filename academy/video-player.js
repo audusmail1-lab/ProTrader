@@ -211,7 +211,7 @@ export function createVideoPlayer(videos) {
         <h2 id="player-title">${esc(v.title)}</h2><p>${esc(v.summary)}</p>
         <ol>${v.steps.map(step => `<li>${esc(step)}</li>`).join('')}</ol>
         <div class="extension">${esc(v.note)}</div>
-        ${intro ? '<a class="button" href="#start">Begin the basics ↗︎</a>' : ''}
+        ${intro ? '<a class="button" href="#start">Begin the basics</a>' : ''}
         <details class="tutorial-transcript"><summary>Read the full transcript</summary>
           ${v.transcript.map(s => `<p><button type="button" data-seek="${s.at}" aria-label="Play from ${esc(s.time)}">${esc(s.time)}</button> ${esc(s.text)}</p>`).join('')}
         </details>
