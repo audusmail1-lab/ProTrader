@@ -265,8 +265,6 @@ html,body{height:100%;overflow:hidden;background:var(--bg-1);color:var(--tx-1);f
   font-size:12px;font-weight:800;letter-spacing:.5px;color:#fff;background:var(--blue);border:none;box-shadow:0 2px 8px rgba(0,0,0,.35)}
 .ch-auto.on{display:block}
 #lwChart .tv-lightweight-charts{border-radius:0}
-#drawLayer{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:5}
-#interactLayer{position:absolute;inset:0;width:100%;height:100%;z-index:6;touch-action:none;pointer-events:none}
 .price-tag{
   position:absolute;right:0;background:var(--blue);color:#fff;
   font-family:var(--font-mono);font-size:12px;font-weight:700;
@@ -1305,7 +1303,50 @@ svg.ico{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.7;st
 .ws-watch-off #sidebar,.ws-analysis-off #rightPanel{visibility:hidden;overflow:hidden;border:0;pointer-events:none}
 .ws-dock-off #tradeDock .bstrip-body,.ws-dock-off #tradeDockGrip{display:none!important}
 .ws-dock-off #tradeDock .bstrip-tabs{border-bottom:0}
-.ws-tools-off .ws-draw-menu{display:none}.ws-tools-off #positionMeasure{display:none!important}
+.ws-tools-off .ws-draw-menu,.ws-tools-off #dtBar{display:none!important}.ws-tools-off #positionMeasure{display:none!important}
+/* ── drawing tools (DT): the bar, flyouts, floating toolbar, sheet ── */
+.chart-row{flex:1;display:flex;min-height:0;position:relative}
+#dtBar{flex:0 0 42px;display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 0;overflow-y:auto;overflow-x:hidden;border-right:1px solid var(--bd-1);background:var(--bg-2);scrollbar-width:none}
+#dtBar::-webkit-scrollbar{display:none}#dtBar[hidden]{display:none}
+.dt-svg,#dtBar svg,.dt-flyout svg,#dtFloat svg,.dt-sheet svg,.dt-ib svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+.dt-btn{width:32px;height:32px;display:grid;place-items:center;border:1px solid transparent;border-radius:7px;background:transparent;color:var(--tx-3);cursor:pointer;padding:0;font:700 11px var(--font-display);flex-shrink:0}
+.dt-btn:hover{color:var(--tx-1);background:var(--bg-3)}.dt-btn.is-on{color:var(--blue-lt);background:rgba(59,130,246,.14);border-color:rgba(59,130,246,.35)}.dt-btn.is-open{background:var(--bg-3);color:var(--tx-1)}
+.dt-btn.is-strong{color:#F59E0B;background:rgba(245,158,11,.14);border-color:rgba(245,158,11,.35)}.dt-btn:disabled{opacity:.35;cursor:default}
+.dt-sep{width:22px;height:1px;background:var(--bd-1);margin:4px 0;flex-shrink:0}
+.dt-abbr{font:700 11px var(--font-mono);letter-spacing:-.3px}
+.dt-flyout{position:absolute;z-index:40;min-width:230px;max-height:calc(100% - 8px);overflow:auto;padding:6px;border:1px solid var(--bd-2);border-radius:10px;background:#0D1320;box-shadow:0 18px 60px rgba(0,0,0,.45)}
+.dt-flyout-title{font:600 11px var(--font-display);color:var(--tx-3);text-transform:uppercase;letter-spacing:.6px;padding:6px 10px 4px}
+.dt-item{display:flex;align-items:center;gap:8px;width:100%;text-align:left;padding:7px 8px 7px 10px;border:0;border-radius:7px;background:transparent;color:var(--tx-1);cursor:pointer;font:500 13px var(--font-display)}
+.dt-item:hover{background:var(--bg-3)}.dt-item.is-on{background:rgba(59,130,246,.14);color:var(--blue-lt)}
+.dt-item-name{flex:1}.dt-item kbd{font:600 10px var(--font-mono);color:var(--tx-3);border:1px solid var(--bd-1);border-radius:4px;padding:1px 4px}
+.dt-star{display:grid;place-items:center;width:22px;height:22px;border-radius:5px;color:var(--tx-3);opacity:.55}.dt-star:hover{opacity:1;background:var(--bg-3)}.dt-star.is-on{opacity:1;color:#F59E0B}.dt-star.is-on svg{fill:currentColor}
+#dtFloat{position:absolute;top:8px;left:50%;transform:translateX(-50%);z-index:30;display:flex;align-items:center;gap:2px;padding:4px;border:1px solid var(--bd-2);border-radius:10px;background:var(--bg-glass);backdrop-filter:blur(10px);box-shadow:0 10px 30px rgba(0,0,0,.35);max-width:calc(100% - 16px);overflow-x:auto;scrollbar-width:none}
+#dtFloat[hidden]{display:none}#dtFloat::-webkit-scrollbar{display:none}
+.dt-ftitle{font:600 12px var(--font-display);color:var(--tx-2);padding:0 8px 0 6px;white-space:nowrap;max-width:160px;overflow:hidden;text-overflow:ellipsis}
+.dt-armed{display:flex;flex-direction:column;padding:0 8px 0 6px;font:600 12px var(--font-display);color:var(--blue-lt);white-space:nowrap}.dt-armed small{font-weight:500;color:var(--tx-3)}
+.dt-fbtn{display:grid;place-items:center;min-width:30px;height:30px;padding:0 5px;border:1px solid transparent;border-radius:7px;background:transparent;color:var(--tx-2);cursor:pointer;font:700 11px var(--font-mono)}
+.dt-fbtn:hover{background:var(--bg-3);color:var(--tx-1)}.dt-fbtn.is-on{color:var(--blue-lt)}.dt-fbtn.dt-danger:hover{color:var(--red-lt)}.dt-fbtn.dt-accent{color:var(--green-lt)}
+.dt-swatch{display:block;width:16px;height:16px;border-radius:4px;border:1px solid rgba(255,255,255,.25)}.dt-w{font:700 12px var(--font-mono)}.dt-ls{font-size:11px;letter-spacing:-1px}
+.dt-pop{position:absolute;z-index:41;display:grid;gap:2px;min-width:150px;padding:6px;border:1px solid var(--bd-2);border-radius:10px;background:#0D1320;box-shadow:0 18px 60px rgba(0,0,0,.45)}
+.dt-pop-item{display:flex;align-items:center;gap:8px;padding:7px 10px;border:0;border-radius:7px;background:transparent;color:var(--tx-1);cursor:pointer;font:500 13px var(--font-display);text-align:left}
+.dt-pop-item:hover{background:var(--bg-3)}.dt-pop-item.is-on{color:var(--blue-lt);background:rgba(59,130,246,.14)}.dt-wline{display:inline-block;width:34px;background:currentColor;border-radius:2px}
+.dt-colors{min-width:232px}.dt-grid{display:grid;grid-template-columns:repeat(8,24px);gap:4px;padding:2px}.dt-sw{width:24px;height:24px;border-radius:5px;border:1px solid rgba(255,255,255,.15);cursor:pointer;padding:0}.dt-sw.is-on{outline:2px solid var(--blue);outline-offset:1px}
+.dt-opacity,.dt-custom{display:flex;align-items:center;gap:8px;font:500 12px var(--font-display);color:var(--tx-2);padding:6px 4px 2px}.dt-opacity input{flex:1}.dt-opacity output{font:600 11px var(--font-mono);min-width:34px;text-align:right}.dt-custom input{width:34px;height:24px;padding:0;border:0;background:none}
+.dt-color-row{display:flex;gap:8px;align-items:center}.dt-color-row input[type=color]{width:44px;flex:0 0 44px}.dt-color-row input[type=range]{flex:1;min-width:0;padding:0}
+.dt-levels label{gap:6px!important}.dt-levels input[type=color]{width:30px;height:24px;padding:1px}
+#dtText{position:absolute;z-index:42;width:220px;min-height:48px;padding:6px 8px;border:1px solid var(--blue);border-radius:8px;background:var(--bg-2);color:var(--tx-1);font:500 13px var(--font-display);resize:both;box-shadow:0 10px 30px rgba(0,0,0,.4)}
+.dt-ib{min-width:34px;padding:6px!important;display:grid;place-items:center}
+.ws-fields textarea{background:var(--bg-3);border:1px solid var(--bd-2);color:var(--tx-1);border-radius:6px;padding:7px 10px;font:var(--fs-1) var(--font-display);width:100%;resize:vertical}
+.dt-sheet-back{position:fixed;inset:0;z-index:60;background:rgba(2,6,13,.5)}
+.dt-sheet{position:fixed;left:0;right:0;bottom:0;z-index:61;max-height:min(70dvh,560px);display:flex;flex-direction:column;border-radius:16px 16px 0 0;background:#0D1320;border-top:1px solid var(--bd-2);box-shadow:0 -20px 60px rgba(0,0,0,.5);padding-bottom:var(--safe-bottom)}
+.dt-sheet-head{display:flex;align-items:center;gap:10px;padding:12px 14px 8px}.dt-sheet-head strong{font:600 14px var(--font-display)}.dt-sheet-hint{flex:1;font:500 11px var(--font-display);color:var(--tx-3)}
+.dt-sheet-tabs{display:flex;gap:4px;overflow-x:auto;padding:0 10px 8px;scrollbar-width:none}.dt-sheet-tabs::-webkit-scrollbar{display:none}
+.dt-sheet-tabs button{flex:0 0 auto;border:1px solid var(--bd-1);border-radius:999px;background:var(--bg-3);color:var(--tx-3);padding:6px 11px;font:600 12px var(--font-display)}.dt-sheet-tabs button[aria-selected=true]{color:var(--blue-lt);background:rgba(59,130,246,.14);border-color:rgba(59,130,246,.35)}
+.dt-sheet-body{overflow:auto;display:grid;grid-template-columns:1fr 1fr;gap:2px;padding:0 10px 12px}.dt-sheet-body .dt-item{min-height:44px}.dt-sheet-body .ws-notice{grid-column:1/-1}
+#chartWrap.dt-armed{cursor:crosshair}
+@media (max-width:820px),(max-height:520px) and (pointer:coarse){#dtBar{display:none!important}#dtFloat{top:40px}.dt-ftitle{display:none}.dt-flyout{display:none}}
+[data-theme="light"] #dtFloat{background:rgba(255,255,255,.92)}[data-theme="light"] .dt-sheet,[data-theme="light"] .dt-flyout,[data-theme="light"] .dt-pop{background:#fff}
+
 .ws-heading{height:36px;display:flex;align-items:center;justify-content:space-between;padding:0 10px;border-bottom:1px solid var(--bd-1);flex:none;color:var(--tx-2);font-size:var(--fs-1);font-weight:600;letter-spacing:.04em}
 .ws-heading button{background:none;border:0;color:var(--tx-3);font-size:16px;width:30px;height:30px;border-radius:6px;cursor:pointer}
 .ws-heading button:hover{background:var(--bg-4);color:var(--tx-1)}
@@ -1588,20 +1629,7 @@ svg.ico{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.7;st
       <button class="tf-btn" onclick="setTF('4h',this)">4H</button>
       <button class="tf-btn" onclick="setTF('1d',this)">1D</button>
       <button class="tf-btn" onclick="setTF('1w',this)">1W</button>
-      <details class="ws-menu ws-draw-menu" id="chartTools"><summary>Drawing tools ▾</summary><div class="ws-menu-body">
-      <button class="draw-btn" onclick="setDraw('hline',this)" title="Horizontal Line">— H-Line</button>
-      <button class="draw-btn" onclick="setDraw('trend',this)" title="Trend Line">/ Trend</button>
-      <button class="draw-btn" onclick="setDraw('fib',this)" title="Fibonacci">Fib</button>
-      <button class="draw-btn" onclick="setDraw('rect',this)" title="Rectangle">▭ Rect</button>
-      <button class="draw-btn" onclick="setDraw('channel',this)" title="Channel">‖ Chan</button>
-      <button class="draw-btn" onclick="setDraw('ray',this)" title="Ray">↗ Ray</button>
-      <button class="draw-btn" onclick="setDraw('vline',this)" title="Vertical Line">| V-Line</button>
-      <button class="draw-btn" onclick="setDraw('ruler',this)" title="Ruler">Ruler</button>
-      <button class="draw-btn position-tool" onclick="setDraw('long',this)" title="Long position measurement">Long</button>
-      <button class="draw-btn position-tool" onclick="setDraw('short',this)" title="Short position measurement">Short</button>
-      <button class="draw-btn position-tool" style="color:var(--red-lt)" onclick="clearDraw()" title="Clear All">✕ Clear</button>
-      <button class="draw-btn position-tool" onclick="setDraw('none',null)" title="Cursor Mode">↖ Cursor</button>
-      </div></details>
+      <button type="button" class="ws-button ws-draw-menu" id="chartTools" onclick="DT.toolbarButton()" title="Drawing tools"><svg viewBox="0 0 16 16" class="dt-svg"><path d="M2 13 14 3"/></svg><span>Draw</span></button>
       <details class="ws-menu"><summary>Indicators ▾</summary><div class="ws-menu-body">
       <button class="ind-btn active" id="ind-ema" onclick="togInd('ema',this)">EMA</button>
       <button class="ind-btn active" id="ind-bb" onclick="togInd('bb',this)">BB</button>
@@ -1621,22 +1649,21 @@ svg.ico{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.7;st
       <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
         <strong id="positionMeasureTitle">Position estimate</strong>
         <label>Risk budget <span id="positionMeasureCurrency">USD</span>
-          <input id="positionRisk" type="number" min="0.01" step="any" inputmode="decimal" value="100" aria-label="Position risk budget" style="width:85px;background:var(--bg-glass);color:inherit;border:1px solid var(--bd-2);border-radius:4px;padding:6px" oninput="DRAW.updatePositionRisk(this)">
+          <input id="positionRisk" type="number" min="0.01" step="any" inputmode="decimal" value="100" aria-label="Position risk budget" style="width:85px;background:var(--bg-glass);color:inherit;border:1px solid var(--bd-2);border-radius:4px;padding:6px" oninput="DT.updatePositionRisk(this)">
         </label>
         <output id="positionMeasureStats" style="line-height:1.6"></output>
         <span class="ws-spacer"></span>
-        <button type="button" class="ws-button" onclick="WS.openTool(DRAW.sel)">Settings</button>
+        <button type="button" class="ws-button" onclick="DT.openSettings(DT.selectedId())">Settings</button>
         <button type="button" class="ws-button" onclick="WS.usePlan()">Use in ticket</button>
-        <button type="button" class="ws-button" onclick="DRAW.deselect()">Deselect</button>
+        <button type="button" class="ws-button" onclick="DT.deselect()">Deselect</button>
       </div>
-      <div style="opacity:.7;font-size:12px;margin-top:4px">Drag Entry, SL or TP to adjust. Drag shaded zones to move; the right handle sets width. Estimate only, before fees and slippage.</div>
+      <div style="opacity:.7;font-size:12px;margin-top:4px">Drag the stop or target square to adjust, the body to move, the right edge to set the width. Estimate only, before fees and slippage.</div>
     </div>
-    <!-- Chart area -->
+    <!-- Chart area: the drawing tools bar (DT) sits to the left of the chart -->
+    <div class="chart-row" id="chartRow">
     <div class="chart-wrap" id="chartWrap">
       <div id="lwChart"></div>
       <div class="chart-loading" id="chartLoading">Connecting to the market feed…</div>
-      <canvas id="drawLayer"></canvas>
-      <div id="interactLayer"></div>
       <div class="price-tag" id="priceTag">—</div>
       <button class="ch-auto" id="chAuto" onclick="CH.autoScale()" title="Back to automatic price scale" aria-label="Reset price scale to auto">AUTO</button>
       <div class="ch-xline" id="chXLine"></div>
@@ -1650,6 +1677,7 @@ svg.ico{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.7;st
         <div class="ohlc-item"><span class="ohlc-lbl">C</span><span id="oi-c">—</span></div>
         <div class="ohlc-item"><span class="ohlc-lbl">ATR</span><span id="oi-atr">—</span></div>
       </div>
+    </div>
     </div>
 
     <!-- Bottom scanner strip -->
@@ -2052,6 +2080,7 @@ svg.ico{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.7;st
 </div>
 
 <script src="/vendor/lightweight-charts.standalone.production.js?v=5.0.9"></script>
+<script src="/vendor/lightweight-charts-drawing.umd.js?v=0.2.5"></script>
 <script>
 /* ════════════════════════════════════════════════════════════════
    PROTrader v4 — Full State
@@ -2349,6 +2378,7 @@ function selectPair(id) {
   const p = PAIR_MAP[id];
   if (!p) return;
   S.sym = id; S.symLabel = p.label; S.dp = p.dp;
+  if (typeof DT !== 'undefined') DT.setSymbol(id);
   VIEW.save();
   const chip = document.getElementById('symChip');
   chip.innerHTML = `<span class="sym-flag">${p.flag}</span><span id="symLabel">${p.label}</span>`;
@@ -3332,20 +3362,7 @@ const CH = {
   },
 
   syncOverlay() {
-    const dc = document.getElementById('drawLayer');
-    const wrap = document.getElementById('chartWrap');
-    if (!dc || !wrap) return;
-    const w = wrap.clientWidth, h = wrap.clientHeight;
-    const dpr = window.devicePixelRatio || 1;
-    const pw = Math.round(w * dpr), ph = Math.round(h * dpr);
-    if (dc.width !== pw || dc.height !== ph) {      // fractional DPR no longer thrashes
-      dc.width = pw; dc.height = ph;
-      dc.style.width = w + 'px'; dc.style.height = h + 'px';
-    }
-    const ctx = dc.getContext('2d');
-    ctx.setTransform(pw / w, 0, 0, ph / h, 0, 0);
-    ctx.clearRect(0, 0, w, h);
-    if (typeof DRAW !== 'undefined') DRAW.render(ctx, w, h);
+    // Drawings are a series primitive now (DT); only the position labels need a nudge.
     if (typeof LEVELS !== 'undefined') LEVELS.sync();
   },
 
@@ -3396,453 +3413,742 @@ function chartZoomReset() {
   CH.syncOverlay();
 }
 
-/* ── DRAWING TOOLS ─────────────────────────────────────────────────────
-   Interaction model copied from how TradingView's tools behave (their
-   drawing engine is in the proprietary Advanced Charts library, not in
-   Lightweight Charts, so this is a reimplementation, not their code):
+/* ══════════════════════════════════════════════════════════════════════════
+   DRAWING TOOLS
+   TradingView's tool set and behaviour on the chart we already have. The
+   geometry, hit-testing, placement rules, magnet and anchors come from the
+   lightweight-charts-drawing engine (vendored, MIT), attached to the candle
+   series as a primitive so drawings render inside the chart with the right
+   z-order and put price labels on the axis. This module is the shell around
+   it: the toolbar (a left bar on desktop, a tool sheet on a phone), the
+   floating toolbar after a drawing, the settings dialog, text editing,
+   undo/redo, measure, lock/hide/remove all, keyboard shortcuts, the objects
+   list, saving per symbol (mirrored to the account by ACCOUNT) and the
+   long/short position tool's link to the ticket.
+   ────────────────────────────────────────────────────────────────────────── */
+const DT = (() => {
+  const KEY = 'protrader.drawings.v1';            // same key as before: ACCOUNT mirrors it
+  const PREFS = 'protrader.drawtools.v1';
+  const LIB = () => window.LightweightChartsDrawing || null;
+  const TV_INTERVAL = { '1m': '1', '5m': '5', '15m': '15', '30m': '30', '1h': '60', '4h': '240', '1d': '1D', '1w': '1W' };
+  const I = {   // 16px icons, stroke = currentColor
+    cursor: '<svg viewBox="0 0 16 16"><path d="M8 1v4M8 11v4M1 8h4M11 8h4"/><circle cx="8" cy="8" r="1.6"/></svg>',
+    lines: '<svg viewBox="0 0 16 16"><path d="M2 13 14 3"/><circle cx="3" cy="12" r="1.4" fill="currentColor" stroke="none"/><circle cx="13" cy="4" r="1.4" fill="currentColor" stroke="none"/></svg>',
+    fib: '<svg viewBox="0 0 16 16"><path d="M2 3h12M2 6.5h8M2 9.5h10M2 13h12"/></svg>',
+    shapes: '<svg viewBox="0 0 16 16"><rect x="2.5" y="3.5" width="11" height="9" rx="1"/></svg>',
+    text: '<svg viewBox="0 0 16 16"><path d="M3 3.5h10M8 3.5V13M6 13h4"/></svg>',
+    patterns: '<svg viewBox="0 0 16 16"><path d="M1.5 12.5 5 5l3 5.5L12 3l2.5 5"/></svg>',
+    measure: '<svg viewBox="0 0 16 16"><rect x="2" y="2.5" width="12" height="4.5"/><rect x="2" y="9" width="12" height="4.5"/><path d="M5 7v2M11 7v2"/></svg>',
+    ruler: '<svg viewBox="0 0 16 16"><path d="M2 10.5h12v3H2zM4.5 10.5v-2M7 10.5v-3M9.5 10.5v-2M12 10.5v-3M2 2.5 14 2.5"/></svg>',
+    magnet: '<svg viewBox="0 0 16 16"><path d="M3.5 2h3v6a1.5 1.5 0 0 0 3 0V2h3v6a4.5 4.5 0 0 1-9 0z"/><path d="M3.5 5h3M9.5 5h3"/></svg>',
+    stay: '<svg viewBox="0 0 16 16"><path d="M3 13 11 5l2 2-8 8H3z"/><path d="M9.5 6.5l2 2"/></svg>',
+    lock: '<svg viewBox="0 0 16 16"><rect x="3" y="7" width="10" height="7" rx="1"/><path d="M5.5 7V5a2.5 2.5 0 0 1 5 0v2"/></svg>',
+    unlock: '<svg viewBox="0 0 16 16"><rect x="3" y="7" width="10" height="7" rx="1"/><path d="M5.5 7V5a2.5 2.5 0 0 1 5 0"/></svg>',
+    eye: '<svg viewBox="0 0 16 16"><path d="M1.5 8s2.5-4.5 6.5-4.5S14.5 8 14.5 8 12 12.5 8 12.5 1.5 8 1.5 8z"/><circle cx="8" cy="8" r="2"/></svg>',
+    eyeOff: '<svg viewBox="0 0 16 16"><path d="M1.5 8s2.5-4.5 6.5-4.5S14.5 8 14.5 8 12 12.5 8 12.5 1.5 8 1.5 8z"/><path d="M3 13 13 3"/></svg>',
+    trash: '<svg viewBox="0 0 16 16"><path d="M3 4h10M6.5 4V2.5h3V4M4 4l.8 9.5h6.4L12 4M6.8 6.5v5M9.2 6.5v5"/></svg>',
+    undo: '<svg viewBox="0 0 16 16"><path d="M6 3 2.5 6.5 6 10"/><path d="M2.5 6.5H10a3.5 3.5 0 0 1 0 7H7"/></svg>',
+    redo: '<svg viewBox="0 0 16 16"><path d="M10 3l3.5 3.5L10 10"/><path d="M13.5 6.5H6a3.5 3.5 0 0 0 0 7h3"/></svg>',
+    tree: '<svg viewBox="0 0 16 16"><path d="M2 4h3M7 4h7M2 8h3M7 8h7M2 12h3M7 12h7"/></svg>',
+    gear: '<svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="2.2"/><path d="M8 1.5v2M8 12.5v2M1.5 8h2M12.5 8h2M3.4 3.4l1.4 1.4M11.2 11.2l1.4 1.4M3.4 12.6l1.4-1.4M11.2 4.8l1.4-1.4"/></svg>',
+    clone: '<svg viewBox="0 0 16 16"><rect x="5" y="5" width="9" height="9" rx="1"/><path d="M11 5V3a1 1 0 0 0-1-1H3a1 1 0 0 0-1 1v7a1 1 0 0 0 1 1h2"/></svg>',
+    star: '<svg viewBox="0 0 16 16"><path d="M8 1.8l1.9 4 4.3.6-3.1 3 .8 4.3L8 11.6l-3.9 2.1.8-4.3-3.1-3 4.3-.6z"/></svg>',
+    ticket: '<svg viewBox="0 0 16 16"><path d="M2 4h12v8H2zM2 7.5h12M5 10h3"/></svg>',
+    close: '<svg viewBox="0 0 16 16"><path d="M3.5 3.5l9 9M12.5 3.5l-9 9"/></svg>',
+    more: '<svg viewBox="0 0 16 16"><circle cx="3" cy="8" r="1.3" fill="currentColor" stroke="none"/><circle cx="8" cy="8" r="1.3" fill="currentColor" stroke="none"/><circle cx="13" cy="8" r="1.3" fill="currentColor" stroke="none"/></svg>',
+  };
+  // TradingView's groups, names and order.
+  const GROUPS = [
+    { id: 'lines', name: 'Trend lines', icon: I.lines, tools: [['trend-line', 'Trend line'], ['ray', 'Ray'], ['info-line', 'Info line'], ['extended-line', 'Extended line'], ['trend-angle', 'Trend angle'], ['horizontal-line', 'Horizontal line'], ['horizontal-ray', 'Horizontal ray'], ['vertical-line', 'Vertical line'], ['cross-line', 'Cross line'], ['parallel-channel', 'Parallel channel'], ['regression-trend', 'Regression trend'], ['flat-top-bottom', 'Flat top/bottom'], ['disjoint-channel', 'Disjoint channel']] },
+    { id: 'fib', name: 'Gann and Fibonacci', icon: I.fib, tools: [['fib-retracement', 'Fib retracement'], ['trend-based-fib-extension', 'Trend-based Fib extension'], ['fib-channel', 'Fib channel'], ['fib-time-zone', 'Fib time zone'], ['fib-speed-resistance-fan', 'Fib speed resistance fan'], ['trend-based-fib-time', 'Trend-based Fib time'], ['fib-circles', 'Fib circles'], ['fib-spiral', 'Fib spiral'], ['fib-speed-resistance-arcs', 'Fib speed resistance arcs'], ['fib-wedge', 'Fib wedge'], ['pitchfan', 'Pitchfan'], ['gann-box', 'Gann box'], ['gann-square-fixed', 'Gann square fixed'], ['gann-square', 'Gann square'], ['gann-fan', 'Gann fan'], ['pitchfork', 'Pitchfork'], ['schiff-pitchfork', 'Schiff pitchfork'], ['modified-schiff-pitchfork', 'Modified Schiff pitchfork'], ['inside-pitchfork', 'Inside pitchfork']] },
+    { id: 'shapes', name: 'Geometric shapes', icon: I.shapes, tools: [['rectangle', 'Rectangle'], ['rotated-rectangle', 'Rotated rectangle'], ['circle', 'Circle'], ['ellipse', 'Ellipse'], ['triangle', 'Triangle'], ['arc', 'Arc'], ['curve', 'Curve'], ['double-curve', 'Double curve'], ['polyline', 'Polyline'], ['path', 'Path'], ['brush', 'Brush'], ['highlighter', 'Highlighter'], ['arrow', 'Arrow'], ['arrow-marker', 'Arrow marker'], ['arrow-mark-up', 'Arrow mark up'], ['arrow-mark-down', 'Arrow mark down']] },
+    { id: 'text', name: 'Annotations', icon: I.text, tools: [['text', 'Text'], ['note', 'Note'], ['pin', 'Pin'], ['comment', 'Comment'], ['callout', 'Callout'], ['price-label', 'Price label'], ['price-note', 'Price note'], ['signpost', 'Signpost'], ['flag-mark', 'Flag mark']] },
+    { id: 'patterns', name: 'Patterns', icon: I.patterns, tools: [['xabcd-pattern', 'XABCD pattern'], ['cypher-pattern', 'Cypher pattern'], ['abcd-pattern', 'ABCD pattern'], ['triangle-pattern', 'Triangle pattern'], ['three-drives-pattern', 'Three drives pattern'], ['head-and-shoulders', 'Head and shoulders'], ['elliott-impulse', 'Elliott impulse wave (12345)'], ['elliott-correction', 'Elliott correction wave (ABC)'], ['elliott-triangle', 'Elliott triangle wave (ABCDE)'], ['elliott-double-combo', 'Elliott double combo (WXY)'], ['elliott-triple-combo', 'Elliott triple combo (WXYXZ)'], ['cyclic-lines', 'Cyclic lines'], ['time-cycles', 'Time cycles'], ['sine-line', 'Sine line']] },
+    { id: 'measure', name: 'Prediction and measurement', icon: I.measure, tools: [['long-position', 'Long position'], ['short-position', 'Short position'], ['position-forecast', 'Forecast'], ['bar-pattern', 'Bar pattern'], ['ghost-feed', 'Ghost feed'], ['price-range', 'Price range'], ['date-range', 'Date range'], ['date-and-price-range', 'Date and price range'], ['anchored-vwap', 'Anchored VWAP'], ['fixed-range-volume-profile', 'Fixed range volume profile'], ['anchored-volume-profile', 'Anchored volume profile']] },
+  ];
+  const LABEL = Object.fromEntries(GROUPS.flatMap(g => g.tools));
+  const HOTKEY = { 'trend-line': 'Alt+T', 'horizontal-line': 'Alt+H', 'horizontal-ray': 'Alt+J', 'vertical-line': 'Alt+V', 'fib-retracement': 'Alt+F', 'cross-line': 'Alt+C' };
+  const KEY_TOOL = { t: 'trend-line', h: 'horizontal-line', j: 'horizontal-ray', v: 'vertical-line', f: 'fib-retracement', c: 'cross-line' };
+  const PALETTE = ['#2962ff', '#089981', '#f23645', '#ff9800', '#9c27b0', '#00bcd4', '#4caf50', '#e91e63', '#673ab7', '#ffeb3b', '#795548', '#607d8b', '#ffffff', '#b2b5be', '#787b86', '#131722'];
+  const FIELD = {   // settings labels for the engine's style keys (TradingView's words)
+    color: 'Line colour', width: 'Line width', lineStyle: 'Line style', textColor: 'Text colour', extendLeft: 'Extend left', extendRight: 'Extend right',
+    showMiddlePoint: 'Middle point', leftEnd: 'Left end', rightEnd: 'Right end', showPriceLabels: 'Price labels', showStats: 'Stats', statsPosition: 'Stats position',
+    showPriceRange: 'Price range', showPercentPriceRange: 'Percent change', showPipsPriceRange: 'Change in pips', showBarsRange: 'Bars range', showDateTimeRange: 'Date/time range',
+    showDistance: 'Distance', showAngle: 'Angle', fillBackground: 'Background', backgroundColor: 'Background colour', transparency: 'Transparency', drawBorder: 'Border', borderColor: 'Border colour',
+    fibLevelsAsPercents: 'Levels as percents', fibLevelsBasedOnLogScale: 'Fib levels based on log scale', extendLines: 'Extend lines', showText: 'Level labels', showCoeffs: 'Coefficients', showPrices: 'Prices',
+    extendTop: 'Extend top', extendBottom: 'Extend bottom', showVolume: 'Volume', fillLabelBackground: 'Label background', labelBackgroundColor: 'Label background colour', borderWidth: 'Border width',
+    stopColor: 'Stop colour', stopTransparency: 'Stop transparency', targetColor: 'Target colour', targetTransparency: 'Target transparency', showTime: 'Time label',
+    accountSize: 'Account size', riskPercent: 'Risk %', riskAmount: 'Risk amount', lotSize: 'Lot size', riskDisplayMode: 'Risk display', leverage: 'Leverage', qtyPrecision: 'Qty precision',
+    fullCircles: 'Full circles', counterclockwise: 'Counterclockwise', wordWrap: 'Word wrap', wordWrapWidth: 'Wrap width', labelFontSize: 'Label size', showLabels: 'Labels',
+  };
+  const TEXT_KEYS = new Set(['fontSize', 'bold', 'italic', 'horzLabelsAlign', 'vertLabelsAlign', 'horzTextAlign', 'vertTextAlign', 'text']);
+  const HIDDEN_KEYS = new Set(['stopLevel', 'profitLevel', 'signpostPosition', 'levels', 'vp']);
+  // TradingView options the engine honours but whose factory default is off, so they are absent from a drawing's style until set
+  const OPTIONAL = {
+    'trend-line': { extendLeft: false, extendRight: false, showMiddlePoint: false, showPriceLabels: true, showStats: false, showPriceRange: true, showPercentPriceRange: true, showPipsPriceRange: true, showBarsRange: true, showDateTimeRange: true, showDistance: false, showAngle: false },
+    'info-line': { extendLeft: false, extendRight: false, showMiddlePoint: false, showPriceLabels: true },
+    'trend-angle': { extendLeft: false, extendRight: false, showPriceLabels: true },
+    'arrow': { extendLeft: false, extendRight: false, showPriceLabels: false },
+    'horizontal-line': { showPriceLabels: true }, 'horizontal-ray': { showPriceLabels: true }, 'vertical-line': { showTime: true }, 'cross-line': { showPriceLabels: true, showTime: true },
+    'rectangle': { extendLeft: false, extendRight: false, showPriceLabels: false },
+    'fib-retracement': { extendLeft: false, extendRight: false, extendLines: false, showText: true, showPrices: true, fibLevelsAsPercents: false, fibLevelsBasedOnLogScale: false, reverse: false },
+    'trend-based-fib-extension': { extendLeft: false, extendRight: false, extendLines: false, showText: true, showPrices: true, fibLevelsAsPercents: false, reverse: false },
+    'parallel-channel': { extendLeft: false, extendRight: false, showMiddlePoint: false },
+    'date-range': { extendTop: false, extendBottom: false, showBarsRange: true, showDateTimeRange: true, showDistance: true },
+    'price-range': { extendLeft: false, extendRight: false, showPriceRange: true, showPercentPriceRange: true, showPipsPriceRange: true },
+    'date-and-price-range': { showPriceRange: true, showPercentPriceRange: true, showPipsPriceRange: true, showBarsRange: true, showDateTimeRange: true, showDistance: true, showAngle: false, showVolume: false },
+  };
+  const ENUMS = { lineStyle: ['solid', 'dashed', 'dotted'], horzLabelsAlign: ['left', 'center', 'right'], vertLabelsAlign: ['top', 'middle', 'bottom'], horzTextAlign: ['left', 'center', 'right'], vertTextAlign: ['top', 'middle', 'bottom'], riskDisplayMode: ['percents', 'money'], qtyPrecision: ['default', '0', '1', '2', '3', '4'] };
 
-     • pick a tool → draw ONE object → the tool disarms itself and the new
-       object is selected. It does not keep drawing.
-     • hovering an object highlights it; clicking selects it.
-     • dragging a selected object moves the whole thing; dragging a handle
-       moves just that point.
-     • Delete/Backspace removes the selection, Escape cancels or deselects,
-       and a ✕ chip does the same on touch where there is no keyboard.
-     • clicking empty chart still pans/zooms — the overlay only swallows
-       pointer events while it is actually over an object or armed.
+  const st = {
+    dm: null, lib: null, sym: null, bySym: {}, loading: false, saveT: 0, specs: {},
+    prefs: { magnet: 'weak', stay: false, fav: ['trend-line', 'horizontal-line', 'rectangle', 'fib-retracement', 'long-position'], group: {} },
+    hideAll: false, hidden: null, measureId: null, measuring: false, armedFrom: null, press: null,
+    past: [], future: [], last: '[]', syncingPos: false, els: {}, flyout: null, textFor: null,
+  };
 
-   Anchors are (time, price) so objects stay welded to the bars through
-   pan, zoom and timeframe changes, and they are stored per instrument.
-────────────────────────────────────────────────────────────────────────── */
+  /* ── helpers ─────────────────────────────────────────────── */
+  const $ = id => document.getElementById(id);
+  const wrap = () => $('chartWrap');
+  const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const btn = (cls, html, title, on) => { const b = document.createElement('button'); b.type = 'button'; b.className = cls; b.innerHTML = html; if (title) { b.title = title; b.setAttribute('aria-label', title); } if (on) b.addEventListener('click', e => { e.stopPropagation(); on(e); }); b.addEventListener('pointerdown', e => e.stopPropagation()); return b; };
+  const toast = (m, t) => { if (typeof showToast === 'function') showToast(m, t); };
+  const name = d => d.name || LABEL[d.kind] || d.kind;
+  const isPos = d => !!d && (d.kind === 'long-position' || d.kind === 'short-position');
+  const tick = () => Math.pow(10, -(Number.isFinite(S.dp) ? S.dp : 4));
+  const parseColor = c => {
+    const m = /^rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([\d.]+))?\)/.exec(c || '');
+    if (m) return { hex: '#' + [m[1], m[2], m[3]].map(n => (+n).toString(16).padStart(2, '0')).join(''), alpha: m[4] == null ? 1 : +m[4] };
+    const h = /^#([0-9a-f]{6})([0-9a-f]{2})?$/i.exec(c || '');
+    if (h) return { hex: '#' + h[1].toLowerCase(), alpha: h[2] ? parseInt(h[2], 16) / 255 : 1 };
+    return { hex: '#2962ff', alpha: 1 };
+  };
+  const withAlpha = (hex, a) => { const p = parseColor(hex); if (a >= 0.995) return p.hex; const n = parseInt(p.hex.slice(1), 16); return `rgba(${n >> 16}, ${(n >> 8) & 255}, ${n & 255}, ${Math.round(a * 100) / 100})`; };
 
-const DRAW_COLORS = {
-  hline: '#3B82F6', trend: '#10B981', fib: '#EAB308',
-  rect: '#3B82F6', channel: '#8B5CF6', ray: '#06B6D4',
-  vline: '#F59E0B', ruler: '#F59E0B',
-  long: '#10B981', short: '#EF5350',
-};
-const DRAW_PTS = { hline: 1, vline: 1, trend: 2, ray: 2, rect: 2, channel: 2, fib: 2, ruler: 2 };
-const HIT_TOL = 8;        // px — finger-friendly
-const HANDLE_R = 4;
-const DRAW_STORE_KEY = 'protrader.drawings.v1';
+  function savePrefs() { try { localStorage.setItem(PREFS, JSON.stringify(st.prefs)); } catch (_) {} }
+  function loadPrefs() { try { Object.assign(st.prefs, JSON.parse(localStorage.getItem(PREFS) || '{}') || {}); } catch (_) {} }
 
-const DRAW = {
-  bySym: {},
-  armed: 'none',
-  sel: null,            // selected id
-  hover: null,          // hovered id
-  hoverPt: -1,          // hovered handle index
-  mode: 'idle',         // idle | creating | moving | resizing
-  grabPt: -1,
-  dragFrom: null,       // {x,y,pts:[...]} snapshot at drag start
-  seq: 1,
-
-  list() { return this.bySym[S.sym] || (this.bySym[S.sym] = []); },
-  find(id) { return this.list().find(d => d.id === id) || null; },
-  barSec() { return TF_SEC[S.tf] || 900; },
-
-  isPosition(d) { return d && (d.type === 'long' || d.type === 'short'); },
-  // Points: entry/left, stop/right, target/right, width handle/right.
-  newPosition(d, a, x, y, W) {
-    const sign = d.type === 'long' ? 1 : -1;
-    const tick = Math.pow(10, -(Number.isFinite(S.dp) ? S.dp : 4));
-    const entry = Math.max(tick * 3, Math.round(a.p / tick) * tick);
-    const span = Math.max(tick, Math.abs(CH.fromY(y + 45) - entry) || entry * .005);
-    const risk = Math.min(span, entry / 3);
-    const end = Math.max(a.t + this.barSec(), CH.fromX(Math.min(W - 70, x + 150)) ?? a.t + this.barSec() * 20);
-    d.pts = [{t:a.t,p:entry}, {t:end,p:entry-sign*risk},
-      {t:end,p:entry+sign*risk*2}, {t:end,p:entry}];
-    d.riskBudget = 100;
-    return d;
-  },
-  resizePosition(d, index, a) {
-    const tick = Math.pow(10, -(Number.isFinite(S.dp) ? S.dp : 4));
-    const sign = d.type === 'long' ? 1 : -1;
-    let price = Math.max(tick, Math.round(a.p / tick) * tick);
-    if (index === 3) {
-      if (Number.isFinite(a.t)) d.pts.slice(1).forEach(p => { p.t = Math.max(d.pts[0].t + this.barSec(), a.t); });
-    } else if (index === 0) {
-      const low = Math.min(d.pts[1].p, d.pts[2].p) + tick;
-      const high = Math.max(d.pts[1].p, d.pts[2].p) - tick;
-      d.pts[0].p = Math.max(low, Math.min(high, price));
-      d.pts[3].p = d.pts[0].p;
-    } else {
-      const entry = d.pts[0].p;
-      const direction = index === 1 ? -sign : sign;
-      d.pts[index].p = direction > 0 ? Math.max(entry + tick, price) : Math.min(entry - tick, price);
+  /* ── persistence and the format migration ─────────────────── */
+  // Older drawings (the first engine) are converted once, on load.
+  function visFromTfs(tfs) {
+    const on = u => tfs.some(t => u.includes(t));
+    const unit = (ok, to) => ({ on: ok, from: 1, to });
+    return { ticks: true, ranges: true, seconds: unit(true, 59), minutes: unit(on(['1m', '5m', '15m', '30m']), 59), hours: unit(on(['1h', '4h']), 24), days: unit(on(['1d']), 366), weeks: unit(on(['1w']), 52), months: unit(true, 12) };
+  }
+  function migrateOld(o, factory) {
+    if (!o || !o.type || !Array.isArray(o.pts) || !o.pts.length) return null;
+    const P = q => ({ time: q.t, price: q.p });
+    const sty = {}; if (o.color) sty.color = o.color; if (o.width) sty.width = Math.max(1, Math.round(o.width)); if (o.style === 'dashed' || o.style === 'dotted') sty.lineStyle = o.style;
+    const two = o.pts.length >= 2 && Number.isFinite(o.pts[1].t) && Number.isFinite(o.pts[1].p);
+    let kind, points, extra = {};
+    switch (o.type) {
+      case 'hline': kind = 'horizontal-line'; points = [P(o.pts[0])]; break;
+      case 'vline': kind = 'vertical-line'; points = [P(o.pts[0])]; break;
+      case 'trend': kind = 'trend-line'; break;
+      case 'ray': kind = 'ray'; break;
+      case 'rect': kind = 'rectangle'; break;
+      case 'fib': kind = 'fib-retracement'; break;
+      case 'ruler': kind = 'date-and-price-range'; break;
+      case 'channel': { if (!two) return null; const [a, b] = o.pts; kind = 'parallel-channel'; points = [P(a), P(b), { time: a.t, price: a.p - (Math.abs(b.p - a.p) * 0.5 || Math.abs(a.p) * 0.002) }]; break; }
+      case 'long': case 'short': {
+        const [e, s, t, w] = o.pts; if (!e || !s || !t) return null;
+        kind = o.type + '-position'; points = [{ time: e.t, price: e.p }, { time: (w || t).t, price: e.p }];
+        sty.stopLevel = Math.abs(e.p - s.p); sty.profitLevel = Math.abs(t.p - e.p);
+        if (Number.isFinite(+o.riskBudget) && +o.riskBudget > 0) extra.riskBudget = +o.riskBudget;
+        break;
+      }
+      default: return null;
     }
-  },
-  positionStats(d) {
-    const [entry, stop, target] = d.pts.map(p => p.p);
-    const distance = Math.abs(entry-stop), rewardDistance = Math.abs(target-entry);
-    const live = LIVE.routing();
-    const spec = otSpec(S.sym);
-    const matching = !live || !!LIVE.specLimits(S.sym);
-    const perLot = !matching ? null : live ? LIVE.riskAtStop(S.sym, 1, entry, stop)
-      : Math.abs(otPnl('buy', entry, stop, 1, S.sym) ?? NaN);
+    if (!points) { if (!two) return null; points = [P(o.pts[0]), P(o.pts[1])]; }
+    if (points.some(p => !Number.isFinite(p.time) || !Number.isFinite(p.price))) return null;
+    const d = { id: 'v1-' + o.id, kind, points, style: Object.assign({}, factory ? factory(kind) : {}, sty), ...extra };
+    if (o.name) d.name = o.name; if (o.locked) d.locked = true; if (o.hidden) d.hidden = true;
+    if (o.vis && Array.isArray(o.vis.tf) && o.vis.tf.length) d.visibility = visFromTfs(o.vis.tf);
+    return d;
+  }
+  function normalize(raw, factory) {
+    const out = {};
+    if (!raw || typeof raw !== 'object') return out;
+    for (const [sym, arr] of Object.entries(raw)) {
+      if (!Array.isArray(arr)) continue;
+      const list = [];
+      for (const o of arr) {
+        if (!o) continue;
+        if (o.kind && Array.isArray(o.points)) list.push(o);
+        else { const m = migrateOld(o, factory); if (m) list.push(m); }
+      }
+      if (list.length) out[sym] = list;
+    }
+    return out;
+  }
+  function load() {
+    let raw = null; try { raw = JSON.parse(localStorage.getItem(KEY) || 'null'); } catch (_) {}
+    st.bySym = normalize(raw, st.lib ? st.lib.factoryStyleFor : null);
+    const old = raw && typeof raw === 'object' && Object.values(raw).some(a => Array.isArray(a) && a.some(o => o && o.type && o.pts));
+    if (old && st.lib) save(true);                  // the converted drawings replace the old format at once
+  }
+  function save(now) {
+    clearTimeout(st.saveT);
+    const write = () => { st.saveT = 0; try { localStorage.setItem(KEY, JSON.stringify(st.bySym)); } catch (_) {} };
+    if (now) write(); else st.saveT = setTimeout(write, 300);
+  }
+  // The engine holds the charted symbol's drawings; bySym holds every symbol's.
+  function pullFromEngine() {
+    if (!st.dm || st.loading || !st.sym) return;
+    const list = JSON.parse(st.dm.exportJSON()).filter(d => d.id !== st.measureId);
+    if (list.length) st.bySym[st.sym] = list; else delete st.bySym[st.sym];
+    save();
+  }
+  function pushToEngine() {
+    if (!st.dm) return;
+    st.loading = true;
+    try { st.dm.clear(); st.dm.importJSON(JSON.stringify(st.hideAll ? [] : (st.bySym[st.sym] || []))); } catch (_) {}
+    st.loading = false;
+    st.dm.redraw();
+  }
+
+  /* ── undo / redo (one entry per gesture) ──────────────────── */
+  function snapshot() { return JSON.stringify(st.bySym[st.sym] || []); }
+  function commit() {
+    if (st.loading) return;
+    pullFromEngine();
+    const cur = snapshot();
+    if (cur === st.last) return;
+    st.past.push(st.last); if (st.past.length > 60) st.past.shift();
+    st.future = []; st.last = cur; ui();
+  }
+  function restore(json) {
+    st.bySym[st.sym] = JSON.parse(json); if (!st.bySym[st.sym].length) delete st.bySym[st.sym];
+    st.last = json; pushToEngine(); save(true); ui();
+  }
+  function undo() { if (!st.past.length) return; const cur = st.last; st.future.push(cur); restore(st.past.pop()); }
+  function redo() { if (!st.future.length) return; st.past.push(st.last); restore(st.future.pop()); }
+  function resetHistory() { st.past = []; st.future = []; st.last = snapshot(); }
+
+  /* ── engine ───────────────────────────────────────────────── */
+  function barsForEngine() {
+    const c = S.candles || [];
+    if (st._barsSrc === c && st._barsN === c.length && st._barsLast === (c.length ? c[c.length - 1].close : 0)) return st._bars;
+    st._barsSrc = c; st._barsN = c.length; st._barsLast = c.length ? c[c.length - 1].close : 0;
+    st._bars = c.map(b => ({ time: b.time, open: b.open, high: b.high, low: b.low, close: b.close, volume: b.vol || 0 }));
+    return st._bars;
+  }
+  function init() {
+    st.lib = LIB(); loadPrefs();
+    if (!st.lib || typeof CH === 'undefined' || !CH.chart || !CH.candle) { load(); buildToolbar(); ui(); return false; }
+    st.specs = st.lib.OVERLAY_SPECS || {};
+    for (const g of GROUPS) g.tools = g.tools.filter(([k]) => st.specs[k]);   // only tools the engine has
+    st.prefs.fav = (st.prefs.fav || []).filter(k => st.specs[k]);
+    load();
+    st.dm = new st.lib.DrawingManager(CH.chart, CH.candle, {
+      magnet: st.prefs.magnet, stayInDrawingMode: !!st.prefs.stay, interval: TV_INTERVAL[S.tf] || undefined,
+      fontFamily: "'JetBrains Mono','Inter',monospace", bars: barsForEngine,
+      timeInfo: () => ({ timeZone: (typeof TZ !== 'undefined' && TZ.mode === 'utc') ? 'UTC' : (Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC'), intraday: S.tf !== '1d' && S.tf !== '1w' }),
+    });
+    const dm = st.dm;
+    dm.on('change', () => { if (!st.loading) { pullFromEngine(); if (st.textFor) placeTextEditor(); } });
+    dm.on('gestureEnd', () => commit());
+    dm.on('add', d => {
+      if (st.measuring) { st.measureId = d.id; st.measuring = false; pullFromEngine(); ui(); return; }   // a measurement is never saved
+      commit(); positionSync(d); ui();
+    });
+    dm.on('remove', () => { commit(); ui(); });
+    dm.on('update', d => { positionSync(d); if (isPos(d)) positionPanel(); });
+    dm.on('selection', () => { dropMeasure(); ui(); });
+    dm.on('tool', () => { if (!dm.tool()) st.measuring = false; ui(); });
+    dm.on('textEdit', (d, pt) => openTextEditor(d, pt));
+    st.sym = S.sym; pushToEngine(); resetHistory();
+    buildToolbar(); wireChart(); ui();
+    return true;
+  }
+  function setSymbol(sym) {
+    if (!st.dm || sym === st.sym) { st.sym = sym; return; }
+    if (st.dm.tool()) st.dm.setTool(null);
+    st.sym = sym; closeFloat(); pushToEngine(); resetHistory(); ui();
+  }
+  function setInterval_(tf) { if (st.dm) st.dm.setInterval(TV_INTERVAL[tf] || undefined); }
+
+  /* ── tools ────────────────────────────────────────────────── */
+  function arm(kind) {
+    if (!st.dm) { toast('Drawing tools are still loading.', 2200); return; }
+    if (st.hideAll && kind) hideAllToggle(false);
+    st.measuring = false;
+    if (kind && !st.specs[kind]) return;
+    st.dm.setTool(kind || null);
+    if (kind) { const g = GROUPS.find(g => g.tools.some(([k]) => k === kind)); if (g) { st.prefs.group[g.id] = kind; savePrefs(); } }
+    closeFlyout(); closeSheet(); ui();
+  }
+  function measure() {   // TradingView's Measure: a temporary date and price range, gone on the next click
+    if (!st.dm) return;
+    arm('date-and-price-range'); st.measuring = true; ui();
+  }
+  function dropMeasure() {
+    if (!st.measureId || !st.dm) return;
+    const id = st.measureId;
+    if (st.dm.selection().includes(id)) return;          // still being looked at
+    st.measureId = null;
+    st.loading = true; try { st.dm.remove(id); } catch (_) {} st.loading = false;
+    pullFromEngine();
+  }
+  const selected = () => st.dm ? st.dm.selection().map(id => st.dm.get(id)).filter(Boolean) : [];
+  function change(d, patch) {   // apply a patch to one drawing and record it
+    if (!st.dm) return;
+    st.dm.update(Object.assign({}, d, patch)); commit(); ui();
+  }
+  function styleAll(patch, live) { for (const d of selected()) st.dm.update(Object.assign({}, d, { style: Object.assign({}, d.style, patch) })); if (!live) commit(); ui(); }
+  function remove(ids) { if (!st.dm) return; for (const id of ids) st.dm.remove(id); commit(); closeFloat(); ui(); }
+  function clone() {
+    const made = [];
+    for (const d of selected()) {
+      const dt = (typeof TF_SEC !== 'undefined' && TF_SEC[S.tf]) || 900;
+      const c = JSON.parse(JSON.stringify(d)); delete c.id; c.points = c.points.map(p => ({ time: p.time + dt * 3, price: p.price }));
+      made.push(st.dm.add(c));
+    }
+    if (made.length) { st.dm.select(made); commit(); ui(); }
+  }
+
+  /* ── global toggles ───────────────────────────────────────── */
+  function magnetCycle() {
+    const next = { off: 'weak', weak: 'strong', strong: 'off' }[st.prefs.magnet] || 'weak';
+    setMagnet(next);
+    toast(next === 'off' ? 'Magnet off.' : next === 'weak' ? 'Weak magnet: snaps when the pointer is near a candle value.' : 'Strong magnet: always pulls to the nearest candle value.', 2600);
+  }
+  function setMagnet(mode) { st.prefs.magnet = mode; savePrefs(); if (st.dm) st.dm.setMagnet(mode); ui(); }
+  function stayToggle() { st.prefs.stay = !st.prefs.stay; savePrefs(); if (st.dm) st.dm.setStayInDrawingMode(st.prefs.stay); ui(); toast(st.prefs.stay ? 'Stay in drawing mode: the tool stays armed after each drawing.' : 'Drawing mode ends after each drawing.', 2400); }
+  function lockAllToggle() {
+    if (!st.dm) return;
+    const list = st.dm.drawings(); if (!list.length) return;
+    const lock = !list.every(d => d.locked);
+    for (const d of list) st.dm.update(Object.assign({}, d, { locked: lock }));
+    commit(); ui(); toast(lock ? 'All drawings locked.' : 'All drawings unlocked.', 2000);
+  }
+  function hideAllToggle(force) {
+    const on = typeof force === 'boolean' ? force : !st.hideAll;
+    if (on === st.hideAll) return;
+    if (on && st.dm) { if (st.dm.tool()) st.dm.setTool(null); pullFromEngine(); }
+    st.hideAll = on; closeFloat(); pushToEngine(); ui();
+  }
+  async function removeAll() {
+    const n = (st.bySym[st.sym] || []).length; if (!n) { toast('Nothing drawn on this chart.', 1800); return; }
+    const ok = typeof LEVELS !== 'undefined' && LEVELS.reviewSheet ? await LEVELS.reviewSheet('Remove all drawings?', `${n} object${n > 1 ? 's' : ''} on ${S.symLabel || S.sym} will be removed. Undo brings them back until you leave the chart.`, 'Remove all') : confirm('Remove all drawings on this chart?');
+    if (!ok) return;
+    const json = snapshot(); st.past.push(json); st.future = [];
+    delete st.bySym[st.sym]; st.last = '[]'; pushToEngine(); save(true); closeFloat(); ui();
+  }
+
+  /* ── chart wiring: drag-to-draw, Shift+click measure, double-click settings ── */
+  function wireChart() {
+    const w = wrap(); if (!w || w._dtWired) return; w._dtWired = true;
+    const el = st.dm ? CH.chart.chartElement() : null;
+    w.addEventListener('pointerdown', e => {
+      if (!st.dm || e.button !== 0 || !el || !el.contains(e.target)) return;
+      if (e.shiftKey && !st.dm.tool() && !st.dm.hoveredId() && !st.dm.selection().length) measure();
+      const kind = st.dm.tool();
+      const spec = kind && st.specs[kind];
+      // TradeLocker/TradingView accept press-drag-release for a two-point tool as well as click-click.
+      if (spec && spec.pointCount === 2 && !spec.freehand && !(st.dm.pending || []).length) st.press = { x: e.clientX, y: e.clientY, kind, n: st.dm.drawings().length, id: e.pointerId };
+      else st.press = null;
+    }, true);
+    window.addEventListener('pointerup', e => {
+      const p = st.press; st.press = null;
+      if (!p || !st.dm || e.pointerId !== p.id || st.dm.tool() !== p.kind || st.dm.drawings().length !== p.n) return;
+      if (Math.hypot(e.clientX - p.x, e.clientY - p.y) < 12 || (st.dm.pending || []).length !== 1) return;
+      const r = el.getBoundingClientRect();
+      if (e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom) return;
+      const init = { bubbles: true, cancelable: true, clientX: e.clientX, clientY: e.clientY, button: 0, buttons: 1, pointerId: e.pointerId + 1000, pointerType: e.pointerType, isPrimary: true };
+      el.dispatchEvent(new PointerEvent('pointerdown', init));
+      window.dispatchEvent(new PointerEvent('pointerup', Object.assign({}, init, { buttons: 0 })));
+    }, true);
+    w.addEventListener('dblclick', e => {
+      if (!st.dm || st.dm.tool() || !el || !el.contains(e.target)) return;
+      const id = st.dm.hoveredId(); if (!id) return;
+      const d = st.dm.get(id); if (!d || (st.specs[d.kind] && st.specs[d.kind].textEditable)) return;
+      e.preventDefault(); st.dm.select([id]); openSettings(id);
+    }, true);
+    document.addEventListener('keydown', e => {
+      const t = e.target; if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT' || t.isContentEditable)) return;
+      const k = e.key.toLowerCase(), mod = e.ctrlKey || e.metaKey;
+      if (e.altKey && !mod && KEY_TOOL[k]) { e.preventDefault(); arm(KEY_TOOL[k]); return; }
+      if (mod && e.altKey && k === 'h') { e.preventDefault(); hideAllToggle(); return; }
+      if (mod && !e.altKey && k === 'z') { e.preventDefault(); if (e.shiftKey) redo(); else undo(); return; }
+      if (mod && !e.altKey && k === 'y') { e.preventDefault(); redo(); return; }
+      if (e.key === 'Escape') { if (st.flyout) closeFlyout(); closeSheet(); st.measuring = false; }
+    });
+    document.addEventListener('pointerdown', e => { if (st.flyout && !st.flyout.contains(e.target) && !e.target.closest('#dtBar')) closeFlyout(); if (st.els.pop && !st.els.pop.contains(e.target) && !e.target.closest('#dtFloat')) closePop(); }, true);
+    window.addEventListener('pagehide', () => { if (st.saveT) save(true); });
+    document.addEventListener('visibilitychange', () => { if (document.hidden && st.saveT) save(true); });
+  }
+
+  /* ── position tool: risk budget, estimate strip, ticket ───── */
+  function positionLevels(d) {
+    const sign = d.kind === 'long-position' ? 1 : -1, entry = d.points[0].price;
+    const dist = d.points[1] ? Math.abs(d.points[1].price - entry) : 0, t = tick();
+    const stop = Number(d.style.stopLevel) > 0 ? +d.style.stopLevel : (dist || t * 100);
+    const profit = Number(d.style.profitLevel) > 0 ? +d.style.profitLevel : (dist || t * 100);
+    return { entry, sl: entry - sign * stop, tp: entry + sign * profit, sign, stop, profit };
+  }
+  function positionStats(d) {
+    const L = positionLevels(d), live = typeof LIVE !== 'undefined' && LIVE.routing && LIVE.routing();
+    const spec = otSpec(S.sym), matching = !live || !!LIVE.specLimits(S.sym);
+    const perLot = !matching ? null : live ? LIVE.riskAtStop(S.sym, 1, L.entry, L.sl) : Math.abs(otPnl('buy', L.entry, L.sl, 1, S.sym) ?? NaN);
     const currency = live ? (LIVE.acct()?.currency || 'account currency') : 'USD';
-    const budget = Number(d.riskBudget);
-    const step = spec.lotStep;
-    const available = Number.isFinite(perLot) && perLot > 0 && budget > 0 && step > 0;
-    let lots = available ? Math.floor((Math.min(budget/perLot, spec.maxLot) + step*1e-8)/step)*step : null;
-    if (lots != null) lots = lots + step*1e-8 < spec.minLot ? 0 : +lots.toFixed(8);
-    return { distance, rewardDistance, ratio:distance > 0 ? rewardDistance/distance : null,
-      lots, risk:lots == null ? null : lots*perLot,
-      reward:lots == null ? null : lots*perLot*rewardDistance/distance, currency };
-  },
-  updatePositionRisk(input) {
-    const d = this.find(this.sel), value = Number(input.value);
-    if (!this.isPosition(d)) return;
-    input.setCustomValidity(Number.isFinite(value) && value > 0 ? '' : 'Enter a risk budget greater than zero.');
-    d.riskBudget = Number.isFinite(value) && value > 0 ? value : null;
-    this.save(); CH.syncOverlay();
-  },
-  positionPanel() {
-    const panel = document.getElementById('positionMeasure');
-    if (!panel) return;
-    const d = this.find(this.sel);
-    panel.hidden = !this.isPosition(d);
-    if (panel.hidden) return;
-    const s = this.positionStats(d), input = document.getElementById('positionRisk');
-    document.getElementById('positionMeasureTitle').textContent = d.type === 'long' ? 'Long position' : 'Short position';
-    document.getElementById('positionMeasureCurrency').textContent = s.currency;
+    const budget = Number(d.riskBudget) > 0 ? Number(d.riskBudget) : null, step = spec.lotStep;
+    const ok = Number.isFinite(perLot) && perLot > 0 && budget > 0 && step > 0;
+    let lots = ok ? Math.floor((Math.min(budget / perLot, spec.maxLot) + step * 1e-8) / step) * step : null;
+    if (lots != null) lots = lots + step * 1e-8 < spec.minLot ? 0 : +lots.toFixed(8);
+    const ratio = L.stop > 0 ? L.profit / L.stop : null;
+    return { entry: L.entry, sl: L.sl, tp: L.tp, distance: L.stop, rewardDistance: L.profit, ratio, lots, perLot, risk: lots == null ? null : lots * perLot, reward: lots == null || ratio == null ? null : lots * perLot * ratio, currency, budget };
+  }
+  // The engine labels the position with TradingView's Qty/risk readout; feed it our instrument-aware numbers.
+  function positionSync(d) {
+    if (!isPos(d) || !st.dm || st.syncingPos || st.loading) return;
+    const s = positionStats(d); if (s.lots == null || !(s.perLot > 0) || !(s.distance > 0)) return;
+    const want = { riskDisplayMode: 'money', riskAmount: s.budget, accountSize: Math.max(s.budget, Number(S.balance) || 0, 1), lotSize: +(s.perLot / s.distance).toPrecision(8), qtyPrecision: '2', leverage: 1e9 };
+    if (Object.keys(want).every(k => d.style[k] === want[k])) return;
+    st.syncingPos = true; try { st.dm.update(Object.assign({}, d, { style: Object.assign({}, d.style, want) })); } finally { st.syncingPos = false; }
+  }
+  function positionPanel() {
+    const panel = $('positionMeasure'); if (!panel) return;
+    const d = selected().find(isPos);
+    panel.hidden = !d; if (!d) return;
+    if (d.riskBudget == null) { d.riskBudget = defaultBudget(); st.dm.update(d); }
+    const s = positionStats(d), input = $('positionRisk');
+    $('positionMeasureTitle').textContent = d.kind === 'long-position' ? 'Long position' : 'Short position';
+    $('positionMeasureCurrency').textContent = s.currency;
     if (document.activeElement !== input) input.value = d.riskBudget ?? '';
     const money = n => n == null ? '—' : n.toFixed(2);
-    document.getElementById('positionMeasureStats').textContent =
-      `Risk ${money(s.risk)} · Reward ${money(s.reward)} · Size ${s.lots == null ? '—' : s.lots} lots · R:R 1:${s.ratio?.toFixed(2) ?? '—'}`
+    $('positionMeasureStats').textContent = `Entry ${s.entry.toFixed(S.dp || 4)} · Stop ${s.sl.toFixed(S.dp || 4)} · Target ${s.tp.toFixed(S.dp || 4)} · Risk ${money(s.risk)} · Reward ${money(s.reward)} · Size ${s.lots == null ? '—' : s.lots} lots · R:R 1:${s.ratio?.toFixed(2) ?? '—'}`
       + (s.lots === 0 ? ' · Budget below minimum lot' : s.lots == null ? ' · Set a budget; instrument pricing required' : '');
-  },
-
-  /* ── persistence ───────────────────────────────────────── */
-  save() {
-    try { localStorage.setItem(DRAW_STORE_KEY, JSON.stringify(this.bySym)); } catch (_) {}
-  },
-  load() {
-    try {
-      const raw = localStorage.getItem(DRAW_STORE_KEY);
-      if (!raw) return;
-      const d = JSON.parse(raw);
-      if (d && typeof d === 'object') {
-        this.bySym = d;
-        Object.values(d).forEach(arr => (arr || []).forEach(o => {
-          if (o.id >= this.seq) this.seq = o.id + 1;
-        }));
-      }
-    } catch (_) {}
-  },
-
-  /* ── geometry ──────────────────────────────────────────── */
-  X(t) { return CH.toX(t); },
-  Y(p) { return CH.toY(p); },
-
-  screen(d) {
-    return d.pts.map(pt => ({
-      x: Number.isFinite(pt.t) ? this.X(pt.t) : null,
-      y: Number.isFinite(pt.p) ? this.Y(pt.p) : null,
-    }));
-  },
-
-  // distance from point to segment
-  distSeg(px, py, x1, y1, x2, y2) {
-    const dx = x2 - x1, dy = y2 - y1;
-    const len2 = dx * dx + dy * dy;
-    if (!len2) return Math.hypot(px - x1, py - y1);
-    let t = ((px - x1) * dx + (py - y1) * dy) / len2;
-    t = Math.max(0, Math.min(1, t));
-    return Math.hypot(px - (x1 + t * dx), py - (y1 + t * dy));
-  },
-
-  hitHandle(d, x, y) {
-    if (this.isPosition(d)) {
-      const s = this.screen(d), left = s[0].x, right = s[1].x;
-      if (left == null || right == null || x < Math.min(left,right)-HIT_TOL || x > Math.max(left,right)+HIT_TOL) return -1;
-      if (this.sel === d.id && Math.hypot(x-s[3].x,y-s[3].y) <= HIT_TOL) return 3;
-      const candidates = [0,1,2].filter(i => s[i].y != null && Math.abs(y-s[i].y) <= HIT_TOL);
-      return candidates.sort((i,j) => Math.abs(y-s[i].y)-Math.abs(y-s[j].y))[0] ?? -1;
-    }
-    if (this.sel !== d.id) return -1;
-    const s = this.screen(d);
-    for (let i = 0; i < s.length; i++) {
-      if (s[i].x == null || s[i].y == null) continue;
-      if (Math.hypot(x - s[i].x, y - s[i].y) <= HIT_TOL) return i;
-    }
-    return -1;
-  },
-
-  hit(d, x, y, W, H) {
-    const s = this.screen(d);
-    const a = s[0], b = s[1];
-    if (!a || a.y == null) return false;
-    if (this.isPosition(d)) {
-      return a.x != null && b?.x != null && s[2]?.y != null
-        && x >= Math.min(a.x,b.x)-HIT_TOL && x <= Math.max(a.x,b.x)+HIT_TOL
-        && y >= Math.min(b.y,s[2].y)-HIT_TOL && y <= Math.max(b.y,s[2].y)+HIT_TOL;
-    }
-    switch (d.type) {
-      case 'hline': return Math.abs(y - a.y) <= HIT_TOL;
-      case 'vline': return a.x != null && Math.abs(x - a.x) <= HIT_TOL;
-      case 'trend':
-      case 'ruler':
-        return b && a.x != null && b.x != null && this.distSeg(x, y, a.x, a.y, b.x, b.y) <= HIT_TOL;
-      case 'ray': {
-        if (!b || a.x == null || b.x == null) return false;
-        const dx = b.x - a.x, dy = b.y - a.y;
-        const k = dx === 0 ? 0 : (W - a.x) / dx;
-        const ex = dx === 0 ? a.x : W, ey = dx === 0 ? (dy > 0 ? H : 0) : a.y + dy * k;
-        return this.distSeg(x, y, a.x, a.y, ex, ey) <= HIT_TOL;
-      }
-      case 'rect': {
-        if (!b || a.x == null || b.x == null) return false;
-        const x1 = Math.min(a.x, b.x), x2 = Math.max(a.x, b.x);
-        const y1 = Math.min(a.y, b.y), y2 = Math.max(a.y, b.y);
-        const nearV = (Math.abs(x - x1) <= HIT_TOL || Math.abs(x - x2) <= HIT_TOL) && y >= y1 - HIT_TOL && y <= y2 + HIT_TOL;
-        const nearH = (Math.abs(y - y1) <= HIT_TOL || Math.abs(y - y2) <= HIT_TOL) && x >= x1 - HIT_TOL && x <= x2 + HIT_TOL;
-        const inside = x > x1 && x < x2 && y > y1 && y < y2;
-        return nearV || nearH || inside;
-      }
-      case 'channel': {
-        if (!b || a.x == null || b.x == null) return false;
-        const off = (b.y - a.y) === 0 ? 20 : Math.abs(b.y - a.y) * 0.5;
-        return this.distSeg(x, y, a.x, a.y, b.x, b.y) <= HIT_TOL
-            || this.distSeg(x, y, a.x, a.y + off, b.x, b.y + off) <= HIT_TOL;
-      }
-      case 'fib': {
-        if (!b || a.x == null || b.x == null) return false;
-        const top = Math.min(a.y, b.y), bot = Math.max(a.y, b.y), span = bot - top;
-        const xa = Math.min(a.x, b.x), xb = Math.max(a.x, b.x);
-        if (x < xa - HIT_TOL || x > xb + HIT_TOL) return false;
-        return [0, 0.236, 0.382, 0.5, 0.618, 0.786, 1]
-          .some(l => Math.abs(y - (bot - span * l)) <= HIT_TOL);
-      }
-    }
-    return false;
-  },
-
-  pick(x, y, W, H) {
-    const arr = this.list();
-    for (let i = arr.length - 1; i >= 0; i--) {       // topmost first
-      if (this.hit(arr[i], x, y, W, H)) return arr[i];
-    }
-    return null;
-  },
-
-  /* ── mutation ──────────────────────────────────────────── */
-  select(id) { this.sel = id; this.chip(); CH.syncOverlay(); },
-  deselect() { this.sel = null; this.chip(); CH.syncOverlay(); },
-
-  remove(id) {
-    const arr = this.list();
-    const i = arr.findIndex(d => d.id === id);
-    if (i < 0) return;
-    arr.splice(i, 1);
-    if (this.sel === id) this.sel = null;
-    this.save(); this.chip(); CH.syncOverlay();
-  },
-
-  clearSymbol() {
-    this.bySym[S.sym] = [];
-    this.sel = null; this.save(); this.chip(); CH.syncOverlay();
-  },
-
-  /* ── the ✕ chip, so touch users can delete without a keyboard ── */
-  chip() {
-    this.positionPanel();
-    let el = document.getElementById('drawChip');
-    const d = this.sel ? this.find(this.sel) : null;
-    if (!d) { if (el) el.style.display = 'none'; return; }
-    if (!el) {
-      el = document.createElement('button');
-      el.id = 'drawChip';
-      el.type = 'button';
-      el.textContent = '✕';
-      el.title = 'Delete drawing (Del)';
-      el.style.cssText = 'position:absolute;z-index:9;width:22px;height:22px;line-height:1;'
-        + 'border-radius:50%;border:1px solid var(--bd-2);background:var(--bg-glass);'
-        + 'color:var(--red-lt);font-size:12px;font-weight:800;cursor:pointer;padding:0;'
-        + 'display:none;align-items:center;justify-content:center';
-      el.addEventListener('pointerdown', e => { e.stopPropagation(); e.preventDefault(); });
-      el.addEventListener('click', e => {
-        e.stopPropagation();
-        if (this.sel != null) this.remove(this.sel);
-      });
-      document.getElementById('chartWrap')?.appendChild(el);
-    }
-    const s = this.screen(d).filter(p => p.x != null && p.y != null);
-    if (!s.length) { el.style.display = 'none'; return; }
-    const wrap = document.getElementById('chartWrap');
-    const W = wrap.clientWidth;
-    let cx, cy;
-    if (d.type === 'hline') { cx = Math.min(W - 30, 120); cy = s[0].y; }
-    else { cx = Math.max(...s.map(p => p.x)); cy = Math.min(...s.map(p => p.y)); }
-    el.style.display = 'flex';
-    el.style.left = Math.max(4, Math.min(W - 26, cx + 8)) + 'px';
-    el.style.top = Math.max(4, cy - 26) + 'px';
-  },
-
-  /* ── rendering ─────────────────────────────────────────── */
-  render(ctx, W, H) {
-    const arr = this.list();
-    arr.forEach(d => this.paint(ctx, d, W, H, false));
-    if (this.creating) this.paint(ctx, this.creating, W, H, true);
-    this.chip();
-  },
-
-  paint(ctx, d, W, H, preview) {
-    const dp = Number.isFinite(S.dp) ? S.dp : 4;
-    const s = this.screen(d);
-    const a = s[0], b = s[1] || s[0];
-    if (!a || a.y == null) return;
-
-    const selected = !preview && this.sel === d.id;
-    const hovered = !preview && this.hover === d.id;
-
-    ctx.save();
-    ctx.globalAlpha = preview ? 0.8 : 1;
-    ctx.strokeStyle = d.color || '#3B82F6';
-    ctx.lineWidth = selected ? 2 : hovered ? 1.8 : 1.4;
-    ctx.setLineDash([]);
-    ctx.font = '9px "JetBrains Mono", monospace';
-    ctx.fillStyle = d.color || '#3B82F6';
-    if (hovered && !selected) ctx.shadowColor = d.color, ctx.shadowBlur = 6;
-
-    const ax = a.x, bx = b.x;
-    switch (d.type) {
-      case 'long':
-      case 'short': {
-        if (ax == null || bx == null || s[2]?.y == null) break;
-        const left = Math.min(ax,bx), width = Math.abs(bx-ax);
-        ctx.font = '12px "JetBrains Mono", monospace';
-        ctx.beginPath(); ctx.rect(0,0,Math.max(0,W-60),Math.max(0,H-24)); ctx.clip();
-        ctx.fillStyle = 'rgba(16,185,129,.20)';
-        ctx.fillRect(left, Math.min(a.y,s[2].y), width, Math.abs(s[2].y-a.y));
-        ctx.fillStyle = 'rgba(239,83,80,.20)';
-        ctx.fillRect(left, Math.min(a.y,b.y), width, Math.abs(b.y-a.y));
-        const stats = this.positionStats(d);
-        const levels = [[2,'TP','#10B981'],[1,'SL','#EF5350'],[0,d.type === 'long' ? 'Long Entry' : 'Short Entry','#93C5FD']];
-        levels.forEach(([i,label,color]) => {
-          ctx.strokeStyle = color; ctx.fillStyle = color;
-          ctx.beginPath(); ctx.moveTo(left,s[i].y); ctx.lineTo(left+width,s[i].y); ctx.stroke();
-          const text = `${label} ${d.pts[i].p.toFixed(dp)}`, tx = Math.max(4,left+6);
-          ctx.fillStyle = '#0B1220'; ctx.fillRect(tx-3,s[i].y-20,ctx.measureText(text).width+6,17);
-          ctx.fillStyle = color; ctx.fillText(text,tx,s[i].y-7);
-        });
-        ctx.fillStyle = '#CBD5E1';
-        ctx.fillText(`R:R 1:${stats.ratio?.toFixed(2) ?? '—'} · ${stats.lots == null ? '—' : stats.lots} lots`, Math.max(4,left+6),a.y+14);
-        break;
-      }
-      case 'hline':
-        ctx.beginPath(); ctx.moveTo(0, a.y); ctx.lineTo(W, a.y); ctx.stroke();
-        ctx.fillText(d.pts[0].p.toFixed(dp), 6, a.y - 4);
-        break;
-      case 'vline':
-        if (ax == null) break;
-        ctx.beginPath(); ctx.moveTo(ax, 0); ctx.lineTo(ax, H); ctx.stroke();
-        break;
-      case 'trend':
-        if (ax == null || bx == null) break;
-        ctx.beginPath(); ctx.moveTo(ax, a.y); ctx.lineTo(bx, b.y); ctx.stroke();
-        break;
-      case 'ray': {
-        if (ax == null || bx == null) break;
-        const dx = bx - ax, dy = b.y - a.y;
-        const k = dx === 0 ? 0 : (W - ax) / dx;
-        ctx.beginPath(); ctx.moveTo(ax, a.y);
-        ctx.lineTo(dx === 0 ? ax : W, dx === 0 ? (dy > 0 ? H : 0) : a.y + dy * k);
-        ctx.stroke();
-        break;
-      }
-      case 'rect': {
-        if (ax == null || bx == null) break;
-        const x1 = Math.min(ax, bx), y1 = Math.min(a.y, b.y);
-        const w = Math.abs(bx - ax), h = Math.abs(b.y - a.y);
-        ctx.globalAlpha = preview ? 0.14 : 0.12;
-        ctx.fillRect(x1, y1, w, h);
-        ctx.globalAlpha = preview ? 0.8 : 1;
-        ctx.strokeRect(x1, y1, w, h);
-        break;
-      }
-      case 'channel': {
-        if (ax == null || bx == null) break;
-        const off = (b.y - a.y) === 0 ? 20 : Math.abs(b.y - a.y) * 0.5;
-        ctx.beginPath(); ctx.moveTo(ax, a.y); ctx.lineTo(bx, b.y); ctx.stroke();
-        ctx.globalAlpha *= 0.65;
-        ctx.beginPath(); ctx.moveTo(ax, a.y + off); ctx.lineTo(bx, b.y + off); ctx.stroke();
-        break;
-      }
-      case 'fib': {
-        if (ax == null || bx == null) break;
-        const top = Math.min(a.y, b.y), bot = Math.max(a.y, b.y), span = bot - top;
-        const pTop = Math.max(d.pts[0].p, d.pts[1].p), pBot = Math.min(d.pts[0].p, d.pts[1].p);
-        const xa = Math.min(ax, bx), xb = Math.max(ax, bx);
-        [0, 0.236, 0.382, 0.5, 0.618, 0.786, 1].forEach(l => {
-          const y = bot - span * l;
-          ctx.setLineDash([3, 3]);
-          ctx.beginPath(); ctx.moveTo(xa, y); ctx.lineTo(xb, y); ctx.stroke();
-          ctx.setLineDash([]);
-          ctx.fillText(`${(l * 100).toFixed(1)}%  ${(pBot + (pTop - pBot) * l).toFixed(dp)}`, xa + 4, y - 3);
-        });
-        break;
-      }
-      case 'ruler': {
-        if (ax == null || bx == null) break;
-        ctx.setLineDash([4, 3]);
-        ctx.beginPath(); ctx.moveTo(ax, a.y); ctx.lineTo(bx, b.y); ctx.stroke();
-        ctx.setLineDash([]);
-        const diff = d.pts[1].p - d.pts[0].p;
-        const pct = d.pts[0].p ? (diff / d.pts[0].p) * 100 : 0;
-        const bars = Math.round((d.pts[1].t - d.pts[0].t) / this.barSec());
-        ctx.fillStyle = diff >= 0 ? '#10B981' : '#EF4444';
-        ctx.fillText(`${diff >= 0 ? '+' : ''}${diff.toFixed(dp)}  ${diff >= 0 ? '+' : ''}${pct.toFixed(2)}%  ${bars} bars`,
-                     (ax + bx) / 2 + 6, (a.y + b.y) / 2 - 5);
-        break;
-      }
-    }
-
-    // handles on the selected object
-    if (selected) {
-      ctx.shadowBlur = 0;
-      ctx.setLineDash([]);
-      const pts = d.type === 'hline'
-        ? [{ x: Math.min(W - 40, 120), y: a.y }]
-        : d.type === 'vline' ? [{ x: ax, y: H * 0.35 }] : s;
-      pts.forEach(pt => {
-        if (pt.x == null || pt.y == null) return;
-        ctx.beginPath();
-        ctx.arc(pt.x, pt.y, HANDLE_R, 0, Math.PI * 2);
-        ctx.fillStyle = '#0B0E11'; ctx.fill();
-        ctx.lineWidth = 2; ctx.strokeStyle = d.color; ctx.stroke();
-      });
-    }
-    ctx.restore();
-  },
-};
-
-/* ── tool arming ────────────────────────────────────────── */
-function setDraw(tool, btn) {
-  if (DRAW.mode !== 'idle') return;
-  DRAW.armed = tool;
-  S.drawTool = tool;
-  document.querySelectorAll('.draw-btn').forEach(b => b.classList.remove('active'));
-  if (btn) btn.classList.add('active');
-  if (tool !== 'none') DRAW.deselect();
-  updateDrawCursor();
-}
-
-function clearDraw() { DRAW.clearSymbol(); }
-
-// The overlay is transparent to pointer events unless it needs them, so an
-// empty click still pans the chart underneath.
-function updateDrawCursor() {
-  const wrap = document.getElementById('chartWrap');
-  if (!wrap) return;
-  if (DRAW.armed !== 'none' || DRAW.mode !== 'idle') {
-    wrap.style.cursor = DRAW.mode === 'moving' ? 'grabbing' : 'crosshair';
-  } else if (DRAW.hover != null) {
-    wrap.style.cursor = DRAW.hoverPt >= 0 ? 'pointer' : 'grab';
-  } else {
-    wrap.style.cursor = '';
   }
-}
+  function defaultBudget() { try { const b = typeof sizeBudget === 'function' ? sizeBudget() : null; const v = b && typeof b === 'object' ? (b.budget > 0 ? b.budget : b.perTrade) : b; if (Number.isFinite(v) && v > 0) return +v.toFixed(2); } catch (_) {} return 100; }
+  function updatePositionRisk(input) {
+    const d = selected().find(isPos), value = Number(input.value); if (!d) return;
+    input.setCustomValidity(Number.isFinite(value) && value > 0 ? '' : 'Enter a risk budget greater than zero.');
+    d.riskBudget = Number.isFinite(value) && value > 0 ? value : null;
+    st.dm.update(d); positionSync(st.dm.get(d.id)); commit(); positionPanel();
+  }
+  function usePlan() {
+    const d = selected().find(isPos);
+    if (!d) { toast('Select a long or short position drawing first.', 2400); return; }
+    const s = positionStats(d);
+    applyARIA(s.sl, s.tp, d.kind === 'long-position' ? 'buy' : 'sell');
+    if (typeof OT !== 'undefined' && typeof OT.sizeToRisk === 'function') OT.sizeToRisk(true);
+    if (isMobile()) openMobilePanel('trade'); else { if (typeof WS !== 'undefined' && !WS.st.analysis) WS.toggle('analysis'); setRTab('trade', null); }
+    toast(`Ticket set from the ${d.kind === 'long-position' ? 'long' : 'short'} plan: entry ${otFmtPx(S.sym, s.entry)}, stop ${otFmtPx(S.sym, s.sl)}, target ${otFmtPx(S.sym, s.tp)}.`, 4200);
+  }
+
+  /* ── toolbar: left bar (desktop) and tool sheet (phone) ───── */
+  function toolButton(kind, label, cls) {
+    const b = btn(cls || 'dt-item', `<span class="dt-item-name">${esc(label)}</span>${HOTKEY[kind] ? `<kbd>${HOTKEY[kind]}</kbd>` : ''}<span class="dt-star${st.prefs.fav.includes(kind) ? ' is-on' : ''}" title="Favourite">${I.star}</span>`, null, () => arm(kind));
+    b.dataset.kind = kind;
+    b.querySelector('.dt-star').addEventListener('click', e => { e.stopPropagation(); favToggle(kind); });
+    return b;
+  }
+  function favToggle(kind) { const f = st.prefs.fav; const i = f.indexOf(kind); if (i >= 0) f.splice(i, 1); else f.push(kind); savePrefs(); buildToolbar(); if (st.flyout) openFlyout(st.flyout.dataset.group); ui(); }
+  function buildToolbar() {
+    const w = wrap(); if (!w) return;
+    let bar = $('dtBar');
+    if (!bar) { bar = document.createElement('aside'); bar.id = 'dtBar'; bar.setAttribute('aria-label', 'Drawing tools'); w.parentElement.insertBefore(bar, w); }
+    bar.innerHTML = '';
+    bar.addEventListener('pointerdown', e => e.stopPropagation());
+    const add = (id, icon, title, on, cls) => { const b = btn('dt-btn' + (cls ? ' ' + cls : ''), icon, title, on); b.dataset.id = id; bar.appendChild(b); return b; };
+    add('cursor', I.cursor, 'Cursor (Esc)', () => arm(null));
+    st.prefs.fav.forEach(k => { const b = add('fav:' + k, abbr(k), LABEL[k] + (HOTKEY[k] ? ' (' + HOTKEY[k] + ')' : ''), () => arm(k), 'dt-fav'); b.dataset.kind = k; });
+    const sep = () => { const s = document.createElement('div'); s.className = 'dt-sep'; bar.appendChild(s); };
+    sep();
+    GROUPS.forEach(g => { const b = add('group:' + g.id, g.icon, g.name, () => st.flyout && st.flyout.dataset.group === g.id ? closeFlyout() : openFlyout(g.id)); b.dataset.group = g.id; b.classList.add('dt-group'); });
+    add('measure', I.ruler, 'Measure (Shift+click on the chart)', measure);
+    sep();
+    add('magnet', I.magnet, 'Magnet', magnetCycle);
+    add('stay', I.stay, 'Stay in drawing mode', stayToggle);
+    add('lockall', I.lock, 'Lock all drawings', lockAllToggle);
+    add('hideall', I.eye, 'Hide all drawings (Ctrl+Alt+H)', () => hideAllToggle());
+    add('removeall', I.trash, 'Remove all drawings', removeAll);
+    sep();
+    add('undo', I.undo, 'Undo (Ctrl+Z)', undo);
+    add('redo', I.redo, 'Redo (Ctrl+Y)', redo);
+    add('objects', I.tree, 'Objects', openObjects);
+  }
+  // The chart toolbar's Draw button: the tool sheet on a phone, show/hide the bar on a desktop.
+  function toolbarButton() { if (isMobile()) openSheet(); else { st.prefs.barOff = !st.prefs.barOff; savePrefs(); ui(); } }
+  // a two-letter mark for a favourite in the bar
+  function abbr(kind) { const t = { 'trend-line': '╱', 'horizontal-line': '―', 'horizontal-ray': '―›', 'vertical-line': '│', 'ray': '╱›', 'rectangle': '▭', 'fib-retracement': 'Fib', 'parallel-channel': '⫽', 'long-position': 'L', 'short-position': 'S', 'text': 'T', 'date-and-price-range': '⌗', 'price-range': '↕', 'date-range': '↔', 'circle': '○', 'ellipse': '⬭', 'triangle': '△', 'arrow': '→', 'callout': '💬', 'note': '✎', 'brush': '〰', 'extended-line': '╱╱', 'info-line': 'i╱', 'vertical-line': '│' }; return `<span class="dt-abbr">${t[kind] || LABEL[kind].slice(0, 2)}</span>`; }
+  function openFlyout(gid) {
+    closeFlyout();
+    const g = GROUPS.find(x => x.id === gid), bar = $('dtBar'); if (!g || !bar) return;
+    const f = document.createElement('div'); f.className = 'dt-flyout'; f.dataset.group = gid; f.setAttribute('role', 'menu');
+    f.innerHTML = `<div class="dt-flyout-title">${esc(g.name)}</div>`;
+    g.tools.forEach(([k, label]) => f.appendChild(toolButton(k, label)));
+    f.addEventListener('pointerdown', e => e.stopPropagation());
+    const anchor = bar.querySelector(`[data-group="${gid}"]`);
+    bar.parentElement.appendChild(f); st.flyout = f;
+    const r = anchor.getBoundingClientRect(), pr = bar.parentElement.getBoundingClientRect();
+    f.style.left = (r.right - pr.left + 4) + 'px';
+    f.style.top = Math.max(4, Math.min(r.top - pr.top, pr.height - f.offsetHeight - 8)) + 'px';
+    ui();
+  }
+  function closeFlyout() { if (st.flyout) { st.flyout.remove(); st.flyout = null; ui(); } }
+  function openSheet() {
+    closeSheet();
+    const s = document.createElement('div'); s.id = 'dtSheet'; s.className = 'dt-sheet'; s.setAttribute('role', 'dialog'); s.setAttribute('aria-label', 'Drawing tools');
+    const tabs = [{ id: 'fav', name: 'Favourites' }].concat(GROUPS.map(g => ({ id: g.id, name: g.name }))).concat([{ id: 'more', name: 'More' }]);
+    const cur = st.prefs.sheetTab && tabs.some(t => t.id === st.prefs.sheetTab) ? st.prefs.sheetTab : (st.prefs.fav.length ? 'fav' : 'lines');
+    s.innerHTML = `<div class="dt-sheet-head"><strong>Drawing tools</strong><span class="dt-sheet-hint">${st.dm ? 'Tap a tool, then tap or drag on the chart' : 'Loading…'}</span><button type="button" class="ws-button" aria-label="Close">×</button></div><div class="dt-sheet-tabs" role="tablist"></div><div class="dt-sheet-body"></div>`;
+    s.querySelector('.dt-sheet-head button').onclick = closeSheet;
+    const tl = s.querySelector('.dt-sheet-tabs'), body = s.querySelector('.dt-sheet-body');
+    const show = id => {
+      st.prefs.sheetTab = id; savePrefs(); tl.querySelectorAll('button').forEach(b => b.setAttribute('aria-selected', String(b.dataset.id === id))); body.innerHTML = '';
+      if (id === 'fav') { if (!st.prefs.fav.length) body.innerHTML = '<p class="ws-notice">Star a tool in any group and it appears here.</p>'; st.prefs.fav.forEach(k => body.appendChild(toolButton(k, LABEL[k]))); }
+      else if (id === 'more') {
+        const row = (icon, label, on, state) => { const b = btn('dt-item' + (state ? ' is-on' : ''), `${icon}<span class="dt-item-name">${esc(label)}</span>`, null, () => { on(); show('more'); }); body.appendChild(b); };
+        row(I.ruler, 'Measure', () => { measure(); });
+        row(I.magnet, 'Magnet: ' + st.prefs.magnet, magnetCycle, st.prefs.magnet !== 'off');
+        row(I.stay, 'Stay in drawing mode', stayToggle, st.prefs.stay);
+        row(I.lock, 'Lock all drawings', lockAllToggle, (st.bySym[st.sym] || []).length > 0 && (st.bySym[st.sym] || []).every(d => d.locked));
+        row(st.hideAll ? I.eyeOff : I.eye, st.hideAll ? 'Show drawings' : 'Hide all drawings', () => hideAllToggle(), st.hideAll);
+        row(I.trash, 'Remove all drawings', removeAll);
+        row(I.undo, 'Undo', undo); row(I.redo, 'Redo', redo);
+        row(I.tree, 'Objects', () => { closeSheet(); openObjects(); });
+      } else { const g = GROUPS.find(x => x.id === id); g.tools.forEach(([k, label]) => body.appendChild(toolButton(k, label))); }
+    };
+    tabs.forEach(t => { const b = document.createElement('button'); b.type = 'button'; b.dataset.id = t.id; b.textContent = t.name; b.setAttribute('role', 'tab'); b.onclick = () => show(t.id); tl.appendChild(b); });
+    s.addEventListener('pointerdown', e => e.stopPropagation());
+    document.body.appendChild(s); show(cur);
+    const back = document.createElement('div'); back.className = 'dt-sheet-back'; back.onclick = closeSheet; document.body.appendChild(back); st.els.back = back;
+  }
+  function closeSheet() { const s = $('dtSheet'); if (s) s.remove(); if (st.els.back) { st.els.back.remove(); st.els.back = null; } }
+
+  /* ── floating toolbar on the selection ─────────────────────── */
+  function float_() {
+    const w = wrap(); if (!w) return null;
+    let f = $('dtFloat');
+    if (!f) { f = document.createElement('div'); f.id = 'dtFloat'; f.setAttribute('role', 'toolbar'); f.setAttribute('aria-label', 'Drawing'); f.addEventListener('pointerdown', e => e.stopPropagation()); w.appendChild(f); }
+    return f;
+  }
+  function closeFloat() { const f = $('dtFloat'); if (f) f.hidden = true; closePop(); }
+  function closePop() { if (st.els.pop) { st.els.pop.remove(); st.els.pop = null; } }
+  function renderFloat() {
+    const f = float_(); if (!f) return;
+    const sel = selected(), armed = st.dm && st.dm.tool();
+    if (!sel.length && !armed) { f.hidden = true; closePop(); return; }
+    f.hidden = false; f.innerHTML = '';
+    if (!sel.length) {   // a tool is armed: say what to do, and how to stop
+      const spec = st.specs[armed] || {}, n = spec.freehand ? 'press and drag' : spec.variableLength ? 'tap the points, double-tap to finish' : spec.pointCount === 1 ? 'tap once' : spec.pointCount === 2 ? 'tap two points, or drag' : `tap ${spec.pointCount} points`;
+      f.innerHTML = `<span class="dt-armed">${esc(LABEL[armed] || armed)}<small>${st.measuring ? 'measure: ' : ''}${n}</small></span>`;
+      f.appendChild(btn('dt-fbtn', I.close, 'Cancel (Esc)', () => arm(null)));
+      return;
+    }
+    const d = sel[0], many = sel.length > 1, c = parseColor(d.style.color);
+    f.innerHTML = `<span class="dt-ftitle">${many ? sel.length + ' drawings' : esc(name(d))}</span>`;
+    const colorB = btn('dt-fbtn', `<span class="dt-swatch" style="background:${esc(c.hex)};opacity:${Math.max(.25, c.alpha)}"></span>`, 'Colour and opacity', () => openColorPop(colorB));
+    f.appendChild(colorB);
+    const widthB = btn('dt-fbtn', `<span class="dt-w">${Math.max(1, Math.round(d.style.width || 1))}</span>`, 'Line width', () => openPop(widthB, [1, 2, 3, 4].map(n => ({ label: `<span class="dt-wline" style="height:${n}px"></span> ${n}px`, on: () => styleAll({ width: n }), on_: d.style.width === n }))));
+    f.appendChild(widthB);
+    const styles = [['solid', '━━━'], ['dashed', '╌╌╌'], ['dotted', '┈┈┈']];
+    const styleB = btn('dt-fbtn', `<span class="dt-ls">${(styles.find(s => s[0] === (d.style.lineStyle || 'solid')) || styles[0])[1]}</span>`, 'Line style', () => openPop(styleB, styles.map(([k, g]) => ({ label: `${g} ${k}`, on: () => styleAll({ lineStyle: k }), on_: (d.style.lineStyle || 'solid') === k }))));
+    f.appendChild(styleB);
+    if (!many && st.specs[d.kind] && st.specs[d.kind].textEditable) f.appendChild(btn('dt-fbtn', I.text, 'Edit text', () => openTextEditor(d, null)));
+    if (!many && isPos(d)) f.appendChild(btn('dt-fbtn dt-accent', I.ticket, 'Use in ticket', usePlan));
+    f.appendChild(btn('dt-fbtn', I.gear, 'Settings', () => openSettings(d.id)));
+    f.appendChild(btn('dt-fbtn' + (sel.every(x => x.locked) ? ' is-on' : ''), sel.every(x => x.locked) ? I.lock : I.unlock, sel.every(x => x.locked) ? 'Unlock' : 'Lock', () => { const lock = !sel.every(x => x.locked); for (const x of sel) st.dm.update(Object.assign({}, x, { locked: lock })); commit(); ui(); }));
+    f.appendChild(btn('dt-fbtn', I.eyeOff, 'Hide', () => { for (const x of sel) st.dm.update(Object.assign({}, x, { hidden: true })); st.dm.select([]); commit(); ui(); toast('Hidden. Objects lists it; the eye there shows it again.', 2600); }));
+    f.appendChild(btn('dt-fbtn', I.clone, 'Clone', clone));
+    f.appendChild(btn('dt-fbtn dt-danger', I.trash, 'Remove (Del)', () => remove(sel.map(x => x.id))));
+  }
+  function openPop(anchor, items) {
+    closePop();
+    const p = document.createElement('div'); p.className = 'dt-pop';
+    items.forEach(it => { const b = btn('dt-pop-item' + (it.on_ ? ' is-on' : ''), it.label, null, () => { it.on(); closePop(); }); p.appendChild(b); });
+    placePop(p, anchor);
+  }
+  function openColorPop(anchor) {
+    closePop();
+    const sel = selected(); if (!sel.length) return;
+    const cur = parseColor(sel[0].style.color);
+    const p = document.createElement('div'); p.className = 'dt-pop dt-colors';
+    p.innerHTML = `<div class="dt-grid"></div><label class="dt-opacity">Opacity <input type="range" min="0" max="100" value="${Math.round(cur.alpha * 100)}"><output>${Math.round(cur.alpha * 100)}%</output></label><label class="dt-custom">Custom <input type="color" value="${cur.hex}"></label>`;
+    const grid = p.querySelector('.dt-grid');
+    let hex = cur.hex, alpha = cur.alpha;
+    const apply = live => { styleAll({ color: withAlpha(hex, alpha) }, live); const sw = anchor.querySelector('.dt-swatch'); if (sw) { sw.style.background = hex; sw.style.opacity = Math.max(.25, alpha); } };
+    PALETTE.forEach(h => { const b = btn('dt-sw' + (h === hex ? ' is-on' : ''), '', h, () => { hex = h; grid.querySelectorAll('.dt-sw').forEach(x => x.classList.toggle('is-on', x.title === h)); apply(); }); b.style.background = h; grid.appendChild(b); });
+    const range = p.querySelector('input[type=range]'), out = p.querySelector('output');
+    range.addEventListener('input', () => { alpha = +range.value / 100; out.textContent = range.value + '%'; apply(true); });   // live while sliding
+    range.addEventListener('change', () => commit());                                                                           // one undo step per slide
+    p.querySelector('input[type=color]').addEventListener('input', e => { hex = e.target.value; apply(true); });
+    p.querySelector('input[type=color]').addEventListener('change', () => commit());
+    p.addEventListener('pointerdown', e => e.stopPropagation());
+    placePop(p, anchor);
+  }
+  function placePop(p, anchor) {
+    const w = wrap(); w.appendChild(p); st.els.pop = p;
+    const r = anchor.getBoundingClientRect(), wr = w.getBoundingClientRect();
+    p.style.left = Math.max(4, Math.min(r.left - wr.left, wr.width - p.offsetWidth - 4)) + 'px';
+    p.style.top = (r.bottom - wr.top + 6) + 'px';
+  }
+
+  /* ── settings dialog: Style · Text · Coordinates · Visibility ─ */
+  function openSettings(id) {
+    const d = st.dm && st.dm.get(id); if (!d) { toast('Select a drawing first.', 2000); return; }
+    const dlg = (typeof WS !== 'undefined' && WS.dialog) ? WS.dialog.bind(WS) : null; if (!dlg) return;
+    const style = Object.assign({}, OPTIONAL[d.kind] || {}, d.style || {}), keys = Object.keys(style);
+    const field = k => {
+      const v = style[k], label = FIELD[k] || k.replace(/([A-Z])/g, ' $1').replace(/^./, c => c.toUpperCase());
+      if (ENUMS[k]) return `<label>${esc(label)}<select data-k="${k}">${ENUMS[k].map(o => `<option value="${o}"${String(v) === o ? ' selected' : ''}>${o}</option>`).join('')}</select></label>`;
+      if (k === 'statsPosition') return `<label>${esc(label)}<select data-k="${k}" data-num>${['Left', 'Center', 'Right', 'Auto'].map((o, i) => `<option value="${i}"${v === i ? ' selected' : ''}>${o}</option>`).join('')}</select></label>`;
+      if (k === 'leftEnd' || k === 'rightEnd') return `<label>${esc(label)}<select data-k="${k}" data-num><option value="0"${v === 0 ? ' selected' : ''}>Normal</option><option value="1"${v === 1 ? ' selected' : ''}>Arrow</option></select></label>`;
+      if (typeof v === 'boolean') return `<label>${esc(label)}<input type="checkbox" data-k="${k}"${v ? ' checked' : ''}></label>`;
+      if (typeof v === 'number') return `<label>${esc(label)}<input type="number" step="any" inputmode="decimal" data-k="${k}" data-num value="${v}"></label>`;
+      if (typeof v === 'string' && /color/i.test(k)) { const c = parseColor(v); return `<label>${esc(label)}<span class="dt-color-row"><input type="color" data-k="${k}" data-color value="${c.hex}"><input type="range" min="0" max="100" data-k="${k}" data-alpha value="${Math.round(c.alpha * 100)}" title="Opacity"></span></label>`; }
+      if (typeof v === 'string') return `<label>${esc(label)}<input type="text" data-k="${k}" value="${esc(v)}"></label>`;
+      return '';
+    };
+    const styleKeys = keys.filter(k => !TEXT_KEYS.has(k) && !HIDDEN_KEYS.has(k) && typeof style[k] !== 'object');
+    const textKeys = keys.filter(k => TEXT_KEYS.has(k) && k !== 'text');
+    const editable = st.specs[d.kind] && st.specs[d.kind].textEditable, hasText = editable || 'text' in style;
+    const levels = Array.isArray(style.levels) ? style.levels : null;
+    const vis = d.visibility || null, units = [['ticks', 'Ticks'], ['seconds', 'Seconds'], ['minutes', 'Minutes'], ['hours', 'Hours'], ['days', 'Days'], ['weeks', 'Weeks'], ['months', 'Months'], ['ranges', 'Ranges']];
+    const fmtT = t => { const x = new Date(t * 1000); return new Date(x.getTime() - x.getTimezoneOffset() * 60000).toISOString().slice(0, 16); };
+    const wrapEl = document.createElement('div');
+    wrapEl.innerHTML = `<div class="ws-tabs" role="tablist"><button type="button" data-t="st" aria-selected="true">Style</button>${hasText || textKeys.length ? '<button type="button" data-t="tx">Text</button>' : ''}<button type="button" data-t="co">Coordinates</button><button type="button" data-t="vi">Visibility</button></div>
+      <section data-p="st" class="ws-fields"><label>Name<input type="text" data-name value="${esc(d.name || '')}" placeholder="${esc(LABEL[d.kind] || d.kind)}"></label>${styleKeys.map(field).join('')}
+        ${levels ? `<fieldset class="ws-tf dt-levels"><legend>Levels</legend>${levels.map((l, i) => `<label><input type="checkbox" data-lvl="${i}"${l.visible === false ? '' : ' checked'}><input type="number" step="any" data-lvlc="${i}" value="${l.coeff}" style="width:72px"><input type="color" data-lvlcol="${i}" value="${parseColor(l.color || style.color).hex}"></label>`).join('')}</fieldset>` : ''}
+        ${isPos(d) ? `<label>Risk budget (${esc(positionStats(d).currency)})<input type="number" step="any" inputmode="decimal" data-budget value="${d.riskBudget ?? ''}"></label>` : ''}</section>
+      <section data-p="tx" class="ws-fields" hidden>${hasText ? `<label style="grid-template-columns:1fr">Text<textarea data-text rows="3">${esc(d.text ?? style.text ?? '')}</textarea></label>` : ''}${textKeys.map(field).join('')}</section>
+      <section data-p="co" class="ws-fields" hidden>${d.points.map((p, i) => `<label>${isPos(d) ? (i === 0 ? 'Entry price' : 'Right edge') : 'Point ' + (i + 1)} price<input type="number" step="any" inputmode="decimal" data-pp="${i}" value="${Number.isFinite(p.price) ? +p.price.toFixed(Math.max(S.dp || 4, 2)) : ''}"></label><label>Point ${i + 1} time<input type="datetime-local" data-pt="${i}" value="${Number.isFinite(p.time) ? fmtT(p.time) : ''}"></label>`).join('')}
+        ${isPos(d) ? `<label>Stop distance<input type="number" step="any" inputmode="decimal" data-k="stopLevel" data-num value="${positionLevels(d).stop}"></label><label>Target distance<input type="number" step="any" inputmode="decimal" data-k="profitLevel" data-num value="${positionLevels(d).profit}"></label>` : ''}</section>
+      <section data-p="vi" class="ws-fields" hidden><label class="ws-check"><input type="checkbox" data-hidden${d.hidden ? ' checked' : ''}><span>Hide this object</span></label><label class="ws-check"><input type="checkbox" data-locked${d.locked ? ' checked' : ''}><span>Lock (no dragging, no Delete)</span></label>
+        <fieldset class="ws-tf"><legend>Show on intervals</legend>${units.map(([u, l]) => { const uv = vis ? vis[u] : null, on = uv == null ? true : (typeof uv === 'boolean' ? uv : uv.on); return `<label><input type="checkbox" data-u="${u}"${on ? ' checked' : ''}>${l}</label>`; }).join('')}</fieldset></section>
+      <footer><button type="button" class="ws-button" data-del>Remove</button><span class="ws-spacer"></span><button type="button" class="ws-button ws-primary" data-done>Done</button></footer>`;
+    const dlgEl = dlg(name(d), wrapEl);
+    wrapEl.querySelectorAll('.ws-tabs button').forEach(b => b.onclick = () => { wrapEl.querySelectorAll('.ws-tabs button').forEach(x => x.setAttribute('aria-selected', String(x === b))); wrapEl.querySelectorAll('section[data-p]').forEach(s => s.hidden = s.dataset.p !== b.dataset.t); });
+    const cur = () => st.dm.get(id);
+    const put = patch => { const x = cur(); if (x) { st.dm.update(Object.assign({}, x, patch)); positionSync(st.dm.get(id)); } };
+    const putStyle = patch => { const x = cur(); if (x) put({ style: Object.assign({}, x.style, patch) }); };
+    wrapEl.querySelector('[data-name]').oninput = e => put({ name: e.target.value });
+    wrapEl.querySelectorAll('[data-k]').forEach(i => {
+      const k = i.dataset.k;
+      if (i.dataset.color != null) { i.oninput = () => { const a = wrapEl.querySelector(`[data-alpha][data-k="${k}"]`); putStyle({ [k]: withAlpha(i.value, a ? +a.value / 100 : 1) }); }; return; }
+      if (i.dataset.alpha != null) { i.oninput = () => { const c = wrapEl.querySelector(`[data-color][data-k="${k}"]`); putStyle({ [k]: withAlpha(c.value, +i.value / 100) }); }; return; }
+      i.onchange = i.oninput = () => { const v = i.type === 'checkbox' ? i.checked : i.dataset.num != null ? parseFloat(i.value) : i.value; if (i.dataset.num != null && !Number.isFinite(v)) return; putStyle({ [k]: v }); };
+    });
+    wrapEl.querySelectorAll('[data-lvl],[data-lvlc],[data-lvlcol]').forEach(i => i.oninput = i.onchange = () => {
+      const x = cur(); if (!x || !Array.isArray(x.style.levels)) return;
+      const L = x.style.levels.map(l => Object.assign({}, l));
+      wrapEl.querySelectorAll('[data-lvl]').forEach(c => { L[+c.dataset.lvl].visible = c.checked; });
+      wrapEl.querySelectorAll('[data-lvlc]').forEach(c => { const v = parseFloat(c.value); if (Number.isFinite(v)) L[+c.dataset.lvlc].coeff = v; });
+      wrapEl.querySelectorAll('[data-lvlcol]').forEach(c => { L[+c.dataset.lvlcol].color = c.value; });
+      putStyle({ levels: L });
+    });
+    const budget = wrapEl.querySelector('[data-budget]'); if (budget) budget.oninput = () => { const v = parseFloat(budget.value); put({ riskBudget: Number.isFinite(v) && v > 0 ? v : null }); positionPanel(); };
+    const text = wrapEl.querySelector('[data-text]'); if (text) text.oninput = () => { if (editable) put({ text: text.value }); else putStyle({ text: text.value }); };
+    wrapEl.querySelectorAll('[data-pp],[data-pt]').forEach(i => i.onchange = () => {
+      const x = cur(); if (!x) return; const pts = x.points.map(p => Object.assign({}, p));
+      if (i.dataset.pp != null) { const v = parseFloat(i.value); if (!Number.isFinite(v)) return; pts[+i.dataset.pp].price = v; if (isPos(x) && +i.dataset.pp === 0) pts[1].price = v; }
+      else { const t = Math.round(new Date(i.value).getTime() / 1000); if (!Number.isFinite(t)) return; pts[+i.dataset.pt].time = t; }
+      put({ points: pts });
+    });
+    wrapEl.querySelector('[data-hidden]').onchange = e => put({ hidden: e.target.checked });
+    wrapEl.querySelector('[data-locked]').onchange = e => put({ locked: e.target.checked });
+    wrapEl.querySelectorAll('[data-u]').forEach(i => i.onchange = () => {
+      const x = cur(); if (!x) return;
+      const v = x.visibility ? JSON.parse(JSON.stringify(x.visibility)) : visFromTfs(['1m', '5m', '15m', '30m', '1h', '4h', '1d', '1w']);
+      wrapEl.querySelectorAll('[data-u]').forEach(c => { const u = c.dataset.u; if (typeof v[u] === 'boolean') v[u] = c.checked; else v[u] = Object.assign({}, v[u], { on: c.checked }); });
+      put({ visibility: v });
+    });
+    wrapEl.querySelector('[data-del]').onclick = () => { dlgEl.close(); remove([id]); };
+    wrapEl.querySelector('[data-done]').onclick = () => dlgEl.close();
+    dlgEl.addEventListener('close', () => { commit(); ui(); });
+  }
+
+  /* ── text editor for the text family ───────────────────────── */
+  function openTextEditor(d, pt) {
+    closeTextEditor();
+    const w = wrap(); if (!w) return;
+    const ta = document.createElement('textarea'); ta.id = 'dtText'; ta.rows = 2; ta.placeholder = 'Type, Enter to keep, Esc to cancel'; ta.value = d.text || '';
+    ta.setAttribute('aria-label', 'Drawing text');
+    ta.addEventListener('pointerdown', e => e.stopPropagation());
+    st.textFor = { id: d.id, fresh: !d.text, pt };
+    w.appendChild(ta); placeTextEditor();
+    const done = keep => {
+      const t = st.textFor; if (!t) return; st.textFor = null; const x = st.dm.get(t.id); ta.remove();
+      if (!x) return;
+      const text = keep ? ta.value.trim() : (x.text || '');
+      if (!text && t.fresh) { st.loading = true; st.dm.remove(t.id); st.loading = false; pullFromEngine(); st.last = snapshot(); ui(); return; }
+      if (text !== (x.text || '')) { st.dm.update(Object.assign({}, x, { text })); commit(); }
+      ui();
+    };
+    ta.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); done(true); } else if (e.key === 'Escape') { e.preventDefault(); done(false); } e.stopPropagation(); });
+    ta.addEventListener('blur', () => setTimeout(() => { if (st.textFor && st.textFor.id === d.id) done(true); }, 0));
+    // focus after the click that placed the drawing has finished moving focus itself
+    setTimeout(() => { if (st.textFor && st.textFor.id === d.id) { ta.focus(); ta.select(); } }, 0);
+  }
+  function placeTextEditor() {
+    const ta = $('dtText'), t = st.textFor; if (!ta || !t || !st.dm) return;
+    const d = st.dm.get(t.id), w = wrap(); if (!d) return;
+    const el = CH.chart.chartElement(), er = el.getBoundingClientRect(), wr = w.getBoundingClientRect();
+    let x = t.pt && Number.isFinite(t.pt.x) ? t.pt.x : null, y = t.pt && Number.isFinite(t.pt.y) ? t.pt.y : null;
+    if (x == null || y == null) { const px = CH.chart.timeScale().timeToCoordinate(d.points[0].time), py = CH.candle.priceToCoordinate(d.points[0].price); x = px == null ? 40 : px; y = py == null ? 40 : py; }
+    ta.style.left = Math.max(4, Math.min(er.left - wr.left + x, wr.width - 230)) + 'px';
+    ta.style.top = Math.max(4, Math.min(er.top - wr.top + y + 8, wr.height - 70)) + 'px';
+  }
+  function closeTextEditor() { const ta = $('dtText'); if (ta) ta.remove(); st.textFor = null; }
+
+  /* ── objects (the object tree) ──────────────────────────────── */
+  function openObjects() {
+    const dlg = (typeof WS !== 'undefined' && WS.dialog) ? WS.dialog.bind(WS) : null; if (!dlg) return;
+    const list = st.hideAll ? (st.bySym[st.sym] || []) : (st.dm ? st.dm.drawings().slice() : (st.bySym[st.sym] || []));
+    const wrapEl = document.createElement('div');
+    if (!list.length) wrapEl.innerHTML = `<p class="ws-notice">No drawings on ${esc(S.symLabel || S.sym)} yet. Pick a tool from the drawing bar and draw on the chart; each object appears here.</p>`;
+    const selIds = st.dm ? st.dm.selection() : [];
+    list.forEach(o => {
+      const row = document.createElement('div'); row.className = 'ws-object' + (selIds.includes(o.id) ? ' is-selected' : '');
+      row.innerHTML = `<button type="button" class="ws-object-name"></button><span class="ws-object-meta"></span><button type="button" class="ws-button dt-ib" data-eye title="${o.hidden ? 'Show' : 'Hide'}">${o.hidden ? I.eyeOff : I.eye}</button><button type="button" class="ws-button dt-ib" data-lock title="${o.locked ? 'Unlock' : 'Lock'}">${o.locked ? I.lock : I.unlock}</button><button type="button" class="ws-button dt-ib" data-set title="Settings">${I.gear}</button><button type="button" class="ws-button dt-ib" data-del title="Remove">${I.trash}</button>`;
+      row.querySelector('.ws-object-name').textContent = name(o);
+      row.querySelector('.ws-object-meta').textContent = o.points && o.points[0] && Number.isFinite(o.points[0].price) ? otFmtPx(S.sym, o.points[0].price) : '';
+      row.querySelector('.ws-object-name').onclick = () => { if (st.hideAll) hideAllToggle(false); if (st.dm) st.dm.select([o.id]); d.close(); };
+      row.querySelector('[data-eye]').onclick = e => { if (!st.dm) return; if (st.hideAll) hideAllToggle(false); const x = st.dm.get(o.id); if (!x) return; st.dm.update(Object.assign({}, x, { hidden: !x.hidden })); commit(); o.hidden = !x.hidden; e.currentTarget.innerHTML = o.hidden ? I.eyeOff : I.eye; };
+      row.querySelector('[data-lock]').onclick = e => { if (!st.dm) return; if (st.hideAll) hideAllToggle(false); const x = st.dm.get(o.id); if (!x) return; st.dm.update(Object.assign({}, x, { locked: !x.locked })); commit(); o.locked = !x.locked; e.currentTarget.innerHTML = o.locked ? I.lock : I.unlock; };
+      row.querySelector('[data-set]').onclick = () => { if (st.hideAll) hideAllToggle(false); d.close(); openSettings(o.id); };
+      row.querySelector('[data-del]').onclick = () => { if (st.hideAll) hideAllToggle(false); remove([o.id]); row.remove(); };
+      wrapEl.appendChild(row);
+    });
+    if (list.length) { const f = document.createElement('footer'); f.innerHTML = `<button type="button" class="ws-button" data-lockall>${list.every(x => x.locked) ? 'Unlock all' : 'Lock all'}</button><button type="button" class="ws-button" data-hideall>${st.hideAll ? 'Show all' : 'Hide all'}</button><span class="ws-spacer"></span><button type="button" class="ws-button" data-clear>Remove all</button>`; f.querySelector('[data-lockall]').onclick = () => { if (st.hideAll) hideAllToggle(false); lockAllToggle(); d.close(); }; f.querySelector('[data-hideall]').onclick = () => { hideAllToggle(); d.close(); }; f.querySelector('[data-clear]').onclick = () => { d.close(); removeAll(); }; wrapEl.appendChild(f); }
+    const d = dlg('Objects · ' + (S.symLabel || S.sym), wrapEl);
+  }
+
+  /* ── reflect state in the bar ───────────────────────────────── */
+  function ui() {
+    const bar = $('dtBar');
+    const armed = st.dm ? st.dm.tool() : null, mobile = isMobile();
+    if (bar) {
+      bar.hidden = mobile || !!st.prefs.barOff;
+      bar.querySelectorAll('.dt-btn').forEach(b => {
+        const id = b.dataset.id;
+        if (id === 'cursor') b.classList.toggle('is-on', !armed);
+        else if (id.startsWith('fav:')) b.classList.toggle('is-on', armed === b.dataset.kind);
+        else if (id.startsWith('group:')) { const g = GROUPS.find(x => x.id === b.dataset.group); b.classList.toggle('is-on', !!armed && g.tools.some(([k]) => k === armed) && !st.measuring); b.classList.toggle('is-open', !!st.flyout && st.flyout.dataset.group === g.id); }
+        else if (id === 'measure') b.classList.toggle('is-on', st.measuring);
+        else if (id === 'magnet') { b.classList.toggle('is-on', st.prefs.magnet !== 'off'); b.classList.toggle('is-strong', st.prefs.magnet === 'strong'); b.title = 'Magnet: ' + st.prefs.magnet; }
+        else if (id === 'stay') b.classList.toggle('is-on', !!st.prefs.stay);
+        else if (id === 'lockall') { const l = st.bySym[st.sym] || []; b.classList.toggle('is-on', l.length > 0 && l.every(d => d.locked)); }
+        else if (id === 'hideall') { b.classList.toggle('is-on', st.hideAll); b.innerHTML = st.hideAll ? I.eyeOff : I.eye; }
+        else if (id === 'undo') b.disabled = !st.past.length;
+        else if (id === 'redo') b.disabled = !st.future.length;
+        b.disabled = b.disabled || (!st.dm && id !== 'objects');
+      });
+    }
+    if (st.flyout) st.flyout.querySelectorAll('.dt-item').forEach(b => b.classList.toggle('is-on', b.dataset.kind === armed));
+    const w = wrap(); if (w) { w.classList.toggle('dt-armed', !!armed); w.classList.toggle('dt-hidden', st.hideAll); }
+    const tb = $('chartTools'); if (tb) tb.classList.toggle('active', !!armed || (!mobile && !st.prefs.barOff));
+    renderFloat(); positionPanel();
+  }
+
+  return { init, setSymbol, setInterval: setInterval_, arm, measure, undo, redo, magnetCycle, setMagnet, stayToggle, lockAllToggle, hideAllToggle, removeAll, toolbarButton,
+    openSettings, openObjects, openSheet, closeSheet, usePlan, updatePositionRisk, positionStats, positionLevels, selected, selectedId: () => (st.dm && st.dm.selection()[0]) || null,
+    deselect: () => { if (st.dm) st.dm.select([]); ui(); },
+    drawings: () => st.dm ? st.dm.drawings() : (st.bySym[st.sym] || []), manager: () => st.dm, state: st, GROUPS, LABEL,
+    _test: { migrateOld, normalize, visFromTfs, parseColor, withAlpha, KEY, TV_INTERVAL } };
+})();
 
 /* ════════════════════════════════════════════════════════════
    POSITION MANAGEMENT ON THE CHART
@@ -4224,231 +4530,6 @@ const LEVELS = {
     await this.confirm(label);
   },
 };
-
-(function wireDrawing() {
-  const wrap = document.getElementById('chartWrap');
-  const il = document.getElementById('interactLayer');
-  if (!wrap || !il) return;
-
-  const posFrom = e => {
-    const r = il.getBoundingClientRect();
-    const t = e.touches ? e.touches[0] : e;
-    return { x: t.clientX - r.left, y: t.clientY - r.top };
-  };
-  const anchor = pt => {
-    const t = CH.fromX(pt.x), p = CH.fromY(pt.y);
-    return { t: Number.isFinite(t) ? t : null, p: Number.isFinite(p) ? p : null };
-  };
-
-  // Hover detection runs on the wrapper so it still fires while the overlay
-  // is click-through.
-  wrap.addEventListener('pointermove', e => {
-    if (DRAW.mode !== 'idle' || DRAW.armed !== 'none') return;
-    const p = posFrom(e);
-    const W = wrap.clientWidth, H = wrap.clientHeight;
-    const sel = DRAW.sel != null ? DRAW.find(DRAW.sel) : null;
-    let hoverPt = -1, target = null;
-    if (sel) {
-      hoverPt = DRAW.hitHandle(sel, p.x, p.y);
-      if (hoverPt >= 0) target = sel;
-    }
-    if (!target) target = DRAW.pick(p.x, p.y, W, H);
-    const changed = (target ? target.id : null) !== DRAW.hover || hoverPt !== DRAW.hoverPt;
-    DRAW.hover = target ? target.id : null;
-    DRAW.hoverPt = hoverPt;
-    updateDrawCursor();
-    if (changed) CH.syncOverlay();
-  });
-
-  // Capture phase on the wrapper: we see the pointer before the chart does.
-  // Only when we actually take the gesture do we stop it reaching the chart.
-  let activePointer = null, activeSymbol = null, activeDrawing = null;
-  const claim = e => { activePointer = e.pointerId; activeSymbol = S.sym; e.preventDefault(); e.stopPropagation(); try { wrap.setPointerCapture(e.pointerId); } catch (_) {} };
-  wrap.addEventListener('pointerdown', e => {
-    if (activePointer != null || e.target.closest('button,input,select,textarea')) return;
-    if (e.button != null && e.button !== 0) return;
-    const p = posFrom(e);
-    const W = wrap.clientWidth, H = wrap.clientHeight;
-    if (p.x >= W - 60 || p.y >= H - 24 || p.x < 0 || p.y < 0) return;
-
-    // 1. a tool is armed → begin creating exactly one object
-    if (DRAW.armed !== 'none') {
-      const a = anchor(p);
-      if (a.p == null || a.t == null) return;
-      claim(e);
-      const n = DRAW_PTS[DRAW.armed] || 2;
-      DRAW.creating = {
-        id: DRAW.seq++, type: DRAW.armed, color: DRAW_COLORS[DRAW.armed] || '#3B82F6',
-        pts: n === 1 ? [{ t: a.t, p: a.p }] : [{ t: a.t, p: a.p }, { t: a.t, p: a.p }],
-      };
-      if (DRAW.isPosition(DRAW.creating)) DRAW.newPosition(DRAW.creating, a, p.x, p.y, W);
-      DRAW.mode = 'creating';
-      CH.syncOverlay();
-      return;
-    }
-
-    // 2. grab a handle of the selected object
-    const sel = DRAW.sel != null ? DRAW.find(DRAW.sel) : null;
-    if (sel) {
-      const h = DRAW.hitHandle(sel, p.x, p.y);
-      if (h >= 0) {
-        claim(e);
-        DRAW.mode = 'resizing'; DRAW.grabPt = h;
-        activeDrawing = sel;
-        DRAW.dragFrom = { x: p.x, y: p.y, pts: sel.pts.map(q => ({ ...q })) };
-        updateDrawCursor();
-        return;
-      }
-    }
-
-    // 3. click an object → select it, and start moving it
-    const target = DRAW.pick(p.x, p.y, W, H);
-    if (target) {
-      claim(e);
-      DRAW.select(target.id);
-      activeDrawing = target;
-      const level = DRAW.isPosition(target) ? DRAW.hitHandle(target, p.x, p.y) : -1;
-      DRAW.mode = level >= 0 ? 'resizing' : 'moving';
-      DRAW.grabPt = level;
-      DRAW.dragFrom = { x: p.x, y: p.y, pts: target.pts.map(q => ({ ...q })) };
-      updateDrawCursor();
-      return;
-    }
-    // empty chart: let the chart pan, and clear any selection
-    if (DRAW.sel != null) DRAW.deselect();
-  }, { capture: true });
-
-  window.addEventListener('pointermove', e => {
-    if (DRAW.mode === 'idle' || e.pointerId !== activePointer) return;
-    if (activeSymbol !== S.sym) { finish({pointerId:activePointer,type:'pointercancel'}); return; }
-    e.preventDefault();
-    const p = posFrom(e);
-
-    if (DRAW.mode === 'creating' && DRAW.creating) {
-      const a = anchor(p);
-      if (a.p == null) return;
-      const d = DRAW.creating;
-      if (DRAW.isPosition(d)) {
-        if (Math.abs(p.x - DRAW.screen(d)[0].x) > 8) DRAW.resizePosition(d, 3, a);
-      } else if (d.pts.length === 1) {
-        if (d.type === 'hline') d.pts[0].p = a.p;
-        else d.pts[0].t = a.t;
-      } else {
-        d.pts[1] = { t: a.t, p: a.p };
-      }
-      CH.syncOverlay();
-      return;
-    }
-
-    const d = DRAW.find(DRAW.sel);
-    if (!d || !DRAW.dragFrom) return;
-
-    if (DRAW.mode === 'resizing') {
-      const a = anchor(p);
-      if (a.p == null) return;
-      if (DRAW.isPosition(d)) {
-        // Use a delta from the grabbed level, so selecting a marker (which
-        // opens its settings) or grabbing near a line never makes it jump.
-        const from = anchor({x:DRAW.dragFrom.x,y:DRAW.dragFrom.y});
-        const original = DRAW.dragFrom.pts[DRAW.grabPt];
-        if (from.p == null) return;
-        DRAW.resizePosition(d, DRAW.grabPt, {
-          p: original.p + a.p - from.p,
-          t: a.t != null && from.t != null ? original.t + a.t - from.t : original.t,
-        });
-      }
-      else if (d.type === 'hline') d.pts[0].p = a.p;
-      else if (d.type === 'vline') d.pts[0].t = a.t;
-      else d.pts[DRAW.grabPt] = { t: a.t, p: a.p };
-      CH.syncOverlay();
-      return;
-    }
-
-    if (DRAW.mode === 'moving') {
-      // Convert the pixel delta into a time/price delta so the object keeps
-      // its shape at any zoom level.
-      const from = anchor({ x: DRAW.dragFrom.x, y: DRAW.dragFrom.y });
-      const to = anchor(p);
-      if (to.p == null || from.p == null) return;
-      let dp = to.p - from.p;
-      if (DRAW.isPosition(d)) dp = Math.max(Math.pow(10,-S.dp) - Math.min(...DRAW.dragFrom.pts.map(q => q.p)), dp);
-      const dt = (to.t != null && from.t != null) ? to.t - from.t : 0;
-      d.pts = DRAW.dragFrom.pts.map(q => ({
-        t: d.type === 'hline' ? q.t : q.t + dt,
-        p: d.type === 'vline' ? q.p : q.p + dp,
-      }));
-      CH.syncOverlay();
-    }
-  });
-
-  const finish = e => {
-    if (e && e.pointerId !== activePointer) return;
-    const cancelled = e?.type === 'pointercancel' || e?.type === 'lostpointercapture' || (activePointer != null && activeSymbol !== S.sym);
-    if (cancelled) {
-      if (DRAW.dragFrom && activeDrawing) activeDrawing.pts = DRAW.dragFrom.pts.map(p => ({...p}));
-      DRAW.creating = null;
-      DRAW.mode = 'idle'; DRAW.grabPt = -1; DRAW.dragFrom = null;
-      const pointer = activePointer; activePointer = null; activeDrawing = null;
-      if (pointer != null && wrap.hasPointerCapture(pointer)) wrap.releasePointerCapture(pointer);
-      updateDrawCursor(); CH.syncOverlay(); return;
-    }
-    const pointer = activePointer; activePointer = null; activeDrawing = null;
-    if (pointer != null && wrap.hasPointerCapture(pointer)) wrap.releasePointerCapture(pointer);
-    if (DRAW.mode === 'creating' && DRAW.creating) {
-      const d = DRAW.creating;
-      const s = DRAW.screen(d);
-      // a stray tap with no drag on a two-point tool is discarded
-      const tiny = d.pts.length === 2 && s[0].x != null && s[1].x != null
-        && Math.hypot(s[1].x - s[0].x, s[1].y - s[0].y) < 4;
-      DRAW.creating = null;
-      if (!tiny) {
-        DRAW.list().push(d);
-        DRAW.sel = d.id;
-        DRAW.save();
-      }
-      // TradingView disarms after one object — this is the fix for
-      // "it keeps drawing".
-      DRAW.mode = 'idle';
-      setDraw('none', null);
-      const cursorBtn = [...document.querySelectorAll('.draw-btn')]
-        .find(b => /cursor/i.test(b.textContent));
-      if (cursorBtn) cursorBtn.classList.add('active');
-      CH.syncOverlay();
-      return;
-    }
-    if (DRAW.mode === 'moving' || DRAW.mode === 'resizing') DRAW.save();
-    DRAW.mode = 'idle'; DRAW.grabPt = -1; DRAW.dragFrom = null;
-    updateDrawCursor();
-    CH.syncOverlay();
-  };
-  window.addEventListener('pointerup', finish);
-  window.addEventListener('pointercancel', finish);
-  wrap.addEventListener('lostpointercapture', e => { if (activePointer != null) finish(e); });
-
-  document.addEventListener('keydown', e => {
-    const typing = /^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement?.tagName || '');
-    if (typing) return;
-    if (e.key === 'Escape') {
-      if (DRAW.mode !== 'idle') {
-        finish({pointerId:activePointer,type:'pointercancel'});
-        setDraw('none',null);
-        return;
-      }
-      if (DRAW.mode === 'creating') { DRAW.creating = null; DRAW.mode = 'idle'; setDraw('none', null); CH.syncOverlay(); }
-      else if (DRAW.armed !== 'none') setDraw('none', null);
-      else DRAW.deselect();
-    } else if ((e.key === 'Delete' || e.key === 'Backspace') && DRAW.sel != null) {
-      e.preventDefault();
-      DRAW.remove(DRAW.sel);
-    }
-  });
-
-  // While we own a gesture, stop the page from scrolling under a finger.
-  wrap.addEventListener('touchmove', e => { if (DRAW.mode !== 'idle') e.preventDefault(); }, { passive: false });
-  il.style.pointerEvents = 'none';   // permanently click-through
-
-  DRAW.load();
-})();
 
 // ATR cache kept for callers outside the chart module
 let _atrCache = { len: 0, lastClose: 0, arr: null };
@@ -8511,9 +8592,6 @@ const WS = {
     this.splitters();
     this.wrapTabs();
     this.menus();
-    this.visibilityWrap();
-    const wrap = document.getElementById('interactLayer');
-    if (wrap) wrap.addEventListener('dblclick', e => { if (DRAW.sel) { e.preventDefault(); this.openTool(DRAW.sel); } });
     window.addEventListener('resize', () => this.apply());
     this.summary(); setInterval(() => this.summary(), 1500);
   },
@@ -8623,79 +8701,10 @@ const WS = {
     d.querySelector('[data-restore]').onclick = () => { this.restore(); d.querySelectorAll('input[data-k]').forEach(i => i.checked = true); };
     d.querySelector('[data-done]').onclick = () => d.close();
   },
-  openObjects() {
-    const list = DRAW.list(), wrap = document.createElement('div');
-    if (!list.length) wrap.innerHTML = `<p class="ws-notice">No drawings on ${S.symLabel || S.sym} yet. Pick a tool from Drawing tools and draw on the chart; each object will appear here with its settings.</p>`;
-    list.forEach(o => {
-      const row = document.createElement('div'); row.className = 'ws-object' + (o.id === DRAW.sel ? ' is-selected' : '');
-      row.innerHTML = `<button type="button" class="ws-object-name"></button><span class="ws-object-meta"></span><button type="button" class="ws-button" data-eye aria-label="Toggle visibility">${o.hidden ? 'Hidden' : 'Visible'}</button><button type="button" class="ws-button" data-lock aria-label="Toggle lock">${o.locked ? 'Locked' : 'Unlocked'}</button><button type="button" class="ws-button" data-set>Settings</button>`;
-      row.querySelector('.ws-object-name').textContent = o.name || this.typeName(o);
-      row.querySelector('.ws-object-meta').textContent = o.pts && o.pts[0] ? otFmtPx(S.sym, o.pts[0].p) : '';
-      row.querySelector('.ws-object-name').onclick = () => { DRAW.select(o.id); d.close(); };
-      row.querySelector('[data-eye]').onclick = e => { o.hidden = !o.hidden; e.target.textContent = o.hidden ? 'Hidden' : 'Visible'; DRAW.save(); requestChartRedraw(); };
-      row.querySelector('[data-lock]').onclick = e => { o.locked = !o.locked; e.target.textContent = o.locked ? 'Locked' : 'Unlocked'; DRAW.save(); };
-      row.querySelector('[data-set]').onclick = () => { d.close(); this.openTool(o.id); };
-      wrap.appendChild(row);
-    });
-    if (list.length) { const f = document.createElement('footer'); f.innerHTML = `<button type="button" class="ws-button" data-clear>Remove all on this symbol</button>`; f.querySelector('[data-clear]').onclick = async () => { if (await LEVELS.reviewSheet('Remove all drawings?', `${list.length} object${list.length > 1 ? 's' : ''} on ${S.symLabel || S.sym} will be removed. This cannot be undone.`, 'Remove all')) { DRAW.clear ? DRAW.clear() : (DRAW.bySym[S.sym] = [], DRAW.save(), DRAW.deselect()); d.close(); } }; wrap.appendChild(f); }
-    const d = this.dialog('Objects · ' + (S.symLabel || S.sym), wrap);
-  },
-  typeName(o) { return { hline: 'Horizontal line', trend: 'Trend line', ray: 'Ray', rect: 'Rectangle', fib: 'Fibonacci', long: 'Long position', short: 'Short position', text: 'Text' }[o.type] || (o.type || 'Object'); },
-  openTool(id) {
-    const o = id && DRAW.find(id); if (!o) { showToast('Select a drawing first.', 2000); return; }
-    const TFS = ['1m', '5m', '15m', '30m', '1h', '4h', '1d', '1w'];
-    o.vis = o.vis || {}; const visTf = o.vis.tf || null;
-    const wrap = document.createElement('div');
-    wrap.innerHTML = `<div class="ws-tabs" role="tablist"><button type="button" class="is-on" data-t="in">Inputs</button><button type="button" data-t="ap">Appearance</button><button type="button" data-t="vi">Visibility</button></div>
-      <section data-p="in" class="ws-fields">
-        <label>Name<input type="text" data-name value=""></label>
-        ${(o.pts || []).map((p, i) => `<label>${DRAW.isPosition(o) ? ['Entry', 'Stop', 'Target'][i] : 'Point ' + (i + 1)} price<input type="number" step="any" inputmode="decimal" data-pt="${i}" value="${Number.isFinite(p.p) ? p.p.toFixed(S.dp || 4) : ''}"></label>`).join('')}
-        ${DRAW.isPosition(o) ? `<p class="ws-notice">Position estimates use the ticket's risk budget. Use "Use in ticket" to carry entry, stop and target across.</p>` : ''}
-      </section>
-      <section data-p="ap" class="ws-fields" hidden>
-        <label>Colour<input type="color" data-color value="${/^#[0-9a-f]{6}$/i.test(o.color || '') ? o.color : '#3B82F6'}"></label>
-        <label>Line width<input type="range" min="1" max="4" step="0.5" data-width value="${o.width || 1.4}"></label>
-        <label>Style<select data-style><option value="solid">Solid</option><option value="dashed">Dashed</option><option value="dotted">Dotted</option></select></label>
-        <label class="ws-check"><input type="checkbox" data-label ${o.showLabel === false ? '' : 'checked'}><span>Show label</span></label>
-      </section>
-      <section data-p="vi" class="ws-fields" hidden>
-        <label class="ws-check"><input type="checkbox" data-hidden ${o.hidden ? 'checked' : ''}><span>Hide this object</span></label>
-        <label class="ws-check"><input type="checkbox" data-locked ${o.locked ? 'checked' : ''}><span>Lock (no dragging)</span></label>
-        <fieldset class="ws-tf"><legend>Show on timeframes</legend>${TFS.map(t => `<label><input type="checkbox" data-tf="${t}" ${!visTf || visTf.includes(t) ? 'checked' : ''}>${t}</label>`).join('')}</fieldset>
-      </section>
-      <footer><button type="button" class="ws-button" data-del>Delete</button><span class="ws-spacer"></span><button type="button" class="ws-button ws-primary" data-done>Done</button></footer>`;
-    wrap.querySelector('[data-name]').value = o.name || '';
-    wrap.querySelector('[data-style]').value = o.style || 'solid';
-    const d = this.dialog(this.typeName(o), wrap), redraw = () => { DRAW.save(); requestChartRedraw(); };
-    wrap.querySelectorAll('.ws-tabs button').forEach(b => b.onclick = () => { wrap.querySelectorAll('.ws-tabs button').forEach(x => x.classList.toggle('is-on', x === b)); wrap.querySelectorAll('section[data-p]').forEach(s => s.hidden = s.dataset.p !== b.dataset.t); });
-    wrap.querySelector('[data-name]').oninput = e => { o.name = e.target.value; DRAW.save(); };
-    wrap.querySelectorAll('[data-pt]').forEach(i => i.oninput = () => { const v = parseFloat(i.value); if (Number.isFinite(v)) { o.pts[+i.dataset.pt].p = v; redraw(); DRAW.chip && DRAW.chip(); } });
-    wrap.querySelector('[data-color]').oninput = e => { o.color = e.target.value; redraw(); };
-    wrap.querySelector('[data-width]').oninput = e => { o.width = +e.target.value; redraw(); };
-    wrap.querySelector('[data-style]').onchange = e => { o.style = e.target.value; redraw(); };
-    wrap.querySelector('[data-label]').onchange = e => { o.showLabel = e.target.checked; redraw(); };
-    wrap.querySelector('[data-hidden]').onchange = e => { o.hidden = e.target.checked; redraw(); };
-    wrap.querySelector('[data-locked]').onchange = e => { o.locked = e.target.checked; DRAW.save(); };
-    wrap.querySelectorAll('[data-tf]').forEach(i => i.onchange = () => { const on = [...wrap.querySelectorAll('[data-tf]')].filter(x => x.checked).map(x => x.dataset.tf); o.vis.tf = on.length === TFS.length ? null : on; redraw(); });
-    wrap.querySelector('[data-del]').onclick = () => { const arr = DRAW.list(), i = arr.findIndex(x => x.id === o.id); if (i >= 0) arr.splice(i, 1); DRAW.deselect(); DRAW.save(); requestChartRedraw(); d.close(); };
-    wrap.querySelector('[data-done]').onclick = () => d.close();
-  },
-  /* an object is visible when not hidden and its timeframe filter allows the current tf */
-  visible(o) { return o && !o.hidden && !(o.vis && o.vis.tf && !o.vis.tf.includes(S.tf)); },
-  visibilityWrap() {
-    const paint = DRAW.paint.bind(DRAW), hit = DRAW.hit.bind(DRAW), hitHandle = DRAW.hitHandle.bind(DRAW);
-    DRAW.paint = (ctx, d, W, H, preview) => { if (!preview && !this.visible(d)) return; if (d.style && d.style !== 'solid') ctx.setLineDash(d.style === 'dashed' ? [8, 5] : [2, 4]); if (d.width) { const lw = ctx.lineWidth; paint(ctx, d, W, H, preview); ctx.lineWidth = lw; } else paint(ctx, d, W, H, preview); ctx.setLineDash([]); };
-    DRAW.hit = (d, x, y, W, H) => this.visible(d) && hit(d, x, y, W, H);
-    DRAW.hitHandle = (d, x, y) => (!this.visible(d) || d.locked) ? -1 : hitHandle(d, x, y);
-  },
-  usePlan() {
-    const o = DRAW.sel && DRAW.find(DRAW.sel); if (!o || !DRAW.isPosition(o)) { showToast('Select a long or short position drawing first.', 2400); return; }
-    const [entry, sl, tp] = o.pts.map(p => p.p);
-    applyARIA(sl, tp, o.type === 'long' ? 'buy' : 'sell');
-    if (typeof OT.sizeToRisk === 'function') OT.sizeToRisk(true);
-    if (isMobile()) openMobilePanel('trade'); else { if (!this.st.analysis) this.toggle('analysis'); setRTab('trade', null); }
-    showToast(`Ticket set from the ${o.type} plan: entry ${otFmtPx(S.sym, entry)}, stop ${otFmtPx(S.sym, sl)}, target ${otFmtPx(S.sym, tp)}.`, 4200);
-  },
+  /* Drawing objects, settings and the position plan live in DT (the drawing tools module). */
+  openObjects() { DT.openObjects(); },
+  openTool(id) { DT.openSettings(id || DT.selectedId()); },
+  usePlan() { DT.usePlan(); },
 };
 
 
@@ -9000,6 +9009,7 @@ function chooseAccount(mode) {
 ════════════════════════════════════════════════════════════ */
 function setTF(tf, btn) {
   S.tf = tf; VIEW.save();
+  if (typeof DT !== 'undefined') DT.setInterval(tf);
   document.querySelectorAll('.tf-btn').forEach(b => b.classList.remove('active'));
   if (btn) btn.classList.add('active');
   chartOffset = 0; S.candles = [];
@@ -9257,6 +9267,7 @@ function init() {
   PAIRS.forEach(g => g.items.forEach(p => { if (!pairPrices[p.id]) pairPrices[p.id] = { price: null, chg: 0, live: false }; }));
 
   CH.init();
+  DT.init();
   buildPairList();
   seedCandles(200);
   renderARIA();
@@ -9379,7 +9390,7 @@ function subscribeTick(id){if(!isDerivStreamSymbol(id))return;sendWS({ticks:id,s
 function subscribeHistory(id){if(!isDerivStreamSymbol(id))return;const tfSec=TF_SEC[S.tf]||900;sendWS({ticks_history:id,adjust_start_time:1,count:300,end:'latest',granularity:tfSec,style:'candles',subscribe:1})}
 connectWS=function(){try{if(ws&&(ws.readyState===WebSocket.OPEN||ws.readyState===WebSocket.CONNECTING))return;ws=new WebSocket(DERIV_WS_URL);ws.onopen=()=>{S.wsConnected=true;wsRetry=0;setWsBadge(true);updateFeedBadge();DERIV_STREAM_SYMBOLS.forEach((id,i)=>setTimeout(()=>subscribeTick(id),i*80));subscribeHistory(S.sym);clearInterval(NEXUS.wsHeartbeat);NEXUS.wsHeartbeat=setInterval(()=>sendWS({ping:1}),25000)};ws.onmessage=e=>{let d;try{d=JSON.parse(e.data)}catch(_){return}if(FEEDX.route(d))return;if(d.subscription?.id&&d.echo_req){const key=d.echo_req.ticks||d.echo_req.ticks_history;if(key)NEXUS.activeSubs.set(`${key}:${d.msg_type}:${d.echo_req.granularity||'tick'}`,d.subscription.id)}if(d.error){const key=d.echo_req?.ticks||d.echo_req?.ticks_history||'feed';NEXUS.errors.set(key,d.error.message||'Feed error');if(d.echo_req?.ticks_history&&appSym(d.echo_req.ticks_history)===S.sym&&!S.candles.length){const el=safeEl('chartLoading');if(el){el.textContent=d.error.message||'No candles for this market';el.hidden=false}}updateFeedBadge();return}if(d.msg_type==='tick'&&d.tick){putQuote(d.tick.symbol,+d.tick.quote,null,'Deriv',true)}const _hs=d.echo_req&&d.echo_req.ticks_history,_hOk=_hs&&appSym(_hs)===S.sym&&(!d.echo_req.granularity||d.echo_req.granularity===_histGran);if(d.msg_type==='ohlc'&&d.ohlc&&_hOk){const o=d.ohlc;mergeLiveCandle({time:+o.open_time,open:+o.open,high:+o.high,low:+o.low,close:+o.close,vol:0});const _xq=XQ.q[S.sym];if(!_xq||Date.now()-_xq.ts>3000){XQ.put(S.sym,+o.close,+o.close,'Deriv');subscribeTick(S.sym)}}if(d.msg_type==='candles'&&d.candles&&_hOk){S.candles=aggregateCandles(d.candles.map(c=>({time:+c.epoch,open:+c.open,high:+c.high,low:+c.low,close:+c.close,vol:0})),S.tf);const last=S.candles[S.candles.length-1];if(last)putQuote(S.sym,last.close,null,'Deriv',true);drawChart();renderARIA();renderMTF();runPatternScanner();updateTopbar()}};ws.onclose=()=>{S.wsConnected=false;FEEDX.reset();setWsBadge(false);updateFeedBadge();clearInterval(NEXUS.wsHeartbeat);wsRetry++;setTimeout(connectWS,Math.min(30000,1200*Math.pow(1.7,wsRetry)))};ws.onerror=()=>{try{ws.close()}catch(e){}}}catch(e){S.wsConnected=false;setWsBadge(false);setTimeout(connectWS,5000)}};
 subscribeWS=function(sym){if(!isDerivStreamSymbol(sym))return;clearDerivSubs();subscribeTick(sym);subscribeHistory(sym)};
-selectPair=function(id){const p=PAIR_MAP[id];if(!p)return;S.sym=id;S.symLabel=p.label;S.dp=p.dp;chartOffset=0;S.candles=[];S.activePatterns=[];const chip=safeEl('symChip');if(chip){chip.innerHTML=`<span class="sym-flag">${p.flag}</span><span id="symLabel">${p.label}</span>`;const accent=document.documentElement.getAttribute('data-theme')==='light'?'#3B82F6':'var(--neon-cyan)';chip.style.borderColor=accent;setTimeout(()=>chip.style.borderColor='',700)}if(pairPrices[id]?.price)SEEDS[id]=pairPrices[id].price;seedCandles(200);buildPairList(safeEl('pairSearch')?.value||'');updateFeedBadge();if(isDerivStreamSymbol(id))subscribeWS(id);setTimeout(()=>{renderARIA();renderMTF();runPatternScanner();requestChartRedraw()},80)};
+selectPair=function(id){const p=PAIR_MAP[id];if(!p)return;S.sym=id;S.symLabel=p.label;S.dp=p.dp;if(typeof DT!=='undefined')DT.setSymbol(id);chartOffset=0;S.candles=[];S.activePatterns=[];const chip=safeEl('symChip');if(chip){chip.innerHTML=`<span class="sym-flag">${p.flag}</span><span id="symLabel">${p.label}</span>`;const accent=document.documentElement.getAttribute('data-theme')==='light'?'#3B82F6':'var(--neon-cyan)';chip.style.borderColor=accent;setTimeout(()=>chip.style.borderColor='',700)}if(pairPrices[id]?.price)SEEDS[id]=pairPrices[id].price;seedCandles(200);buildPairList(safeEl('pairSearch')?.value||'');updateFeedBadge();if(isDerivStreamSymbol(id))subscribeWS(id);setTimeout(()=>{renderARIA();renderMTF();runPatternScanner();requestChartRedraw()},80)};
 
 /* ── Favourites: a starred set of instruments, shown as the first group of
    every instrument list (desktop watchlist and the phone sheet). ── */

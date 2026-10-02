@@ -1,102 +1,79 @@
+// Drawing tools module (DT): the parts that need no browser.
+//   node --test tests/position-measure.test.cjs
 const {test} = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const vm = require('node:vm');
 const html = fs.readFileSync(require('node:path').join(__dirname, '../protrader_mobile.html'), 'utf8');
-const source = html.slice(html.indexOf('const DRAW_COLORS'), html.indexOf('// ATR cache kept'));
+const source = html.slice(html.indexOf('const DT = (() => {'), html.indexOf('   POSITION MANAGEMENT ON THE CHART'));
 
-function setup() {
-  const events = {}, storage = {};
-  const element = name => ({style:{}, clientWidth:800, clientHeight:600,
-    getBoundingClientRect:()=>({left:0,top:0}),
-    addEventListener:(type,fn)=>{(events[name+type] ||= []).push(fn);},
-    setPointerCapture(){},hasPointerCapture(){return false;},releasePointerCapture(){}});
-  const wrap=element('wrap'),il=element('il');
-  const context = vm.createContext({
-    S:{sym:'TEST',tf:'1m',dp:2},TF_SEC:{'1m':60},
-    CH:{toX:t=>t,toY:p=>500-p*4,fromX:x=>x,fromY:y=>(500-y)/4,syncOverlay(){}},
-    LIVE:{routing:()=>false,acct:()=>({currency:'USD'}),specLimits:()=>null,riskAtStop:()=>null},
-    otSpec:()=>({lotStep:.01,minLot:.01,maxLot:100}),otPnl:(side,e,s,v)=> (s-e)*100*v,
-    document:{activeElement:null,getElementById:id=>id==='chartWrap'?wrap:id==='interactLayer'?il:null,
-      querySelectorAll:()=>[],addEventListener:(type,fn)=>{(events['doc'+type] ||= []).push(fn);}},
-    window:{addEventListener:(type,fn)=>{(events['win'+type] ||= []).push(fn);}},
-    localStorage:{getItem:key=>storage[key],setItem:(key,v)=>{storage[key]=v;}}
-  });
-  vm.runInContext(source+';globalThis.draw=DRAW;globalThis.arm=setDraw;',context);
-  const d=context.draw; d.chip=()=>{};
-  const fire=(name,x,y,id=1)=>{for(const fn of events[name]||[]) fn({clientX:x,clientY:y,pointerId:id,button:0,
-    type:name.replace(/^(wrap|win|doc)/,''),target:{closest:()=>null},preventDefault(){},stopPropagation(){}});};
-  return {context,d,fire};
+function setup(over = {}) {
+  const context = vm.createContext(Object.assign({
+    S: {sym: 'TEST', tf: '15m', dp: 2, balance: 10000}, TF_SEC: {'15m': 900},
+    LIVE: {routing: () => false, acct: () => ({currency: 'USD'}), specLimits: () => null, riskAtStop: () => null},
+    otSpec: () => ({lotStep: .01, minLot: .01, maxLot: 100}), otPnl: (side, e, s, v) => (s - e) * 100 * v,
+    isMobile: () => false, window: {}, document: {getElementById: () => null, addEventListener() {}},
+    localStorage: {getItem: () => null, setItem() {}}, console,
+  }, over));
+  vm.runInContext(source.slice(0, source.lastIndexOf('})();') + 5) + ';globalThis.dt = DT;', context);
+  return context.dt;
 }
-const marker=type=>({id:1,type,riskBudget:100,pts:[{t:100,p:100},{t:300,p:type==='long'?90:110},
-  {t:300,p:type==='long'?120:80},{t:300,p:100}]});
+const factory = kind => ({color: '#2962ff', width: 1, lineStyle: 'solid'});
+const J = x => JSON.parse(JSON.stringify(x));   // objects cross the vm realm: compare by value
 
-test('inline application JavaScript parses',()=>{
-  for(const script of html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/g)) new vm.Script(script[1]);
+test('inline application JavaScript parses', () => {
+  for (const script of html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/g)) new vm.Script(script[1]);
 });
-for(const type of ['long','short']) {
-  test(`${type}: signed zones, risk budget sizing, reward and ratio`,()=>{
-    const {d}=setup(),m=marker(type),s=d.positionStats(m);
-    assert.equal(s.ratio,2);assert.equal(s.lots,.1);assert.equal(s.risk,100);assert.equal(s.reward,200);
-    d.resizePosition(m,1,{t:0,p:type==='long'?80:120});
-    assert.equal(m.pts[0].p,100);assert.equal(m.pts[2].p,type==='long'?120:80);
-    assert.equal(d.positionStats(m).lots,.05);assert.equal(d.positionStats(m).ratio,1);
-  });
-  test(`${type}: stops and targets cannot cross entry; entry stays between levels`,()=>{
-    const {d}=setup(),m=marker(type),sign=type==='long'?1:-1;
-    d.resizePosition(m,1,{p:100+sign*50});d.resizePosition(m,2,{p:100-sign*50});
-    assert.ok(sign*(m.pts[0].p-m.pts[1].p)>0);assert.ok(sign*(m.pts[2].p-m.pts[0].p)>0);
-    const n=marker(type);d.resizePosition(n,0,{p:1000});
-    assert.ok(n.pts[0].p<Math.max(n.pts[1].p,n.pts[2].p));assert.equal(n.pts[3].p,n.pts[0].p);
+test('migration: the first engine\'s drawings become engine drawings, styles and flags kept', () => {
+  const {migrateOld, normalize} = setup()._test;
+  const h = migrateOld({id: 3, type: 'hline', color: '#F59E0B', pts: [{t: 100, p: 1.5}], name: 'Mirror', locked: true, hidden: true}, factory);
+  assert.equal(h.kind, 'horizontal-line'); assert.deepEqual(J(h.points), [{time: 100, price: 1.5}]);
+  assert.equal(h.style.color, '#F59E0B'); assert.equal(h.name, 'Mirror'); assert.equal(h.locked, true); assert.equal(h.hidden, true); assert.equal(h.id, 'v1-3');
+  const t = migrateOld({id: 4, type: 'trend', pts: [{t: 100, p: 1}, {t: 200, p: 2}], style: 'dashed', width: 2.4, vis: {tf: ['1h', '4h']}}, factory);
+  assert.equal(t.kind, 'trend-line'); assert.equal(t.style.lineStyle, 'dashed'); assert.equal(t.style.width, 2);
+  assert.equal(t.visibility.hours.on, true); assert.equal(t.visibility.minutes.on, false); assert.equal(t.visibility.days.on, false);
+  const l = migrateOld({id: 5, type: 'long', riskBudget: 250, pts: [{t: 100, p: 100}, {t: 300, p: 90}, {t: 300, p: 120}, {t: 300, p: 100}]}, factory);
+  assert.equal(l.kind, 'long-position'); assert.deepEqual(J(l.points), [{time: 100, price: 100}, {time: 300, price: 100}]);
+  assert.equal(l.style.stopLevel, 10); assert.equal(l.style.profitLevel, 20); assert.equal(l.riskBudget, 250);
+  assert.equal(migrateOld({id: 6, type: 'nope', pts: [{t: 1, p: 1}]}, factory), null);
+  assert.equal(migrateOld({id: 7, type: 'trend', pts: [{t: 1, p: 1}]}, factory), null, 'a two-point tool with one point is dropped');
+  const n = normalize({A: [{id: 1, type: 'ray', pts: [{t: 1, p: 1}, {t: 2, p: 2}]}, {kind: 'rectangle', points: [], style: {}}], B: 'junk', C: []}, factory);
+  assert.deepEqual(J(Object.keys(n)), ['A']); assert.deepEqual(J(n.A.map(d => d.kind)), ['ray', 'rectangle']);
+});
+test('colour helpers: hex and rgba with opacity round-trip', () => {
+  const {parseColor, withAlpha} = setup()._test;
+  assert.deepEqual(J(parseColor('#F23645')), {hex: '#f23645', alpha: 1});
+  assert.deepEqual(J(parseColor('rgba(242, 54, 69, 0.5)')), {hex: '#f23645', alpha: .5});
+  assert.equal(withAlpha('#f23645', .5), 'rgba(242, 54, 69, 0.5)'); assert.equal(withAlpha('rgba(242, 54, 69, 0.5)', 1), '#f23645');
+  assert.deepEqual(J(parseColor('garbage')), {hex: '#2962ff', alpha: 1});
+});
+test('intervals map to the engine\'s TradingView-style strings', () => {
+  const {TV_INTERVAL} = setup()._test;
+  assert.deepEqual(J(TV_INTERVAL), {'1m': '1', '5m': '5', '15m': '15', '30m': '30', '1h': '60', '4h': '240', '1d': '1D', '1w': '1W'});
+});
+for (const kind of ['long-position', 'short-position']) {
+  test(`${kind}: levels from the entry and the stop/target distances; budget sizing and R:R`, () => {
+    const dt = setup(), sign = kind === 'long-position' ? 1 : -1;
+    const d = {kind, points: [{time: 100, price: 100}, {time: 300, price: 100}], style: {stopLevel: 10, profitLevel: 20}, riskBudget: 100};
+    const L = dt.positionLevels(d);
+    assert.equal(L.entry, 100); assert.equal(L.sl, 100 - sign * 10); assert.equal(L.tp, 100 + sign * 20);
+    const s = dt.positionStats(d);
+    assert.equal(s.ratio, 2); assert.equal(s.lots, .1); assert.equal(s.risk, 100); assert.equal(s.reward, 200); assert.equal(s.currency, 'USD');
+    d.style.stopLevel = 20; assert.equal(dt.positionStats(d).lots, .05); assert.equal(dt.positionStats(d).ratio, 1);
   });
 }
-test('rounds size down to lot step, respects min/max and missing conversion',()=>{
-  const {d,context}=setup(),m=marker('long');m.riskBudget=109;
-  assert.equal(d.positionStats(m).lots,.1);
-  m.riskBudget=.1;assert.equal(d.positionStats(m).lots,0);
-  m.riskBudget=1e9;assert.equal(d.positionStats(m).lots,100);
-  context.otPnl=()=>null;assert.equal(d.positionStats(m).lots,null);
-  context.LIVE.routing=()=>true;context.LIVE.riskAtStop=()=>1000;
-  assert.equal(d.positionStats(m).lots,null,'wrong/missing broker symbol must not use paper sizing');
+test('position sizing rounds down to the lot step, respects min/max, and refuses without pricing', () => {
+  const dt = setup(); const d = {kind: 'long-position', points: [{time: 1, price: 100}, {time: 2, price: 100}], style: {stopLevel: 10, profitLevel: 20}, riskBudget: 109};
+  assert.equal(dt.positionStats(d).lots, .1);
+  d.riskBudget = .1; assert.equal(dt.positionStats(d).lots, 0);
+  d.riskBudget = 1e9; assert.equal(dt.positionStats(d).lots, 100);
+  const noPx = setup({otPnl: () => null}); assert.equal(noPx.positionStats(d).lots, null);
+  const live = setup({LIVE: {routing: () => true, acct: () => ({currency: 'EUR'}), specLimits: () => null, riskAtStop: () => 1000}});
+  assert.equal(live.positionStats(d).lots, null, 'wrong/missing broker symbol must not use paper sizing');
+  const live2 = setup({LIVE: {routing: () => true, acct: () => ({currency: 'EUR'}), specLimits: () => ({}), riskAtStop: () => 1000}});
+  d.riskBudget = 100; assert.equal(live2.positionStats(d).lots, .1); assert.equal(live2.positionStats(d).currency, 'EUR');
 });
-test('width dragging keeps all prices unchanged',()=>{
-  const {d}=setup(),m=marker('long');d.resizePosition(m,3,{t:500,p:5});
-  assert.deepEqual(m.pts.map(p=>p.p),[100,90,120,100]);assert.equal(m.pts[2].t,500);
-});
-test('pointer drag modifies SL independently and persists per symbol',()=>{
-  const {d,fire,context}=setup(),m=marker('long');d.list().push(m);d.sel=1;
-  fire('wrappointerdown',200,140);fire('winpointermove',200,180);fire('winpointerup',200,180);
-  assert.equal(m.pts[1].p,80);assert.equal(m.pts[0].p,100);assert.equal(m.pts[2].p,120);
-  d.bySym={};d.load();assert.equal(d.list()[0].pts[1].p,80);
-  context.S.sym='OTHER';assert.equal(d.list().length,0);
-});
-test('cancel and symbol switch restore a drag; other pointers cannot move it',()=>{
-  const {d,fire,context}=setup(),m=marker('long');d.list().push(m);d.sel=1;
-  fire('wrappointerdown',200,140);fire('winpointermove',200,200,2);assert.equal(m.pts[1].p,90);
-  fire('winpointermove',200,180);fire('winpointercancel',200,180);assert.equal(m.pts[1].p,90);
-  fire('wrappointerdown',200,140);fire('winpointermove',200,180);context.S.sym='OTHER';
-  fire('winpointerup',200,180);assert.equal(m.pts[1].p,90);assert.equal(d.mode,'idle');
-});
-test('single tap creates a marker and disarms the tool',()=>{
-  const {d,fire,context}=setup();context.arm('short',null);
-  fire('wrappointerdown',200,200);fire('winpointerup',200,200);
-  assert.equal(d.list().length,1);assert.equal(d.armed,'none');assert.equal(d.list()[0].pts.length,4);
-});
-test('TP and entry drags update only their intended levels without grab-offset jumps',()=>{
-  const {d,fire}=setup(),m=marker('short');d.list().push(m);d.sel=1;
-  fire('wrappointerdown',200,183);fire('winpointermove',200,203);fire('winpointerup',200,203);
-  assert.equal(m.pts[2].p,75);assert.equal(m.pts[0].p,100);assert.equal(m.pts[1].p,110);
-  fire('wrappointerdown',200,100);fire('winpointermove',200,120);fire('winpointerup',200,120);
-  assert.equal(m.pts[0].p,95);assert.equal(m.pts[1].p,110);assert.equal(m.pts[2].p,75);
-});
-test('dragging a zone translates all levels and preserves risk/reward',()=>{
-  const {d,fire}=setup(),m=marker('long');d.list().push(m);d.sel=1;
-  fire('wrappointerdown',200,60);fire('winpointermove',220,80);fire('winpointerup',220,80);
-  assert.equal(m.pts[0].t,120);assert.equal(m.pts[0].p,95);
-  assert.equal(d.positionStats(m).ratio,2);
-});
-test('existing horizontal-line drag still works',()=>{
-  const {d,fire}=setup(),m={id:1,type:'hline',pts:[{t:100,p:100}]};d.list().push(m);d.sel=1;
-  fire('wrappointerdown',200,100);fire('winpointermove',200,140);fire('winpointerup',200,140);
-  assert.equal(m.pts[0].p,90);
+test('a default stop distance is used when the drawing has none yet', () => {
+  const dt = setup(); const d = {kind: 'short-position', points: [{time: 1, price: 100}, {time: 2, price: 95}], style: {}};
+  const L = dt.positionLevels(d); assert.equal(L.stop, 5); assert.equal(L.profit, 5); assert.equal(L.sl, 105); assert.equal(L.tp, 95);
 });
