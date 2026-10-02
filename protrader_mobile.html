@@ -132,7 +132,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg-1);color:var(--tx-1);f
 .stat-lbl{font-size:12px;color:var(--tx-3);text-transform:uppercase;letter-spacing:.5px;font-weight:600}
 .stat-val{font-family:var(--font-mono);font-size:12px;font-weight:700;color:var(--tx-2)}
 
-.price-update-ts{font-family:var(--font-mono);font-size:12px;color:var(--tx-3);white-space:nowrap}
+.price-update-ts{font-family:var(--font-mono);font-size:12px;color:var(--tx-3);white-space:nowrap;background:none;border:0;padding:0;cursor:pointer}
 
 .topbar-right{margin-left:auto;display:flex;align-items:center;gap:6px;flex-shrink:0}
 .bal-badge{
@@ -259,7 +259,8 @@ html,body{height:100%;overflow:hidden;background:var(--bg-1);color:var(--tx-1);f
 
 /* ── CHART AREA ── */
 .chart-wrap{flex:1;position:relative;overflow:hidden;background:var(--bg-1);min-height:0}
-#lwChart{position:absolute;inset:0;width:100%;height:100%;touch-action:none}   /* gestures belong to the chart, not the browser */
+#lwChart{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
+.chart-loading{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);padding:8px 14px;border-radius:999px;background:rgba(13,19,32,.85);border:1px solid var(--bd-2);color:var(--tx-3);font:600 12px var(--font-display);z-index:5;pointer-events:none}.chart-loading[hidden]{display:none}   /* gestures belong to the chart, not the browser */
 .ch-auto{position:absolute;right:4px;bottom:34px;z-index:21;display:none;padding:4px 8px;border-radius:999px;cursor:pointer;
   font-size:12px;font-weight:800;letter-spacing:.5px;color:#fff;background:var(--blue);border:none;box-shadow:0 2px 8px rgba(0,0,0,.35)}
 .ch-auto.on{display:block}
@@ -1513,25 +1514,25 @@ svg.ico{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.7;st
   <div class="topbar-divider"></div>
 
   <!-- OHLC stats -->
-  <div class="topbar-stat">
+  <div class="topbar-stat" title="Today's high (UTC day)">
     <span class="stat-lbl">High</span>
     <span class="stat-val" id="topH">—</span>
   </div>
-  <div class="topbar-stat">
+  <div class="topbar-stat" title="Today's low (UTC day)">
     <span class="stat-lbl">Low</span>
     <span class="stat-val" id="topL">—</span>
   </div>
   <div class="topbar-stat">
-    <span class="stat-lbl">Spread</span>
+    <span class="stat-lbl">Range</span>
     <span class="stat-val" id="topSpread">—</span>
   </div>
-  <div class="topbar-stat" title="Trading session (UTC). Dead zone = avoid trading per ARIA Law.">
-    <span class="stat-lbl">Session</span>
+  <div class="topbar-stat" title="Trading session by UTC clock. Dead zone = avoid trading per ARIA Law.">
+    <span class="stat-lbl">Session · UTC</span>
     <span class="stat-val" id="topSession" style="font-weight:800">—</span>
   </div>
 
   <div class="topbar-divider" style="display:none" id="mobileDiv"></div>
-  <span class="price-update-ts" id="updateTs"></span>
+  <button type="button" class="price-update-ts" id="updateTs" onclick="TZ.toggle()" title="Tap to switch chart times between local and UTC"></button>
 
   <!-- Right controls -->
   <div class="topbar-right">
@@ -1633,6 +1634,7 @@ svg.ico{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.7;st
     <!-- Chart area -->
     <div class="chart-wrap" id="chartWrap">
       <div id="lwChart"></div>
+      <div class="chart-loading" id="chartLoading">Connecting to the market feed…</div>
       <canvas id="drawLayer"></canvas>
       <div id="interactLayer"></div>
       <div class="price-tag" id="priceTag">—</div>
@@ -2239,14 +2241,9 @@ function quoteChangeCap(id) {
   return 5;
 }
 function normalizeChg(id, chg) {
+  // The day change is real now (Deriv's daily open), so it is shown as it is.
   const n = Number(chg);
-  if (!Number.isFinite(n)) return 0;
-  const cap = quoteChangeCap(id);
-  if (Math.abs(n) <= cap) return n;
-  let hash = 0;
-  for (let i = 0; i < String(id).length; i++) hash = (hash * 31 + String(id).charCodeAt(i)) >>> 0;
-  const factor = 0.34 + ((hash % 34) / 100); // deterministic 34%–67% of the asset cap
-  return Math.sign(n) * cap * factor;
+  return Number.isFinite(n) && Math.abs(n) < 100 ? n : 0;
 }
 function formatPct(id, chg, digits = 2) {
   const n = normalizeChg(id, chg);
@@ -2254,234 +2251,40 @@ function formatPct(id, chg, digits = 2) {
 }
 
 /* ════════════════════════════════════════════════════════════
-   REAL-TIME PRICE FEEDS
+   TIME ZONE — the chart axis, the clock and the OHLC readout all follow one
+   setting: the device's local time (what TradingView and Deriv show) or UTC.
+   Tap the clock to switch. Candle timestamps themselves stay UTC epochs.
 ════════════════════════════════════════════════════════════ */
-
-// ── API 1: CoinGecko — BTC, ETH (free, no key) ──
-async function fetchCryptoAPI() {
-  if (await botReady()) return;   // bot feed is authoritative
-  try {
-    const r = await fetch(
-      'https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum&vs_currencies=usd&include_24hr_change=true',
-      { signal: AbortSignal.timeout(8000) }
-    );
-    if (!r.ok) return;
-    const d = await r.json();
-    if (d.bitcoin) {
-      const px = d.bitcoin.usd;
-      const chg = d.bitcoin.usd_24h_change || 0;
-      SEEDS.cryBTCUSD = px;
-      pairPrices['cryBTCUSD'] = { price: px, chg, live: true, src: 'CoinGecko', ts: Date.now() };
-      if (S.sym === 'cryBTCUSD') updateTopbarFromAPI(px, chg);
-    }
-    if (d.ethereum) {
-      const px = d.ethereum.usd;
-      const chg = d.ethereum.usd_24h_change || 0;
-      SEEDS.cryETHUSD = px;
-      pairPrices['cryETHUSD'] = { price: px, chg, live: true, src: 'CoinGecko', ts: Date.now() };
-      if (S.sym === 'cryETHUSD') updateTopbarFromAPI(px, chg);
-    }
-    buildPairList(document.getElementById('pairSearch').value);
-    buildTickerData();
+const TZ = {
+  KEY: 'protrader.tz.v1', mode: 'local',
+  load() { try { const m = localStorage.getItem(this.KEY); if (m === 'utc' || m === 'local') this.mode = m; } catch (_) {} },
+  toggle() {
+    this.mode = this.mode === 'utc' ? 'local' : 'utc';
+    try { localStorage.setItem(this.KEY, this.mode); } catch (_) {}
     updateTimestamp();
-  } catch(_) {}
-}
-
-// ── API 2: Frankfurter — Forex rates ──
-async function fetchForexAPI() {
-  if (await botReady()) return;   // bot feed is authoritative
-  try {
-    const r = await fetch(
-      'https://api.frankfurter.app/latest?from=USD&to=EUR,GBP,JPY,CAD,AUD',
-      { signal: AbortSignal.timeout(8000) }
-    );
-    if (!r.ok) return;
-    const d = await r.json();
-    const rates = d.rates;
-    if (!rates) return;
-
-    const usdEur = rates.EUR || null;
-    const usdGbp = rates.GBP || null;
-    const usdJpy = rates.JPY || null;
-    const usdCad = rates.CAD || null;
-    const usdAud = rates.AUD || null;
-
-    // Build EURUSD from reciprocal
-    if (usdEur) {
-      const eur = +(1 / usdEur).toFixed(5);
-      const prevEur = pairPrices['frxEURUSD']?.price || SEEDS.frxEURUSD;
-      const chg = ((eur - prevEur) / prevEur) * 100;
-      SEEDS.frxEURUSD = eur;
-      pairPrices['frxEURUSD'] = { price: eur, chg: +chg.toFixed(3), live: true, src: 'Frankfurter', ts: Date.now() };
-      if (S.sym === 'frxEURUSD') updateTopbarFromAPI(eur, chg);
-    }
-    if (usdGbp) {
-      const gbp = +(1 / usdGbp).toFixed(5);
-      const prev = pairPrices['frxGBPUSD']?.price || SEEDS.frxGBPUSD;
-      const chg = ((gbp - prev) / prev) * 100;
-      SEEDS.frxGBPUSD = gbp;
-      pairPrices['frxGBPUSD'] = { price: gbp, chg: +chg.toFixed(3), live: true, src: 'Frankfurter', ts: Date.now() };
-      if (S.sym === 'frxGBPUSD') updateTopbarFromAPI(gbp, chg);
-    }
-    if (usdJpy) {
-      const jpy = +usdJpy.toFixed(3);
-      const prev = pairPrices['frxUSDJPY']?.price || SEEDS.frxUSDJPY;
-      const chg = ((jpy - prev) / prev) * 100;
-      SEEDS.frxUSDJPY = jpy;
-      pairPrices['frxUSDJPY'] = { price: jpy, chg: +chg.toFixed(3), live: true, src: 'Frankfurter', ts: Date.now() };
-      if (S.sym === 'frxUSDJPY') updateTopbarFromAPI(jpy, chg);
-    }
-    if (usdGbp && usdJpy) {
-      const gbpJpy = +((1/usdGbp) * usdJpy).toFixed(3);
-      const prev = pairPrices['frxGBPJPY']?.price || SEEDS.frxGBPJPY;
-      const chg = ((gbpJpy - prev) / prev) * 100;
-      SEEDS.frxGBPJPY = gbpJpy;
-      pairPrices['frxGBPJPY'] = { price: gbpJpy, chg: +chg.toFixed(3), live: true, src: 'Frankfurter', ts: Date.now() };
-      if (S.sym === 'frxGBPJPY') updateTopbarFromAPI(gbpJpy, chg);
-    }
-    if (usdEur && usdGbp) {
-      const eurGbp = +(usdGbp / usdEur).toFixed(5);
-      SEEDS.frxEURGBP = eurGbp;
-      pairPrices['frxEURGBP'] = { price: eurGbp, chg: 0, live: true, src: 'Frankfurter', ts: Date.now() };
-    }
-    if (usdCad) {
-      const cad = +usdCad.toFixed(5);
-      SEEDS.frxUSDCAD = cad;
-      pairPrices['frxUSDCAD'] = { price: cad, chg: 0, live: true, src: 'Frankfurter', ts: Date.now() };
-      if (S.sym === 'frxUSDCAD') updateTopbarFromAPI(cad, 0);
-    }
-    if (usdAud) {
-      const aud = +(1 / usdAud).toFixed(5);
-      SEEDS.frxAUDUSD = aud;
-      pairPrices['frxAUDUSD'] = { price: aud, chg: 0, live: true, src: 'Frankfurter', ts: Date.now() };
-      if (S.sym === 'frxAUDUSD') updateTopbarFromAPI(aud, 0);
-    }
-    buildPairList(document.getElementById('pairSearch').value);
-    buildTickerData();
-    updateTimestamp();
-  } catch(_) {}
-}
-
-// ── API 3: Gold/Silver via open.er-api (USD as base, XAU/XAG as metals) ──
-async function fetchMetalsAPI() {
-  if (await botReady()) return;   // bot feed is authoritative
-  try {
-    // Use exchangerate.host or similar for metals proxy
-    const r = await fetch(
-      'https://open.er-api.com/v6/latest/XAU',
-      { signal: AbortSignal.timeout(8000) }
-    );
-    if (!r.ok) return fetchMetalsAlt();
-    const d = await r.json();
-    if (d.result === 'success' && d.rates && d.rates.USD) {
-      const xauUsd = +(d.rates.USD).toFixed(2);
-      if (xauUsd > 500 && xauUsd < 8000) { // sanity
-        const prev = pairPrices['frxXAUUSD']?.price || SEEDS.frxXAUUSD;
-        const chg = ((xauUsd - prev) / prev) * 100;
-        SEEDS.frxXAUUSD = xauUsd;
-        pairPrices['frxXAUUSD'] = { price: xauUsd, chg: +chg.toFixed(3), live: true, src: 'ExchangeRate', ts: Date.now() };
-        if (S.sym === 'frxXAUUSD') updateTopbarFromAPI(xauUsd, chg);
-      }
-    }
-    if (d.rates && d.rates.XAG) {
-      const xagUsd = +(d.rates.USD / d.rates.XAG * d.rates.USD).toFixed(3);
-      // fallback
-    }
-    buildPairList(document.getElementById('pairSearch').value);
-    buildTickerData();
-  } catch(_) {
-    fetchMetalsAlt();
-  }
-}
-
-async function fetchMetalsAlt() {
-  // Fallback: use another public metals API
-  try {
-    const r = await fetch(
-      'https://api.coinbase.com/v2/exchange-rates?currency=XAU',
-      { signal: AbortSignal.timeout(8000) }
-    );
-    if (!r.ok) return;
-    const d = await r.json();
-    if (d.data && d.data.rates && d.data.rates.USD) {
-      const xauUsd = +parseFloat(d.data.rates.USD).toFixed(2);
-      if (xauUsd > 500 && xauUsd < 8000) {
-        const prev = pairPrices['frxXAUUSD']?.price || SEEDS.frxXAUUSD;
-        const chg = ((xauUsd - prev) / prev) * 100;
-        SEEDS.frxXAUUSD = xauUsd;
-        pairPrices['frxXAUUSD'] = { price: xauUsd, chg: +chg.toFixed(3), live: true, src: 'Coinbase', ts: Date.now() };
-        if (S.sym === 'frxXAUUSD') updateTopbarFromAPI(xauUsd, chg);
-        buildPairList(document.getElementById('pairSearch').value);
-        buildTickerData();
-      }
-    }
-    // XAG
-    const r2 = await fetch('https://api.coinbase.com/v2/exchange-rates?currency=XAG', { signal: AbortSignal.timeout(8000) });
-    if (r2.ok) {
-      const d2 = await r2.json();
-      if (d2.data?.rates?.USD) {
-        const xagUsd = +parseFloat(d2.data.rates.USD).toFixed(3);
-        if (xagUsd > 5 && xagUsd < 500) {
-          SEEDS.frxXAGUSD = xagUsd;
-          pairPrices['frxXAGUSD'] = { price: xagUsd, chg: 0, live: true, src: 'Coinbase', ts: Date.now() };
-        }
-      }
-    }
-  } catch(_) {}
-}
-
-function updateTopbarFromAPI(price, chg) {
-  const dp = S.dp;
-  const safeChg = normalizeChg(S.sym, chg);
-  const el = document.getElementById('livePrice');
-  const prev = S.candles.length ? S.candles[S.candles.length-1].close : price;
-  const up = price >= prev;
-  el.textContent = price.toFixed(dp);
-  el.className = 'live-price ' + (up ? 'flash-up' : 'flash-dn');
-  setTimeout(() => { el.className = 'live-price'; }, 300);
-
-  const chgEl = document.getElementById('liveChg');
-  const chgStr = formatPct(S.sym, safeChg, 3);
-  chgEl.textContent = chgStr;
-  chgEl.className = 'live-chg ' + (safeChg >= 0 ? 'up' : 'dn');
-
-  // Nudge candles to match real price
-  if (S.candles.length) {
-    const last = S.candles[S.candles.length-1];
-    const drift = price - last.close;
-    if (Math.abs(drift) / last.close < 0.005) { // within 0.5%
-      last.close = parseFloat(price.toFixed(dp));
-      last.high = parseFloat(Math.max(last.high, price).toFixed(dp));
-      last.low = parseFloat(Math.min(last.low, price).toFixed(dp));
-      document.getElementById('priceTag').textContent = price.toFixed(dp);
-      drawChart();
-    } else {
-      // Big gap — re-seed candles to match
-      SEEDS[S.sym] = price;
-      seedCandles(200);
-    }
-  }
-}
+    if (typeof CH !== 'undefined' && CH.ready && S.candles.length) CH.paintSeries(CH.clean(S.candles));
+    showToast(this.mode === 'utc' ? 'Chart times now in UTC.' : 'Chart times now in your local time.', 2200);
+  },
+  zone() { return this.mode === 'utc' ? 'UTC' : undefined; },
+  label() { return this.mode === 'utc' ? 'UTC' : 'Local'; },
+  parts(t) {
+    const d = new Date(t * 1000), tz = this.zone();
+    const f = (o) => new Intl.DateTimeFormat('en-GB', Object.assign({ timeZone: tz }, o)).format(d);
+    return { time: f({ hour: '2-digit', minute: '2-digit', hour12: false }), sec: f({ hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }),
+             day: f({ day: 'numeric' }), mon: f({ month: 'short' }), year: f({ year: 'numeric' }), full: f({ day: 'numeric', month: 'short' }) + ' ' + f({ hour: '2-digit', minute: '2-digit', hour12: false }) };
+  },
+  // Lightweight Charts axis labels: 0 year, 1 month, 2 day, 3 time, 4 time with seconds.
+  tick(t, type) { const p = this.parts(t); return type === 0 ? p.year : type === 1 ? p.mon : type === 2 ? p.day : type === 4 ? p.sec : p.time; },
+  crosshair(t) { return this.parts(t).full; },
+};
+TZ.load();
 
 function updateTimestamp() {
-  const now = new Date();
-  document.getElementById('updateTs').textContent =
-    'Local ' + now.toLocaleTimeString('en', { hour:'2-digit', minute:'2-digit', second:'2-digit' });
+  const el = document.getElementById('updateTs'); if (!el) return;
+  el.textContent = TZ.label() + ' ' + TZ.parts(Date.now() / 1000).sec;
+  el.title = 'Tap to show chart times in ' + (TZ.mode === 'utc' ? 'your local time' : 'UTC');
 }
 
-// ── Start polling all APIs ──
-function startAPIPoll() {
-  // Initial fetches
-  fetchCryptoAPI();
-  fetchForexAPI();
-  fetchMetalsAPI();
-  // Poll crypto every 10s
-  setInterval(fetchCryptoAPI, 10000);
-  // Poll forex every 15s
-  setInterval(fetchForexAPI, 15000);
-  // Poll metals every 20s
-  setInterval(fetchMetalsAPI, 20000);
-}
 
 /* ════════════════════════════════════════════════════════════
    TICKER BAR DATA
@@ -2576,102 +2379,9 @@ let ws = null, wsRetry = 0;
 // ticks / ticks_history / active_symbols.
 const DERIV_WS_URL = 'wss://api.derivws.com/trading/v1/options/ws/public';
 
-function connectWS() {
-  try {
-    ws = new WebSocket(DERIV_WS_URL);
-    ws.onopen = () => {
-      S.wsConnected = true; wsRetry = 0;
-      setWsBadge(true);
-      subscribeWS(S.sym);
-      ['R_10','R_25','R_50','R_75','R_100','1HZ25V','1HZ50V','1HZ75V','1HZ100V',
-       'CRASH300N','CRASH500','CRASH1000','BOOM300N','BOOM500','BOOM1000']
-        .forEach(id => { ws.send(JSON.stringify({ ticks: id, subscribe: 1 })); });
-    };
-    ws.onmessage = e => {
-      try {
-        const d = JSON.parse(e.data);
-        if (d.msg_type === 'tick') {
-          const tick = d.tick;
-          const id = tick.symbol;
-          const price = parseFloat(tick.quote);
-          const prev = pairPrices[id]?.price || seedPrice(id);
-          const rawChg = ((price - seedPrice(id)) / seedPrice(id)) * 100;
-          const chg = Math.max(-5, Math.min(5, rawChg)); // clamp to ±5%
-          pairPrices[id] = { price, chg, live: true, src: 'Deriv', ts: Date.now() };
-          if (id === S.sym) updateLiveTick(price);
-        }
-        if (d.msg_type === 'ohlc' && d.ohlc) {
-          const o = d.ohlc;
-          mergeLiveCandle({
-            time: parseInt(o.open_time),
-            open: parseFloat(o.open), high: parseFloat(o.high),
-            low: parseFloat(o.low), close: parseFloat(o.close),
-            vol: 0,   // Deriv sends no volume — don't invent it
-          });
-        }
-        if (d.msg_type === 'candles' && d.candles) {
-          const cdles = d.candles.map(c => ({
-            time: parseInt(c.epoch), open: parseFloat(c.open),
-            high: parseFloat(c.high), low: parseFloat(c.low),
-            close: parseFloat(c.close), vol: 0,   // Deriv sends no volume — don't invent it
-          }));
-          if (cdles.length > 0) {
-            S.candles = cdles;
-            drawChart(); renderARIA(); runPatternScanner();
-          }
-        }
-      } catch(_) {}
-    };
-    ws.onclose = () => {
-      S.wsConnected = false; setWsBadge(false);
-      wsRetry++;
-      const delay = Math.min(30000, 2000 * wsRetry);
-      setTimeout(connectWS, delay);
-    };
-    ws.onerror = () => { ws.close(); };
-  } catch(e) {
-    S.wsConnected = false; setWsBadge(false);
-    setTimeout(connectWS, 5000);
-  }
-}
-
-function subscribeWS(sym) {
-  if (!ws || ws.readyState !== WebSocket.OPEN) return;
-  const tfSec = TF_SEC[S.tf] || 900;
-  ws.send(JSON.stringify({
-    ticks_history: sym, adjust_start_time: 1, count: 300,
-    end: 'latest', granularity: tfSec, style: 'candles', subscribe: 1,
-  }));
-}
-
 function setWsBadge(connected) {
   S.wsConnected = connected;
   setFeedBadge();   // bot feed outranks the Deriv socket
-}
-
-function updateLiveTick(price) {
-  const dp = S.dp;
-  const prev = S.candles.length ? S.candles[S.candles.length-1].close : price;
-  const up = price >= prev;
-  const el = document.getElementById('livePrice');
-  el.textContent = price.toFixed(dp);
-  el.className = 'live-price ' + (up ? 'flash-up' : 'flash-dn');
-  setTimeout(() => { el.className = 'live-price'; }, 300);
-  const chgVal = price - seedPrice(S.sym);
-  const chgPct = (chgVal / seedPrice(S.sym)) * 100;
-  const chgEl = document.getElementById('liveChg');
-  chgEl.textContent = (chgPct >= 0 ? '+' : '') + chgPct.toFixed(3) + '%';
-  chgEl.className = 'live-chg ' + (chgPct >= 0 ? 'up' : 'dn');
-  document.getElementById('priceTag').textContent = price.toFixed(dp);
-  if (S.candles.length) {
-    const lc = S.candles[S.candles.length-1];
-    lc.close = parseFloat(price.toFixed(dp));
-    lc.high = parseFloat(Math.max(lc.high, price).toFixed(dp));
-    lc.low = parseFloat(Math.min(lc.low, price).toFixed(dp));
-    drawChart();
-  }
-  pairPrices[S.sym] = { price, chg: chgPct, live: true, src: 'Deriv', ts: Date.now() };
-  buildPairList(document.getElementById('pairSearch').value);
 }
 
 function mergeLiveCandle(newCandle) {
@@ -2702,21 +2412,18 @@ function mergeLiveCandle(newCandle) {
 ════════════════════════════════════════════════════════════ */
 const BOT_BASE = '';   // same origin — served by dashboard.py at /mobile
 
-// App pair id → bot ticker (resolved to a Yahoo symbol by TICKER_MAP)
-// Instruments the bot charts. Metals are absent on purpose: Yahoo only
-// lists gold/silver FUTURES (GC=F / SI=F), which trade ~1.5% above spot, so
-// an "XAU/USD" chart drawn from them would not match a spot quote. Deriv
-// quotes real spot, so it owns metals end to end.
+// App pair id → backend ticker. Only the legacy desktop dashboard charts
+// these from Yahoo now; the terminal charts everything from Deriv.
 const BOT_MAP = {
   frxEURUSD:'EURUSD', frxGBPUSD:'GBPUSD', frxUSDJPY:'USDJPY', frxGBPJPY:'GBPJPY',
   frxEURGBP:'EURGBP', frxUSDCAD:'USDCAD', frxAUDUSD:'AUDUSD',
   cryBTCUSD:'BTCUSD', cryETHUSD:'ETHUSD',
   frxNAS100:'NAS100', frxSPX500:'SPX500', frxUS30:'US30',
 };
-// The bot charts an instrument only when it is in BOT_MAP AND the backend is
-// actually online; everything else charts straight from Deriv. Previously an
-// unmapped pair fell through to the simulator instead of Deriv history.
-function botOwnsChart(id) { return !!BOT_MAP[id] && BOT.online; }
+// Deriv owns every chart (history, the forming bar and the live price), so
+// one venue draws the candle a trade is priced on. The backend's Yahoo
+// series stays for the legacy desktop dashboard only.
+function botOwnsChart(id) { return false; }
 
 // Deriv quotes nearly every instrument under the same id; only the three
 // cash indices differ. This is the execution-quote venue for the ticket.
@@ -2756,370 +2463,103 @@ function aggregateCandles(cd, tf) {
   }
   return out;
 }
-// Bars to ask the feed for: enough daily bars to build a useful weekly/monthly series.
-function tfFetchCount(tf, base) { return TF_AGG[tf] ? 2100 : base; }
 
-const BOT = { online:false, sym:null, es:null, loading:false, lastErr:null };
-
+const BOT = { online: false };          // kept for older code paths; the chart no longer depends on it
 function botTicker(id) { return BOT_MAP[id] || null; }
-function botOwns(id)   { return BOT.online && !!botTicker(id); }
-
-// Resolves once we know whether the backend is up, so the public-API
-// fallbacks never fire (and never log CORS errors) when the bot is serving.
-let botReadyPromise = null;
-async function botReady() {
-  if (!botReadyPromise) botReadyPromise = botPing();
-  await botReadyPromise;
-  return BOT.online;
-}
-
-async function botPing() {
-  try {
-    const r = await fetch(BOT_BASE + '/api/tickers', { signal: AbortSignal.timeout(5000) });
-    BOT.online = r.ok;
-  } catch (_) { BOT.online = false; }
-  setFeedBadge();
-  return BOT.online;
-}
-
-// ── Historical candles + indicators from /api/chart ──
-// A monotonic token, not a mutex: switching symbol or timeframe mid-flight
-// must supersede the older request, never be dropped by it.
-let _botLoadSeq = 0;
-// mode 'replace' loads a fresh series (symbol/timeframe change);
-// mode 'merge' refreshes only the newest bars and keeps everything the user
-// has scrolled back through — previously the minute-ly refresh replaced the
-// whole array, throwing away backfilled history and yanking the viewport.
-async function loadBotCandles(id, tf, mode = 'replace', attempt = 0) {
-  const t = botTicker(id);
-  if (!t || !BOT.online) return false;
-  const iv = TF_SEC[tfBase(tf)] ? tfBase(tf) : '15m';
-  const seq = ++_botLoadSeq;
-  BOT.loading = true;
-  const want = TF_AGG[tf] ? (mode === 'merge' ? 45 : 1500) : (mode === 'merge' ? 6 : 200);
-  try {
-    const r = await fetch(`${BOT_BASE}/api/chart/${t}?candles=${want}&interval=${iv}`,
-                          { signal: AbortSignal.timeout(25000) });
-    if (!r.ok) throw new Error('chart ' + r.status);
-    const d = await r.json();
-    const n = Array.isArray(d.price) ? d.price.length : 0;
-    if (!n) throw new Error('empty series');
-    // Discard if superseded, or if the user moved on while this was in flight
-    if (seq !== _botLoadSeq || id !== S.sym || tf !== S.tf) return false;
-
-    const tfSec = TF_SEC[tf] || 900;
-    const nowSec = Math.floor(Date.now() / 1000);
-    const cd = [];
-    for (let i = 0; i < n; i++) {
-      const px = Number(d.price[i]);
-      if (!isFinite(px)) continue;
-      cd.push({
-        time: (d.time && d.time[i]) ? Number(d.time[i]) : nowSec - (n - 1 - i) * tfSec,
-        open: Number(d.open[i]), high: Number(d.high[i]),
-        low:  Number(d.low[i]),  close: px,
-        vol:  (d.volume && isFinite(d.volume[i])) ? Math.round(d.volume[i]) : 0,
-      });
-    }
-    if (!cd.length) throw new Error('no valid bars');
-
-    // Sanity: the series must actually be on the requested timeframe.
-    if (cd.length > 2 && !TF_AGG[tf]) {
-      const gap = cd[cd.length - 1].time - cd[cd.length - 2].time;
-      if (gap > 0 && Math.abs(gap - tfSec) > tfSec * 0.5) {
-        console.warn(`[bot] ${iv} series arrived with ${gap}s spacing — ignored`);
-        return false;
-      }
-    }
-    const agg = aggregateCandles(cd, tf);
-    if (mode === 'merge' && S.candles.length && CH.seriesIsReal()) {
-      // Upsert by time into the tail; never drop older bars.
-      const byTime = new Map(agg.map(c => [c.time, c]));
-      const firstNew = agg[0].time;
-      const kept = S.candles.filter(c => c.time < firstNew);
-      const tailOld = S.candles.filter(c => c.time >= firstNew);
-      tailOld.forEach(c => { if (!byTime.has(c.time)) byTime.set(c.time, c); });
-      S.candles = kept.concat([...byTime.values()].sort((a, b) => a.time - b.time));
-    } else {
-      S.candles = agg;
-    }
-    const last = S.candles[S.candles.length - 1].close;
-    SEEDS[id] = last;
-    if (!derivFresh(id, 20000)) pairPrices[id] = { price: last, chg: pairPrices[id]?.chg || 0,
-                       live: true, src: 'Bot', ts: Date.now() };
-    BOT.sym = id; BOT.lastErr = null;
-    clearInterval(simTimer); simTimer = null;   // real bars — stop the simulator
-    if (mode === 'replace' && typeof CH !== 'undefined' && CH.ready) CH.resetHistory();
-
-    updateTopbar();
-    drawChart();
-    setFeedBadge();
-    setTimeout(() => { renderARIA(); runPatternScanner(); }, 50);
-    return true;
-  } catch (e) {
-    BOT.lastErr = e.message;
-    console.warn('[bot] candles failed:', e.message);
-    // Exactly one retry (attempt 0 → 1), only while still current. The 60 s
-    // refresh timer is the long-term retry; this must not loop.
-    if (attempt < 1 && seq === _botLoadSeq && id === S.sym && tf === S.tf) {
-      setTimeout(() => { if (seq === _botLoadSeq) loadBotCandles(id, tf, mode, attempt + 1); }, 1500);
-    }
-    return false;
-  } finally {
-    if (seq === _botLoadSeq) BOT.loading = false;
-  }
-}
-
-// ── Live price via SSE /api/stream ──
-function stopBotStream() {
-  if (BOT.es) { try { BOT.es.close(); } catch (_) {} BOT.es = null; }
-}
-
-function startBotStream(id) {
-  stopBotStream();
-  const t = botTicker(id);
-  if (!t || !BOT.online) return;
-  try {
-    const es = new EventSource(`${BOT_BASE}/api/stream/${t}?interval_s=10`);
-    BOT.es = es;
-    es.onmessage = ev => {
-      let d; try { d = JSON.parse(ev.data); } catch (_) { return; }
-      if (d.error || id !== S.sym) return;
-      applyBotTick(id, d);
-    };
-    es.onerror = () => setFeedBadge();   // EventSource retries on its own
-  } catch (_) {}
-}
-
-function applyBotTick(id, d) {
-  const price = Number(d.price);
-  if (!isFinite(price)) return;
-  if (derivFresh(id)) return;      // Deriv is the live venue while it ticks
-  if (!XQ.get(id) || XQ.q[id].src !== 'Deriv') XQ.put(id, price, price, 'Bot');
-  const dp = S.dp;
-  const prev = S.candles.length ? S.candles[S.candles.length - 1].close : price;
-
-  const el = document.getElementById('livePrice');
-  if (el) {
-    el.textContent = price.toFixed(dp);
-    el.className = 'live-price ' + (price >= prev ? 'flash-up' : 'flash-dn');
-    setTimeout(() => { el.className = 'live-price'; }, 300);
-  }
-  const chg = Number(d.change_pct) || 0;
-  const chgEl = document.getElementById('liveChg');
-  if (chgEl) {
-    chgEl.textContent = (chg >= 0 ? '+' : '') + chg.toFixed(3) + '%';
-    chgEl.className = 'live-chg ' + (chg >= 0 ? 'up' : 'dn');
-  }
-  const tag = document.getElementById('priceTag');
-  if (tag) tag.textContent = price.toFixed(dp);
-
-  pairPrices[id] = { price, chg, live: true, src: 'Bot', ts: Date.now() };
-
-  if (S.candles.length) {
-    const lc = S.candles[S.candles.length - 1];
-    const tfSec = TF_SEC[S.tf] || 900;
-    const nowSec = Math.floor(Date.now() / 1000);
-    if (nowSec - lc.time >= tfSec) {
-      S.candles.push({ time: nowSec, open: price, high: price, low: price, close: price, vol: 0 });
-      if (S.candles.length > 600) S.candles.shift();
-    } else {
-      lc.close = parseFloat(price.toFixed(dp));
-      lc.high  = parseFloat(Math.max(lc.high, price).toFixed(dp));
-      lc.low   = parseFloat(Math.min(lc.low,  price).toFixed(dp));
-    }
-    requestChartRedraw();
-  }
-  updateTimestamp();
-  setFeedBadge();
-}
-
-// ── Batch quotes for the ticker strip and pair list ──
-async function pollBotQuotes() {
-  if (!BOT.online) return;
-  const ids = Object.keys(BOT_MAP);
-  try {
-    const r = await fetch(`${BOT_BASE}/api/quotes?tickers=${ids.map(i => BOT_MAP[i]).join(',')}`,
-                          { signal: AbortSignal.timeout(20000) });
-    if (!r.ok) return;
-    const rows = await r.json();
-    const byTicker = {};
-    rows.forEach(x => { byTicker[x.ticker] = x; });
-    ids.forEach(id => {
-      const q = byTicker[BOT_MAP[id]];
-      if (derivFresh(id, 20000)) return;   // leave Deriv-quoted instruments alone
-      if (q && q.ok && q.price != null) {
-        SEEDS[id] = q.price;
-        pairPrices[id] = { price: q.price, chg: q.change_pct || 0,
-                           live: true, src: 'Bot', ts: Date.now() };
-      }
-    });
-    buildPairList(document.getElementById('pairSearch')?.value || '');
-    buildTickerData();
-    updateTimestamp();
-  } catch (_) {}
-}
+function botOwns(id)   { return false; }
 
 const MAX_HISTORY_BARS = 20000;   // ceiling so a long back-scroll can't grow forever
 
-// Older bars from the bot. `before` returns the window ending just before an
-// epoch, so pages stitch together without overlap.
-async function fetchBotHistory(id, tf, beforeEpoch) {
-  const t = botTicker(id);
-  if (!t) return [];
-  const r = await fetch(`${BOT_BASE}/api/chart/${t}?candles=500&interval=${tf}&before=${beforeEpoch}`,
-                        { signal: AbortSignal.timeout(30000) });
-  if (!r.ok) throw new Error('history ' + r.status);
-  const d = await r.json();
-  const n = Array.isArray(d.price) ? d.price.length : 0;
-  const out = [];
-  for (let i = 0; i < n; i++) {
-    const px = Number(d.price[i]);
-    if (!isFinite(px)) continue;
-    out.push({
-      time: Number(d.time[i]), open: Number(d.open[i]), high: Number(d.high[i]),
-      low: Number(d.low[i]), close: px,
-      vol: (d.volume && isFinite(d.volume[i])) ? Math.round(d.volume[i]) : 0,
+/* Request/reply on the shared Deriv socket. Deriv echoes req_id and
+   passthrough, so one-shot history (older pages, the daily bar, the other
+   timeframes) rides the live connection instead of opening a socket each. */
+const FEEDX = (() => {
+  let seq = 0; const pending = new Map();
+  function request(payload, timeoutMs = 15000) {
+    return new Promise((resolve, reject) => {
+      const id = ++seq;
+      if (!sendWS(Object.assign({}, payload, { req_id: id, passthrough: { fx: 1 } }))) return reject(new Error('feed offline'));
+      const timer = setTimeout(() => { pending.delete(id); reject(new Error('feed timeout')); }, timeoutMs);
+      pending.set(id, { resolve, reject, timer });
     });
   }
-  return out;
+  // true when the message was ours (and must not reach the chart handler)
+  function route(d) {
+    if (!d.passthrough || !d.passthrough.fx) return false;
+    const p = pending.get(d.req_id);
+    if (p) { pending.delete(d.req_id); clearTimeout(p.timer); if (d.error) p.reject(new Error(d.error.message || 'feed error')); else p.resolve(d); }
+    return true;
+  }
+  function reset() { for (const p of pending.values()) { clearTimeout(p.timer); p.reject(new Error('feed reconnected')); } pending.clear(); }
+  return { request, route, reset };
+})();
+
+/* Day open / high / low per instrument from Deriv's daily bar (UTC day),
+   kept current with every tick: one definition of "today's change" for the
+   header, the lists and the top bar. */
+const DAY = { st: {}, asked: {}, queue: [], timer: null };
+function utcDay(t) { return Math.floor(t / 86400); }
+// Requests are queued and sent a few a second: 89 instruments tick within
+// the first second, and a burst of history requests would trip Deriv's limit.
+function fetchDayStats(id, force) {
+  const d = derivSym(id); if (!d || !S.wsConnected) return;
+  const today = utcDay(Date.now() / 1000), cur = DAY.st[id];
+  if (!force && cur && cur.fetchedDay === today) return;
+  if (DAY.asked[id] && Date.now() - DAY.asked[id] < 60000) return;
+  DAY.asked[id] = Date.now();
+  if (!DAY.queue.includes(id)) { if (id === S.sym) DAY.queue.unshift(id); else DAY.queue.push(id); }
+  if (!DAY.timer) DAY.timer = setInterval(() => {
+    const next = DAY.queue.shift();
+    if (next === undefined) { clearInterval(DAY.timer); DAY.timer = null; return; }
+    _fetchDayStatsNow(next);
+  }, 180);
+}
+function _fetchDayStatsNow(id) {
+  const d = derivSym(id); if (!d) return;
+  const today = utcDay(Date.now() / 1000);
+  // count 1 can come back as yesterday's closed bar; ask for two and take today's
+  FEEDX.request({ ticks_history: d, count: 2, end: 'latest', granularity: 86400, style: 'candles' }, 10000)
+    .then(m => {
+      const cs = m.candles || [];
+      const c = cs.find(x => utcDay(+x.epoch) === today) || cs[cs.length - 1]; if (!c) return;
+      const st = { open: +c.open, high: +c.high, low: +c.low, epoch: +c.epoch, fetchedDay: today };
+      const p = pairPrices[id];
+      if (p && Number.isFinite(p.price) && p.live) { st.high = Math.max(st.high, p.price); st.low = Math.min(st.low, p.price); p.sessionOpen = st.open; p.chg = (p.price - st.open) / st.open * 100; }
+      DAY.st[id] = st;
+      if (id === S.sym) { scheduleQuoteUI(); updateTopbar(); }
+    })
+    .catch(() => {});                          // retried after a minute by the next tick
+}
+function noteDayTick(id, price) {
+  const st = DAY.st[id]; if (!st) return;
+  if (price > st.high) st.high = price;
+  if (price < st.low) st.low = price;
 }
 
-// Older bars from Deriv. Uses its own short-lived socket: the shared one
-// routes any `candles` reply straight into the chart, which would replace the
-// series instead of extending it.
+// Older bars from Deriv, on the shared socket: 1,000 bars a page, ending just
+// before the oldest bar on screen (FEEDX routes the reply back here).
 function fetchDerivHistory(id, tf, beforeEpoch) {
-  return new Promise(resolve => {
-    const d = derivSym(id);
-    if (!d) return resolve([]);
-    const tfSec = TF_SEC[tf] || 900;
-    let done = false;
-    const finish = v => { if (!done) { done = true; try { s.close(); } catch (_) {} resolve(v); } };
-    const s = new WebSocket(DERIV_WS_URL);
-    s.onopen = () => s.send(JSON.stringify({
-      ticks_history: d, adjust_start_time: 1, count: 500,
-      end: String(beforeEpoch - 1), granularity: tfSec, style: 'candles',
-    }));
-    s.onmessage = ev => {
-      let m; try { m = JSON.parse(ev.data); } catch (_) { return finish([]); }
-      if (m.error) return finish([]);
-      if (m.candles) {
-        return finish(m.candles.map(c => ({
-          time: Number(c.epoch), open: Number(c.open), high: Number(c.high),
-          low: Number(c.low), close: Number(c.close), vol: 0,
-        })));
-      }
-    };
-    s.onerror = () => finish([]);
-    setTimeout(() => finish([]), 15000);
-  });
+  const d = derivSym(id);
+  if (!d) return Promise.resolve([]);
+  return FEEDX.request({ ticks_history: d, adjust_start_time: 1, count: 1000,
+                         end: String(beforeEpoch - 1), granularity: TF_SEC[tf] || 900, style: 'candles' }, 15000)
+    .then(m => (m.candles || []).map(c => ({
+      time: Number(c.epoch), open: Number(c.open), high: Number(c.high),
+      low: Number(c.low), close: Number(c.close), vol: 0,
+    })))
+    .catch(() => []);
 }
 
-// Called whenever the symbol or timeframe changes.
-function syncBotFeed() {
-  if (botOwns(S.sym)) {
-    loadBotCandles(S.sym, S.tf);
-    startBotStream(S.sym);
-  } else {
-    stopBotStream();
-    BOT.sym = null;
-    setFeedBadge();
-  }
-}
+function setFeedBadge() { if (typeof updateFeedBadge === 'function') updateFeedBadge(); }
 
-// Badge priority: bot feed → Deriv WS → simulator
-function setFeedBadge() {
-  const dot = document.getElementById('mktDot');
-  const badge = document.getElementById('wsBadge');
-  if (!dot || !badge) return;
-  if (botOwns(S.sym) && BOT.sym === S.sym) {
-    dot.className = 'mkt-dot';
-    badge.textContent = 'BOT'; badge.className = 'ws-badge';
-  } else if (S.wsConnected) {
-    dot.className = 'mkt-dot';
-    badge.textContent = 'LIVE'; badge.className = 'ws-badge';
-  } else {
-    dot.className = 'mkt-dot offline';
-    badge.textContent = 'SIM'; badge.className = 'ws-badge disconnected';
-  }
-}
-
-/* ════════════════════════════════════════════════════════════
-   SIMULATED CANDLES (fallback)
-════════════════════════════════════════════════════════════ */
-let simTimer = null;
-
-function seedCandles(count) {
-  const dp = S.dp;
-  let price = pairPrices[S.sym]?.price || seedPrice(S.sym);
-  const isSyn = S.sym.startsWith('R_') || S.sym.startsWith('1HZ') || S.sym.startsWith('stp') || S.sym.startsWith('CRASH') || S.sym.startsWith('BOOM');
-  const vol = isSyn ? price * 0.003 : price * 0.0008;
-  const now = Math.floor(Date.now() / 1000);
-  const tfSec = TF_SEC[S.tf] || 900;
+/* Chart is empty until Deriv's history arrives: show that, never invented bars. */
+function seedCandles() {
   S.candles = [];
-  for (let i = count; i >= 0; i--) {
-    const t = now - i * tfSec;
-    const o = price;
-    const drift = (Math.random() - 0.499) * vol;
-    const range = Math.abs(Math.random() * vol * 2.5);
-    const bull = drift >= 0;
-    const h = o + (bull ? Math.abs(drift) + range * 0.6 : range * 0.4);
-    const l = o - (bull ? range * 0.4 : Math.abs(drift) + range * 0.6);
-    const c = o + drift;
-    S.candles.push({
-      time: t,
-      open: parseFloat(o.toFixed(dp)), high: parseFloat(h.toFixed(dp)),
-      low: parseFloat(l.toFixed(dp)), close: parseFloat(c.toFixed(dp)),
-      vol: Math.round(Math.random() * 800 + 200),
-    });
-    price = c;
-  }
-  updateTopbar();
-  drawChart();
-  clearInterval(simTimer);
-  simTimer = setInterval(simTick, 1500);
-
-  if (typeof CH !== 'undefined' && CH.ready) CH.resetHistory();
-
-  // Real bars from the trading bot replace these as soon as they arrive
-  if (BOT.online) syncBotFeed();
+  const el = document.getElementById('chartLoading');
+  if (el) { el.textContent = S.wsConnected ? 'Loading candles…' : 'Connecting to the market feed…'; el.hidden = false; }
+  if (typeof CH !== 'undefined' && CH.ready) CH.sig = '';
 }
-
-function simTick() {
-  if (!S.candles.length || S.wsConnected) return;
-  if (BOT.sym === S.sym) return;   // bot feed owns this symbol
-  const dp = S.dp;
-  const last = S.candles[S.candles.length-1];
-  const isSyn = S.sym.startsWith('R_') || S.sym.startsWith('1HZ') || S.sym.startsWith('stp') || S.sym.startsWith('CRASH') || S.sym.startsWith('BOOM');
-  const vol = isSyn ? last.close * 0.003 : last.close * 0.0006;
-  const tick = (Math.random() - 0.499) * vol * 0.3;
-  const nc = parseFloat((last.close + tick).toFixed(dp));
-  last.close = nc;
-  last.high = parseFloat(Math.max(last.high, nc).toFixed(dp));
-  last.low = parseFloat(Math.min(last.low, nc).toFixed(dp));
-  const tfSec = TF_SEC[S.tf] || 900;
-  const now = Math.floor(Date.now() / 1000);
-  if (now - last.time >= tfSec) {
-    const o = nc, drift = (Math.random() - 0.499) * vol, range = Math.abs(Math.random() * vol * 2.5), bull = drift >= 0;
-    S.candles.push({
-      time: now, open: parseFloat(o.toFixed(dp)),
-      high: parseFloat((o + (bull ? Math.abs(drift) + range * 0.6 : range * 0.4)).toFixed(dp)),
-      low: parseFloat((o - (bull ? range * 0.4 : Math.abs(drift) + range * 0.6)).toFixed(dp)),
-      close: parseFloat((o + drift).toFixed(dp)),
-      vol: Math.round(Math.random() * 800 + 200),
-    });
-    if (S.candles.length > 600) S.candles.shift();
-  }
-  const pp = pairPrices[S.sym];
-  // Only use sim chg if no live data — clamp chg to ±5% for synthetic indices
-  if (!pp || !pp.live) {
-    const basePx = seedPrice(S.sym);
-    const rawChg = ((nc - basePx) / basePx) * 100;
-    const clampedChg = Math.max(-5, Math.min(5, rawChg));
-    pairPrices[S.sym] = { price: nc, chg: clampedChg, live: false, src: 'sim' };
-  }
-  updateTopbar();
-  drawChart();
-}
+function hideChartLoading() { const el = document.getElementById('chartLoading'); if (el) el.hidden = true; }
 
 function getSession() {
   const h = new Date().getUTCHours();
@@ -3143,8 +2583,11 @@ function updateTopbar() {
   const chgEl = document.getElementById('liveChg');
   chgEl.textContent = formatPct(S.sym, chgPct, 3);
   chgEl.className = 'live-chg ' + (chgPct >= 0 ? 'up' : 'dn');
-  const hi = Math.max(refPrice, ...S.candles.map(c => c.high));
-  const lo = Math.min(refPrice, ...S.candles.map(c => c.low));
+  // Today's high and low (Deriv's UTC day), kept current with every tick;
+  // until the daily bar arrives, the loaded candles stand in.
+  const ds = DAY.st[S.sym];
+  const hi = ds ? Math.max(ds.high, refPrice) : Math.max(refPrice, ...S.candles.map(c => c.high));
+  const lo = ds ? Math.min(ds.low, refPrice) : Math.min(refPrice, ...S.candles.map(c => c.low));
   document.getElementById('topH').textContent = hi.toFixed(dp);
   document.getElementById('topL').textContent = lo.toFixed(dp);
   document.getElementById('topSpread').textContent = Math.max(hi - lo, 0).toFixed(dp);
@@ -3281,6 +2724,7 @@ const CH = {
       rightPriceScale: { borderColor: p.border, scaleMargins: { top: 0.08, bottom: 0.08 } },
       timeScale: {
         borderColor: p.border, timeVisible: true, secondsVisible: false,
+        tickMarkFormatter: (t, type) => TZ.tick(typeof t === 'number' ? t : Date.UTC(t.year, t.month - 1, t.day) / 1000, type),
         // Creation-time options are honoured (later applyOptions on the time
         // scale is not), so pick a density that suits the viewport up front:
         // a phone needs tighter bars to show a useful amount of history.
@@ -3295,6 +2739,7 @@ const CH = {
       },
       localization: {
         priceFormatter: v => v.toFixed(Number.isFinite(S.dp) ? S.dp : 4),
+        timeFormatter: t => TZ.crosshair(typeof t === 'number' ? t : Date.UTC(t.year, t.month - 1, t.day) / 1000),
       },
       // vertTouchDrag must be on for touch: with it off the library hands a
       // vertical drag on the PRICE AXIS to the browser as a page scroll, so the
@@ -3426,6 +2871,7 @@ const CH = {
     if (!this.ready) return;
     const cdles = this.clean(S.candles);
     if (!cdles.length) return;
+    hideChartLoading();
 
     const sig = this.signature();
     const first = cdles[0].time, last = cdles[cdles.length - 1].time;
@@ -3599,9 +3045,7 @@ const CH = {
     this.history.loading = true;
     this.setLoadingBadge(true);
     try {
-      const older = botOwnsChart(id)
-        ? await fetchBotHistory(id, tf, oldest)
-        : await fetchDerivHistory(id, tf, oldest);
+      const older = await fetchDerivHistory(id, tf, oldest);
 
       // the user may have switched instrument mid-flight
       if (id !== S.sym || tf !== S.tf) return;
@@ -5952,35 +5396,60 @@ function runPatternScanner() {
 /* ════════════════════════════════════════════════════════════
    MTF CONFLUENCE
 ════════════════════════════════════════════════════════════ */
+/* Multi-timeframe confluence from Deriv's own candles for each timeframe
+   (the chart's timeframe uses the live series). Refreshed at most once a
+   minute per instrument while the panel is open. */
+const MTF = {
+  TFS: ['1m', '5m', '15m', '1h', '4h'], data: {}, at: {}, busy: {},
+  refresh(force) {
+    const id = S.sym, d = derivSym(id);
+    if (!d || !S.wsConnected) return;
+    const now = Date.now();
+    if (!force && this.at[id] && now - this.at[id] < 60000) return;
+    if (this.busy[id] && now - this.busy[id] < 15000) return;
+    this.busy[id] = now;
+    Promise.all(this.TFS.map(tf => FEEDX.request({ ticks_history: d, count: 220, end: 'latest', granularity: TF_SEC[tf], style: 'candles', adjust_start_time: 1 }, 15000)
+      .then(m => [tf, (m.candles || []).map(c => ({ time: +c.epoch, open: +c.open, high: +c.high, low: +c.low, close: +c.close }))])
+      .catch(() => [tf, null])))
+      .then(rows => { delete this.busy[id]; if (id !== S.sym) return; this.data[id] = Object.fromEntries(rows); this.at[id] = Date.now(); renderMTF(); });
+  },
+  // bull / bear / neut per indicator from a candle series
+  read(cd) {
+    if (!cd || cd.length < 60) return null;
+    const closes = cd.map(c => c.close), n = closes.length;
+    const e20 = calcEMA(closes, 20), e50 = calcEMA(closes, 50), rsi = calcRSI(closes), macd = calcMACD(closes), st = calcStoch(cd);
+    const c = closes[n - 1], r = rsi[n - 1], k = st.k[n - 1], dd = st.d[n - 1];
+    return {
+      ema: c > e20[n - 1] && e20[n - 1] > e50[n - 1] ? 'bull' : c < e20[n - 1] && e20[n - 1] < e50[n - 1] ? 'bear' : 'neut',
+      rsi: !Number.isFinite(r) ? 'neut' : r > 55 ? 'bull' : r < 45 ? 'bear' : 'neut',
+      macd: macd.line[n - 1] > macd.sig[n - 1] ? 'bull' : 'bear',
+      stoch: k == null || dd == null ? 'neut' : k > dd ? 'bull' : k < dd ? 'bear' : 'neut',
+      close: c,
+    };
+  },
+};
 function renderMTF() {
   const panel = document.getElementById('mtf-panel'); if (!panel) return;
-  const closes = S.candles.map(c => c.close); if (closes.length < 30) return;
-  const n = closes.length;
-  const ema20v = calcEMA(closes, 20), ema50v = calcEMA(closes, 50);
-  const rsiV = calcRSI(closes), macdV = calcMACD(closes), stochV = calcStoch(S.candles);
-  const tfs = ['1m','5m','15m','1h','4h'];
-  const inds = ['EMA','RSI','MACD','Stoch'];
+  const live = document.getElementById('mtfPane')?.classList.contains('active');
+  if (live) MTF.refresh();
+  const inds = [['ema', 'EMA'], ['rsi', 'RSI'], ['macd', 'MACD'], ['stoch', 'Stoch']];
+  const bmap = { bull: 'mtf-bull', bear: 'mtf-bear', neut: 'mtf-neut' }, imap = { bull: '▲', bear: '▼', neut: '—' };
+  const data = MTF.data[S.sym] || {};
+  let agree = 0, total = 0;
   let h = `<div style="font-size:12px;font-weight:900;color:var(--blue-lt);padding:5px 6px 4px;text-transform:uppercase;letter-spacing:.6px">MTF Confluence — ${S.symLabel}</div>
   <div class="mtf-grid-wrap"><div class="mtf-grid">
-    <div class="mtf-hdr">TF</div>${inds.map(i=>`<div class="mtf-hdr">${i}</div>`).join('')}
-  </div>`;
-  tfs.forEach((tf, ti) => {
-    const rnd = Math.sin(ti * 2.1 + closes[n-1]);
-    const emaB = (ema20v[n-1] > ema50v[n-1]) ? (rnd > 0.2 ? 'bull' : 'bear') : (rnd < -0.2 ? 'bear' : 'bull');
-    const rsiB = (rsiV[n-1]||50) > 50+ti*2 ? 'bull' : (rsiV[n-1]||50) < 50-ti*2 ? 'bear' : 'neut';
-    const macdB = macdV.line[n-1] > macdV.sig[n-1] ? 'bull' : 'bear';
-    const stochB = stochV.k[n-1] !== null ? (stochV.k[n-1] < 50 ? 'bull' : 'bear') : 'neut';
-    const bmap = { bull:'mtf-bull', bear:'mtf-bear', neut:'mtf-neut' };
-    const imap = { bull:'▲', bear:'▼', neut:'—' };
+    <div class="mtf-hdr">TF</div>${inds.map(([, l]) => `<div class="mtf-hdr">${l}</div>`).join('')}`;
+  MTF.TFS.forEach(tf => {
+    const cd = tf === S.tf && S.candles.length >= 60 ? S.candles : data[tf];
+    const r = MTF.read(cd);
     h += `<div class="mtf-row-el">
-      <div class="mtf-cell tflbl">${tf.toUpperCase()}</div>
-      <div class="mtf-cell ${bmap[emaB]}">${imap[emaB]}</div>
-      <div class="mtf-cell ${bmap[rsiB]}">${imap[rsiB]}</div>
-      <div class="mtf-cell ${bmap[macdB]}">${imap[macdB]}</div>
-      <div class="mtf-cell ${bmap[stochB]}">${imap[stochB]}</div>
+      <div class="mtf-cell tflbl">${tf.toUpperCase()}${tf === S.tf ? ' •' : ''}</div>
+      ${inds.map(([k]) => { const v = r ? r[k] : null; if (v && v !== 'neut') { total++; if (v === 'bull') agree++; } return `<div class="mtf-cell ${v ? bmap[v] : 'mtf-neut'}">${v ? imap[v] : '…'}</div>`; }).join('')}
     </div>`;
   });
-  panel.innerHTML = h + '</div></div>';
+  const bias = total >= 6 ? (agree / total >= 0.7 ? 'bullish' : agree / total <= 0.3 ? 'bearish' : 'mixed') : null;
+  h += `</div></div><div style="font-size:12px;color:var(--tx-3);padding:6px">${Object.keys(data).length ? '' : 'Loading the other timeframes from Deriv… '}${bias ? `Across timeframes the picture is <b style="color:var(--tx-1)">${bias}</b> (${agree} of ${total} readings bullish). ` : ''}Each row is read from that timeframe's own candles; • marks the chart's timeframe.</div>`;
+  panel.innerHTML = h;
 }
 
 /* ════════════════════════════════════════════════════════════
@@ -9785,12 +9254,8 @@ setInterval(() => { const sh = document.getElementById('pairSheet'); if (sh && s
    INITIALIZATION
 ════════════════════════════════════════════════════════════ */
 function init() {
-  // Seed sidebar prices with realistic values
-  PAIRS.forEach(g => g.items.forEach(p => {
-    const b = seedPrice(p.id);
-    const d = (Math.random() - 0.499) * b * 0.001;
-    pairPrices[p.id] = { price: b + d, chg: (d / b) * 100, live: false };
-  }));
+  // No price until the feed gives one: the lists show "no quote" rather than a guess.
+  PAIRS.forEach(g => g.items.forEach(p => { if (!pairPrices[p.id]) pairPrices[p.id] = { price: null, chg: 0, live: false }; }));
 
   CH.init();
   buildPairList();
@@ -9811,50 +9276,7 @@ function init() {
   // Connect Deriv WebSocket for synthetic indices
   connectWS();
 
-  // ── Trading bot backend (dashboard.py) — primary feed ──
-  botReady().then(online => {
-    if (online) {
-      console.info('[bot] backend online — live candles, ticks and quotes enabled');
-      syncBotFeed();
-      pollBotQuotes();
-    } else {
-      console.info('[bot] backend unreachable — simulator for now, retrying every 15s');
-    }
-
-    // These are scheduled unconditionally. Previously they only started when
-    // the backend answered the very first ping, so a server that was still
-    // booting (or restarting) left the app on simulated candles with no
-    // history until a manual reload.
-    setInterval(pollBotQuotes, 12000);
-    setInterval(() => { if (botOwns(S.sym)) loadBotCandles(S.sym, S.tf, 'merge'); }, 60000);
-    setInterval(async () => {
-      const was = BOT.online;
-      await botPing();
-      if (!was && BOT.online) {
-        console.info('[bot] backend recovered — loading real candles');
-        if (typeof CH !== 'undefined' && CH.ready) CH.resetHistory();
-        syncBotFeed();
-        pollBotQuotes();
-      }
-    }, 15000);
-  });
-
-  // Fetch real prices from public APIs (skipped while the bot feed is online)
-  fetchCryptoAPI();
-  fetchForexAPI();
-  fetchMetalsAPI();
-
-  // Intervals — real API polling
-  setInterval(fetchCryptoAPI, 15000);    // CoinGecko: every 15s
-  setInterval(fetchForexAPI, 20000);     // Frankfurter: every 20s
-  setInterval(fetchMetalsAPI, 30000);    // Metals: every 30s
-
-  // Sim ticks for active chart (fallback when no WS)
-  setInterval(() => {
-    simTick();
-    renderARIA();
-  }, 1800);
-
+  setInterval(renderARIA, 1800);
   // Pattern scanner refresh
   setInterval(runPatternScanner, 30000);
 
@@ -9956,7 +9378,7 @@ function clearDerivSubs(){if(!ws||ws.readyState!==WebSocket.OPEN)return;for(cons
 function sendWS(payload){if(!ws||ws.readyState!==WebSocket.OPEN)return false;try{ws.send(JSON.stringify(payload));return true}catch(e){return false}}
 function subscribeTick(id){if(!isDerivStreamSymbol(id))return;sendWS({ticks:id,subscribe:1})}
 function subscribeHistory(id){if(!isDerivStreamSymbol(id))return;const tfSec=TF_SEC[S.tf]||900;sendWS({ticks_history:id,adjust_start_time:1,count:300,end:'latest',granularity:tfSec,style:'candles',subscribe:1})}
-connectWS=function(){try{if(ws&&(ws.readyState===WebSocket.OPEN||ws.readyState===WebSocket.CONNECTING))return;ws=new WebSocket(DERIV_WS_URL);ws.onopen=()=>{S.wsConnected=true;wsRetry=0;setWsBadge(true);updateFeedBadge();DERIV_STREAM_SYMBOLS.forEach((id,i)=>setTimeout(()=>subscribeTick(id),i*80));subscribeHistory(S.sym);clearInterval(NEXUS.wsHeartbeat);NEXUS.wsHeartbeat=setInterval(()=>sendWS({ping:1}),25000)};ws.onmessage=e=>{let d;try{d=JSON.parse(e.data)}catch(_){return}if(d.subscription?.id&&d.echo_req){const key=d.echo_req.ticks||d.echo_req.ticks_history;if(key)NEXUS.activeSubs.set(`${key}:${d.msg_type}:${d.echo_req.granularity||'tick'}`,d.subscription.id)}if(d.error){const key=d.echo_req?.ticks||d.echo_req?.ticks_history||'feed';NEXUS.errors.set(key,d.error.message||'Feed error');updateFeedBadge();return}if(d.msg_type==='tick'&&d.tick){putQuote(d.tick.symbol,+d.tick.quote,null,'Deriv',true)}const _hs=d.echo_req&&d.echo_req.ticks_history,_hOk=_hs&&appSym(_hs)===S.sym&&(!d.echo_req.granularity||d.echo_req.granularity===_histGran);if(d.msg_type==='ohlc'&&d.ohlc&&_hOk){const o=d.ohlc;mergeLiveCandle({time:+o.open_time,open:+o.open,high:+o.high,low:+o.low,close:+o.close,vol:0});const _xq=XQ.q[S.sym];if(!_xq||Date.now()-_xq.ts>3000){XQ.put(S.sym,+o.close,+o.close,'Deriv');subscribeTick(S.sym)}}if(d.msg_type==='candles'&&d.candles&&_hOk){S.candles=aggregateCandles(d.candles.map(c=>({time:+c.epoch,open:+c.open,high:+c.high,low:+c.low,close:+c.close,vol:0})),S.tf);const last=S.candles[S.candles.length-1];if(last)putQuote(S.sym,last.close,null,'Deriv',true);drawChart();renderARIA();renderMTF();runPatternScanner()}};ws.onclose=()=>{S.wsConnected=false;setWsBadge(false);updateFeedBadge();clearInterval(NEXUS.wsHeartbeat);wsRetry++;setTimeout(connectWS,Math.min(30000,1200*Math.pow(1.7,wsRetry)))};ws.onerror=()=>{try{ws.close()}catch(e){}}}catch(e){S.wsConnected=false;setWsBadge(false);setTimeout(connectWS,5000)}};
+connectWS=function(){try{if(ws&&(ws.readyState===WebSocket.OPEN||ws.readyState===WebSocket.CONNECTING))return;ws=new WebSocket(DERIV_WS_URL);ws.onopen=()=>{S.wsConnected=true;wsRetry=0;setWsBadge(true);updateFeedBadge();DERIV_STREAM_SYMBOLS.forEach((id,i)=>setTimeout(()=>subscribeTick(id),i*80));subscribeHistory(S.sym);clearInterval(NEXUS.wsHeartbeat);NEXUS.wsHeartbeat=setInterval(()=>sendWS({ping:1}),25000)};ws.onmessage=e=>{let d;try{d=JSON.parse(e.data)}catch(_){return}if(FEEDX.route(d))return;if(d.subscription?.id&&d.echo_req){const key=d.echo_req.ticks||d.echo_req.ticks_history;if(key)NEXUS.activeSubs.set(`${key}:${d.msg_type}:${d.echo_req.granularity||'tick'}`,d.subscription.id)}if(d.error){const key=d.echo_req?.ticks||d.echo_req?.ticks_history||'feed';NEXUS.errors.set(key,d.error.message||'Feed error');if(d.echo_req?.ticks_history&&appSym(d.echo_req.ticks_history)===S.sym&&!S.candles.length){const el=safeEl('chartLoading');if(el){el.textContent=d.error.message||'No candles for this market';el.hidden=false}}updateFeedBadge();return}if(d.msg_type==='tick'&&d.tick){putQuote(d.tick.symbol,+d.tick.quote,null,'Deriv',true)}const _hs=d.echo_req&&d.echo_req.ticks_history,_hOk=_hs&&appSym(_hs)===S.sym&&(!d.echo_req.granularity||d.echo_req.granularity===_histGran);if(d.msg_type==='ohlc'&&d.ohlc&&_hOk){const o=d.ohlc;mergeLiveCandle({time:+o.open_time,open:+o.open,high:+o.high,low:+o.low,close:+o.close,vol:0});const _xq=XQ.q[S.sym];if(!_xq||Date.now()-_xq.ts>3000){XQ.put(S.sym,+o.close,+o.close,'Deriv');subscribeTick(S.sym)}}if(d.msg_type==='candles'&&d.candles&&_hOk){S.candles=aggregateCandles(d.candles.map(c=>({time:+c.epoch,open:+c.open,high:+c.high,low:+c.low,close:+c.close,vol:0})),S.tf);const last=S.candles[S.candles.length-1];if(last)putQuote(S.sym,last.close,null,'Deriv',true);drawChart();renderARIA();renderMTF();runPatternScanner();updateTopbar()}};ws.onclose=()=>{S.wsConnected=false;FEEDX.reset();setWsBadge(false);updateFeedBadge();clearInterval(NEXUS.wsHeartbeat);wsRetry++;setTimeout(connectWS,Math.min(30000,1200*Math.pow(1.7,wsRetry)))};ws.onerror=()=>{try{ws.close()}catch(e){}}}catch(e){S.wsConnected=false;setWsBadge(false);setTimeout(connectWS,5000)}};
 subscribeWS=function(sym){if(!isDerivStreamSymbol(sym))return;clearDerivSubs();subscribeTick(sym);subscribeHistory(sym)};
 selectPair=function(id){const p=PAIR_MAP[id];if(!p)return;S.sym=id;S.symLabel=p.label;S.dp=p.dp;chartOffset=0;S.candles=[];S.activePatterns=[];const chip=safeEl('symChip');if(chip){chip.innerHTML=`<span class="sym-flag">${p.flag}</span><span id="symLabel">${p.label}</span>`;const accent=document.documentElement.getAttribute('data-theme')==='light'?'#3B82F6':'var(--neon-cyan)';chip.style.borderColor=accent;setTimeout(()=>chip.style.borderColor='',700)}if(pairPrices[id]?.price)SEEDS[id]=pairPrices[id].price;seedCandles(200);buildPairList(safeEl('pairSearch')?.value||'');updateFeedBadge();if(isDerivStreamSymbol(id))subscribeWS(id);setTimeout(()=>{renderARIA();renderMTF();runPatternScanner();requestChartRedraw()},80)};
 
@@ -9989,11 +9411,8 @@ const FAV = {
 FAV.load();
 buildPairList=function(filter=''){const el=safeEl('pairList');if(!el)return;const f=String(filter).toLowerCase();let h='';FAV.groups().forEach(g=>{const items=g.items.filter(p=>!f||p.label.toLowerCase().includes(f)||p.sym.toLowerCase().includes(f)||p.id.toLowerCase().includes(f)||g.g.toLowerCase().includes(f));if(!items.length)return;h+=`<div class="group-lbl ${g.fav?'fav':''}">${g.fav?'★ ':''}${g.g}</div>`;items.forEach(p=>{const pp=pairPrices[p.id]||{},age=pp.ts?Date.now()-pp.ts:Infinity,stale=age>NEXUS.staleMs,px=(pp.ts&&Number.isFinite(pp.price))?pp.price.toFixed(p.dp):'—',chg=normalizeChg(p.id,Number.isFinite(pp.chg)?pp.chg:0),chgStr=pp.ts?formatPct(p.id,chg,2):'<span style="color:var(--tx-3)">no quote</span>',srcCls=stale?'sim':(pp.src==='Deriv'?'deriv':pp.live?'live':'sim');h+=`<div class="pair-row ${p.id===S.sym?'active':''}" onclick="selectPair('${p.id}')" title="${pp.src||'Waiting'} ${pp.ts?('· '+Math.round(age/1000)+'s ago'):''}"><div><div class="pname">${p.flag} ${p.label}</div><div class="psym">${p.sym} ${stale&&pp.ts?'<span class="feed-status stale">STALE</span>':''}</div></div><div style="text-align:right"><div class="pprice">${px}</div><div class="pchg ${chg>=0?'up':'dn'}">${chgStr} <span class="ws-indicator ${srcCls}" style="display:inline-block"></span></div></div>${FAV.star(p.id)}</div>`})});el.innerHTML=h||'<div style="padding:16px;color:var(--tx-3);font-size:12px">No instruments found.</div>'};
 buildTickerData=function(){tickerItems=[];['frxEURUSD','frxGBPUSD','frxUSDJPY','frxXAUUSD','cryBTCUSD','cryETHUSD','frxNAS100','R_50','1HZ50V','CRASH500','BOOM500'].forEach(id=>{const p=PAIR_MAP[id],pp=pairPrices[id];if(!p||!pp||!pp.ts||!Number.isFinite(pp.price))return;tickerItems.push({id,name:p.label,price:pp.price.toFixed(p.dp),chg:normalizeChg(id,pp.chg||0)})});renderTicker()};
-const _seedCandlesOriginal=seedCandles;seedCandles=function(count){_seedCandlesOriginal(count);updateFeedBadge()};
-const _simTickOriginal=simTick;simTick=function(){const q=pairPrices[S.sym];if(q?.live&&Date.now()-q.ts<NEXUS.staleMs)return;_simTickOriginal();updateFeedBadge()};
 
-function startNexusPollers(){NEXUS.pollers.forEach(clearInterval);NEXUS.pollers=[];const guarded=(fn,minMs)=>{let busy=false,last=0;return async()=>{if(busy||Date.now()-last<minMs)return;busy=true;last=Date.now();try{await fn()}finally{busy=false}}};const crypto=guarded(fetchCryptoAPI,30000),forex=guarded(fetchForexAPI,60000),metals=guarded(fetchMetalsAPI,120000);crypto();forex();metals();NEXUS.pollers.push(setInterval(crypto,30000),setInterval(forex,60000),setInterval(metals,120000),setInterval(updateFeedBadge,1000))}
-const _initOriginal=init;init=function(){loadQuoteCache();_initOriginal();startNexusPollers();const chip=safeEl('symChip');if(chip)chip.title='Click to switch instruments. Vol 50 (1s) now uses 1HZ50V live Deriv ticks.';const wsBadge=safeEl('wsBadge');if(wsBadge)wsBadge.insertAdjacentHTML('afterend','<span class="feed-status" id="feedHealth">RT</span>');setInterval(()=>{const fh=safeEl('feedHealth'),q=pairPrices[S.sym];if(!fh)return;const age=q?.ts?Date.now()-q.ts:Infinity;fh.className='feed-status '+(age>NEXUS.staleMs?'stale':'');fh.textContent=age>NEXUS.staleMs?'STALE GUARD':'RT'},1000)};
+const _initOriginal=init;init=function(){loadQuoteCache();_initOriginal();setInterval(updateFeedBadge,1000);const chip=safeEl('symChip');if(chip)chip.title='Click to switch instruments. Vol 50 (1s) now uses 1HZ50V live Deriv ticks.';const wsBadge=safeEl('wsBadge');if(wsBadge)wsBadge.insertAdjacentHTML('afterend','<span class="feed-status" id="feedHealth">RT</span>');setInterval(()=>{const fh=safeEl('feedHealth'),q=pairPrices[S.sym];if(!fh)return;const age=q?.ts?Date.now()-q.ts:Infinity;fh.className='feed-status '+(age>NEXUS.staleMs?'stale':'');fh.textContent=age>NEXUS.staleMs?'STALE GUARD':'RT'},1000)};
 
 /* ════════════════════════════════════════════════════════════
    BOT FEED PRIORITY  (applied last — outranks the NEXUS patch)
@@ -10027,7 +9446,6 @@ subscribeWS = function (sym) {
 
 let _histGran = 0;
 subscribeHistory = function (id) {
-  if (botOwnsChart(id)) return;          // bot supplies these candles
   const d = derivSym(id);
   if (!d) return;
   const tfSec = TF_SEC[tfBase(S.tf)] || 900;
@@ -10037,7 +9455,7 @@ subscribeHistory = function (id) {
   // granularity's ohlc as a bogus bar.
   if (_histSubId) { sendWS({ forget: _histSubId }); _histSubId = null; }
   _histGran = tfSec;
-  sendWS({ ticks_history: d, adjust_start_time: 1, count: tfFetchCount(S.tf, 300), end: 'latest',
+  sendWS({ ticks_history: d, adjust_start_time: 1, count: 1000, end: 'latest',
            granularity: tfSec, style: 'candles', subscribe: 1 });
 };
 
@@ -10046,39 +9464,6 @@ function derivQuotableIds() {
   const out = [];
   PAIRS.forEach(g => g.items.forEach(p => { if (derivSym(p.id)) out.push(p.id); }));
   return out;
-}
-
-// True daily open per Deriv symbol, so the % change is real rather than
-// "change since the tab was opened". Uses its own one-shot socket: the main
-// socket's handler routes any `candles` reply for the active symbol straight
-// into the chart, and a 1-bar daily reply would wipe it.
-const derivDayOpen = {};
-function fetchDerivDayOpen(id) {
-  if (derivDayOpen[id]) return;
-  derivDayOpen[id] = 'pending';
-  try {
-    const s = new WebSocket(DERIV_WS_URL);
-    const close = () => { try { s.close(); } catch (_) {} };
-    s.onopen = () => s.send(JSON.stringify({
-      ticks_history: derivSym(id) || id, count: 1, end: 'latest', granularity: 86400, style: 'candles',
-    }));
-    s.onmessage = ev => {
-      let d; try { d = JSON.parse(ev.data); } catch (_) { derivDayOpen[id] = null; return close(); }
-      const c = d.candles && d.candles[0];
-      const open = c ? Number(c.open) : NaN;
-      if (isFinite(open) && open > 0) {
-        derivDayOpen[id] = open;
-        const p = pairPrices[id];
-        if (p) { p.sessionOpen = open; p.chg = ((p.price - open) / open) * 100; }
-        if (id === S.sym) scheduleQuoteUI();
-      } else {
-        derivDayOpen[id] = null;   // allow a retry on the next tick
-      }
-      close();
-    };
-    s.onerror = () => { derivDayOpen[id] = null; close(); };
-    setTimeout(close, 8000);
-  } catch (_) { derivDayOpen[id] = null; }
 }
 
 const _putQuoteOriginal = putQuote;
@@ -10095,8 +9480,8 @@ putQuote = function (id, price, chg = null, src = 'Deriv', live = true) {
     const p = pairPrices[id];
     if (p) { delete p.sessionOpen; if (!p.live) { p.price = price; p.chg = 0; } }
     SEEDS[id] = price;
-    fetchDerivDayOpen(id);
   }
+  if (live) { fetchDayStats(id); noteDayTick(id, price); }
   return _putQuoteOriginal(id, price, chg, src, live);
 };
 
@@ -10115,12 +9500,6 @@ connectWS = function () {
   return r;
 };
 
-const _updateFeedBadgeOriginal = updateFeedBadge;
-updateFeedBadge = function () {
-  _updateFeedBadgeOriginal();
-  const q = pairPrices[S.sym], badge = safeEl('wsBadge');
-  if (badge && q && q.src === 'Bot' && badge.textContent === 'LIVE') badge.textContent = 'BOT';
-};
 
 init();
 
