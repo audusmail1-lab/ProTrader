@@ -35,6 +35,12 @@ SETUP = """
   LIVE.routing = () => false;
   localStorage.removeItem('protrader.autoprotect.v1'); AUTOP.cfg = null;
   selectPair('R_75');
+  // No market feed in this harness (and no simulator in the app any more):
+  // give the chart a real-looking, aligned series so levels can be placed.
+  const tf = TF_SEC[S.tf] || 900, t0 = Math.floor(Date.now() / 1000 / tf) * tf - 239 * tf;
+  S.candles = Array.from({ length: 240 }, (_, i) => { const o = 44000 + Math.sin(i / 9) * 120, c = 44000 + Math.sin((i + 1) / 9) * 120;
+    return { time: t0 + i * tf, open: o, high: Math.max(o, c) + 40, low: Math.min(o, c) - 40, close: c, vol: 0 }; });
+  S.wsConnected = true; drawChart();
   return otSpec('R_75');
 })()
 """
