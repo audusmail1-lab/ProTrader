@@ -174,6 +174,36 @@ def check_positions(page):
     run(page, "TR.positions = []; S.trades = []; S.posStats = null")
 
 
+def check_modify(page):
+    run(page, SETUP)
+    r = run(page, """(async () => {
+        window.__px = 44200;   // price has rallied well past entry
+        TR.positions = [{id: 41, symbol:'R_75', label:'Vol 75', side:'buy', volume: 0.2, entry: 44000, sl: 43800, tp: null, margin: 1, openTime: Date.now()}];
+        const out = {};
+        OT.openModify('position', 41);
+        // moving the stop to breakeven is a routine, safe move once a trade is in profit
+        document.getElementById('modSl').value = '44000';
+        document.getElementById('modTp').value = '';
+        await OT.applyModify('position', 41);
+        const err1 = document.getElementById('modErr');
+        out.breakevenRejected = !!err1 && err1.style.display !== 'none';
+        out.slAfterBreakeven = TR.positions[0].sl;
+        // a stop inside the required buffer (half the minimum distance) should be refused
+        const minDist = otMinDist('R_75');
+        out.minDist = minDist;
+        OT.openModify('position', 41);
+        document.getElementById('modSl').value = String(window.__px - minDist / 2);
+        document.getElementById('modTp').value = '';
+        await OT.applyModify('position', 41);
+        const err2 = document.getElementById('modErr');
+        out.tightStopRejected = !!err2 && err2.style.display !== 'none';
+        return out; })()""")
+    assert r["breakevenRejected"] is False, r          # moving SL to breakeven on a winner must be allowed
+    assert r["slAfterBreakeven"] == 44000, r
+    assert r["tightStopRejected"] is True, r           # a stop inside the live buffer must still be refused
+    run(page, "TR.positions = []")
+
+
 def check_auto_size(page):
     run(page, SETUP)
     r = run(page, """(() => {
@@ -229,7 +259,7 @@ def main():
         page.goto(f"http://127.0.0.1:{port}/protrader_mobile.html", wait_until="domcontentloaded")
         page.wait_for_function("typeof OT !== 'undefined' && typeof LEVELS !== 'undefined' && typeof AUTOP !== 'undefined'")
         page.wait_for_timeout(1500)
-        for name, fn in [("risk rules", check_rules), ("chart tags", check_tags), ("auto-protect", check_autoprotect), ("positions not fills", check_positions), ("auto size from risk", check_auto_size)]:
+        for name, fn in [("risk rules", check_rules), ("chart tags", check_tags), ("auto-protect", check_autoprotect), ("positions not fills", check_positions), ("modify SL/TP", check_modify), ("auto size from risk", check_auto_size)]:
             fn(page)
             print(f"ok  {name}")
         assert not errs, errs
