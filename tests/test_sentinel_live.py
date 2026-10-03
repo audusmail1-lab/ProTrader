@@ -160,6 +160,26 @@ def main():
     assert r5["state"] == "closed" and r5["paper_r"] == 0.3 and r5["pnl"] == 9.0, r5
     print("ok  exits: broker stop recorded; Sentinel's timeout closes the position")
 
+    # bridge availability: minutes seen / observed, gaps, unobserved server time
+    L._avail = None; S._meta_set(L.AVAIL_KEY, None)
+    t0 = 1_800_000_000 - (1_800_000_000 % 86400) + 3600          # 01:00 UTC on a fixed day
+    for i in range(0, 600, 3): L.avail_sample(True, t0 + i)                    # 10 min online
+    for i in range(600, 1500, 3): L.avail_sample(False, t0 + i)                # 15 min offline
+    for i in range(1500, 1800, 3): L.avail_sample(True, t0 + i)                # 5 min online
+    for i in range(1800, 1830, 3): L.avail_sample(False, t0 + i)               # 30 s blip
+    for i in range(1830, 2400, 3): L.avail_sample(True, t0 + i)                # 9.5 min online
+    a = L.avail_report(t0 + 2400)
+    assert a["state"] == "online" and a["today"]["obs"] == 39 and a["today"]["seen"] == 24, a["today"]     # minutes 0-38 closed; 39 still open
+    assert a["today"]["pct"] == 61.5 and a["today"]["unobserved"] == 62, a["today"]       # 00:00-01:00 had no recorder: unobserved, not offline
+    assert len(a["gaps"]) == 1 and a["gaps"][0]["minutes"] == 15 and a["gaps"][0]["end"] is not None, a["gaps"]
+    L._avail = None                                                               # reloads from the database
+    for i in range(2400, 2700, 3): L.avail_sample(False, t0 + i)                 # a gap still open
+    a = L.avail_report(t0 + 2700)
+    assert a["state"] == "offline" and a["gaps"][0]["end"] is None and a["gaps"][0]["minutes"] == 5 and a["d7"]["obs"] == 44, a
+    st = c.get("/api/sentinel/live", headers=OWNER).json()["availability"]
+    assert st["offline_skips"] == 0 and st["gap_min_s"] == 120 and st["state"] in ("offline", "online"), st
+    print("ok  bridge availability: minutes seen/observed per day, gaps >= 2 min kept, 30 s blip ignored, server downtime unobserved")
+
     m = c.get("/api/sentinel/live", headers=OWNER).json()["metrics"]
     assert m["taken"] == 4 and m["closed"] == 2 and m["skipped"] >= 3 and m["risk_within_limit"] == "4/4", m
     assert m["stop_moves_ok"] == "2/2" and m["manual_interventions"] == 0 and m["total_r"] > 0, m

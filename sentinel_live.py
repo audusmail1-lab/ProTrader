@@ -268,13 +268,112 @@ def request_specs() -> list[str]:
     return sent
 
 
+# ── bridge availability ──────────────────────────────────────────────────────
+# How often is the owner's MT5 bridge actually reachable? Sampled on every
+# live tick (3 s), rolled up per UTC minute and per day, with the gaps kept.
+# A minute counts as seen when any sample in it saw the EA online; a minute
+# with no sample at all (the server itself was down or restarting) is
+# "unobserved", not offline. Gaps shorter than AVAIL_GAP_S are ignored: a
+# relay restart or one dropped poll is not an outage.
+
+AVAIL_KEY = "bridge_avail"
+AVAIL_DAYS = 31
+AVAIL_GAP_S = 120
+AVAIL_MAX_GAPS = 300
+_avail: Optional[dict] = None
+
+
+def _avail_state() -> dict:
+    global _avail
+    if _avail is None:
+        _avail = _S._meta_get(AVAIL_KEY, None) or {}
+        _avail.setdefault("days", {})
+        _avail.setdefault("gaps", [])
+    return _avail
+
+
+def _avail_day(ts: float) -> str:
+    return time.strftime("%Y-%m-%d", time.gmtime(ts))
+
+
+def avail_sample(online: bool, now: float) -> None:
+    """Record one sample of the bridge's state. Writes to the database at most
+    once a minute, plus on every online/offline transition."""
+    a = _avail_state()
+    minute = int(now // 60)
+    write = False
+    if a.get("minute") != minute:
+        if a.get("minute") is not None:
+            d = a["days"].setdefault(_avail_day(a["minute"] * 60), {"seen": 0, "obs": 0})
+            d["obs"] += 1
+            if a.get("minute_seen"):
+                d["seen"] += 1
+            for old in [k for k in a["days"] if k < _avail_day(now - AVAIL_DAYS * 86400)]:
+                a["days"].pop(old, None)
+            a["gaps"] = a["gaps"][-AVAIL_MAX_GAPS:]
+        a["minute"], a["minute_seen"], write = minute, bool(online), True
+    else:
+        a["minute_seen"] = bool(a.get("minute_seen")) or bool(online)
+    state = "online" if online else "offline"
+    if a.get("state") != state:
+        if a.get("state") == "offline" and a.get("open_gap") is not None:
+            if now - a["open_gap"] >= AVAIL_GAP_S:
+                a["gaps"].append([round(a["open_gap"]), round(now)])
+            a["open_gap"] = None
+        if state == "offline":
+            a["open_gap"] = now
+        a["state"], a["since"], write = state, now, True
+    a["last_sample"] = now
+    if write:
+        _S._meta_set(AVAIL_KEY, a)
+
+
+def avail_report(now: Optional[float] = None) -> dict:
+    """What the Sentinel tab shows: availability today / 7 days / 30 days,
+    the gaps, and what is unobserved."""
+    now = now or time.time()
+    a = _avail_state()
+    days = a.get("days") or {}
+    today = _avail_day(now)
+    minute = int(now // 60)
+    cur = {"seen": 1 if a.get("minute_seen") else 0, "obs": 1} if a.get("minute") == minute else {"seen": 0, "obs": 0}
+
+    def span(n: int) -> dict:
+        keys = [_avail_day(now - i * 86400) for i in range(n)]
+        seen = sum(days.get(k, {}).get("seen", 0) for k in keys) + cur["seen"]
+        obs = sum(days.get(k, {}).get("obs", 0) for k in keys) + cur["obs"]
+        return {"seen": seen, "obs": obs, "pct": round(100 * seen / obs, 1) if obs else None}
+
+    t = days.get(today, {"seen": 0, "obs": 0})
+    elapsed = int((now % 86400) // 60) + 1
+    gaps = [{"start": g[0], "end": g[1], "minutes": round((g[1] - g[0]) / 60)} for g in (a.get("gaps") or [])[-10:]]
+    open_gap = a.get("open_gap")
+    if a.get("state") == "offline" and open_gap is not None and now - open_gap >= AVAIL_GAP_S:
+        gaps.append({"start": round(open_gap), "end": None, "minutes": round((now - open_gap) / 60)})
+    return {
+        "state": a.get("state"), "since": a.get("since"), "last_sample": a.get("last_sample"),
+        "today": {"seen": t["seen"] + cur["seen"], "obs": t["obs"] + cur["obs"], "elapsed": elapsed,
+                  "unobserved": max(0, elapsed - t["obs"] - cur["obs"]),
+                  "pct": round(100 * (t["seen"] + cur["seen"]) / (t["obs"] + cur["obs"]), 1) if (t["obs"] + cur["obs"]) else None},
+        "d7": span(7), "d30": span(30),
+        "gaps": list(reversed(gaps)),
+        "gap_min_s": AVAIL_GAP_S,
+        "days_recorded": len(days) + (0 if today in days else (1 if cur["obs"] else 0)),
+    }
+
+
 def tick(now: Optional[float] = None) -> None:
     """Every few seconds: read EA results, send pending stop moves and
     closes, detect closed positions, track the equity curve."""
     view = _view()
+    now = now or time.time()
+    if _cid():
+        try:
+            avail_sample(bool(view and view.get("online")), now)
+        except Exception as e:                  # the record must never stop the tick
+            log.warning("availability: %s", e)
     if not view:
         return
-    now = now or time.time()
     res = _results(view)
     c = cfg()
     # contract specs
@@ -506,6 +605,8 @@ def live_status(request: Request) -> dict:
                   "daily_loss_pct": DAILY_LOSS_PCT, "max_losses_day": MAX_LOSSES_DAY, "days": DAYS, "demo_only": True},
         "bridge": {"bound": bool(_cid()), "online": bool(view and view["online"]), "mode": acct.get("mode"),
                    "equity": acct.get("equity"), "currency": acct.get("currency")},
+        "availability": dict(avail_report(), offline_skips=sum(
+            1 for r in rs if r.get("state") == "skipped" and str(r.get("reason") or "").startswith("MT5 bridge offline"))),
         "symbols": c.get("symbols"), "specs": {k: {kk: v.get(kk) for kk in ("volMin", "volStep", "tickSize", "tickValue", "contractSize")}
                                                 for k, v in (c.get("specs") or {}).items()},
         "spec_errors": c.get("spec_errors") or {},

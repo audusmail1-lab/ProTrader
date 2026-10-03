@@ -8024,6 +8024,15 @@ const SENT = (() => {
       : `Demo account online · equity ${money(b.equity)}`;
     const syms = Object.entries(L.symbols || {}).map(([k, v]) => `${esc(label(k))} → <b>${esc(v)}</b>${L.specs?.[v] ? ' ✓' : L.spec_errors?.[v] ? ` <span style="color:var(--amber)">(${esc(L.spec_errors[v])})</span>` : ''}`).join(' · ');
     const kpi = (lbl, v) => `<div><div class="sn-meta">${lbl}</div><b>${v}</b></div>`;
+    // How often the bridge was actually reachable (the Mac awake with MT5 and the EA running).
+    const A = L.availability;
+    const pct = s => s && s.pct != null ? s.pct.toFixed(1) + '%' : '—';
+    const dur = m => m >= 90 ? `${Math.floor(m / 60)} h ${m % 60} m` : `${m} m`;
+    const when = t => new Date(t * 1000).toLocaleString(undefined, { weekday: 'short', hour: '2-digit', minute: '2-digit' });
+    const availBlock = !A || !b.bound ? '' : `<div class="sn-meta" style="margin-top:8px"><b>Bridge availability</b> · ${A.state === 'online' ? `online since ${when(A.since)}` : A.state === 'offline' ? `<span style="color:var(--amber)">offline since ${when(A.since)}</span>` : 'no record yet'}</div>
+      <div class="sn-kpis">${kpi('Today', pct(A.today) + (A.today?.unobserved > 2 ? ` <span class="sn-meta">(${A.today.unobserved} m unobserved)</span>` : ''))}${kpi('7 days', pct(A.d7))}${kpi('30 days', pct(A.d30))}${kpi('Signals missed offline', A.offline_skips ?? 0)}</div>
+      ${A.gaps?.length ? `<div class="sn-meta">Gaps (≥ ${Math.round(A.gap_min_s / 60)} min): ${A.gaps.slice(0, 5).map(g => `${when(g.start)} → ${g.end ? when(g.end) : 'now'} (${dur(g.minutes)})`).join(' · ')}</div>` : A.days_recorded ? '<div class="sn-meta">No gap of 2 minutes or more recorded.</div>' : ''}
+      <div class="sn-meta">Seen = the EA checked in during that minute; unobserved = Sentinel itself was not running. While the bridge is offline Sentinel skips new entries (never late), keeps stops on the broker, and sends queued stop moves when it returns.</div>`;
     const rows = (L.trades || []).slice(0, 12).map(t => `<tr><td>${esc(label(t.market))} <span style="color:var(--tx-3)">${esc(t.tf)}</span></td>
       <td class="${t.dir === 'buy' ? 'sn-pos' : 'sn-neg'}">${t.dir === 'buy' ? 'Long' : 'Short'}${t.lots ? ' ' + t.lots : ''}</td>
       <td>${t.state === 'skipped' || t.state === 'rejected' ? `<span class="sn-meta">${esc(t.state)}: ${esc(t.reason || '')}</span>` : esc(t.state) + (t.exit_reason ? ' · ' + esc(t.exit_reason) : '')}</td>
@@ -8036,6 +8045,7 @@ const SENT = (() => {
         <div class="sn-meta">${syms}</div>
         ${m.signals ? `<div class="sn-kpis">${kpi('Taken', `${m.taken} / ${m.signals}`)}${kpi('Net', `${r(m.total_r || 0)} · ${money(m.net)}`)}${kpi('Return', m.return_pct != null ? (m.return_pct >= 0 ? '+' : '') + m.return_pct + '%' : '—')}${kpi('Max drawdown', m.max_dd_pct != null ? m.max_dd_pct + '%' : '—')}${kpi('Win rate', m.win_rate != null ? Math.round(m.win_rate * 100) + '%' : '—')}${kpi('Risk ≤ 1%', m.risk_within_limit || '—')}${kpi('Stop moves done', m.stop_moves_ok || '—')}${kpi('Slippage', m.avg_slippage_r != null ? r(m.avg_slippage_r) : '—')}${kpi('Live vs paper', m.live_vs_paper_r != null ? r(m.live_vs_paper_r) : '—')}${kpi('Hand changes', m.manual_interventions)}</div>` : ''}
         ${Object.keys(m.skip_reasons || {}).length ? `<div class="sn-meta">Not taken: ${Object.entries(m.skip_reasons).map(([k, v]) => `${esc(k)} ×${v}`).join(' · ')}</div>` : ''}
+        ${availBlock}
         ${rows ? `<table class="sn-tbl"><tbody>${rows}</tbody></table>` : ''}
         <div class="sn-actions">
           ${L.active ? `<button type="button" class="sn-btn" onclick="SENT.live('stop')">Stop the test</button>`
