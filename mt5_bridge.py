@@ -83,7 +83,10 @@ def _channel(request: Request) -> dict:
         for k in [k for k, v in _channels.items() if now - v["touched"] > CHANNEL_IDLE_S]:
             _channels.pop(k, None)
         if len(_channels) >= MAX_CHANNELS:
-            _channels.popitem(last=False)
+            # evict a channel no EA has ever reported on before one that is in use:
+            # a flood of guessed keys must not knock a live terminal off its queue
+            victim = next((k for k, v in _channels.items() if not v["ea_seen"]), None)
+            _channels.pop(victim if victim is not None else next(iter(_channels)), None)
         ch = {
             "queue": deque(), "results": deque(maxlen=MAX_RESULTS), "seen_ids": deque(maxlen=200),
             "ea_seen": 0.0, "snapshot": None, "history": None, "touched": now,
@@ -109,6 +112,8 @@ def _num(v: Any, name: str, *, required: bool = False, positive: bool = False) -
         if required:
             raise HTTPException(422, f"{name} is required")
         return None
+    if isinstance(v, bool):                       # float(True) is 1.0 — never a lot size
+        raise HTTPException(422, f"{name} must be a number")
     try:
         f = float(v)
     except (TypeError, ValueError):
@@ -275,7 +280,8 @@ async def ea_sync(request: Request):
             except Exception:       # tracking must never break order flow
                 pass
 
-        for r in (body.get("results") or [])[:20]:
+        results = body.get("results")
+        for r in (results if isinstance(results, list) else [])[:20]:
             if isinstance(r, dict) and _ID_RE.match(str(r.get("id", ""))):
                 r = dict(r)
                 r["_at"] = now

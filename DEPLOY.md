@@ -133,6 +133,24 @@ signal; live prices always come from the network.
 
 ---
 
+## Persistent disk (Render / Fly) — required once people sign in
+
+Accounts (`accounts.db`), notification pairings (`notify.json`) and the
+Sentinel journal all live under `/var/data` **when a disk is mounted
+there**. Without one they fall back to the container's own disk, and every
+deploy (`autoDeploy: true`) starts empty: everyone is signed out, Telegram
+links are gone, saved workspaces are lost. The app logs a warning at startup
+on Render when this is the case.
+
+- **Render:** service → *Disks* → add a disk, mount path `/var/data`, 1 GB is
+  plenty (about $0.25/month). Or add to `render.yaml` under the service:
+  `disk: { name: data, mountPath: /var/data, sizeGB: 1 }`.
+- **Fly.io:** `fly volumes create data --size 1` and mount it at `/var/data`
+  in `fly.toml` (`[mounts] source = "data" destination = "/var/data"`).
+
+Keep it at **one instance / one worker**: bridge queues and notification
+state are in-process, so a second instance would see a different book.
+
 ## Things to know before sharing widely
 
 **Everyone shares one paper account.** Balance, positions and orders are

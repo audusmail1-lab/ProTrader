@@ -194,7 +194,7 @@ def _telegram(text: str) -> None:
         requests.post(f"https://api.telegram.org/bot{token}/sendMessage",
                       json={"chat_id": chat, "text": text}, timeout=10)
     except Exception as e:  # alerts must never stop the scanner
-        log.warning("telegram failed: %s", e)
+        log.warning("telegram failed: %s", str(e).replace(token, "<token>"))   # requests quotes the URL
 
 
 def _alert_open(t: core.Trade) -> None:
@@ -481,7 +481,7 @@ def _check_key(request: Request) -> None:
         raise HTTPException(403, "Sign in with the instructor's Academy account, or use the owner key")
     if not key:
         raise HTTPException(403, "Owner key is not set on this server (SENTINEL_ADMIN_KEY)")
-    if not hmac.compare_digest(key, given):
+    if not hmac.compare_digest(key.encode("utf-8"), str(given).encode("utf-8")):
         raise HTTPException(403, "Wrong owner key")
 
 

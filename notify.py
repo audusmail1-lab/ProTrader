@@ -89,7 +89,7 @@ def _load() -> None:
         with open(STATE_PATH, "r", encoding="utf-8") as f:
             d = json.load(f)
         if isinstance(d, dict) and isinstance(d.get("devices"), dict):
-            _state = {"devices": d["devices"], "tg_codes": d.get("tg_codes") or {}}
+            _state = {"devices": d["devices"], "tg_codes": d.get("tg_codes") or {}, "acct_seen": d.get("acct_seen") or {}}
     except FileNotFoundError:
         pass
     except Exception as e:                              # a corrupt file must not stop the app
@@ -207,6 +207,12 @@ def _send_push(sub: dict, title: str, body: str, data: dict) -> int:
         return 0
 
 
+def _redact(e: BaseException) -> str:
+    """An error's text with the bot token removed — requests quotes the URL."""
+    s = f"{type(e).__name__}: {e}"
+    return s.replace(TG_TOKEN, "<token>") if TG_TOKEN else s
+
+
 def _send_tg(chat_id: str, title: str, body: str, button: Optional[tuple] = None) -> bool:
     if not TG_TOKEN or not chat_id:
         return False
@@ -218,7 +224,7 @@ def _send_tg(chat_id: str, title: str, body: str, button: Optional[tuple] = None
         r = requests.post(f"https://api.telegram.org/bot{TG_TOKEN}/sendMessage", json=msg, timeout=8)
         return r.ok
     except Exception as e:
-        log.info("telegram failed: %s", e)
+        log.info("telegram failed: %s", _redact(e))
         return False
 
 
@@ -432,7 +438,20 @@ async def paper_sync(request: Request) -> dict:
                 continue
             watched[pos["id"]] = pos
         d["paper"] = watched
-        closed = list(d.get("closed") or [])
+        # A close judged on levels the app has since changed is not a fill: the
+        # app still lists the position, with a different stop or target than the
+        # one that "fired". Drop it here so the app never sees it, and keep
+        # watching the position on its current levels. A close on the levels the
+        # app still has stands: the app was away and adopts it.
+        def _superseded(c: dict) -> bool:
+            p = watched.get(str(c.get("id")))
+            if p is None or "sl" not in c or "tp" not in c:
+                return False
+            lvl = c.get(c.get("reason"))
+            cur = p.get(c.get("reason"))
+            return lvl is None or cur is None or abs(float(lvl) - float(cur)) > 1e-9
+        d["closed"] = [c for c in (d.get("closed") or []) if not _superseded(c)]
+        closed = list(d["closed"])
         _save()
     _feed.want(_all_symbols())
     return {"watching": len(watched), "closed": closed}
@@ -486,7 +505,8 @@ def _on_tick(symbol: str, quote: float, tbid: Optional[float] = None, task: Opti
                 dirn = 1 if p["side"] == "buy" else -1
                 pnl = (price - p["entry"]) * dirn * p["unit"] if p.get("unit") is not None else None
                 d["paper"].pop(pid, None)
-                rec = {"id": pid, "reason": reason, "price": round(price, p["dp"]), "pnl": pnl, "at": time.time()}
+                rec = {"id": pid, "reason": reason, "price": round(price, p["dp"]), "pnl": pnl, "at": time.time(),
+                       "sl": p["sl"], "tp": p["tp"]}      # the levels this close was judged on
                 d["closed"].append(rec); del d["closed"][:-CLOSED_KEEP]
                 ev = {"type": reason, "account": "paper", "id": pid, "symbol": symbol, "label": p["label"],
                       "side": p["side"], "volume": p["volume"], "price": price, "pnl": pnl, "dp": p["dp"]}
@@ -625,6 +645,10 @@ class _TelegramPoller(threading.Thread):
                 r = requests.get(f"https://api.telegram.org/bot{TG_TOKEN}/getUpdates",
                                  params={"timeout": 50, "offset": offset, "allowed_updates": json.dumps(["message"])},
                                  timeout=60).json()
+                if not r.get("ok"):
+                    log.info("telegram getUpdates not ok (%s) — pausing", r.get("description") or r.get("error_code"))
+                    time.sleep(5)
+                    continue
                 for u in r.get("result") or []:
                     offset = max(offset, int(u["update_id"]) + 1)
                     msg = u.get("message") or {}
@@ -661,7 +685,7 @@ class _TelegramPoller(threading.Thread):
                         _send_tg(str(chat["id"]), "PROTrader",
                                  "Open PROTrader → Notifications → Connect Telegram, and use the link it gives you.")
             except Exception as e:
-                log.info("telegram poller: %s", e)
+                log.info("telegram poller: %s", _redact(e))
                 time.sleep(5)
 
     @staticmethod

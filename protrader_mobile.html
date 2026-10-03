@@ -4230,6 +4230,10 @@ const LEVELS = {
     return (d < 0 ? '−' : '+') + Math.abs(d / unit).toFixed(1) + (sp.isForex ? ' pips' : ' pts');
   },
   fmt(v) { if (v == null || !Number.isFinite(v)) return '—'; if (Math.abs(v) < 0.005) v = 0; const n = Math.abs(v).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ','); return (v < 0 ? '−' : '+') + n + ' ' + this.ccy(); },
+  /* the draft's copy of the position ages while the pill is held (a trailing
+     stop moves on every tick, auto-protect fires): re-read it before anything
+     is shown, written or sent */
+  fresh(d) { const g = this.groups().find(x => x.key === d.key); if (g) d.g = g; return d.g; },
   /* effective level of a field, honouring the draft */
   eff(g, f) {
     const d = this.draft; if (d && d.key === g.key) { const i = d[f]; if (i.intent === 'remove') return null; if (i.intent === 'set') return i.price; }
@@ -4377,7 +4381,7 @@ const LEVELS = {
   },
   renderEditor() {
     const d = this.draft; if (!d || !this.editor || this.editor.hidden) return;
-    const g = d.g, sp = otSpec(S.sym);
+    const g = this.fresh(d), sp = otSpec(S.sym);
     document.getElementById('lvlName').textContent = `${g.side === 'buy' ? 'Buy' : 'Sell'} ${g.vol} ${g.label}${g.kind === 'mt5' ? ' · MT5' : ' · paper'}`;
     const sl = this.eff(g, 'sl'), tp = this.eff(g, 'tp');
     [['lvlSl', sl], ['lvlTp', tp]].forEach(([id, v]) => { const i = document.getElementById(id); i.step = sp.tick; if (document.activeElement !== i) i.value = v == null ? '' : v.toFixed(sp.dp); });
@@ -4393,16 +4397,24 @@ const LEVELS = {
   },
   async confirm(toast) {
     const d = this.draft; if (!d || d.busy) return;
-    const g = d.g, sl = this.eff(g, 'sl'), tp = this.eff(g, 'tp');
+    const g = this.fresh(d), sl = this.eff(g, 'sl'), tp = this.eff(g, 'tp');
     const err = this.check(g, sl, tp, d); if (err) { this.renderEditor(); return; }
     d.busy = true; this.renderEditor();
     try {
       if (g.kind === 'paper') {
         const p = TR.positions.find(x => x.id === g.id); if (!p) throw new Error('Position no longer open.');
+        if (p._closing) throw new Error('This position is closing — the change was not applied.');
         const res = await Broker.modify(p.id, sl, tp);
         if (res.status !== 'modified') throw new Error('The paper broker rejected the change.');
-        p.sl = sl; p.tp = tp; if (d.sl.intent !== 'unchanged') p.trail = 0;
+        if (!TR.positions.includes(p) || p._closing) throw new Error('The position closed while the change was in flight.');
+        // Only the level that was changed is written. The other one is left as
+        // the position has it now, not as the draft copied it: a stop that
+        // trailed or was auto-protected while the target was being dragged keeps
+        // its newer level instead of being reset to the older one.
+        if (d.sl.intent !== 'unchanged') { p.sl = sl; p.trail = 0; }
+        if (d.tp.intent !== 'unchanged') p.tp = tp;
         OT.save(); OT.renderBook(); CH.refreshLevels();
+        if (typeof NOTIFY !== 'undefined') NOTIFY.syncPaper(true);     // the watcher gets the new levels now, not after the debounce
         showToast(toast || 'Levels updated.', 2600);
       } else {
         const r = await LIVE.send({ type: 'modify', ticket: g.ticket, sl: sl == null ? 0 : sl, tp: tp == null ? 0 : tp });
@@ -4411,7 +4423,8 @@ const LEVELS = {
         LIVE.poll();
       }
       // a second drag can land while the first is in flight: send it too rather than dropping it
-      if (this.draft === d && (this.eff(g, 'sl') !== sl || this.eff(g, 'tp') !== tp)) { d.busy = false; d.g = this.groups().find(x => x.key === g.key) || g; return this.confirm(toast); }
+      const newer = ['sl', 'tp'].some(f => d[f].intent !== 'unchanged' && this.eff(g, f) !== (f === 'sl' ? sl : tp));
+      if (this.draft === d && newer) { d.busy = false; this.fresh(d); return this.confirm(toast); }
       this.draft = null; this.editor.hidden = true; this.schedule();
     } catch (e) {
       d.busy = false; this.renderEditor(); document.getElementById('lvlErr').textContent = e.message || 'Not applied.';
@@ -4517,7 +4530,7 @@ const LEVELS = {
   },
   async applyDrag(which) {
     const d = this.draft; if (!d) return;
-    const g = d.g, sl = this.eff(g, 'sl'), tp = this.eff(g, 'tp');
+    const g = this.fresh(d), sl = this.eff(g, 'sl'), tp = this.eff(g, 'tp');
     const err = this.check(g, sl, tp, d);
     if (err) { this.renderEditor(); this.editor.hidden = false; showToast(err, 4200); return; }
     if (g.kind === 'mt5' && LIVE.isReal && LIVE.isReal()) {
@@ -7052,10 +7065,10 @@ const OT = {
       // the current price when that is better.
       if (slHit) {
         const through = p.side === 'buy' ? px <= slLevel + EPS : px >= slLevel - EPS;
-        this.closePosition(p.id, null, 'Stop loss', through ? px : slLevel, false, { q, x });
+        this.closePosition(p.id, null, 'Stop loss', through ? px : slLevel, false, { q, x, level: slLevel });
       } else if (tpHit) {
         const better = p.side === 'buy' ? Math.max(px, p.tp) : Math.min(px, p.tp);
-        this.closePosition(p.id, null, 'Take profit', better, false, { q, x });
+        this.closePosition(p.id, null, 'Take profit', better, false, { q, x, level: p.tp });
       }
     });
     Object.keys(windows).forEach(id => { if (!keep.has(id)) XQ.take(id); });
@@ -7098,7 +7111,9 @@ const OT = {
     const p = TR.positions.find(x => x.id === id);
     if (!p || p._closing) return;
     p._closing = true;
-    // `at`: the server's watcher already closed this one at that price while the app was away
+    // `at`: the fill is already decided — by the trigger loop (the tick that crossed the
+    // level) or by the server's watcher while the app was away. Only a manual close
+    // goes to the broker and waits for its fill.
     const res = Number.isFinite(at) ? { status: 'filled', fillPrice: at } : await Broker.close(id, volume == null ? p.volume : volume);
     p._closing = false;
     if (res.status !== 'filled') { showToast(`✕ Close rejected — ${res.reason}`, 3600); return; }
@@ -7121,7 +7136,7 @@ const OT = {
     const q0 = trig && trig.q, x0 = trig && trig.x;
     S.trades.push({ id: p.id, sym: p.symbol, pair: p.label, type: p.side, volume: vol,
                     entry: p.entry, exit, pnl, openTime: p.openTime || null, closeTime: Date.now(), won, reason: reason || 'Manual',
-                    level: reason === 'Stop loss' ? p.sl : reason === 'Take profit' ? p.tp : null,
+                    level: trig && Number.isFinite(trig.level) ? trig.level : reason === 'Stop loss' ? p.sl : reason === 'Take profit' ? p.tp : null,
                     trigger: q0 ? { src: q0.src, bid: q0.bid, ask: q0.ask, age: Math.round(q0.age), exec: !!q0.exec,
                                     hi: x0 ? (p.side === 'buy' ? x0.hiBid : x0.hiAsk) : null, lo: x0 ? (p.side === 'buy' ? x0.loBid : x0.loAsk) : null } : null,
                     sl0: p.sl0 ?? null, risk0: p.risk0 ?? null, sl0_inferred: !!p.sl0_inferred,
@@ -7180,9 +7195,9 @@ const OT = {
         <button class="modal-close" onclick="document.getElementById('modifyModal').remove()">×</button></div>
       <div class="mod-grid">
         <div class="mod-row"><span class="mod-lbl">Stop Loss</span>
-          <input class="ot-inp" id="modSl" type="number" inputmode="decimal" value="${rec.sl != null ? rec.sl.toFixed(dp) : ''}" placeholder="none"/></div>
+          <input class="ot-inp" id="modSl" type="number" inputmode="decimal" value="${rec.sl != null ? rec.sl.toFixed(dp) : ''}" data-was="${rec.sl != null ? rec.sl.toFixed(dp) : ''}" placeholder="none"/></div>
         <div class="mod-row"><span class="mod-lbl">Take Profit</span>
-          <input class="ot-inp" id="modTp" type="number" inputmode="decimal" value="${rec.tp != null ? rec.tp.toFixed(dp) : ''}" placeholder="none"/></div>
+          <input class="ot-inp" id="modTp" type="number" inputmode="decimal" value="${rec.tp != null ? rec.tp.toFixed(dp) : ''}" data-was="${rec.tp != null ? rec.tp.toFixed(dp) : ''}" placeholder="none"/></div>
         <div class="ot-err" id="modErr" style="display:none"></div>
         <button class="ot-submit buy" onclick="OT.applyModify('${kind}',${id})">Apply</button>
       </div></div>`;
@@ -7194,8 +7209,11 @@ const OT = {
     if (!rec) return;
     const s = otSpec(rec.symbol);
     const raw = v => v === '' ? null : parseFloat(v);
-    const sl = raw(document.getElementById('modSl').value);
-    const tp = raw(document.getElementById('modTp').value);
+    const slEl = document.getElementById('modSl'), tpEl = document.getElementById('modTp');
+    const sl = raw(slEl.value), tp = raw(tpEl.value);
+    // a field left as the dialog showed it is not a change: the position keeps
+    // whatever it has by the time Apply lands (a trailing stop may have moved)
+    const slChanged = slEl.value !== (slEl.dataset.was ?? ''), tpChanged = tpEl.value !== (tpEl.dataset.was ?? '');
     const ref = kind === 'position' ? rec.entry : rec.price;
     const minDist = otMinDist(rec.symbol);
     const minPts = Math.round(minDist / s.tick);
@@ -7208,11 +7226,16 @@ const OT = {
     else if (tp != null && rec.side === 'buy' && tp < ref + minDist) msg = `Take profit must be at least ${minPts} points above ${otFmtPx(rec.symbol, ref)}.`;
     else if (tp != null && rec.side === 'sell' && tp > ref - minDist) msg = `Take profit must be at least ${minPts} points below ${otFmtPx(rec.symbol, ref)}.`;
     if (msg) { err.style.display = 'flex'; err.textContent = msg; return; }
+    if (rec._closing) { err.style.display = 'flex'; err.textContent = 'This position is closing — nothing was changed.'; return; }
 
     const res = await Broker.modify(id, sl, tp);
     if (res.status !== 'modified') { err.style.display = 'flex'; err.textContent = 'Broker rejected the modification.'; return; }
-    rec.sl = sl; rec.tp = tp;
+    const still = kind === 'position' ? TR.positions.includes(rec) && !rec._closing : TR.orders.includes(rec);
+    if (!still) { err.style.display = 'flex'; err.textContent = `The ${kind} is no longer open — nothing was changed.`; return; }
+    if (slChanged) { rec.sl = sl; if (kind === 'position') rec.trail = 0; }
+    if (tpChanged) rec.tp = tp;
     document.getElementById('modifyModal')?.remove();
+    if (typeof NOTIFY !== 'undefined') NOTIFY.syncPaper(true);
     showToast(`Modified ${rec.label} · SL ${sl != null ? otFmtPx(rec.symbol, sl) : '—'} · TP ${tp != null ? otFmtPx(rec.symbol, tp) : '—'}`, 3200);
     this.renderBook(); this.save();
   },
@@ -7592,9 +7615,12 @@ const OT = {
   async breakeven(id) {
     const p = TR.positions.find(x => x.id === id); if (!p) return;
     if (!this.canBreakeven(p)) { showToast('Breakeven needs price beyond your entry first — a stop at entry would be hit by the spread.', 4200); return; }
+    if (p._closing) { showToast('This position is closing.', 2600); return; }
     const res = await Broker.modify(id, p.entry, p.tp);
     if (res.status !== 'modified') { showToast('Could not move the stop.', 3000); return; }
+    if (!TR.positions.includes(p) || p._closing) return;      // closed while the request was in flight
     p.sl = p.entry; p.trail = 0;
+    this.save(); if (typeof NOTIFY !== 'undefined') NOTIFY.syncPaper(true);
     this.renderBook(); if (typeof CH !== 'undefined' && CH.ready) CH.refreshLevels();
     showToast(`Stop moved to entry ${otFmtPx(p.symbol, p.entry)}. Worst case is now $0.`, 3600);
   },
@@ -8849,17 +8875,44 @@ const NOTIFY = {
       } catch (_) {}
     }, force ? 0 : 400);
   },
+  /* Why a close the watcher made must not be adopted: '' when it may be. The
+     watcher judges the copy of the levels it was last sent; the trader may have
+     moved the stop or target since (a drag reaches the server a moment later,
+     or not at all while the phone is offline). A close on an older level is
+     not a fill. Records that carry the level they fired on are compared with
+     the current one; older records are accepted only if their price is at or
+     through the level the position has now. */
+  staleClose(p, c) {
+    const f = c.reason === 'sl' ? 'sl' : 'tp', lvl = p[f];
+    if (lvl == null) return `the position has no ${f === 'sl' ? 'stop' : 'target'} now`;
+    const sp = otSpec(p.symbol), tol = (sp.tick || 1e-9) / 2 + 1e-9, srv = c[f];
+    if (srv != null && Number.isFinite(+srv)) return Math.abs(+srv - lvl) <= tol ? '' : `watched ${f.toUpperCase()} ${otFmtPx(p.symbol, +srv)} is not the current ${otFmtPx(p.symbol, lvl)}`;
+    const price = +c.price; if (!Number.isFinite(price)) return 'no fill price';
+    const hit = f === 'sl' ? (p.side === 'buy' ? price <= lvl + tol : price >= lvl - tol) : (p.side === 'buy' ? price >= lvl - tol : price <= lvl + tol);
+    return hit ? '' : `${otFmtPx(p.symbol, price)} never reached the current ${f.toUpperCase()} ${otFmtPx(p.symbol, lvl)}`;
+  },
   async reconcile(closed) {
-    const ids = [];
+    const ids = []; let rewatch = false;
+    this._ignored = this._ignored || new Set();
     for (const c of closed) {
-      const p = TR.positions.find(x => String(x.id) === String(c.id));
-      if (p) {
-        // the server already told the phone; close the book at the server's price, quietly
-        await OT.closePosition(p.id, null, c.reason === 'sl' ? 'Stop loss' : 'Take profit', c.price, true);
-      }
+      const tag = `${c.id}:${c.at || ''}:${c.price}`;
       ids.push(c.id);
+      if (this._ignored.has(tag)) continue;
+      const p = TR.positions.find(x => String(x.id) === String(c.id));
+      if (!p || p._closing) continue;                 // already gone, or a manual close is in flight
+      const why = this.staleClose(p, c);
+      if (why) {
+        // not a fill: keep the position, hand the watcher the levels it should have had
+        this._ignored.add(tag); rewatch = true;
+        console.info(`[notify] ignored a server close of #${c.id}: ${why}`);
+        continue;
+      }
+      // the server already told the phone; close the book at the server's price, quietly
+      const f = c.reason === 'sl' ? 'sl' : 'tp';
+      await OT.closePosition(p.id, null, f === 'sl' ? 'Stop loss' : 'Take profit', +c.price, true, { src: 'server', level: c[f] != null && Number.isFinite(+c[f]) ? +c[f] : p[f] });
     }
-    if (ids.length) this.api('/paper/ack', { device: this.st.device, ids }).catch(() => {});
+    if (ids.length) { try { await this.api('/paper/ack', { device: this.st.device, ids }); } catch (_) {} }
+    if (rewatch) { this._lastSync = ''; this.syncPaper(true); }
   },
 
   /* ── the sheet ── */

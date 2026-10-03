@@ -44,6 +44,22 @@ async def _security_headers(request, call_next):
     resp.headers.setdefault("Referrer-Policy", "strict-origin-when-cross-origin")
     return resp
 bot = TradingBot()
+_log = __import__("logging").getLogger("dashboard")
+
+
+def _data_error(ticker: str, e: Exception) -> HTTPException:
+    """A market-data route failed. Yahoo's wording decides the status the caller
+    sees — an unknown or delisted symbol is not a server fault, and the raw
+    library text (curl errors, pandas indexer messages) is kept out of the
+    response. The detail is logged once, server-side."""
+    msg = str(e)
+    _log.warning("market data for %s: %s: %s", ticker, type(e).__name__, msg[:300])
+    low = msg.lower()
+    if isinstance(e, TimeoutError) or "timed out" in low or "timeout" in low:
+        return HTTPException(status_code=504, detail=f"Market data for {ticker} timed out — try again.")
+    if "no data fetched" in low or "no price" in low or "delisted" in low or "out-of-bounds" in low or "empty" in low:
+        return HTTPException(status_code=404, detail=f"No market data for {ticker} at this interval.")
+    return HTTPException(status_code=502, detail=f"Market data for {ticker} is unavailable right now.")
 
 # MT5 bridge relay (see mt5_bridge.py): moves orders between the web app and
 # the Expert Advisor running in the user's MetaTrader 5 terminal.
@@ -480,8 +496,10 @@ def analyze(ticker: str, interval: str = "1h") -> dict:
         history.appendleft({k: v for k, v in result.items() if k != "indicators"})
         return result
 
+    except HTTPException:
+        raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise _data_error(ticker, e)
 
 
 @app.get("/api/chart/{ticker}")
@@ -615,8 +633,10 @@ def chart_data(ticker: str,
             # more history available before the first returned bar?
             "has_more":       bool(len(full) > len(df)),
         }
+    except HTTPException:
+        raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise _data_error(ticker, e)
 
 
 @app.get("/api/sr/{ticker}")
@@ -695,8 +715,10 @@ def support_resistance(ticker: str, interval: str = "1h", candles: int = 120) ->
             "nearest_res_pct":    dist_pct(nearest_res) if nearest_res else None,
             "nearest_sup_pct":    dist_pct(nearest_sup) if nearest_sup else None,
         }
+    except HTTPException:
+        raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise _data_error(ticker, e)
 
 
 @app.get("/api/mtf/{ticker}")
@@ -970,8 +992,10 @@ def backtest(ticker: str, interval: str = "1h", period: str = "90d") -> dict:
             "equity_dates":   [str(d) for d in thin_dates],
             "trade_log":      trades[-20:],   # last 20 trades for table
         }
+    except HTTPException:
+        raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise _data_error(ticker, e)
 
 
 @app.get("/api/stream/{ticker}")
@@ -1107,6 +1131,9 @@ def quotes(tickers: str = "") -> list:
     labels = [t.upper().strip() for t in tickers.split(",") if t.strip()]
     if not labels:
         labels = list(WATCHLIST_DEFAULT)
+    if len(labels) > 25:
+        raise HTTPException(status_code=422, detail="At most 25 tickers per request.")
+    labels = [t[:16] for t in dict.fromkeys(labels)]          # de-duplicate, bound the cache key
 
     now = time.time()
 
@@ -1139,9 +1166,17 @@ def quotes(tickers: str = "") -> list:
 
     futures = {_executor.submit(_one, t): t for t in labels}
     results = {}
-    for fut in as_completed(futures, timeout=30):
-        row = fut.result()
-        results[row["ticker"]] = row
+    try:
+        for fut in as_completed(futures, timeout=30):
+            row = fut.result()
+            results[row["ticker"]] = row
+    except TimeoutError:
+        # the rows that did not arrive are reported as such, not as a 500
+        for fut, t in futures.items():
+            if t not in results:
+                results[t] = {"ticker": t, "price": None, "change_pct": None, "ok": False, "error": "timed out"}
+    while len(_quote_cache) > 500:                            # strangers' tickers must not fill RAM
+        _quote_cache.pop(next(iter(_quote_cache)), None)
     return [{k: v for k, v in results[t].items() if k != "_ts"}
             for t in labels if t in results]
 

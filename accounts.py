@@ -80,6 +80,11 @@ def _db_path() -> str:
 
 DB_PATH = _db_path()
 _lock = threading.Lock()
+if not DB_PATH.startswith("/var/data") and not os.getenv("ACCOUNTS_DB", "").strip() and os.getenv("RENDER"):
+    # Render sets RENDER=true. Without a persistent disk at /var/data every deploy
+    # starts with an empty accounts database: sessions, Telegram links and saved
+    # workspaces are lost. See DEPLOY.md → "Persistent disk".
+    logging.getLogger("accounts").warning("accounts.db is on the container's ephemeral disk (%s) — mount a disk at /var/data", DB_PATH)
 
 
 @contextmanager
