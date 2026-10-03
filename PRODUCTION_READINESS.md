@@ -7,10 +7,12 @@ cloud container without outbound access to Deriv or Yahoo, so live-feed
 behaviour was exercised through the recorded Deriv replay the test suite
 ships with, and the live-feed failure paths were exercised for real.
 
-**Verdict: production-ready for paper trading and for the MT5 demo flows,
-with the "needs attention" items below scheduled.** The reported
-position-close bug was reproduced, root-caused and fixed, with regression
-tests. Three items are blocking for *real-money* use and are marked as such.
+**Verdict: production-ready for paper trading and for the MT5 demo flows.**
+The reported position-close bug was reproduced, root-caused and fixed, with
+regression tests. The three items that blocked real-money use in the first
+pass (persistent disk, blocking I/O under locks, Sentinel orphaned positions)
+were fixed in the second pass (§3b). What remains (§4) is hardening, not a
+blocker.
 
 ---
 
@@ -106,27 +108,46 @@ it is not a quick change.
 - `accounts.py`: startup warning on Render when the DB is on ephemeral disk.
 - `DEPLOY.md`: persistent-disk section. `static/sw.js`: shell v39.
 
+## 3b. Fixed in the second pass (the three former blockers)
+
+1. **Persistent disk.** `render.yaml` now declares a 5 GB disk at `/var/data`
+   (a service holds one disk — if one was added by hand, match its name or
+   grow it). The container starts as root only to make the mounted disk
+   writable by the `app` user, then drops privileges (`docker-entrypoint.sh`);
+   a host mounts the disk root-owned, and without that step every module would
+   silently fall back to the ephemeral disk. `GET /api/health` reports
+   `persistent` and per-store flags so the deploy can be checked; Render's
+   health check and the Docker `HEALTHCHECK` use it.
+2. **No network under locks, no blocking work on the event loop.**
+   `notify._deliver` now only decides a message (de-dupe, mute, channels)
+   under the lock and hands it to a sender thread; `_send` does push and
+   Telegram with no lock held, and drops a subscription that is gone for good
+   under the lock afterwards. The MT5 snapshot hook saves state only when
+   something changed (it rewrote the file once per second). The `async`
+   handlers that ran SQLite or `requests` on the event loop (`notify`
+   register/test/event/paper sync/ack/telegram code; `accounts` switch,
+   workspace put, Telegram WebApp) run that work in the threadpool.
+   Sentinel's owner-channel lookup is cached for 30 s instead of opening
+   SQLite inside the bridge lock on every snapshot; Sentinel Live's Telegram
+   messages leave the event loop. Tests: `tests/test_notify_watcher.py`
+   (delivery leaves the lock before the network), `tests/test_accounts.py`.
+3. **Sentinel Live orphaned positions.** An entry whose MT5 answer is lost is
+   no longer forgotten after 60 s: the tick looks for a position of ours on
+   that symbol and side with those lots that was not open when the order went
+   out (`tickets_before`, recorded at send) and that no other row owns, and
+   adopts it as the fill; only when none exists is the order given up. A close
+   whose answer is lost is re-sent after a minute. A position that vanishes
+   with no deal in the history received is marked closed after 15 minutes
+   with P&L unknown, instead of staying "open" forever. Test:
+   `tests/test_sentinel_live.py` → "lost MT5 answers".
+
 ## 4. Needs attention (not changed here)
 
-**Blocking before real-money use**
-1. **Persistent disk on Render** (`render.yaml` has no `disk:`). Without it every
-   deploy wipes accounts, sessions, Telegram links, saved workspaces and the
-   notification state. Cost ≈ $0.25/month; instructions in DEPLOY.md. Not
-   added to `render.yaml` here because it changes billing.
-2. **Blocking I/O on the event loop / under locks.** `notify._deliver`
-   (push + Telegram, up to ~16 s) runs while holding the notify lock and, for
-   MT5 events, inside the bridge lock on the async `/ea` handler. A slow
-   Telegram stalls every bridge channel and the whole server. Fix: hand events
-   to a queue drained by a sender thread. Several `async def` handlers also
-   run synchronous `requests`/SQLite (`notify.register/test/event`,
-   `accounts.switch/workspace_put/telegram_webapp`); make them plain `def`.
-3. **Sentinel live orphaned positions.** An entry whose result is lost
-   (relay restart, results deque overflow) is marked rejected after 60 s and
-   forgotten; a filled position would then be unmanaged and outside the risk
-   caps. A lost *close* result is never retried. Both need reconciliation
-   against the EA snapshot.
-
 **Should fix soon**
+0. Confirm the Render disk after the next deploy: `GET /api/health` must show
+   `"persistent": true`. If the service already had a disk under another
+   name, the Blueprint sync will report the conflict — rename in
+   `render.yaml`.
 4. Paper-trading alerts (`/api/alerts`) are global, in-memory and only
    evaluated when someone calls `/api/analyze`; they are not used by the app
    itself — remove or move behind the account.

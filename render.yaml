@@ -12,7 +12,17 @@ services:
     runtime: docker
     plan: starter         # $7/month, always-on (owner approved)
     region: frankfurt     # pick the region nearest your users
-    healthCheckPath: /api/tickers
+    healthCheckPath: /api/health
+    # Durable state — accounts, sessions, Telegram pairings, notification
+    # watcher, Sentinel journal — lives under /var/data. Without this disk every
+    # deploy starts empty. SQLite files stay small (tens of MB after years), so
+    # 5 GB is years of headroom at $0.25/GB/month. A disk can be grown later,
+    # never shrunk. If the service already has a disk, give it this name (or
+    # put that disk's name here) — a service can only have one.
+    disk:
+      name: data
+      mountPath: /var/data
+      sizeGB: 5
     domains:
       - app.protraderacademy.company
     autoDeploy: true      # every git push redeploys

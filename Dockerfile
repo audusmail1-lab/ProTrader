@@ -32,17 +32,19 @@ COPY sentinel.py sentinel_live.py sentinel_core.py sentinel_engine.py sentinel_r
 COPY vendor ./vendor
 COPY static ./static
 
-# Run as a non-root user.
+# Run as a non-root user. The entrypoint starts as root only long enough to
+# make the persistent disk at /var/data writable by that user (a host mounts
+# it root-owned), then drops privileges before uvicorn starts.
 RUN useradd --create-home --shell /usr/sbin/nologin app && chown -R app:app /app
-# Mount point for a persistent disk (Sentinel journal). Owned by the app user
-# so the journal is writable when the host mounts a disk here.
 RUN mkdir -p /var/data && chown app:app /var/data
-USER app
+COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
+RUN chmod 0755 /usr/local/bin/docker-entrypoint.sh
+ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
 
 EXPOSE 8000
 
 HEALTHCHECK --interval=30s --timeout=10s --start-period=20s --retries=3 \
-  CMD curl -fsS "http://127.0.0.1:${PORT}/api/tickers" || exit 1
+  CMD curl -fsS "http://127.0.0.1:${PORT}/api/health" || exit 1
 
 # Hosts like Render/Railway inject $PORT — honour it. Single worker on purpose:
 # in-memory state (quote cache, alerts, history cache) lives in one process.

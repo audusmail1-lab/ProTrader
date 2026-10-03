@@ -1114,6 +1114,19 @@ def get_history() -> list:
     return list(history)
 
 
+@app.get("/api/health")
+def health() -> dict:
+    """Liveness for the host's health check, and where the durable state lives.
+    `persistent: false` means a deploy would wipe accounts, pairings or the
+    Sentinel journal — no disk is mounted at /var/data (see DEPLOY.md)."""
+    import accounts as _a, notify as _n, sentinel as _s
+    def durable(path: str, env: str) -> bool:
+        return str(path).startswith("/var/data") or bool(os.getenv(env, "").strip())
+    storage = {"accounts": durable(_a.DB_PATH, "ACCOUNTS_DB"), "notify": durable(_n.STATE_PATH, "NOTIFY_STATE"),
+               "sentinel": bool(_s.DB_PERSISTENT)}
+    return {"ok": True, "persistent": all(storage.values()), "storage": storage, "time": time.time()}
+
+
 @app.get("/api/tickers")
 def get_tickers() -> list:
     return POPULAR_TICKERS

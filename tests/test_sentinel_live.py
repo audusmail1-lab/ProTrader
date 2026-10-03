@@ -186,10 +186,64 @@ def main():
     assert "minimum lot above 1%" in m["skip_reasons"], m
     if os.environ.get("LIVE_DUMP"):
         json.dump(c.get("/api/sentinel/live", headers=OWNER).json(), open(os.environ["LIVE_DUMP"], "w"))
+    lost_answers(ea)
     assert c.post("/api/sentinel/live", json={"action": "stop"}, headers=OWNER).status_code == 200
     assert L.on_open(trade("x7")) is None
     print("ok  metrics and stop:", {k: m[k] for k in ("taken", "skipped", "total_r", "avg_slippage_r", "risk_within_limit")})
     print("all Sentinel live-test checks passed")
+
+
+def lost_answers(ea):
+    """MT5 executed, but its answer never reached the relay (restart, results
+    ring overrun). The position must not be forgotten, and a close must not
+    wait forever on an answer that is not coming."""
+    for r in L.rows():                                       # clear the book: x6 and x9 are still open
+        if r["state"] in ("sent", "open"):
+            r["state"] = "closed"; r["closed_at"] = time.time(); r["pnl"] = 0; L._save(r)
+    ea.fill_px = 2650.2
+    ea.positions["77"] = {"ticket": "77", "symbol": "XAUUSD", "side": "buy", "volume": 0.03, "entry": 2600.0, "price": 2600.0,
+                          "sl": 2590.0, "tp": 0, "profit": 0, "time": int(time.time()) - 3600}        # someone's older trade: never ours
+    ea.sync()
+    row = L.on_open(trade("y1", tf="1h"))
+    assert row["state"] == "sent" and "77" in row["tickets_before"], row
+    ea.sync()                                                  # the EA fills it ...
+    ea.results = []                                            # ... and the answer is lost
+    L.tick()
+    r = L._row("y1"); assert r["state"] == "sent", r
+    r["at"] -= 61; L._save(r)                                  # a minute passes
+    cycle(ea)
+    r = L._row("y1")
+    assert r["state"] == "open" and r["adopted"] and r["ticket"] != "77" and r["fill"] == 2650.2 and r["risk_now"] == 30.6, r
+    # the same order, with no fill anywhere: given up, not invented
+    ea.positions.pop(r["ticket"])
+    ea.deals.append({"kind": "trade", "ticket": r["ticket"], "exit": 2651.0, "profit": 2.4, "reason": "Manual", "time": time.time()})
+    r["filled_at"] -= 30; L._save(r); cycle(ea)
+    assert L._row("y1")["state"] == "closed"
+    row = L.on_open(trade("y2", tf="4h")); ea.sync(); ea.results = []
+    ea.positions.pop(str(ea.next_ticket - 1))                  # the fill is gone before we look
+    r = L._row("y2"); r["at"] -= 61; L._save(r); cycle(ea)
+    assert L._row("y2")["state"] == "rejected" and "no matching position" in L._row("y2")["reason"], L._row("y2")
+    # a close whose answer was lost is sent again after a minute
+    L.on_open(trade("y3", market="frxNAS100", entry=20000, sl=19950)); ea.fill_px = 20000.0; cycle(ea)
+    r = L._row("y3"); assert r["state"] == "open", r
+    t3 = trade("y3", market="frxNAS100", entry=20000, sl=19950); t3.status, t3.r = "timeout", 0.1
+    real_answer = ea.answer
+    def swallow(cmd):
+        if cmd["type"] == "close":
+            ea.cmds.append(cmd); return                       # executed? no — the EA never saw it
+        real_answer(cmd)
+    ea.answer = swallow
+    L.on_update(t3); r = L._row("y3"); r["filled_at"] -= 30; L._save(r)
+    cycle(ea)
+    r = L._row("y3"); assert r.get("close_cmd") and ea.positions.get(r["ticket"]), r
+    sent = len([x for x in ea.cmds if x["type"] == "close"])
+    cycle(ea)                                                   # within the minute: no second close
+    assert len([x for x in ea.cmds if x["type"] == "close"]) == sent
+    r["close_tried"] -= 61; L._save(r); ea.answer = real_answer; ea.close_pnl = 1.0
+    cycle(ea, 5)                                                # drop the lost command, resend, EA fills, deal seen
+    r = L._row("y3")
+    assert r["state"] == "closed" and r["pnl"] == 1.0 and len([x for x in ea.cmds if x["type"] == "close"]) == sent + 1, r
+    print("ok  lost MT5 answers: a fill is adopted from the snapshot, never invented; a close is retried after a minute")
 
 
 if __name__ == "__main__":

@@ -141,6 +141,8 @@ def _meta_get(k: str, default: Any = None) -> Any:
 def _meta_set(k: str, v: Any) -> None:
     with _lock, _db() as con:
         con.execute("INSERT OR REPLACE INTO meta VALUES (?,?)", (k, json.dumps(v)))
+    if k == "mt5_channel":
+        _owner_cache["at"] = 0.0                 # re-read on the next snapshot
 
 
 def _load_trades(where: str = "", args: tuple = (), limit: int = 5000) -> list[dict]:
@@ -775,8 +777,16 @@ _mt5_state = {"loaded": False, "last": 0.0, "deals": [], "deals_at": 0.0}
 MT5_EVERY_S = 2.0
 
 
+_owner_cache: dict = {"v": None, "at": 0.0}
+
+
 def _mt5_owner_channel() -> Optional[str]:
-    return _meta_get("mt5_channel")
+    """The owner's bridge channel, read from the journal at most every 30 s:
+    this runs on every EA snapshot inside the relay's lock."""
+    now = time.time()
+    if now - _owner_cache["at"] > 30:
+        _owner_cache["v"], _owner_cache["at"] = _meta_get("mt5_channel"), now
+    return _owner_cache["v"]
 
 
 def _save_managed(r: dict) -> None:

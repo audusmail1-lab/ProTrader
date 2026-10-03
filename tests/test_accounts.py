@@ -204,8 +204,10 @@ def test_notifications_and_mt5_bridge_follow_the_account():
     ev = {"type": "sl", "account": "paper", "id": "p1", "symbol": "R_75", "side": "buy", "volume": 1, "price": 1, "pnl": -5}
     phone.post("/api/notify/event", json={"device": "phone0001", "event": ev})
     laptop.post("/api/notify/event", json={"device": "laptop001", "event": ev})
+    notify.flush_outbox()                                                            # messages go out on the sender thread
     assert sent == [("6060", "R_75 · Stop loss hit")]                                # once per person, not per device
     laptop.post("/api/notify/event", json={"device": "laptop001", "event": dict(ev, type="tp", id="p2")})
+    notify.flush_outbox()
     assert len(sent) == 1                                                            # take-profit muted on the account
     guest = TestClient(napp, base_url=HOST).post("/api/notify/register", json={"device": "guest0001", "prefs": {"sl": False}}).json()
     assert guest["account"] is False and guest["prefs"] == {"sl": False}

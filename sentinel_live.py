@@ -32,6 +32,7 @@ import json
 import logging
 import math
 import secrets
+import threading
 import time
 from typing import Any, Optional
 
@@ -113,6 +114,13 @@ def _new_id(prefix: str) -> str:
 
 
 def _telegram(text: str) -> None:
+    """Off the caller's thread: tick() runs on the event loop and on_open under
+    the scanner — a Telegram call that waits out its 10 s timeout must stall
+    neither. Messages are rare, so one short-lived thread each is fine."""
+    threading.Thread(target=_telegram_now, args=(text,), daemon=True, name="sentinel-live-tg").start()
+
+
+def _telegram_now(text: str) -> None:
     try:
         _S._telegram("Sentinel Live (demo) · " + text)
     except Exception:
@@ -206,8 +214,9 @@ def on_open(t) -> Optional[dict]:
                f"only ${max(0.0, budget):.2f} of risk room left under the 2% open-risk cap")
         return skip(why)
     cmd = _new_id("sl")
+    before = [str(p.get("ticket")) for p in ((view.get("snapshot") or {}).get("positions") or []) if isinstance(p, dict)]
     row.update(state="sent", cmd=cmd, lots=lots, risk_money=round(lots * per_lot, 2), equity_at_entry=equity,
-               per_lot=per_lot, sl_live=t.sl, sl_target=t.sl, reason=None)
+               per_lot=per_lot, sl_live=t.sl, sl_target=t.sl, reason=None, tickets_before=before)
     try:
         _B.enqueue(_cid(), {"id": cmd, "type": "market", "symbol": sym, "side": t.dir,
                             "volume": lots, "sl": t.sl})
@@ -250,6 +259,30 @@ def on_update(t) -> None:
 
 def _results(view: dict) -> dict:
     return {x.get("id"): x for x in (view.get("results") or []) if isinstance(x, dict)}
+
+
+def _orphan_for(r: dict, positions: dict) -> Optional[dict]:
+    """The position a sent order filled when MT5's answer was lost: one of ours
+    (the EA's magic number), on this symbol and side with these lots, that was
+    not open when the order went out and that no other row owns. Rows from
+    before this check (no `tickets_before`) are never matched — a position
+    that predates the order could be mistaken for its fill."""
+    if "tickets_before" not in r:
+        return None
+    before = set(r["tickets_before"] or [])
+    owned = {str(x.get("ticket")) for x in rows() if x.get("ticket") and x["id"] != r["id"]}
+    for tk, p in positions.items():
+        if tk in before or tk in owned or p.get("mine") is False:
+            continue
+        if p.get("symbol") != r["symbol"] or p.get("side") != r["dir"]:
+            continue
+        try:
+            if abs(float(p.get("volume")) - float(r["lots"])) > 1e-6:
+                continue
+        except (TypeError, ValueError):
+            continue
+        return p
+    return None
 
 
 def request_specs() -> list[str]:
@@ -450,12 +483,36 @@ def tick(now: Optional[float] = None) -> None:
                 _telegram(f"MT5 rejected {r['symbol']}: {r['reason']}")
                 dirty = True
             elif now - r["at"] > 60:
-                r.update(state="rejected", reason="no answer from MT5 within 60 s")
+                # No answer in 60 s. The EA may well have filled it and the result
+                # been lost (relay restart, results ring overrun): a live position
+                # must not be forgotten and run outside the risk caps. Adopt the
+                # fill if the snapshot shows it; only then give the order up.
+                p = _orphan_for(r, positions)
+                if p:
+                    fill = float(p.get("entry") or r["sentinel_entry"])
+                    s = 1 if r["dir"] == "buy" else -1
+                    r.update(state="open", ticket=str(p.get("ticket")), fill=fill, filled_at=now, adopted=True,
+                             lots=float(p.get("volume") or r["lots"]),
+                             slip_r=round(-s * (fill - r["sentinel_entry"]) / r["sl_dist"], 4))
+                    r["risk_now"] = r["risk_actual"] = round(abs(fill - r["sl_initial"]) / r["sl_dist"] * r["per_lot"] * r["lots"], 2)
+                    _telegram(f"adopted {r['dir'].upper()} {r['lots']:g} {r['symbol']} @ {fill:g} — filled, but MT5's answer was lost")
+                else:
+                    r.update(state="rejected", reason="no answer from MT5 within 60 s and no matching position")
                 dirty = True
         if r["state"] == "open":
             p = positions.get(r.get("ticket"))
             if p is None and now - (r.get("filled_at") or now) > 8:
                 d = deals.get(r.get("ticket"))
+                if not d and now - (r.get("filled_at") or now) > 900 and not r.get("gone_since"):
+                    r["gone_since"] = now                      # start the clock on an unexplained disappearance
+                    dirty = True
+                elif not d and r.get("gone_since") and now - r["gone_since"] > 900:
+                    # 15 min gone and no deal reported (history limited to 200 deals, or
+                    # closed from another terminal): not open any more, P&L unknown
+                    r.update(state="closed", closed_at=now, exit=None, pnl=None, r=None,
+                             exit_reason="unknown — position gone, no deal in the MT5 history received", manual=True)
+                    _telegram(f"{r['symbol']} is no longer open on MT5 and no deal was reported — marked closed, P&L unknown")
+                    dirty = True
                 if d:
                     pnl = float(d.get("profit") or 0)
                     risk = r.get("risk_actual") or r.get("risk_money") or 0
@@ -511,8 +568,9 @@ def tick(now: Optional[float] = None) -> None:
                         pass
                     r["close_tried"] = now
                     dirty = True
-                elif r.get("close_cmd") and res.get(r["close_cmd"]) and not res[r["close_cmd"]].get("ok"):
-                    r.pop("close_cmd"); dirty = True          # retry
+                elif r.get("close_cmd") and ((res.get(r["close_cmd"]) and not res[r["close_cmd"]].get("ok"))
+                                            or (not res.get(r["close_cmd"]) and now - r.get("close_tried", 0) > 60)):
+                    r.pop("close_cmd"); dirty = True          # rejected, or the answer was lost: retry
         if dirty:
             _save(r)
 

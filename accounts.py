@@ -48,6 +48,7 @@ from urllib.parse import urlencode
 
 import requests
 from fastapi import APIRouter, HTTPException, Request
+from starlette.concurrency import run_in_threadpool
 from fastapi.responses import JSONResponse, RedirectResponse
 
 log = logging.getLogger("accounts")
@@ -339,6 +340,10 @@ async def switch(request: Request):
         want = int((await request.json()).get("id"))
     except Exception:
         raise HTTPException(400, "Send {id}")
+    return await run_in_threadpool(_switch, request, want)       # SQLite: off the event loop
+
+
+def _switch(request: Request, want: int):
     active = user_from_request(request)
     others = other_accounts(request, active)
     hit = next((t for t, u in others if u["id"] == want), None)
@@ -388,7 +393,6 @@ def workspace_get(request: Request) -> dict:
 @router.put("/api/account/workspace/{key}")
 async def workspace_put(key: str, request: Request):
     _same_origin(request)
-    u = _need_user(request)
     if key not in WORKSPACE_KEYS:
         raise HTTPException(404, "Unknown workspace document")
     raw = await request.body()
@@ -400,6 +404,11 @@ async def workspace_put(key: str, request: Request):
         raise HTTPException(400, "Send JSON")
     if not isinstance(body, dict) or "data" not in body or not isinstance(body.get("version"), int):
         raise HTTPException(400, "Send {data, version}")
+    return await run_in_threadpool(_workspace_put, request, key, body)   # SQLite: off the event loop
+
+
+def _workspace_put(request: Request, key: str, body: dict):
+    u = _need_user(request)
     blob = json.dumps(body["data"], separators=(",", ":"))
     now = time.time()
     with _lock, _db() as db:
@@ -591,6 +600,10 @@ async def telegram_webapp(request: Request):
         init_data = str((await request.json()).get("initData") or "")
     except Exception:
         raise HTTPException(400, "Send {initData}")
+    return await run_in_threadpool(_telegram_webapp, request, init_data)   # SQLite: off the event loop
+
+
+def _telegram_webapp(request: Request, init_data: str):
     tg = verify_webapp(init_data, _tg_token())
     if not tg or not tg.get("id"):
         raise HTTPException(401, "Telegram sign-in could not be verified.")

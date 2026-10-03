@@ -135,21 +135,33 @@ signal; live prices always come from the network.
 
 ## Persistent disk (Render / Fly) — required once people sign in
 
-Accounts (`accounts.db`), notification pairings (`notify.json`) and the
-Sentinel journal all live under `/var/data` **when a disk is mounted
-there**. Without one they fall back to the container's own disk, and every
-deploy (`autoDeploy: true`) starts empty: everyone is signed out, Telegram
-links are gone, saved workspaces are lost. The app logs a warning at startup
-on Render when this is the case.
+Accounts (`accounts.db`), notification pairings and the paper watcher
+(`notify.json`) and the Sentinel journal (`sentinel.db`) all live under
+`/var/data` **when a disk is mounted there**. Without one they fall back to
+the container's own disk, and every deploy (`autoDeploy: true`) starts empty:
+everyone is signed out, Telegram links are gone, saved workspaces are lost.
 
-- **Render:** service → *Disks* → add a disk, mount path `/var/data`, 1 GB is
-  plenty (about $0.25/month). Or add to `render.yaml` under the service:
-  `disk: { name: data, mountPath: /var/data, sizeGB: 1 }`.
-- **Fly.io:** `fly volumes create data --size 1` and mount it at `/var/data`
+- **Render:** `render.yaml` declares the disk (`data`, 5 GB, mounted at
+  `/var/data`); the Blueprint sync creates it. A service can hold one disk,
+  so if one was already added by hand, make the `name` in `render.yaml` match
+  it (or grow that disk to 5 GB in the dashboard — disks grow, never shrink).
+  Cost is $0.25/GB/month. The SQLite files stay small (tens of MB after
+  years); 5 GB is headroom, not a forecast.
+- **Fly.io:** `fly volumes create data --size 5` and mount it at `/var/data`
   in `fly.toml` (`[mounts] source = "data" destination = "/var/data"`).
+- **Check it took:** `GET /api/health` → `"persistent": true` and every entry
+  of `storage` true. The server also logs a warning at startup when it is
+  running on the ephemeral disk.
+
+The container starts as root only to make the mounted disk writable by the
+`app` user (`docker-entrypoint.sh`), then drops privileges — a host mounts
+the disk root-owned, and without this step the app would silently fall back
+to the ephemeral disk again.
 
 Keep it at **one instance / one worker**: bridge queues and notification
-state are in-process, so a second instance would see a different book.
+state are in-process, so a second instance would see a different book. A
+service with a disk cannot do zero-downtime deploys; the restart takes about
+20 s.
 
 ## Things to know before sharing widely
 

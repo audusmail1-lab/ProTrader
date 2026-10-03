@@ -31,6 +31,7 @@ import hashlib
 import json
 import logging
 import os
+import queue
 import re
 import secrets
 import threading
@@ -40,6 +41,7 @@ from typing import Any, Optional
 
 import requests
 from fastapi import APIRouter, HTTPException, Request
+from starlette.concurrency import run_in_threadpool
 
 log = logging.getLogger("notify")
 router = APIRouter(prefix="/api/notify")
@@ -258,9 +260,18 @@ def _account_seen(uid: Any, key: str) -> bool:
     return False
 
 
-def _deliver(device_id: str, d: dict, ev: dict, key: Optional[str] = None) -> dict:
-    """Send one event to every channel the device has. `key` de-duplicates:
-    the same (device, key) is delivered once, whoever reports it first."""
+_outbox: "queue.Queue[dict]" = queue.Queue()
+
+
+def _deliver(device_id: str, d: dict, ev: dict, key: Optional[str] = None, sync: bool = False) -> dict:
+    """Decide one event for every channel the device has. `key` de-duplicates:
+    the same (device, key) is delivered once, whoever reports it first.
+
+    The caller holds _lock. Nothing here touches the network: the resolved
+    message is handed to the sender thread, so a slow push gateway or Telegram
+    (up to ~16 s) never stalls the bridge's lock, the tick feed or a request.
+    With `sync` the job is returned instead, for a caller that will send it
+    itself once the lock is released (the "Send a test" button)."""
     if key:
         if key in d["seen"]:
             return {"sent": False, "dup": True}
@@ -272,20 +283,63 @@ def _deliver(device_id: str, d: dict, ev: dict, key: Optional[str] = None) -> di
         return {"sent": False, "muted": True}
     title, body = format_event(ev)
     data = {"tag": key or f"{ev.get('type')}-{int(time.time())}", "sym": ev.get("symbol"), "type": ev.get("type")}
-    out = {"push": False, "tg": False}
-    sub = d.get("push")
-    if sub:
-        r = _send_push(sub, title, body, data)
-        out["push"] = r == 1
-        if r == -1:
-            d["push"] = None
+    tg = None
     if acct:
         if acct["tg"] and (not key or ev.get("type") == "test" or not _account_seen(acct["id"], key)):
-            out["tg"] = _send_tg(acct["tg"], title, body)
+            tg = acct["tg"]
     elif d.get("tg"):
-        out["tg"] = _send_tg(d["tg"], title, body)
+        tg = d["tg"]
+    job = {"device": device_id, "sub": d.get("push"), "tg": tg, "title": title, "body": body, "data": data}
+    if not job["sub"] and not tg:
+        return {"sent": False, "push": False, "tg": False}
+    if sync:
+        return {"sent": True, "job": job}
+    _outbox.put(job)
+    return {"sent": True, "queued": True, "push": bool(job["sub"]), "tg": bool(tg)}
+
+
+def _send(job: dict) -> dict:
+    """Deliver one resolved message. Runs with no lock held."""
+    out = {"push": False, "tg": False}
+    if job.get("sub"):
+        r = _send_push(job["sub"], job["title"], job["body"], job["data"])
+        out["push"] = r == 1
+        if r == -1:                                     # gone for good: forget the subscription
+            with _lock:
+                d = _state["devices"].get(job["device"])
+                if d and d.get("push") == job["sub"]:
+                    d["push"] = None
+                    _save()
+    if job.get("tg"):
+        out["tg"] = _send_tg(job["tg"], job["title"], job["body"])
     out["sent"] = out["push"] or out["tg"]
     return out
+
+
+def flush_outbox() -> int:
+    """Send everything queued, on the calling thread. For tests and for a
+    shutdown hook; in service the sender thread does this continuously."""
+    n = 0
+    while True:
+        try:
+            job = _outbox.get_nowait()
+        except queue.Empty:
+            return n
+        _send(job); n += 1
+
+
+class _Sender(threading.Thread):
+    """Drains the outbox: one message at a time, in order, off every lock."""
+    def __init__(self):
+        super().__init__(daemon=True, name="notify-sender")
+
+    def run(self) -> None:
+        while True:
+            job = _outbox.get()
+            try:
+                _send(job)
+            except Exception as e:
+                log.warning("notification not sent: %s", _redact(e))
 
 
 # ── endpoints ────────────────────────────────────────────────────────────────
@@ -321,6 +375,10 @@ async def register(request: Request) -> dict:
     """The app calls this on every load and whenever a channel changes. It is
     idempotent, so a redeploy that lost the state file heals itself."""
     b = await _body(request)
+    return await run_in_threadpool(_register, request, b)        # SQLite and the lock: off the event loop
+
+
+def _register(request: Request, b: dict) -> dict:
     try:
         import accounts
         user = accounts.user_from_request(request)
@@ -370,6 +428,10 @@ async def telegram_code(request: Request) -> dict:
     b = await _body(request)
     if not TG_TOKEN:
         raise HTTPException(503, "Telegram is not configured on the server")
+    return await run_in_threadpool(_telegram_code, b)              # getMe is a network call
+
+
+def _telegram_code(b: dict) -> dict:
     with _lock:
         d = _device(str(b.get("device", "")))
         code = secrets.token_urlsafe(9).replace("-", "x").replace("_", "y")
@@ -385,9 +447,13 @@ async def telegram_code(request: Request) -> dict:
 @router.post("/test")
 async def test(request: Request) -> dict:
     b = await _body(request)
-    with _lock:
-        d = _device(str(b.get("device", "")))
-        return _deliver(str(b.get("device")), d, {"type": "test"})
+
+    def work() -> dict:
+        with _lock:
+            d = _device(str(b.get("device", "")))
+            r = _deliver(str(b.get("device")), d, {"type": "test"}, sync=True)
+        return _send(r["job"]) if r.get("job") else r          # sent here: lock released, off the event loop
+    return await run_in_threadpool(work)
 
 
 @router.post("/event")
@@ -398,6 +464,10 @@ async def event(request: Request) -> dict:
     ev = b.get("event")
     if not isinstance(ev, dict) or ev.get("type") not in ("executed", "pending_filled", "sl", "tp", "closed", "stopout"):
         raise HTTPException(400, "Unknown event")
+    return await run_in_threadpool(_event, b, ev)
+
+
+def _event(b: dict, ev: dict) -> dict:
     with _lock:
         d = _device(str(b.get("device", "")))
         key = f"{ev.get('account', 'paper')}:{ev.get('id')}:{'open' if ev['type'] in ('executed', 'pending_filled') else 'close'}"
@@ -418,6 +488,10 @@ async def paper_sync(request: Request) -> dict:
     positions = b.get("positions")
     if not isinstance(positions, list):
         raise HTTPException(400, "positions must be a list")
+    return await run_in_threadpool(_paper_sync, b, positions)
+
+
+def _paper_sync(b: dict, positions: list) -> dict:
     with _lock:
         d = _device(str(b.get("device", "")))
         watched = {}
@@ -460,6 +534,10 @@ async def paper_sync(request: Request) -> dict:
 @router.post("/paper/ack")
 async def paper_ack(request: Request) -> dict:
     b = await _body(request)
+    return await run_in_threadpool(_paper_ack, b)
+
+
+def _paper_ack(b: dict) -> dict:
     ids = {str(i) for i in (b.get("ids") or [])}
     with _lock:
         d = _device(str(b.get("device", "")))
@@ -579,6 +657,7 @@ def mt5_snapshot_hook(cid: str, snap: dict, deals: Optional[list]) -> None:
     the devices that share this bridge: new tickets → executed; new closing
     deals → stop / target / manual with the broker's reason and P&L."""
     fired = []
+    changed = False
     with _lock:
         devices = [(k, d) for k, d in _state["devices"].items() if d.get("bridge") == cid]
         if not devices:
@@ -591,6 +670,7 @@ def mt5_snapshot_hook(cid: str, snap: dict, deals: Optional[list]) -> None:
             seen = d.get("mt5_seen_positions")
             if seen is None:
                 d["mt5_seen_positions"] = list(positions)      # first sight: baseline, no backfill
+                changed = True
             else:
                 for tk, p in positions.items():
                     if tk not in seen:
@@ -599,12 +679,16 @@ def mt5_snapshot_hook(cid: str, snap: dict, deals: Optional[list]) -> None:
                               "price": p.get("entry"), "sl": p.get("sl") or None, "tp": p.get("tp") or None,
                               "dp": p.get("digits"), "ccy": ccy}
                         fired.append((dev_id, d, ev, f"mt5:{tk}:open"))
-                d["mt5_seen_positions"] = list(positions)
+                if set(seen) != set(positions):
+                    d["mt5_seen_positions"] = list(positions)
+                    changed = True
             if deals is not None:
                 last = d.get("mt5_last_deal") or 0
                 newest = last
                 first = not d.get("mt5_hist_init")
-                d["mt5_hist_init"] = True
+                if first:
+                    d["mt5_hist_init"] = True
+                    changed = True
                 for deal in deals:
                     if not isinstance(deal, dict) or deal.get("kind") != "trade":
                         continue
@@ -622,7 +706,8 @@ def mt5_snapshot_hook(cid: str, snap: dict, deals: Optional[list]) -> None:
                     fired.append((dev_id, d, ev, f"mt5:{deal.get('ticket')}:close"))
                 if newest != last:
                     d["mt5_last_deal"] = newest
-        if fired or any(True for _ in devices):
+                    changed = True
+        if fired or changed:
             _save()
     for dev_id, d, ev, key in fired:
         with _lock:
@@ -716,5 +801,6 @@ def start() -> None:
         log.warning("MT5 notifications off: %s", e)
     _feed.want(_all_symbols())
     _feed.start()
+    _Sender().start()
     _TelegramPoller().start()
     log.info("notify ready — push:%s telegram:%s state:%s", bool(webpush and VAPID_PUBLIC), bool(TG_TOKEN), STATE_PATH)
