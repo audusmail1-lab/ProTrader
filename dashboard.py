@@ -2882,7 +2882,7 @@ DASHBOARD_HTML = """<!DOCTYPE html>
     timer = setInterval(() => {
       countdown--;
       document.getElementById('countdown').textContent = 'Auto ↻ ' + countdown + 's';
-      if (countdown <= 0) { runAnalysis(); loadChart(); loadSR(); loadWatchlist(); loadMTF(); }
+      if (countdown <= 0) { runAnalysis(); loadChart(); loadSR(); loadWatchlist(); loadMTF(); pollBackgroundAlerts(); }
     }, 1000);
   }
 
@@ -3540,6 +3540,7 @@ DASHBOARD_HTML = """<!DOCTYPE html>
 
   // ── Price Alert System ────────────────────────────────────────────
   let _notifGranted = (typeof Notification !== 'undefined' && Notification.permission === 'granted');
+  let activeAlertTickers = [];   // distinct tickers with a live alert, kept in sync by loadAlerts()
 
   function scrollToAlerts() {
     document.getElementById('alertsCard').scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -3597,6 +3598,11 @@ DASHBOARD_HTML = """<!DOCTYPE html>
       document.getElementById('al-value').value  = '';
       document.getElementById('al-note').value   = '';
       await loadAlerts();
+      // Condition may already be true right now — don't make the user wait for
+      // the next 5-minute refresh (and the refresh only checks the *selected*
+      // ticker anyway, so an alert on another symbol would otherwise sit there
+      // until that symbol happens to be selected again).
+      checkAlertsForTicker(ticker);
       // Show notif banner if not yet granted
       if (typeof Notification !== 'undefined' && Notification.permission === 'default') {
         document.getElementById('notifBanner').style.display = 'flex';
@@ -3628,7 +3634,32 @@ DASHBOARD_HTML = """<!DOCTYPE html>
       renderActiveAlerts(data.active || []);
       renderFiredAlerts(data.fired  || []);
       updateBellBadge(data.active.length);
+      activeAlertTickers = [...new Set((data.active || []).map(a => a.ticker))];
     } catch(e) { /* silently skip */ }
+  }
+
+  // The server only ever evaluates an alert's condition as a side effect of
+  // a client requesting /api/analyze/<that ticker> (see dashboard.py
+  // _check_alerts). The 5-minute auto-refresh only requests the *currently
+  // selected* ticker, so an alert set on any other symbol would otherwise
+  // never fire — not on a price move, not ever — until a user happened to
+  // switch the dropdown back to it. This polls every ticker that has a live
+  // alert, independent of what's on screen.
+  async function checkAlertsForTicker(ticker) {
+    try {
+      const res = await fetch('/api/analyze/' + ticker + '?interval=' + currentInterval);
+      if (!res.ok) return;
+      const data = await res.json();
+      checkTriggeredAlerts(data);
+    } catch (e) { /* background alert check must never break the main refresh loop */ }
+  }
+
+  async function pollBackgroundAlerts() {
+    const current = document.getElementById('tickerSelect').value;
+    for (const t of activeAlertTickers) {
+      if (t === current) continue;   // runAnalysis() already checked this one
+      await checkAlertsForTicker(t);
+    }
   }
 
   function updateBellBadge(n) {
@@ -3909,7 +3940,7 @@ DASHBOARD_HTML = """<!DOCTYPE html>
     loadSR();
     loadWatchlist();
     loadMTF();
-    loadAlerts();
+    loadAlerts().then(pollBackgroundAlerts);
     loadBacktest();
     connectPriceStream(ticker);
     // pre-fill ticker from selector
