@@ -33,15 +33,17 @@ function clock() {
     },
   };
 }
-function setup() {
+function setup(storeInit = {}) {
   const c = clock();
   const sock = {readyState: 1, out: [], send(s) { this.out.push(JSON.parse(s)); }};
+  const store = Object.assign({}, storeInit);
   const ctx = vm.createContext({
     ws: sock, WebSocket: {OPEN: 1}, console,
+    localStorage: {getItem: k => (k in store ? store[k] : null), setItem: (k, v) => { store[k] = String(v); }},
     Date: {now: c.now}, setTimeout: c.setTimeout, setInterval: c.setInterval, clearTimeout: c.clearTimeout, clearInterval: c.clearInterval,
   });
   vm.runInContext(source + ';globalThis.Q = FEEDQ; globalThis.X = FEEDX;', ctx);
-  return {Q: ctx.Q, X: ctx.X, sock, c, ctx};
+  return {Q: ctx.Q, X: ctx.X, sock, c, ctx, store};
 }
 const types = sock => sock.out.map(m => m.ticks_history ? 'h' : m.ticks ? 't' : m.forget ? 'f' : m.ping ? 'p' : m.active_symbols ? 'a' : '?');
 
@@ -56,19 +58,26 @@ test('with room, a request leaves at once; when waiting, priority decides the or
   assert.deepEqual(sock.out.slice(180).map(m => m.ticks || m.ticks_history), ['C', 'F', 'A', 'D']);
 });
 
-test('the cap: 180 a minute, and the two lowest priorities stop 40 short of it', () => {
+test('the cap: 180 a minute, the two lowest priorities stop 40 short of it and go at two a second', () => {
   const {Q, sock, c} = setup();
   for (let i = 0; i < 190; i++) Q.send({ticks: 't' + i}, 3);
-  assert.equal(sock.out.length, 140, 'priority 3 stops at CAP − RESERVE');
-  for (let i = 0; i < 60; i++) Q.send({ticks_history: 'h' + i, subscribe: 1}, 0);
-  assert.equal(sock.out.length, 180, 'the chart may use the reserve, never more than the cap');
-  assert.equal(Q.status().queued, 70, '50 quotes and 20 chart requests wait');
+  assert.equal(sock.out.length, 2, 'list work leaves at two a second, not in a burst');
+  c.advance(1_100);
+  assert.equal(sock.out.length, 4);
   c.advance(30_000);
-  assert.equal(sock.out.length, 180, 'nothing more inside the minute');
-  c.advance(32_000);
-  assert.equal(sock.out.length, 180 + 70, 'the minute passed: the whole window frees at once');
-  assert.equal(Q.status().queued, 0);
-  assert.equal(types(sock).slice(180, 200).join(''), 'h'.repeat(20), 'what waited went out highest priority first');
+  assert.ok(sock.out.length >= 56 && sock.out.length <= 66, 'about two a second: ' + sock.out.length);
+  c.advance(90_000);
+  assert.equal(sock.out.length, 190, 'at two a second the window frees as fast as it fills: all 190 went, never more than ~122 in any minute');
+  assert.ok(Q.status().used <= 125, 'in the window now: ' + Q.status().used);
+  for (let i = 0; i < 60; i++) Q.send({ticks_history: 'h' + i, subscribe: 1}, 0);
+  assert.equal(sock.out.length, 250, 'the chart is not paced: all 60 at once, inside the cap');
+  // a true burst of list work still meets the cap − reserve
+  const {Q: Q2, sock: s2, c: c2} = setup();
+  for (let i = 0; i < 400; i++) Q2.send({ticks: 'u' + i}, 3);
+  c2.advance(58_000);
+  assert.ok(s2.out.length >= 110 && s2.out.length <= 118, 'two a second for 58 s: ' + s2.out.length);
+  c2.advance(20_000);
+  assert.ok(Q2.status().used <= 140, 'never above cap − reserve in a window: ' + Q2.status().used);
 });
 
 test('ping is not counted; forget is', () => {
@@ -174,15 +183,34 @@ test('FEEDX: the timeout runs from the send, a RateLimit keeps the promise waiti
   assert.equal(a, 'feed timeout');
 });
 
-test('reset forgets the queue and the count: a new socket has a new budget', () => {
+test('reset forgets the queue but not the count: a reconnect is no fresh budget', () => {
   const {Q, sock, c} = setup();
   for (let i = 0; i < 200; i++) Q.send({ticks: 't' + i}, 1);
   assert.equal(Q.status().queued, 20);
   Q.reset();
-  assert.deepEqual(JSON.parse(JSON.stringify(Q.status())), {queued: 0, used: 0, cap: 180, limitedUntil: 0, episodes: 0, strikes: 0});
-  Q.send({ticks: 'fresh'}, 3);
+  assert.equal(Q.status().queued, 0); assert.equal(Q.status().used, 180);
+  Q.send({ticks: 'fresh'}, 1);
+  assert.equal(sock.out.length, 180, 'still full for the rest of the minute');
+  c.advance(62_000);
   assert.equal(sock.out[sock.out.length - 1].ticks, 'fresh');
-  c.advance(1);
+});
+
+test('the cap learns from a refusal and is remembered on the device for six hours', () => {
+  const {Q, sock, c, store} = setup();
+  for (let i = 0; i < 150; i++) Q.send({ticks: 't' + i}, 1);
+  Q.refused({req_id: sock.out[10].req_id, error: {code: 'RateLimit'}});
+  assert.equal(Q.status().cap, 140, 'ten under what was in the window when Deriv refused');
+  const saved = JSON.parse(store['protrader.feedcap.v1']);
+  assert.equal(saved.cap, 140); assert.equal(saved.at, c.now());
+  // the next open starts from the learned cap; a stale one is ignored
+  assert.equal(setup({'protrader.feedcap.v1': JSON.stringify({cap: 140, at: c.now() - 3600_000})}).Q.status().cap, 140);
+  assert.equal(setup({'protrader.feedcap.v1': JSON.stringify({cap: 140, at: c.now() - 2 * 86400_000})}).Q.status().cap, 180);
+  assert.equal(setup({'protrader.feedcap.v1': JSON.stringify({cap: 20, at: c.now()})}).Q.status().cap, 180, 'never below the floor');
+  // a refusal with little in the window teaches nothing (not this socket's doing), and the floor holds
+  const {Q: Q2, sock: s2} = setup();
+  for (let i = 0; i < 30; i++) Q2.send({ticks: 'u' + i}, 1);
+  Q2.refused({req_id: s2.out[0].req_id, error: {code: 'RateLimit'}});
+  assert.equal(Q2.status().cap, 180);
 });
 
 test('serial: a second chart request waits for Deriv to answer the first, and goes when it does (or after 20 s unanswered)', () => {
