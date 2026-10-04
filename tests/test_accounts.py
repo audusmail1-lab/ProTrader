@@ -5,7 +5,6 @@ from urllib.parse import parse_qs, urlsplit
 os.environ["ACCOUNTS_DB"] = os.path.join(tempfile.mkdtemp(), "accounts.db")
 os.environ["SENTINEL_ENABLED"] = "0"
 os.environ["SENTINEL_DB"] = os.path.join(tempfile.mkdtemp(), "s.db")
-os.environ["SENTINEL_ADMIN_KEY"] = "k" * 32
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from fastapi import FastAPI, Request
@@ -102,7 +101,11 @@ def test_handoff_link_opens_the_same_account_once():
     assert browser().get(path).headers["location"] == "/?signin=expired"            # single use
 
 
-def test_logout_and_instructor_is_sentinel_owner():
+def test_logout_and_instructor_is_sentinel_owner(monkeypatch):
+    # sentinel reads the owner key from the environment on every request; set it
+    # here, not at import, so another test module's key cannot win when pytest
+    # imports every module before running any test
+    monkeypatch.setenv("SENTINEL_ADMIN_KEY", "k" * 32)
     t, s = browser(), browser()
     sign_in(t, TEACHER); sign_in(s, STUDENT)
     assert t.get("/api/account/me").json()["user"]["owner"] is True
