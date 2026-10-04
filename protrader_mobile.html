@@ -2500,24 +2500,137 @@ function botOwns(id)   { return false; }
 
 const MAX_HISTORY_BARS = 20000;   // ceiling so a long back-scroll can't grow forever
 
+/* ── Feed request budget ─────────────────────────────────────────────────
+   Deriv's public gateway allows about 220 market-data requests a minute on
+   one socket (measured 4 Oct 2026: ticks, ticks_history, active_symbols and
+   forget share the one budget, ping does not; request 221 is refused with
+   "You have reached the rate limit", and the socket then refuses everything,
+   live tick subscriptions included, until the minute passes). Every such
+   request leaves through this queue: a cap well under Deriv's, the chart's
+   own history first, the lists' daily bars last, and a refused request is
+   sent again when the minute clears instead of being lost.
+     priority 0 the chart's candles        1 the charted instrument's quote, active_symbols
+              2 favourites / ticker / working orders, the other timeframes, older bars
+              3 every other instrument's quote   4 the lists' daily bars
+   Priorities 3 and 4 stop at CAP − RESERVE so a burst of list work can never
+   use up what a timeframe switch needs a moment later. */
+const FEEDQ = (() => {
+  const CAP = 180, WINDOW = 61000, RESERVE = 40, MAX_TRIES = 4;   // the window is a second longer than Deriv's: its clock stamps arrivals, not our sends
+  let seq = 0, timer = null, ticker = null, limitedUntil = 0, strikes = 0, lastRefusal = 0, episodes = 0;
+  const sent = [];                  // when each counted request left, trailing minute
+  const q = [];                     // waiting, sorted by priority (stable)
+  const recent = new Map();         // req_id → item for a minute after sending, so a refusal finds its request
+  const flying = new Map();         // key → req_id of a `serial` request Deriv has not answered yet
+  const FLY_MAX = 20000;            // an unanswered serial request stops blocking its key after this
+  const listeners = new Set();
+  function open() { return typeof ws !== 'undefined' && !!ws && ws.readyState === WebSocket.OPEN; }
+  function raw(payload) { try { ws.send(JSON.stringify(payload)); return true; } catch (_) { return false; } }
+  function used(now) { while (sent.length && now - sent[0] > WINDOW) sent.shift(); return sent.length; }
+  function room(p, now) { return (p >= 3 ? CAP - RESERVE : CAP) - used(now); }
+  function notify() { const st = status(); listeners.forEach(fn => { try { fn(st); } catch (_) {} }); }
+  function status() { return { queued: q.length, used: used(Date.now()), cap: CAP, limitedUntil, episodes, strikes }; }
+  function insert(item) { let i = q.length; while (i > 0 && q[i - 1].p > item.p) i--; q.splice(i, 0, item); }
+  /* send(payload, priority, {key, replace, wanted, serial, onSent}) → false only when the socket is down.
+     key: a queued twin is left in place (or replaced when `replace`), so a dozen quick
+     timeframe switches queue one request, not twelve. wanted(): checked before a
+     send and before a retry, so a stale request is dropped, never sent late.
+     serial: not sent while an earlier request with the same key is unanswered, so
+     the chart never holds two candle subscriptions at once (Deriv answers the
+     second "already subscribed" and the live stream is lost). */
+  function send(payload, p = 2, opts = {}) {
+    if (!open()) return false;
+    if ('ping' in payload) return raw(payload);                 // not counted by Deriv
+    if (opts.key) {
+      const i = q.findIndex(x => x.key === opts.key);
+      if (i >= 0) { if (opts.replace) q.splice(i, 1); else return 'twin'; }
+    }
+    const item = { p, payload: Object.assign({}, payload), key: opts.key || null, wanted: opts.wanted || null, serial: !!opts.serial, onSent: opts.onSent || null, tries: 0, sentAt: 0 };
+    if (item.payload.req_id == null) item.payload.req_id = 1000000 + (++seq);
+    insert(item); drain();
+    return true;
+  }
+  function blocked(item, now) {
+    if (!item.serial) return false;
+    const f = flying.get(item.key);
+    if (!f) return false;
+    if (now - f.at > FLY_MAX) { flying.delete(item.key); return false; }
+    return true;
+  }
+  function drain() {
+    clearTimeout(timer); timer = null;
+    if (!open()) return;
+    const now = Date.now();
+    if (now < limitedUntil) { timer = setTimeout(drain, limitedUntil - now + 50); return; }
+    let waitingOnReply = false;
+    for (let i = 0; i < q.length;) {
+      const item = q[i];
+      if (item.wanted && !item.wanted()) { q.splice(i, 1); continue; }
+      if (blocked(item, now)) { waitingOnReply = true; i++; continue; }
+      if (room(item.p, now) <= 0) break;
+      q.splice(i, 1);
+      if (!raw(item.payload)) { q.splice(i, 0, item); break; }     // socket died mid-way; onclose resets
+      sent.push(now); item.tries++; item.sentAt = now;
+      recent.set(item.payload.req_id, item);
+      if (item.serial) flying.set(item.key, { id: item.payload.req_id, at: now });
+      if (item.onSent) { try { item.onSent(item); } catch (_) {} }
+    }
+    for (const [id, it] of recent) if (now - it.sentAt > WINDOW * 2) recent.delete(id);
+    if (q.length) timer = setTimeout(drain, waitingOnReply ? FLY_MAX + 100 : Math.max(100, (sent[0] || now) + WINDOW - now + 20));
+    notify();
+  }
+  // Deriv answered a request (any reply carrying its req_id): a serial key is free again.
+  function ack(reqId) {
+    for (const [key, f] of flying) if (f.id === reqId) { flying.delete(key); if (q.length) drain(); break; }
+  }
+  /* Deriv refused a request (RateLimit). Hold everything until the minute clears,
+     then send the refused request again at its own priority. Returns true when it
+     will be retried, false when it is dropped (no longer wanted, or refused too often). */
+  function refused(d) {
+    const now = Date.now();
+    const item = recent.get(d && d.req_id);
+    if (item) { recent.delete(d.req_id); if (item.serial && flying.get(item.key)?.id === d.req_id) flying.delete(item.key); }
+    // one episode per hold, however many refusals arrive in the burst; strikes count episodes close together
+    if (now >= limitedUntil) { episodes++; strikes = now - lastRefusal > WINDOW * 2 ? 1 : strikes + 1; }
+    lastRefusal = now;
+    // Deriv's window runs a minute from the first request it counted; wait for our oldest send
+    // to age out of the window, and a full minute when that was not enough last time.
+    const until = strikes > 1 ? now + WINDOW + 1500 : Math.min(now + WINDOW + 1500, (sent[0] || now) + WINDOW + 1500);
+    limitedUntil = Math.max(limitedUntil, until);
+    clearInterval(ticker); ticker = setInterval(() => { if (Date.now() >= limitedUntil) { clearInterval(ticker); ticker = null; } notify(); }, 1000);
+    let again = false;
+    if (item && item.tries < MAX_TRIES && !(item.wanted && !item.wanted()) && !(item.key && q.some(x => x.key === item.key))) { insert(item); again = true; }
+    drain();
+    return again;
+  }
+  function reset() { clearTimeout(timer); timer = null; clearInterval(ticker); ticker = null; q.length = 0; sent.length = 0; recent.clear(); flying.clear(); limitedUntil = 0; strikes = 0; notify(); }
+  function onChange(fn) { listeners.add(fn); return () => listeners.delete(fn); }
+  return { send, refused, ack, reset, status, onChange, drain, CAP, WINDOW, RESERVE };
+})();
+
 /* Request/reply on the shared Deriv socket. Deriv echoes req_id and
    passthrough, so one-shot history (older pages, the daily bar, the other
-   timeframes) rides the live connection instead of opening a socket each. */
+   timeframes) rides the live connection instead of opening a socket each.
+   The timeout runs from the moment the request leaves the budget queue. */
 const FEEDX = (() => {
   let seq = 0; const pending = new Map();
-  function request(payload, timeoutMs = 15000) {
+  function request(payload, timeoutMs = 15000, priority = 2, opts = {}) {
     return new Promise((resolve, reject) => {
       const id = ++seq;
-      if (!sendWS(Object.assign({}, payload, { req_id: id, passthrough: { fx: 1 } }))) return reject(new Error('feed offline'));
-      const timer = setTimeout(() => { pending.delete(id); reject(new Error('feed timeout')); }, timeoutMs);
-      pending.set(id, { resolve, reject, timer });
+      const entry = { resolve, reject, timer: null };
+      pending.set(id, entry);
+      const arm = () => { clearTimeout(entry.timer); entry.timer = setTimeout(() => { pending.delete(id); reject(new Error('feed timeout')); }, timeoutMs); };
+      const r = FEEDQ.send(Object.assign({}, payload, { req_id: id, passthrough: { fx: 1 } }), priority, Object.assign({}, opts, { onSent: arm }));
+      if (r !== true) { pending.delete(id); reject(new Error(r === 'twin' ? 'already requested' : 'feed offline')); }
     });
   }
   // true when the message was ours (and must not reach the chart handler)
   function route(d) {
     if (!d.passthrough || !d.passthrough.fx) return false;
     const p = pending.get(d.req_id);
-    if (p) { pending.delete(d.req_id); clearTimeout(p.timer); if (d.error) p.reject(new Error(d.error.message || 'feed error')); else p.resolve(d); }
+    if (!p) return true;
+    if (d.error && d.error.code === 'RateLimit' && FEEDQ.refused(d)) { clearTimeout(p.timer); return true; }   // goes again when the minute clears
+    pending.delete(d.req_id); clearTimeout(p.timer); FEEDQ.ack(d.req_id);
+    if (d.error) p.reject(new Error(d.error.message || 'feed error')); else p.resolve(d);
     return true;
   }
   function reset() { for (const p of pending.values()) { clearTimeout(p.timer); p.reject(new Error('feed reconnected')); } pending.clear(); }
@@ -2527,28 +2640,25 @@ const FEEDX = (() => {
 /* Day open / high / low per instrument from Deriv's daily bar (UTC day),
    kept current with every tick: one definition of "today's change" for the
    header, the lists and the top bar. */
-const DAY = { st: {}, asked: {}, queue: [], timer: null };
+const DAY = { st: {}, asked: {} };
 function utcDay(t) { return Math.floor(t / 86400); }
-// Requests are queued and sent a few a second: 89 instruments tick within
-// the first second, and a burst of history requests would trip Deriv's limit.
+// 89 instruments tick within the first second; their daily bars go through
+// the feed budget at the lowest priority (the charted instrument's first),
+// so they trickle in behind the chart and the live quotes.
 function fetchDayStats(id, force) {
   const d = derivSym(id); if (!d || !S.wsConnected) return;
   const today = utcDay(Date.now() / 1000), cur = DAY.st[id];
   if (!force && cur && cur.fetchedDay === today) return;
   if (DAY.asked[id] && Date.now() - DAY.asked[id] < 60000) return;
   DAY.asked[id] = Date.now();
-  if (!DAY.queue.includes(id)) { if (id === S.sym) DAY.queue.unshift(id); else DAY.queue.push(id); }
-  if (!DAY.timer) DAY.timer = setInterval(() => {
-    const next = DAY.queue.shift();
-    if (next === undefined) { clearInterval(DAY.timer); DAY.timer = null; return; }
-    _fetchDayStatsNow(next);
-  }, 180);
+  _fetchDayStatsNow(id);
 }
 function _fetchDayStatsNow(id) {
   const d = derivSym(id); if (!d) return;
   const today = utcDay(Date.now() / 1000);
+  const priority = id === S.sym ? 1 : typeof tickPriority === 'function' && tickPriority(id) <= 2 ? 3 : 4;
   // count 1 can come back as yesterday's closed bar; ask for two and take today's
-  FEEDX.request({ ticks_history: d, count: 2, end: 'latest', granularity: 86400, style: 'candles' }, 10000)
+  FEEDX.request({ ticks_history: d, count: 2, end: 'latest', granularity: 86400, style: 'candles' }, 20000, priority, { key: 'day:' + d })
     .then(m => {
       const cs = m.candles || [];
       const c = cs.find(x => utcDay(+x.epoch) === today) || cs[cs.length - 1]; if (!c) return;
@@ -2572,7 +2682,7 @@ function fetchDerivHistory(id, tf, beforeEpoch) {
   const d = derivSym(id);
   if (!d) return Promise.resolve([]);
   return FEEDX.request({ ticks_history: d, adjust_start_time: 1, count: 1000,
-                         end: String(beforeEpoch - 1), granularity: TF_SEC[tf] || 900, style: 'candles' }, 15000)
+                         end: String(beforeEpoch - 1), granularity: TF_SEC[tf] || 900, style: 'candles' }, 15000, 2)
     .then(m => (m.candles || []).map(c => ({
       time: Number(c.epoch), open: Number(c.open), high: Number(c.high),
       low: Number(c.low), close: Number(c.close), vol: 0,
@@ -5500,9 +5610,9 @@ const MTF = {
     if (!d || !S.wsConnected) return;
     const now = Date.now();
     if (!force && this.at[id] && now - this.at[id] < 60000) return;
-    if (this.busy[id] && now - this.busy[id] < 15000) return;
+    if (this.busy[id] && now - this.busy[id] < 90000) return;    // a batch can wait in the feed budget for a minute
     this.busy[id] = now;
-    Promise.all(this.TFS.map(tf => FEEDX.request({ ticks_history: d, count: 220, end: 'latest', granularity: TF_SEC[tf], style: 'candles', adjust_start_time: 1 }, 15000)
+    Promise.all(this.TFS.map(tf => FEEDX.request({ ticks_history: d, count: 220, end: 'latest', granularity: TF_SEC[tf], style: 'candles', adjust_start_time: 1 }, 15000, 2, { key: `mtf:${d}:${tf}` })
       .then(m => [tf, (m.candles || []).map(c => ({ time: +c.epoch, open: +c.open, high: +c.high, low: +c.low, close: +c.close }))])
       .catch(() => [tf, null])))
       .then(rows => { delete this.busy[id]; if (id !== S.sym) return; this.data[id] = Object.fromEntries(rows); this.at[id] = Date.now(); renderMTF(); });
@@ -6584,8 +6694,8 @@ const OT = {
     this.onSymbolChange(true);
     setInterval(() => this.tick(), 500);
     setInterval(() => this.save(), 5000);
-    setInterval(() => this.resubscribeIdle(), 120000);
-    setInterval(() => { if (TR.positions.length || TR.orders.length) this.resubscribeIdle(); }, 10000);   // working orders: never more than ~10s without a tick
+    setInterval(() => this.resubscribeIdle(false), 120000);
+    setInterval(() => { if (TR.positions.length || TR.orders.length) this.resubscribeIdle(true); }, 10000);   // working orders: never more than ~10s without a tick
   },
 
   // Deriv ticks carry bid/ask that putQuote drops; capture them here
@@ -6630,6 +6740,9 @@ const OT = {
           info.closedMsg = d.error.message || 'Market closed';
           const m = /at ([\d-]+ [\d:]+)/.exec(info.closedMsg);
           info.reopen = m ? m[1] : null;
+          info.closedAt = Date.now();
+          const at = m ? Date.parse(m[1].replace(' ', 'T') + 'Z') : NaN;   // Deriv quotes the opening time in GMT
+          info.reopenAt = Number.isFinite(at) ? at : null;
           _tickSubbed.delete(derivSym(id));      // allow a retry once it reopens
         } else if (/InvalidSymbol|invalid/i.test(d.error.code + d.error.message)) {
           DERIV_NON_QUOTED.add(id);          // let the bot keep this one
@@ -6651,10 +6764,12 @@ const OT = {
 
     const onOpen = () => {
       _tickSubbed.clear(); _histSubId = null;      // fresh socket, fresh subscriptions
-      try { ws.send(JSON.stringify({ active_symbols: 'brief' })); } catch (_) {}
+      sendWS({ active_symbols: 'brief' }, 1, { key: 'active_symbols' });
       // Quote every tradable instrument, not just the charted one, so the
       // ticket never has to wait for a first price after switching symbol.
-      derivQuotableIds().forEach((id, i) => setTimeout(() => subscribeTick(id), i * 60));
+      // The feed budget paces them: the charted one first, favourites and
+      // the ticker next, the rest behind.
+      derivQuotableIds().forEach(id => subscribeTick(id));
     };
     if (ws.readyState === WebSocket.OPEN) onOpen();
     else ws.addEventListener('open', onOpen);
@@ -6662,13 +6777,23 @@ const OT = {
 
   // Instruments that are not ticking (a session that has since opened, or a
   // subscription lost in a reconnect) get picked back up automatically.
-  resubscribeIdle() {
+  // A market Deriv has said is shut is left alone until its opening time:
+  // at the weekend 46 instruments are shut, and asking for each of them
+  // every ten seconds was what used up Deriv's request budget and froze
+  // the chart. The ten-second pass covers only instruments with a position
+  // or a working order; everything else is looked at every two minutes.
+  resubscribeIdle(onlyWorking) {
     if (!ws || ws.readyState !== WebSocket.OPEN) return;
     const working = new Set(TR.positions.map(p => p.symbol).concat(TR.orders.map(o => o.symbol)));
-    derivQuotableIds().forEach((id, i) => {
-      if (derivFresh(id, working.has(id) ? 8000 : 90000)) return;
+    const now = Date.now();
+    derivQuotableIds().forEach(id => {
+      const w = working.has(id);
+      if (onlyWorking && !w) return;
+      if (derivFresh(id, w ? 8000 : 90000)) return;
+      const info = otInfo[id];
+      if (info && info.closedMsg && now < (info.reopenAt || (info.closedAt || 0) + 600000)) return;
       _tickSubbed.delete(derivSym(id));
-      setTimeout(() => subscribeTick(id), i * 60);
+      subscribeTick(id);
     });
   },
 
@@ -9448,10 +9573,11 @@ function saveQuoteCache(){try{const out={};for(const [k,v] of Object.entries(pai
 function loadQuoteCache(){try{const raw=localStorage.getItem(NEXUS.cacheKey);if(!raw)return;const c=JSON.parse(raw);if(!c||Date.now()-c.t>3*86400000)return;for(const [k,v] of Object.entries(c.prices||{})){if(!pairPrices[k]||!pairPrices[k].ts)pairPrices[k]=v;}}catch(e){}}
 setInterval(saveQuoteCache,7000);
 function clearDerivSubs(){if(!ws||ws.readyState!==WebSocket.OPEN)return;for(const id of NEXUS.activeSubs.values()){try{ws.send(JSON.stringify({forget:id}))}catch(e){}}NEXUS.activeSubs.clear()}
-function sendWS(payload){if(!ws||ws.readyState!==WebSocket.OPEN)return false;try{ws.send(JSON.stringify(payload));return true}catch(e){return false}}
+// Every market-data request leaves through the feed budget (FEEDQ); ping goes straight out.
+function sendWS(payload,priority=2,opts){const r=FEEDQ.send(payload,priority,opts);return r===true||r==='twin'}
 function subscribeTick(id){if(!isDerivStreamSymbol(id))return;sendWS({ticks:id,subscribe:1})}
 function subscribeHistory(id){if(!isDerivStreamSymbol(id))return;const tfSec=TF_SEC[S.tf]||900;sendWS({ticks_history:id,adjust_start_time:1,count:300,end:'latest',granularity:tfSec,style:'candles',subscribe:1})}
-connectWS=function(){try{if(ws&&(ws.readyState===WebSocket.OPEN||ws.readyState===WebSocket.CONNECTING))return;ws=new WebSocket(DERIV_WS_URL);ws.onopen=()=>{S.wsConnected=true;wsRetry=0;setWsBadge(true);updateFeedBadge();DERIV_STREAM_SYMBOLS.forEach((id,i)=>setTimeout(()=>subscribeTick(id),i*80));subscribeHistory(S.sym);clearInterval(NEXUS.wsHeartbeat);NEXUS.wsHeartbeat=setInterval(()=>sendWS({ping:1}),25000)};ws.onmessage=e=>{let d;try{d=JSON.parse(e.data)}catch(_){return}if(FEEDX.route(d))return;if(d.subscription?.id&&d.echo_req){const key=d.echo_req.ticks||d.echo_req.ticks_history;if(key)NEXUS.activeSubs.set(`${key}:${d.msg_type}:${d.echo_req.granularity||'tick'}`,d.subscription.id)}if(d.error){const key=d.echo_req?.ticks||d.echo_req?.ticks_history||'feed';NEXUS.errors.set(key,d.error.message||'Feed error');if(d.echo_req?.ticks_history&&appSym(d.echo_req.ticks_history)===S.sym&&!S.candles.length){const el=safeEl('chartLoading');if(el){el.textContent=d.error.message||'No candles for this market';el.hidden=false}}updateFeedBadge();return}if(d.msg_type==='tick'&&d.tick){putQuote(d.tick.symbol,+d.tick.quote,null,'Deriv',true)}const _hs=d.echo_req&&d.echo_req.ticks_history,_hOk=_hs&&appSym(_hs)===S.sym&&(!d.echo_req.granularity||d.echo_req.granularity===_histGran);if(d.msg_type==='ohlc'&&d.ohlc&&_hOk){const o=d.ohlc;mergeLiveCandle({time:+o.open_time,open:+o.open,high:+o.high,low:+o.low,close:+o.close,vol:0});const _xq=XQ.q[S.sym];if(!_xq||Date.now()-_xq.ts>3000){XQ.put(S.sym,+o.close,+o.close,'Deriv');subscribeTick(S.sym)}}if(d.msg_type==='candles'&&d.candles&&_hOk){S.candles=aggregateCandles(d.candles.map(c=>({time:+c.epoch,open:+c.open,high:+c.high,low:+c.low,close:+c.close,vol:0})),S.tf);const last=S.candles[S.candles.length-1];if(last)putQuote(S.sym,last.close,null,'Deriv',true);drawChart();renderARIA();renderMTF();runPatternScanner();updateTopbar()}};ws.onclose=()=>{S.wsConnected=false;FEEDX.reset();setWsBadge(false);updateFeedBadge();clearInterval(NEXUS.wsHeartbeat);wsRetry++;setTimeout(connectWS,Math.min(30000,1200*Math.pow(1.7,wsRetry)))};ws.onerror=()=>{try{ws.close()}catch(e){}}}catch(e){S.wsConnected=false;setWsBadge(false);setTimeout(connectWS,5000)}};
+connectWS=function(){try{if(ws&&(ws.readyState===WebSocket.OPEN||ws.readyState===WebSocket.CONNECTING))return;ws=new WebSocket(DERIV_WS_URL);ws.onopen=()=>{S.wsConnected=true;wsRetry=0;setWsBadge(true);updateFeedBadge();DERIV_STREAM_SYMBOLS.forEach((id,i)=>setTimeout(()=>subscribeTick(id),i*80));subscribeHistory(S.sym);clearInterval(NEXUS.wsHeartbeat);NEXUS.wsHeartbeat=setInterval(()=>sendWS({ping:1}),25000)};ws.onmessage=e=>{let d;try{d=JSON.parse(e.data)}catch(_){return}if(FEEDX.route(d))return;if(d.req_id!=null&&!d.error)FEEDQ.ack(d.req_id);if(d.subscription?.id&&d.echo_req){const key=d.echo_req.ticks||d.echo_req.ticks_history;if(key)NEXUS.activeSubs.set(`${key}:${d.msg_type}:${d.echo_req.granularity||'tick'}`,d.subscription.id)}if(d.error){const key=d.echo_req?.ticks||d.echo_req?.ticks_history||'feed';const limited=d.error.code==='RateLimit'&&FEEDQ.refused(d);if(!limited&&d.req_id!=null)FEEDQ.ack(d.req_id);NEXUS.errors.set(key,d.error.message||'Feed error');const chartReq=d.echo_req?.ticks_history&&appSym(d.echo_req.ticks_history)===S.sym&&(!d.echo_req.granularity||d.echo_req.granularity===_histGran);if(chartReq&&d.error.code==='AlreadySubscribed'){/* the stream we want is already running (a quick flip back); if its bars never came, clear every candle stream and ask once more */if(!S.candles.length&&_chartAgain<2){_chartAgain++;sendWS({forget_all:'candles'},0);_histSubId=null;setTimeout(()=>{if(!S.candles.length)subscribeHistory(S.sym)},80)}}else if(chartReq&&!S.candles.length){const el=safeEl('chartLoading');if(el){el.textContent=limited?feedLimitText():String(d.error.message||'No candles for this market').replace(/\s*Market will open at \.$/,'');el.hidden=false}}updateFeedBadge();return}if(d.msg_type==='tick'&&d.tick){putQuote(d.tick.symbol,+d.tick.quote,null,'Deriv',true)}const _hs=d.echo_req&&d.echo_req.ticks_history,_hOk=_hs&&appSym(_hs)===S.sym&&(!d.echo_req.granularity||d.echo_req.granularity===_histGran);if(d.msg_type==='ohlc'&&d.ohlc&&_hOk){const o=d.ohlc;mergeLiveCandle({time:+o.open_time,open:+o.open,high:+o.high,low:+o.low,close:+o.close,vol:0});const _xq=XQ.q[S.sym];if(!_xq||Date.now()-_xq.ts>3000){XQ.put(S.sym,+o.close,+o.close,'Deriv');subscribeTick(S.sym)}}if(d.msg_type==='candles'&&d.candles&&_hOk){_chartAgain=0;S.candles=aggregateCandles(d.candles.map(c=>({time:+c.epoch,open:+c.open,high:+c.high,low:+c.low,close:+c.close,vol:0})),S.tf);const last=S.candles[S.candles.length-1];if(last)putQuote(S.sym,last.close,null,'Deriv',true);drawChart();renderARIA();renderMTF();runPatternScanner();updateTopbar()}};ws.onclose=()=>{S.wsConnected=false;FEEDQ.reset();FEEDX.reset();setWsBadge(false);updateFeedBadge();clearInterval(NEXUS.wsHeartbeat);wsRetry++;setTimeout(connectWS,Math.min(30000,1200*Math.pow(1.7,wsRetry)))};ws.onerror=()=>{try{ws.close()}catch(e){}}}catch(e){S.wsConnected=false;setWsBadge(false);setTimeout(connectWS,5000)}};
 subscribeWS=function(sym){if(!isDerivStreamSymbol(sym))return;clearDerivSubs();subscribeTick(sym);subscribeHistory(sym)};
 selectPair=function(id){const p=PAIR_MAP[id];if(!p)return;S.sym=id;S.symLabel=p.label;S.dp=p.dp;if(typeof DT!=='undefined')DT.setSymbol(id);chartOffset=0;S.candles=[];S.activePatterns=[];const chip=safeEl('symChip');if(chip){chip.innerHTML=`<span class="sym-flag">${p.flag}</span><span id="symLabel">${p.label}</span>`;const accent=document.documentElement.getAttribute('data-theme')==='light'?'#3B82F6':'var(--neon-cyan)';chip.style.borderColor=accent;setTimeout(()=>chip.style.borderColor='',700)}if(pairPrices[id]?.price)SEEDS[id]=pairPrices[id].price;seedCandles(200);buildPairList(safeEl('pairSearch')?.value||'');updateFeedBadge();if(isDerivStreamSymbol(id))subscribeWS(id);setTimeout(()=>{renderARIA();renderMTF();runPatternScanner();requestChartRedraw()},80)};
 
@@ -9483,7 +9609,7 @@ const FAV = {
 };
 FAV.load();
 buildPairList=function(filter=''){const el=safeEl('pairList');if(!el)return;const f=String(filter).toLowerCase();let h='';FAV.groups().forEach(g=>{const items=g.items.filter(p=>!f||p.label.toLowerCase().includes(f)||p.sym.toLowerCase().includes(f)||p.id.toLowerCase().includes(f)||g.g.toLowerCase().includes(f));if(!items.length)return;h+=`<div class="group-lbl ${g.fav?'fav':''}">${g.fav?'★ ':''}${g.g}</div>`;items.forEach(p=>{const pp=pairPrices[p.id]||{},age=pp.ts?Date.now()-pp.ts:Infinity,stale=age>NEXUS.staleMs,px=(pp.ts&&Number.isFinite(pp.price))?pp.price.toFixed(p.dp):'—',chg=normalizeChg(p.id,Number.isFinite(pp.chg)?pp.chg:0),chgStr=pp.ts?formatPct(p.id,chg,2):'<span style="color:var(--tx-3)">no quote</span>',srcCls=stale?'sim':(pp.src==='Deriv'?'deriv':pp.live?'live':'sim');h+=`<div class="pair-row ${p.id===S.sym?'active':''}" onclick="selectPair('${p.id}')" title="${pp.src||'Waiting'} ${pp.ts?('· '+Math.round(age/1000)+'s ago'):''}"><div><div class="pname">${p.flag} ${p.label}</div><div class="psym">${p.sym} ${stale&&pp.ts?'<span class="feed-status stale">STALE</span>':''}</div></div><div style="text-align:right"><div class="pprice">${px}</div><div class="pchg ${chg>=0?'up':'dn'}">${chgStr} <span class="ws-indicator ${srcCls}" style="display:inline-block"></span></div></div>${FAV.star(p.id)}</div>`})});el.innerHTML=h||'<div style="padding:16px;color:var(--tx-3);font-size:12px">No instruments found.</div>'};
-buildTickerData=function(){tickerItems=[];['frxEURUSD','frxGBPUSD','frxUSDJPY','frxXAUUSD','cryBTCUSD','cryETHUSD','frxNAS100','R_50','1HZ50V','CRASH500','BOOM500'].forEach(id=>{const p=PAIR_MAP[id],pp=pairPrices[id];if(!p||!pp||!pp.ts||!Number.isFinite(pp.price))return;tickerItems.push({id,name:p.label,price:pp.price.toFixed(p.dp),chg:normalizeChg(id,pp.chg||0)})});renderTicker()};
+buildTickerData=function(){tickerItems=[];TICKER_IDS.forEach(id=>{const p=PAIR_MAP[id],pp=pairPrices[id];if(!p||!pp||!pp.ts||!Number.isFinite(pp.price))return;tickerItems.push({id,name:p.label,price:pp.price.toFixed(p.dp),chg:normalizeChg(id,pp.chg||0)})});renderTicker()};
 
 const _initOriginal=init;init=function(){loadQuoteCache();_initOriginal();setInterval(updateFeedBadge,1000);const chip=safeEl('symChip');if(chip)chip.title='Click to switch instruments. Vol 50 (1s) now uses 1HZ50V live Deriv ticks.';const wsBadge=safeEl('wsBadge');if(wsBadge)wsBadge.insertAdjacentHTML('afterend','<span class="feed-status" id="feedHealth">RT</span>');setInterval(()=>{const fh=safeEl('feedHealth'),q=pairPrices[S.sym];if(!fh)return;const age=q?.ts?Date.now()-q.ts:Infinity;fh.className='feed-status '+(age>NEXUS.staleMs?'stale':'');fh.textContent=age>NEXUS.staleMs?'STALE GUARD':'RT'},1000)};
 
@@ -9501,12 +9627,24 @@ const _initOriginal=init;init=function(){loadQuoteCache();_initOriginal();setInt
 isDerivStreamSymbol = function (id) { return !!derivSym(id); };
 
 // One tick stream per instrument, kept alive for the whole session so the
-// ticket and the watchlist always hold a live price.
+// ticket and the watchlist always hold a live price. The feed budget orders
+// them: the charted instrument, then favourites, the ticker strip and
+// anything with a position or working order, then the rest.
 const _tickSubbed = new Set();
+const TICKER_IDS = ['frxEURUSD', 'frxGBPUSD', 'frxUSDJPY', 'frxXAUUSD', 'cryBTCUSD', 'cryETHUSD', 'frxNAS100', 'R_50', '1HZ50V', 'CRASH500', 'BOOM500'];
+function tickPriority(id) {
+  if (id === S.sym) return 1;
+  if (TICKER_IDS.includes(id) || (typeof FAV !== 'undefined' && FAV.has(id))) return 2;
+  if (typeof TR !== 'undefined' && (TR.positions.some(p => p.symbol === id) || TR.orders.some(o => o.symbol === id))) return 2;
+  return 3;
+}
 subscribeTick = function (id) {
   const d = derivSym(id);
   if (!d || _tickSubbed.has(d)) return;
-  if (sendWS({ ticks: d, subscribe: 1 })) _tickSubbed.add(d);
+  // Deriv said this market is shut: not before the opening time it gave (ten minutes when it gave none)
+  const info = typeof otInfo !== 'undefined' && otInfo[id];
+  if (info && info.closedMsg && Date.now() < (info.reopenAt || (info.closedAt || 0) + 600000)) return;
+  if (sendWS({ ticks: d, subscribe: 1 }, tickPriority(id), { key: 'ticks:' + d })) _tickSubbed.add(d);
 };
 
 // Only the candle stream follows the chart. The previous one is dropped when
@@ -9517,7 +9655,7 @@ subscribeWS = function (sym) {
   subscribeHistory(sym);
 };
 
-let _histGran = 0;
+let _histGran = 0, _chartAgain = 0;
 subscribeHistory = function (id) {
   const d = derivSym(id);
   if (!d) return;
@@ -9526,11 +9664,28 @@ subscribeHistory = function (id) {
   // code forgot it only when the replacement's first message arrived, so two
   // quick switches could forget the live stream and merge a foreign
   // granularity's ohlc as a bogus bar.
-  if (_histSubId) { sendWS({ forget: _histSubId }); _histSubId = null; }
+  if (_histSubId) { sendWS({ forget: _histSubId }, 0); _histSubId = null; }
   _histGran = tfSec;
+  // Head of the feed budget; one request however fast the timeframes are
+  // flipped (`replace`), and never sent for a chart that has since moved on
+  // (`wanted`). If Deriv refuses it, the budget sends it again by itself.
   sendWS({ ticks_history: d, adjust_start_time: 1, count: 1000, end: 'latest',
-           granularity: tfSec, style: 'candles', subscribe: 1 });
+           granularity: tfSec, style: 'candles', subscribe: 1 }, 0,
+         { key: 'chart', replace: true, serial: true,
+           wanted: () => derivSym(S.sym) === d && (TF_SEC[tfBase(S.tf)] || 900) === tfSec,
+           onSent: () => { const el = safeEl('chartLoading'); if (el && !el.hidden && !S.candles.length) el.textContent = 'Loading candles…'; } });
 };
+
+// The chart says when Deriv's feed limit is holding its request, and counts
+// down to the retry; the tooltip on the feed badge carries the budget.
+function feedLimitText() {
+  const st = FEEDQ.status(), s = Math.max(1, Math.ceil((st.limitedUntil - Date.now()) / 1000));
+  return `Deriv feed limit reached · retrying in ${s} s`;
+}
+FEEDQ.onChange(st => {
+  const el = safeEl('chartLoading');
+  if (el && !el.hidden && !S.candles.length && st.limitedUntil > Date.now()) el.textContent = feedLimitText();
+});
 
 // Every instrument worth a live quote.
 function derivQuotableIds() {
