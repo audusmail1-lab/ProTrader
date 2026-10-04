@@ -8764,6 +8764,8 @@ const WS = {
     b.classList.toggle('ws-watch-off', !s.watch); b.classList.toggle('ws-analysis-off', !s.analysis);
     b.classList.toggle('ws-dock-off', !s.dock); b.classList.toggle('ws-tools-off', !s.tools);
     root.style.setProperty('--ws-left', this.clampW('left', s.left) + 'px'); root.style.setProperty('--ws-right', this.clampW('right', s.right) + 'px');
+    const setGrip = (id, k) => { const g = document.getElementById(id); if (!g) return; const [lo, hi] = this.BOUNDS[k]; g.setAttribute('aria-valuemin', String(lo)); g.setAttribute('aria-valuemax', String(hi)); g.setAttribute('aria-valuenow', String(this.clampW(k, s[k]))); };
+    setGrip('wsLeftGrip', 'left'); setGrip('wsRightGrip', 'right');
     const set = (id, on) => { const el = document.getElementById(id); if (el) { el.classList.toggle('is-on', on); el.setAttribute('aria-pressed', String(on)); } };
     set('wsTogWatch', s.watch); set('wsTogAnalysis', s.analysis); set('wsTogDock', s.dock); set('wsTogTools', s.tools);
     const f = document.getElementById('wsFocus'); if (f) { const focused = !s.watch && !s.analysis && !s.dock; f.classList.toggle('is-on', focused); f.setAttribute('aria-pressed', String(focused)); f.textContent = focused ? 'Exit focus' : 'Focus chart'; }
@@ -8798,7 +8800,7 @@ const WS = {
       const g = document.getElementById(id); if (!g) return;
       g.addEventListener('pointerdown', e => {
         e.preventDefault(); const x0 = e.clientX, w0 = this.clampW(k, this.st[k]); g.setPointerCapture(e.pointerId); g.classList.add('is-dragging');
-        const mv = ev => { this.st[k] = this.clampW(k, w0 + sign * (ev.clientX - x0)); document.documentElement.style.setProperty('--ws-' + k, this.st[k] + 'px'); };
+        const mv = ev => { this.st[k] = this.clampW(k, w0 + sign * (ev.clientX - x0)); document.documentElement.style.setProperty('--ws-' + k, this.st[k] + 'px'); g.setAttribute('aria-valuenow', String(this.st[k])); };
         const up = () => { g.removeEventListener('pointermove', mv); g.removeEventListener('pointerup', up); g.classList.remove('is-dragging'); this.save(); this.apply(); };
         g.addEventListener('pointermove', mv); g.addEventListener('pointerup', up);
       });
