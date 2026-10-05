@@ -2,7 +2,7 @@
 
 ## 1. What was covered, and how
 
-**Channel.** "MQL5 Algo Trading", handle `@mql5dev` (t.me/mql5dev), the official MetaQuotes channel ("The best publications of the largest community of algotraders"), 566K subscribers at crawl time. Every post is a short editorial summary (typically 600–900 characters) of one mql5.com article or CodeBase item, with the link. There are no forwarded posts; comments and replies are not exposed by the public preview, so none were reviewed.
+**Channel.** "MQL5 Algo Trading", handle `@mql5dev` (t.me/mql5dev), the official MetaQuotes channel ("The best publications of the largest community of algotraders"), 566K subscribers at crawl time. Every post is a short editorial summary (typically 600–900 characters) of one mql5.com article or CodeBase item, with the link. There are no forwarded posts; comments and replies are not exposed by the public preview; the owner's export (section 5) confirms there are none to review.
 
 **Method.** `research_telegram.py` crawled the public web preview (`t.me/s/mql5dev`, paginated with `?before=<id>`) from the newest post back to id 1, in 213 pages, with resumable checkpoints (`tg_pages`). Every message id from 1 to 4304 has a row in `tg_messages` (`research/research.db`): 4,274 fetched with full text, links and media type; 30 ids that the preview does not serve are recorded as `unavailable` (ids 2–25 — the channel's first days, deleted or service messages — plus 111, 386, 450, 895, 976, 3211). The crawl finished 2026-10-05 11:11 UTC; the newest post is #4304 (2026-10-05 06:00 UTC), the oldest fetched is #1 (2023-10-05).
 
@@ -10,7 +10,7 @@
 
 **Spot checks.** The 116 relevance-3 posts were read in full by me, as were the summaries of all 468 relevance-2 hypotheses; the library below was built from those readings, not from the classifier's labels alone. Linked mql5.com articles were **not** fetched: every claim in the library is what the *post* states, which is the channel's summary of the article. That is a real limit: author names, exact parameters and result tables often live only in the article. Where the post names numbers they are quoted; where it does not, the row says "not stated".
 
-**Untrusted input.** Posts, links and any code mentioned were treated as data. No attachment or CodeBase item was executed or reproduced.
+**Untrusted input.** Posts, links, images and any code mentioned were treated as data. No attachment or CodeBase item was executed or reproduced.
 
 ## 2. Coverage ledger — numbers (computed by `python research_library.py coverage`)
 
@@ -75,6 +75,15 @@ The per-post ledger is `research/coverage_ledger.csv` (id, URL, date, fetch stat
 
 Three years of posts contain very few quantified strategy results and essentially no out-of-sample ones; most "strategies" are CodeBase EAs described by their inputs. The channel's real value for Sentinel is in two places: a handful of carefully stated studies (#3292 session filter, #4121 reopen drift, #4282/#4283 gold breakouts, #4027 null ML result) and a strong, consistent body of validation and cost methodology (L31–L35) that the channel's own authors apply to expose fragile backtests. The library records the first as candidates with rejection criteria and the second as rules the research system adopts.
 
-## 5. Limits of this coverage
+## 5. Independent verification — the owner's Telegram Desktop export (5 Oct 2026, 13:43)
 
-Linked articles unread (the posts are summaries); comments not available; three posts had no summary at all; authors unnamed; several posts truncate their own numbers ("text truncated" in the dispositions). Anything a future reviewer wants to rely on beyond the post text must be fetched and recorded in `sources` with its own fetched_at before it is cited.
+Joel exported the channel from Telegram Desktop (HTML, `ChatExport_MQL5 Algo Trading/`, 561 MB with media). `messages.html` was parsed and compared with the preview ledger, row by row (`tg_export`, `tg_export_meta` in `research.db`; the export texts are kept as hashes, not copies):
+
+- **Same message ids.** 4,274 ids in both; the same 30 ids (2–25, 111, 386, 450, 895, 976, 3211) are absent from the export too, so they do not exist in the channel (deleted or service events). Id 1 is "Channel created"; 20 service messages (pins, a giveaway) carry no content.
+- **Same texts.** 4,252 of 4,254 post bodies are identical once whitespace and reaction counters are ignored (the preview crawler had appended reaction counts to the text; they moved by ±1–2 between crawl and export). The two exceptions are media placeholders (#464, #3087). The channel's own "…" truncations are present in the export as well, so **no text was lost to the preview**; where a post truncates its numbers, the number is not in Telegram at all.
+- **What the export adds.** Reaction counts per post (engagement, not evidence); 16 posts flagged as edited; 2 replies (both media placeholders); 0 forwards; the full-size post images.
+- **Images reviewed.** The photos attached to the 25 most-cited posts were examined (`tg_media_notes`): 13 are generic cover illustrations; 12 carry data, and that data is now quoted in the library rows it belongs to — the #4282 gold H4 equity curve (flat for ~115 trades, all the gain in the last ~80), the #4121 cost-corrected edge card (+3.34 → +1.60 bps, t 3.42, Sharpe 1.23, 10/11 years), the #4114 spread/swap card (live spread 3.3× the bar field; gold swap −0.58 USD per night per 0.01 lot — about three spreads for a two-night hold), the #4123 OHLC-error curve (nil above 500 points), the #3979 cost-line chart, tester reports for #3453 (PF 1.10, Sharpe 0.73), #4270 (PF 1.10, DD 10.6 %) and #2847 (30 trades, DD 58.6 %). None of it changes a verdict in docs/04; the #4114 swap figure strengthens the cost caveat on Sentinel's XAU 1h/4h longs.
+
+## 6. Limits of this coverage
+
+Linked articles unread (the posts are summaries); comments are not part of a channel export (the channel has no linked discussion group in the export); authors unnamed; several posts truncate their own numbers ("text truncated" in the dispositions) and the export confirms the truncation is the channel's. Anything a future reviewer wants to rely on beyond the post text and images must be fetched and recorded in `sources` with its own fetched_at before it is cited.
