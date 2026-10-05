@@ -29,6 +29,10 @@ RUN pip install --upgrade pip && pip install -r requirements.txt
 # App source. .dockerignore keeps logs, venv and pid files out.
 COPY dashboard.py accounts.py mt5_bridge.py notify.py grok_quantum_bot.py protrader_mobile.html landing.html chart_lab.html ./
 COPY sentinel.py sentinel_live.py sentinel_core.py sentinel_engine.py sentinel_replay.py sentinel_baseline.json ./
+# Research loop (sentinel_research.py) and the committed research library it
+# serves read-only; experiments and the history cache stay out of the image.
+COPY sentinel_research.py research_lab.py research_library.py ./
+COPY research/research.db research/library.json research/hypotheses.json ./research/
 COPY vendor ./vendor
 COPY static ./static
 
