@@ -1,6 +1,13 @@
 # Sentinel research system — assessment, coverage, library, loop, measured results (5 Oct 2026)
 
-**Status: built and tested on the cloud clone as four commits on top of origin/main 9f3cae7 (6c5aff1 → 8d32f76); NOT pushed, NOT deployed.** Awaiting Joel's "launch". Live execution untouched; Sentinel Live (demo) and the 1/2/3 %/three-loss risk layer are not changed by anything here.
+**Status: LIVE.** Launched 5 Oct 2026 (origin/main 9f3cae7 → 90a2ef1, eight commits; the eighth adds the research files to the Docker image, which the first deploy had left out — the scanner ran unaffected, the research router was simply absent until the rebuild). Live execution untouched; Sentinel Live (demo) and the 1/2/3 %/three-loss risk layer are not changed by anything here.
+
+**First cycle on the server (20:22 UTC):** registry at `/var/data/sentinel_research.db`; incumbent ARIA 7.1 / 7.2c registered with its paper cohort from 27 Sep (165 resolved; 11 open and 18 earlier-model trades excluded). Both reviews were produced and stored once:
+
+- **Diagnostic at 100 — inconclusive.** −0.199 R/trade, 95 % interval −0.41 to +0.01, PF 0.66, max DD 24.8 R, win 46 %; at ×1.5 spreads −0.23.
+- **Formal at 150 — underperforming.** −0.130 R/trade [−0.31, +0.05], PF 0.77, max DD 27.1 R, win 48 %, 0 of 2 months positive, thirds −13.3 / −5.3 / −0.9; fails seven of the eight eligibility checks; expectancy ≤ −0.05 R at n ≥ 150. Dominant factor by the R-unit attribution: **exit** (giveback 0.45 R/trade: average MFE 1.17 R against a negative realised R), then entry quality (35 % of trades never reach +0.5 R). Sessions: NY 13–21 UTC −0.30 R (n 68) vs London −0.02 and Asia −0.02 — the opposite of the session-filter hypothesis. Actions recorded: queue at most two challengers that address the exit; keep the incumbent cohort running for the paired comparison; "no validated edge found" stands.
+
+Note the journal's focus list is wider than the eight markets used in the replays (it includes R_10, R_50, 1HZ25V, 1HZ50V, BOOM1000), so the forward cohort is a different population from the development evidence.
 
 Full write-ups live in the repo under `research/docs/`: 01 current-system assessment · 02 Telegram coverage and library · 03 design and implementation · 04 candidates and measured results · 05 roadmap and blocked inputs. This page is the summary.
 

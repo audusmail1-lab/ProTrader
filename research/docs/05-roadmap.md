@@ -31,7 +31,7 @@
 
 ## Next steps, in order
 
-1. Launch the change set (after preview); confirm the incumbent's 100/150 reviews on the server and read them.
+1. ~~Launch the change set; confirm the incumbent's 100/150 reviews on the server and read them.~~ Done 5 Oct: diagnostic at 100 inconclusive (−0.199 R), formal at 150 underperforming (−0.130 R), dominant factor exit, then entry quality (docs/00).
 2. Record H1/H3/H5 as rejected and H2 as a cost rule in `hypotheses.json` (done in this change set) and queue the next two from the ranked list that the incumbent's diagnosis points at — the diagnosis in the 150-trade review decides, not the order of the list.
 3. Measure costs (blocked input above); re-run H1–H7 at measured spreads by hour. If measured spreads are wider than the estimates, every result above gets worse, and the cost-cap rule gets more important, not less.
 4. If H6 (Donchian challenger) survives its own rejection criteria on measured costs, create its version, move it to `paper-testing` with the experiment id, and let the 100/150 loop judge it against the incumbent on the matched period.
