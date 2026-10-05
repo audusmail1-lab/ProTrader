@@ -1,0 +1,239 @@
+{
+ "id": "H3-adx",
+ "hypothesis": "H3",
+ "slices": [
+  [
+   "frxNAS100",
+   "15m"
+  ],
+  [
+   "frxNAS100",
+   "1h"
+  ],
+  [
+   "frxXAUUSD",
+   "15m"
+  ],
+  [
+   "frxXAUUSD",
+   "1h"
+  ],
+  [
+   "cryBTCUSD",
+   "15m"
+  ],
+  [
+   "cryBTCUSD",
+   "1h"
+  ],
+  [
+   "frxEURUSD",
+   "15m"
+  ],
+  [
+   "frxEURUSD",
+   "1h"
+  ],
+  [
+   "frxGBPUSD",
+   "15m"
+  ],
+  [
+   "frxGBPUSD",
+   "1h"
+  ],
+  [
+   "frxUSDJPY",
+   "15m"
+  ],
+  [
+   "frxUSDJPY",
+   "1h"
+  ],
+  [
+   "R_75",
+   "15m"
+  ],
+  [
+   "R_75",
+   "1h"
+  ],
+  [
+   "1HZ75V",
+   "15m"
+  ],
+  [
+   "1HZ75V",
+   "1h"
+  ]
+ ],
+ "base": {},
+ "variants": {
+  "adx20": {
+   "gates": {
+    "adx": {
+     "period": 14,
+     "min": 20,
+     "rising": true,
+     "di": true
+    }
+   }
+  },
+  "adx20_norise": {
+   "gates": {
+    "adx": {
+     "period": 14,
+     "min": 20,
+     "rising": false,
+     "di": true
+    }
+   }
+  },
+  "adx20_nomtf": {
+   "gates": {
+    "adx": {
+     "period": 14,
+     "min": 20,
+     "rising": true,
+     "di": true
+    }
+   },
+   "mtf": false
+  }
+ },
+ "filter_tests": [
+  {
+   "variant": "adx20",
+   "gate": "adx",
+   "cfg": {
+    "period": 14,
+    "min": 20,
+    "rising": true,
+    "di": true
+   }
+  },
+  {
+   "variant": "adx20_norise",
+   "gate": "adx",
+   "cfg": {
+    "period": 14,
+    "min": 20,
+    "rising": false,
+    "di": true
+   }
+  }
+ ],
+ "neighbourhood": {
+  "gate": "adx",
+  "cells": [
+   {
+    "label": "T18 rising=True",
+    "cfg": {
+     "period": 14,
+     "min": 18,
+     "rising": true,
+     "di": true
+    }
+   },
+   {
+    "label": "T18 rising=False",
+    "cfg": {
+     "period": 14,
+     "min": 18,
+     "rising": false,
+     "di": true
+    }
+   },
+   {
+    "label": "T20 rising=True",
+    "cfg": {
+     "period": 14,
+     "min": 20,
+     "rising": true,
+     "di": true
+    }
+   },
+   {
+    "label": "T20 rising=False",
+    "cfg": {
+     "period": 14,
+     "min": 20,
+     "rising": false,
+     "di": true
+    }
+   },
+   {
+    "label": "T22 rising=True",
+    "cfg": {
+     "period": 14,
+     "min": 22,
+     "rising": true,
+     "di": true
+    }
+   },
+   {
+    "label": "T22 rising=False",
+    "cfg": {
+     "period": 14,
+     "min": 22,
+     "rising": false,
+     "di": true
+    }
+   },
+   {
+    "label": "T24 rising=True",
+    "cfg": {
+     "period": 14,
+     "min": 24,
+     "rising": true,
+     "di": true
+    }
+   },
+   {
+    "label": "T24 rising=False",
+    "cfg": {
+     "period": 14,
+     "min": 24,
+     "rising": false,
+     "di": true
+    }
+   },
+   {
+    "label": "T26 rising=True",
+    "cfg": {
+     "period": 14,
+     "min": 26,
+     "rising": true,
+     "di": true
+    }
+   },
+   {
+    "label": "T26 rising=False",
+    "cfg": {
+     "period": 14,
+     "min": 26,
+     "rising": false,
+     "di": true
+    }
+   },
+   {
+    "label": "T28 rising=True",
+    "cfg": {
+     "period": 14,
+     "min": 28,
+     "rising": true,
+     "di": true
+    }
+   },
+   {
+    "label": "T28 rising=False",
+    "cfg": {
+     "period": 14,
+     "min": 28,
+     "rising": false,
+     "di": true
+    }
+   }
+  ]
+ }
+}

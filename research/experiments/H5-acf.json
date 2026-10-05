@@ -1,0 +1,117 @@
+{
+ "id": "H5-acf",
+ "hypothesis": "H5",
+ "slices": [
+  [
+   "frxNAS100",
+   "15m"
+  ],
+  [
+   "frxNAS100",
+   "1h"
+  ],
+  [
+   "frxXAUUSD",
+   "15m"
+  ],
+  [
+   "frxXAUUSD",
+   "1h"
+  ],
+  [
+   "cryBTCUSD",
+   "15m"
+  ],
+  [
+   "cryBTCUSD",
+   "1h"
+  ],
+  [
+   "frxEURUSD",
+   "15m"
+  ],
+  [
+   "frxEURUSD",
+   "1h"
+  ],
+  [
+   "frxGBPUSD",
+   "15m"
+  ],
+  [
+   "frxGBPUSD",
+   "1h"
+  ],
+  [
+   "frxUSDJPY",
+   "15m"
+  ],
+  [
+   "frxUSDJPY",
+   "1h"
+  ],
+  [
+   "R_75",
+   "15m"
+  ],
+  [
+   "R_75",
+   "1h"
+  ],
+  [
+   "1HZ75V",
+   "15m"
+  ],
+  [
+   "1HZ75V",
+   "1h"
+  ]
+ ],
+ "base": {},
+ "variants": {
+  "acf100": {
+   "gates": {
+    "acf": {
+     "n": 100,
+     "min": 0.0
+    }
+   }
+  }
+ },
+ "filter_tests": [
+  {
+   "variant": "acf100",
+   "gate": "acf",
+   "cfg": {
+    "n": 100,
+    "min": 0.0
+   }
+  }
+ ],
+ "neighbourhood": {
+  "gate": "acf",
+  "cells": [
+   {
+    "label": "n100 min0.0",
+    "cfg": {
+     "n": 100,
+     "min": 0.0
+    }
+   },
+   {
+    "label": "n100 min0.05",
+    "cfg": {
+     "n": 100,
+     "min": 0.05
+    }
+   },
+   {
+    "label": "n100 min0.1",
+    "cfg": {
+     "n": 100,
+     "min": 0.1
+    }
+   }
+  ]
+ }
+}

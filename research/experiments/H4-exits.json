@@ -1,0 +1,107 @@
+{
+ "id": "H4-exits",
+ "hypothesis": "H4",
+ "slices": [
+  [
+   "frxNAS100",
+   "15m"
+  ],
+  [
+   "frxNAS100",
+   "1h"
+  ],
+  [
+   "frxXAUUSD",
+   "15m"
+  ],
+  [
+   "frxXAUUSD",
+   "1h"
+  ],
+  [
+   "cryBTCUSD",
+   "15m"
+  ],
+  [
+   "cryBTCUSD",
+   "1h"
+  ],
+  [
+   "frxEURUSD",
+   "15m"
+  ],
+  [
+   "frxEURUSD",
+   "1h"
+  ],
+  [
+   "frxGBPUSD",
+   "15m"
+  ],
+  [
+   "frxGBPUSD",
+   "1h"
+  ],
+  [
+   "frxUSDJPY",
+   "15m"
+  ],
+  [
+   "frxUSDJPY",
+   "1h"
+  ],
+  [
+   "R_75",
+   "15m"
+  ],
+  [
+   "R_75",
+   "1h"
+  ],
+  [
+   "1HZ75V",
+   "15m"
+  ],
+  [
+   "1HZ75V",
+   "1h"
+  ]
+ ],
+ "base": {},
+ "variants": {
+  "atr2": {
+   "exit": {
+    "kind": "atr_trail",
+    "mult": 2.0,
+    "period": 14
+   }
+  },
+  "atr2_be": {
+   "exit": {
+    "kind": "atr_trail",
+    "mult": 2.0,
+    "period": 14,
+    "breakeven_at": 1.0
+   }
+  },
+  "atr3": {
+   "exit": {
+    "kind": "atr_trail",
+    "mult": 3.0,
+    "period": 14
+   }
+  },
+  "chan10": {
+   "exit": {
+    "kind": "channel",
+    "channel": 10
+   }
+  },
+  "chan20": {
+   "exit": {
+    "kind": "channel",
+    "channel": 20
+   }
+  }
+ }
+}

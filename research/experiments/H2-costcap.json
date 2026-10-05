@@ -1,0 +1,146 @@
+{
+ "id": "H2-costcap",
+ "hypothesis": "H2",
+ "slices": [
+  [
+   "frxNAS100",
+   "15m"
+  ],
+  [
+   "frxNAS100",
+   "1h"
+  ],
+  [
+   "frxXAUUSD",
+   "15m"
+  ],
+  [
+   "frxXAUUSD",
+   "1h"
+  ],
+  [
+   "cryBTCUSD",
+   "15m"
+  ],
+  [
+   "cryBTCUSD",
+   "1h"
+  ],
+  [
+   "frxEURUSD",
+   "15m"
+  ],
+  [
+   "frxEURUSD",
+   "1h"
+  ],
+  [
+   "frxGBPUSD",
+   "15m"
+  ],
+  [
+   "frxGBPUSD",
+   "1h"
+  ],
+  [
+   "frxUSDJPY",
+   "15m"
+  ],
+  [
+   "frxUSDJPY",
+   "1h"
+  ],
+  [
+   "R_75",
+   "15m"
+  ],
+  [
+   "R_75",
+   "1h"
+  ],
+  [
+   "1HZ75V",
+   "15m"
+  ],
+  [
+   "1HZ75V",
+   "1h"
+  ]
+ ],
+ "base": {},
+ "variants": {
+  "cap0.05": {
+   "gates": {
+    "cost_cap": 0.05
+   }
+  },
+  "cap0.08": {
+   "gates": {
+    "cost_cap": 0.08
+   }
+  },
+  "cap0.12": {
+   "gates": {
+    "cost_cap": 0.12
+   }
+  }
+ },
+ "filter_tests": [
+  {
+   "variant": "cap0.05",
+   "gate": "cost_cap",
+   "cfg": 0.05
+  },
+  {
+   "variant": "cap0.08",
+   "gate": "cost_cap",
+   "cfg": 0.08
+  },
+  {
+   "variant": "cap0.12",
+   "gate": "cost_cap",
+   "cfg": 0.12
+  }
+ ],
+ "neighbourhood": {
+  "gate": "cost_cap",
+  "cells": [
+   {
+    "label": "cap 0.04",
+    "cfg": 0.04
+   },
+   {
+    "label": "cap 0.05",
+    "cfg": 0.05
+   },
+   {
+    "label": "cap 0.06",
+    "cfg": 0.06
+   },
+   {
+    "label": "cap 0.07",
+    "cfg": 0.07
+   },
+   {
+    "label": "cap 0.08",
+    "cfg": 0.08
+   },
+   {
+    "label": "cap 0.09",
+    "cfg": 0.09
+   },
+   {
+    "label": "cap 0.10",
+    "cfg": 0.1
+   },
+   {
+    "label": "cap 0.12",
+    "cfg": 0.12
+   },
+   {
+    "label": "cap 0.15",
+    "cfg": 0.15
+   }
+  ]
+ }
+}

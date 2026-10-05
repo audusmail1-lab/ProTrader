@@ -1,0 +1,209 @@
+{
+ "id": "H6-donchian",
+ "hypothesis": "H6",
+ "slices": [
+  [
+   "frxNAS100",
+   "1h"
+  ],
+  [
+   "frxNAS100",
+   "4h"
+  ],
+  [
+   "frxXAUUSD",
+   "1h"
+  ],
+  [
+   "frxXAUUSD",
+   "4h"
+  ],
+  [
+   "cryBTCUSD",
+   "1h"
+  ],
+  [
+   "cryBTCUSD",
+   "4h"
+  ],
+  [
+   "frxEURUSD",
+   "1h"
+  ],
+  [
+   "frxEURUSD",
+   "4h"
+  ],
+  [
+   "frxGBPUSD",
+   "1h"
+  ],
+  [
+   "frxGBPUSD",
+   "4h"
+  ],
+  [
+   "frxUSDJPY",
+   "1h"
+  ],
+  [
+   "frxUSDJPY",
+   "4h"
+  ],
+  [
+   "R_75",
+   "1h"
+  ],
+  [
+   "R_75",
+   "4h"
+  ],
+  [
+   "1HZ75V",
+   "1h"
+  ],
+  [
+   "1HZ75V",
+   "4h"
+  ]
+ ],
+ "base": {
+  "entry": "donchian",
+  "stop": {
+   "kind": "atr",
+   "mult": 2.0,
+   "period": 20
+  },
+  "exit": {
+   "kind": "fixed_r",
+   "r": 2.0
+  },
+  "donchian": {
+   "lookback": 20,
+   "trend": true,
+   "sides": "both"
+  }
+ },
+ "variants": {
+  "d20_2R": {
+   "entry": "donchian",
+   "stop": {
+    "kind": "atr",
+    "mult": 2.0,
+    "period": 20
+   },
+   "exit": {
+    "kind": "fixed_r",
+    "r": 2.0
+   },
+   "donchian": {
+    "lookback": 20,
+    "trend": true,
+    "sides": "both"
+   }
+  },
+  "d20_atr2": {
+   "entry": "donchian",
+   "stop": {
+    "kind": "atr",
+    "mult": 2.0,
+    "period": 20
+   },
+   "exit": {
+    "kind": "atr_trail",
+    "mult": 2.0,
+    "period": 20
+   },
+   "donchian": {
+    "lookback": 20,
+    "trend": true,
+    "sides": "both"
+   }
+  },
+  "d20_notrend": {
+   "entry": "donchian",
+   "stop": {
+    "kind": "atr",
+    "mult": 2.0,
+    "period": 20
+   },
+   "exit": {
+    "kind": "fixed_r",
+    "r": 2.0
+   },
+   "donchian": {
+    "lookback": 20,
+    "trend": false,
+    "sides": "both"
+   }
+  },
+  "d55_2R": {
+   "entry": "donchian",
+   "stop": {
+    "kind": "atr",
+    "mult": 2.0,
+    "period": 20
+   },
+   "exit": {
+    "kind": "fixed_r",
+    "r": 2.0
+   },
+   "donchian": {
+    "lookback": 55,
+    "trend": true,
+    "sides": "both"
+   }
+  },
+  "d20_long": {
+   "entry": "donchian",
+   "stop": {
+    "kind": "atr",
+    "mult": 2.0,
+    "period": 20
+   },
+   "exit": {
+    "kind": "fixed_r",
+    "r": 2.0
+   },
+   "donchian": {
+    "lookback": 20,
+    "trend": true,
+    "sides": "long"
+   }
+  },
+  "d20_stop1.5": {
+   "entry": "donchian",
+   "stop": {
+    "kind": "atr",
+    "mult": 1.5,
+    "period": 20
+   },
+   "exit": {
+    "kind": "fixed_r",
+    "r": 2.0
+   },
+   "donchian": {
+    "lookback": 20,
+    "trend": true,
+    "sides": "both"
+   }
+  },
+  "d20_stop2.5": {
+   "entry": "donchian",
+   "stop": {
+    "kind": "atr",
+    "mult": 2.5,
+    "period": 20
+   },
+   "exit": {
+    "kind": "fixed_r",
+    "r": 2.0
+   },
+   "donchian": {
+    "lookback": 20,
+    "trend": true,
+    "sides": "both"
+   }
+  }
+ }
+}

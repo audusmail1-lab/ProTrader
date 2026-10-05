@@ -1,0 +1,213 @@
+{
+ "id": "H7-gates",
+ "hypothesis": "H7",
+ "slices": [
+  [
+   "frxNAS100",
+   "15m"
+  ],
+  [
+   "frxNAS100",
+   "1h"
+  ],
+  [
+   "frxXAUUSD",
+   "15m"
+  ],
+  [
+   "frxXAUUSD",
+   "1h"
+  ],
+  [
+   "cryBTCUSD",
+   "15m"
+  ],
+  [
+   "cryBTCUSD",
+   "1h"
+  ],
+  [
+   "frxEURUSD",
+   "15m"
+  ],
+  [
+   "frxEURUSD",
+   "1h"
+  ],
+  [
+   "frxGBPUSD",
+   "15m"
+  ],
+  [
+   "frxGBPUSD",
+   "1h"
+  ],
+  [
+   "frxUSDJPY",
+   "15m"
+  ],
+  [
+   "frxUSDJPY",
+   "1h"
+  ],
+  [
+   "R_75",
+   "15m"
+  ],
+  [
+   "R_75",
+   "1h"
+  ],
+  [
+   "1HZ75V",
+   "15m"
+  ],
+  [
+   "1HZ75V",
+   "1h"
+  ]
+ ],
+ "base": {},
+ "variants": {
+  "req0": {
+   "gates": {
+    "require_gates": [
+     0
+    ]
+   }
+  },
+  "req1": {
+   "gates": {
+    "require_gates": [
+     1
+    ]
+   }
+  },
+  "req2": {
+   "gates": {
+    "require_gates": [
+     2
+    ]
+   }
+  },
+  "req3": {
+   "gates": {
+    "require_gates": [
+     3
+    ]
+   }
+  },
+  "req4": {
+   "gates": {
+    "require_gates": [
+     4
+    ]
+   }
+  },
+  "req5": {
+   "gates": {
+    "require_gates": [
+     5
+    ]
+   }
+  },
+  "req6": {
+   "gates": {
+    "require_gates": [
+     6
+    ]
+   }
+  },
+  "req7": {
+   "gates": {
+    "require_gates": [
+     7
+    ]
+   }
+  },
+  "req8": {
+   "gates": {
+    "require_gates": [
+     8
+    ]
+   }
+  },
+  "req9": {
+   "gates": {
+    "require_gates": [
+     9
+    ]
+   }
+  },
+  "drop0": {
+   "gates": {
+    "drop_gates": [
+     0
+    ]
+   }
+  },
+  "drop1": {
+   "gates": {
+    "drop_gates": [
+     1
+    ]
+   }
+  },
+  "drop2": {
+   "gates": {
+    "drop_gates": [
+     2
+    ]
+   }
+  },
+  "drop3": {
+   "gates": {
+    "drop_gates": [
+     3
+    ]
+   }
+  },
+  "drop4": {
+   "gates": {
+    "drop_gates": [
+     4
+    ]
+   }
+  },
+  "drop5": {
+   "gates": {
+    "drop_gates": [
+     5
+    ]
+   }
+  },
+  "drop6": {
+   "gates": {
+    "drop_gates": [
+     6
+    ]
+   }
+  },
+  "drop7": {
+   "gates": {
+    "drop_gates": [
+     7
+    ]
+   }
+  },
+  "drop8": {
+   "gates": {
+    "drop_gates": [
+     8
+    ]
+   }
+  },
+  "drop9": {
+   "gates": {
+    "drop_gates": [
+     9
+    ]
+   }
+  }
+ }
+}

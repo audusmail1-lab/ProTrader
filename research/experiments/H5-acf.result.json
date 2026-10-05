@@ -1,0 +1,6146 @@
+{
+ "id": "H5-acf",
+ "hypothesis": "H5",
+ "generated": 1791205235,
+ "bounds": {
+  "start": 1759471200,
+  "dev_end": 1775336850,
+  "val_end": 1781683110,
+  "end": 1791202500
+ },
+ "slices": [
+  [
+   "frxNAS100",
+   "15m"
+  ],
+  [
+   "frxNAS100",
+   "1h"
+  ],
+  [
+   "frxXAUUSD",
+   "15m"
+  ],
+  [
+   "frxXAUUSD",
+   "1h"
+  ],
+  [
+   "cryBTCUSD",
+   "15m"
+  ],
+  [
+   "cryBTCUSD",
+   "1h"
+  ],
+  [
+   "frxEURUSD",
+   "15m"
+  ],
+  [
+   "frxEURUSD",
+   "1h"
+  ],
+  [
+   "frxGBPUSD",
+   "15m"
+  ],
+  [
+   "frxGBPUSD",
+   "1h"
+  ],
+  [
+   "frxUSDJPY",
+   "15m"
+  ],
+  [
+   "frxUSDJPY",
+   "1h"
+  ],
+  [
+   "R_75",
+   "15m"
+  ],
+  [
+   "R_75",
+   "1h"
+  ],
+  [
+   "1HZ75V",
+   "15m"
+  ],
+  [
+   "1HZ75V",
+   "1h"
+  ]
+ ],
+ "base_rules": {
+  "entry": "aria",
+  "model": "7.2c",
+  "mtf": null,
+  "wave5_veto": null,
+  "gates": {},
+  "stop": {
+   "kind": "aria"
+  },
+  "exit": {
+   "kind": "model"
+  },
+  "donchian": {
+   "lookback": 20,
+   "trend": true,
+   "sides": "both"
+  },
+  "shadows": false
+ },
+ "base_version": "4c5d20458e",
+ "variants": {
+  "base": {
+   "n": 6257,
+   "dev": {
+    "x1.0": {
+     "n": 2940,
+     "wins": 1402,
+     "win_rate": 0.4769,
+     "wilson_lower_win": 0.4589,
+     "expectancy_r": -0.0407,
+     "gross_expectancy_r": 0.0247,
+     "ci95_r": [
+      -0.09,
+      0.0087
+     ],
+     "ci95_block_r": [
+      -0.1034,
+      0.024
+     ],
+     "se_r": 0.02517,
+     "total_r": -119.63,
+     "profit_factor": 0.927,
+     "max_drawdown_r": 153.26,
+     "longest_losing_streak": 20,
+     "timeouts": 2,
+     "avg_cost_r": 0.0653,
+     "cost_share": 0.061,
+     "months": 7,
+     "months_positive_share": 0.286,
+     "best_two_months_share": null,
+     "thirds_r": [
+      -60.76,
+      23.73,
+      -82.6
+     ],
+     "thirds_positive": 1,
+     "best_trade_removed_r": -0.0438,
+     "regimes": {
+      "up": 1377,
+      "down": 1563
+     },
+     "cost_mult": 1.0,
+     "mfe_avg_r": 1.248,
+     "never_reached_half_r": 0.34
+    },
+    "x1.5": {
+     "n": 2940,
+     "wins": 1402,
+     "win_rate": 0.4769,
+     "wilson_lower_win": 0.4589,
+     "expectancy_r": -0.0734,
+     "gross_expectancy_r": 0.0247,
+     "ci95_r": [
+      -0.1227,
+      -0.024
+     ],
+     "ci95_block_r": [
+      -0.1372,
+      -0.0078
+     ],
+     "se_r": 0.0252,
+     "total_r": -215.68,
+     "profit_factor": 0.873,
+     "max_drawdown_r": 238.48,
+     "longest_losing_streak": 20,
+     "timeouts": 2,
+     "avg_cost_r": 0.098,
+     "cost_share": 0.092,
+     "months": 7,
+     "months_positive_share": 0.286,
+     "best_two_months_share": null,
+     "thirds_r": [
+      -92.53,
+      -10.37,
+      -112.78
+     ],
+     "thirds_positive": 0,
+     "best_trade_removed_r": -0.0765,
+     "regimes": {
+      "up": 1377,
+      "down": 1563
+     },
+     "cost_mult": 1.5,
+     "mfe_avg_r": 1.248,
+     "never_reached_half_r": 0.34
+    },
+    "x2.0": {
+     "n": 2940,
+     "wins": 1402,
+     "win_rate": 0.4769,
+     "wilson_lower_win": 0.4589,
+     "expectancy_r": -0.106,
+     "gross_expectancy_r": 0.0247,
+     "ci95_r": [
+      -0.1555,
+      -0.0566
+     ],
+     "ci95_block_r": [
+      -0.1712,
+      -0.0396
+     ],
+     "se_r": 0.02524,
+     "total_r": -311.73,
+     "profit_factor": 0.822,
+     "max_drawdown_r": 326.65,
+     "longest_losing_streak": 20,
+     "timeouts": 2,
+     "avg_cost_r": 0.1307,
+     "cost_share": 0.122,
+     "months": 7,
+     "months_positive_share": 0.143,
+     "best_two_months_share": null,
+     "thirds_r": [
+      -124.31,
+      -44.46,
+      -142.95
+     ],
+     "thirds_positive": 0,
+     "best_trade_removed_r": -0.1092,
+     "regimes": {
+      "up": 1377,
+      "down": 1563
+     },
+     "cost_mult": 2.0,
+     "mfe_avg_r": 1.248,
+     "never_reached_half_r": 0.34
+    },
+    "by_slice": {
+     "1HZ75V 15m": {
+      "n": 334,
+      "wins": 158,
+      "win_rate": 0.4731,
+      "wilson_lower_win": 0.4201,
+      "expectancy_r": -0.0301,
+      "gross_expectancy_r": -0.0087,
+      "ci95_r": [
+       -0.1729,
+       0.1127
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.07286,
+      "total_r": -10.06,
+      "profit_factor": 0.944,
+      "max_drawdown_r": 28.1,
+      "longest_losing_streak": 9,
+      "timeouts": 0,
+      "avg_cost_r": 0.0214,
+      "cost_share": 0.021,
+      "months": 7,
+      "months_positive_share": 0.571,
+      "best_two_months_share": null,
+      "thirds_r": [
+       -8.07,
+       -2.49,
+       0.5
+      ],
+      "thirds_positive": 1,
+      "best_trade_removed_r": -0.0578,
+      "regimes": {
+       "down": 175,
+       "up": 159
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.189,
+      "never_reached_half_r": 0.359
+     },
+     "1HZ75V 1h": {
+      "n": 115,
+      "wins": 59,
+      "win_rate": 0.513,
+      "wilson_lower_win": 0.4228,
+      "expectancy_r": 0.0376,
+      "gross_expectancy_r": 0.0482,
+      "ci95_r": [
+       -0.2119,
+       0.2871
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.12727,
+      "total_r": 4.32,
+      "profit_factor": 1.076,
+      "max_drawdown_r": 19.75,
+      "longest_losing_streak": 9,
+      "timeouts": 0,
+      "avg_cost_r": 0.0106,
+      "cost_share": 0.01,
+      "months": 7,
+      "months_positive_share": 0.571,
+      "best_two_months_share": 3.038,
+      "thirds_r": [
+       7.85,
+       -11.15,
+       7.62
+      ],
+      "thirds_positive": 2,
+      "best_trade_removed_r": -0.0125,
+      "regimes": {
+       "down": 53,
+       "up": 62
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.224,
+      "never_reached_half_r": 0.33
+     },
+     "R_75 15m": {
+      "n": 318,
+      "wins": 170,
+      "win_rate": 0.5346,
+      "wilson_lower_win": 0.4797,
+      "expectancy_r": 0.0703,
+      "gross_expectancy_r": 0.0916,
+      "ci95_r": [
+       -0.0726,
+       0.2132
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.07291,
+      "total_r": 22.35,
+      "profit_factor": 1.148,
+      "max_drawdown_r": 14.68,
+      "longest_losing_streak": 6,
+      "timeouts": 0,
+      "avg_cost_r": 0.0213,
+      "cost_share": 0.021,
+      "months": 7,
+      "months_positive_share": 0.857,
+      "best_two_months_share": 0.967,
+      "thirds_r": [
+       10.59,
+       14.73,
+       -2.96
+      ],
+      "thirds_positive": 2,
+      "best_trade_removed_r": 0.0514,
+      "regimes": {
+       "down": 203,
+       "up": 115
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.277,
+      "never_reached_half_r": 0.296
+     },
+     "R_75 1h": {
+      "n": 125,
+      "wins": 54,
+      "win_rate": 0.432,
+      "wilson_lower_win": 0.3485,
+      "expectancy_r": -0.1245,
+      "gross_expectancy_r": -0.114,
+      "ci95_r": [
+       -0.3324,
+       0.0834
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.10607,
+      "total_r": -15.56,
+      "profit_factor": 0.783,
+      "max_drawdown_r": 21.4,
+      "longest_losing_streak": 8,
+      "timeouts": 0,
+      "avg_cost_r": 0.0104,
+      "cost_share": 0.01,
+      "months": 7,
+      "months_positive_share": 0.143,
+      "best_two_months_share": null,
+      "thirds_r": [
+       -12.96,
+       0.97,
+       -3.57
+      ],
+      "thirds_positive": 1,
+      "best_trade_removed_r": -0.1621,
+      "regimes": {
+       "down": 79,
+       "up": 46
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.109,
+      "never_reached_half_r": 0.36
+     },
+     "cryBTCUSD 15m": {
+      "n": 356,
+      "wins": 174,
+      "win_rate": 0.4888,
+      "wilson_lower_win": 0.4372,
+      "expectancy_r": -0.0214,
+      "gross_expectancy_r": 0.0614,
+      "ci95_r": [
+       -0.1765,
+       0.1338
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.07915,
+      "total_r": -7.61,
+      "profit_factor": 0.961,
+      "max_drawdown_r": 41.76,
+      "longest_losing_streak": 12,
+      "timeouts": 0,
+      "avg_cost_r": 0.0828,
+      "cost_share": 0.076,
+      "months": 7,
+      "months_positive_share": 0.286,
+      "best_two_months_share": null,
+      "thirds_r": [
+       -26.2,
+       12.42,
+       6.17
+      ],
+      "thirds_positive": 2,
+      "best_trade_removed_r": -0.044,
+      "regimes": {
+       "down": 243,
+       "up": 113
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.327,
+      "never_reached_half_r": 0.315
+     },
+     "cryBTCUSD 1h": {
+      "n": 112,
+      "wins": 49,
+      "win_rate": 0.4375,
+      "wilson_lower_win": 0.3492,
+      "expectancy_r": -0.0101,
+      "gross_expectancy_r": 0.0239,
+      "ci95_r": [
+       -0.2884,
+       0.2683
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.14203,
+      "total_r": -1.13,
+      "profit_factor": 0.983,
+      "max_drawdown_r": 9.62,
+      "longest_losing_streak": 8,
+      "timeouts": 0,
+      "avg_cost_r": 0.0339,
+      "cost_share": 0.03,
+      "months": 7,
+      "months_positive_share": 0.429,
+      "best_two_months_share": null,
+      "thirds_r": [
+       -5.39,
+       7.57,
+       -3.3
+      ],
+      "thirds_positive": 1,
+      "best_trade_removed_r": -0.0752,
+      "regimes": {
+       "down": 78,
+       "up": 34
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.277,
+      "never_reached_half_r": 0.348
+     },
+     "frxEURUSD 15m": {
+      "n": 256,
+      "wins": 120,
+      "win_rate": 0.4688,
+      "wilson_lower_win": 0.4085,
+      "expectancy_r": -0.1332,
+      "gross_expectancy_r": 0.0033,
+      "ci95_r": [
+       -0.2962,
+       0.0298
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.08317,
+      "total_r": -34.1,
+      "profit_factor": 0.78,
+      "max_drawdown_r": 36.2,
+      "longest_losing_streak": 8,
+      "timeouts": 0,
+      "avg_cost_r": 0.1365,
+      "cost_share": 0.128,
+      "months": 7,
+      "months_positive_share": 0.143,
+      "best_two_months_share": null,
+      "thirds_r": [
+       -12.53,
+       -7.94,
+       -13.63
+      ],
+      "thirds_positive": 0,
+      "best_trade_removed_r": -0.1535,
+      "regimes": {
+       "down": 155,
+       "up": 101
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.226,
+      "never_reached_half_r": 0.363
+     },
+     "frxEURUSD 1h": {
+      "n": 95,
+      "wins": 48,
+      "win_rate": 0.5053,
+      "wilson_lower_win": 0.4065,
+      "expectancy_r": -0.0278,
+      "gross_expectancy_r": 0.0403,
+      "ci95_r": [
+       -0.2632,
+       0.2076
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.1201,
+      "total_r": -2.64,
+      "profit_factor": 0.947,
+      "max_drawdown_r": 12.03,
+      "longest_losing_streak": 6,
+      "timeouts": 0,
+      "avg_cost_r": 0.0681,
+      "cost_share": 0.066,
+      "months": 7,
+      "months_positive_share": 0.571,
+      "best_two_months_share": null,
+      "thirds_r": [
+       -0.59,
+       4.83,
+       -6.89
+      ],
+      "thirds_positive": 1,
+      "best_trade_removed_r": -0.0665,
+      "regimes": {
+       "down": 56,
+       "up": 39
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.297,
+      "never_reached_half_r": 0.295
+     },
+     "frxGBPUSD 15m": {
+      "n": 246,
+      "wins": 119,
+      "win_rate": 0.4837,
+      "wilson_lower_win": 0.422,
+      "expectancy_r": -0.083,
+      "gross_expectancy_r": 0.0701,
+      "ci95_r": [
+       -0.2537,
+       0.0877
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.08708,
+      "total_r": -20.42,
+      "profit_factor": 0.861,
+      "max_drawdown_r": 33.43,
+      "longest_losing_streak": 8,
+      "timeouts": 0,
+      "avg_cost_r": 0.1531,
+      "cost_share": 0.139,
+      "months": 7,
+      "months_positive_share": 0.286,
+      "best_two_months_share": null,
+      "thirds_r": [
+       -0.18,
+       -9.96,
+       -10.28
+      ],
+      "thirds_positive": 0,
+      "best_trade_removed_r": -0.1051,
+      "regimes": {
+       "up": 96,
+       "down": 150
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.292,
+      "never_reached_half_r": 0.333
+     },
+     "frxGBPUSD 1h": {
+      "n": 96,
+      "wins": 43,
+      "win_rate": 0.4479,
+      "wilson_lower_win": 0.3524,
+      "expectancy_r": -0.0292,
+      "gross_expectancy_r": 0.043,
+      "ci95_r": [
+       -0.3112,
+       0.2528
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.14388,
+      "total_r": -2.8,
+      "profit_factor": 0.951,
+      "max_drawdown_r": 12.67,
+      "longest_losing_streak": 6,
+      "timeouts": 0,
+      "avg_cost_r": 0.0722,
+      "cost_share": 0.063,
+      "months": 7,
+      "months_positive_share": 0.286,
+      "best_two_months_share": null,
+      "thirds_r": [
+       1.68,
+       4.43,
+       -8.91
+      ],
+      "thirds_positive": 2,
+      "best_trade_removed_r": -0.0716,
+      "regimes": {
+       "down": 59,
+       "up": 37
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.328,
+      "never_reached_half_r": 0.302
+     },
+     "frxNAS100 15m": {
+      "n": 124,
+      "wins": 64,
+      "win_rate": 0.5161,
+      "wilson_lower_win": 0.429,
+      "expectancy_r": 0.2072,
+      "gross_expectancy_r": 0.2338,
+      "ci95_r": [
+       -0.0518,
+       0.4662
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.13214,
+      "total_r": 25.7,
+      "profit_factor": 1.431,
+      "max_drawdown_r": 8.91,
+      "longest_losing_streak": 4,
+      "timeouts": 2,
+      "avg_cost_r": 0.0266,
+      "cost_share": 0.023,
+      "months": 6,
+      "months_positive_share": 0.833,
+      "best_two_months_share": 0.696,
+      "thirds_r": [
+       14.06,
+       10.51,
+       1.12
+      ],
+      "thirds_positive": 3,
+      "best_trade_removed_r": 0.1601,
+      "regimes": {
+       "up": 50,
+       "down": 74
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.431,
+      "never_reached_half_r": 0.331
+     },
+     "frxNAS100 1h": {
+      "n": 53,
+      "wins": 20,
+      "win_rate": 0.3774,
+      "wilson_lower_win": 0.2594,
+      "expectancy_r": -0.2478,
+      "gross_expectancy_r": -0.2353,
+      "ci95_r": [
+       -0.5481,
+       0.0526
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.15324,
+      "total_r": -13.13,
+      "profit_factor": 0.607,
+      "max_drawdown_r": 19.8,
+      "longest_losing_streak": 6,
+      "timeouts": 0,
+      "avg_cost_r": 0.0125,
+      "cost_share": 0.012,
+      "months": 6,
+      "months_positive_share": 0.167,
+      "best_two_months_share": null,
+      "thirds_r": [
+       -8.65,
+       -3.38,
+       -1.1
+      ],
+      "thirds_positive": 0,
+      "best_trade_removed_r": -0.3014,
+      "regimes": {
+       "up": 23,
+       "down": 30
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 0.983,
+      "never_reached_half_r": 0.453
+     },
+     "frxUSDJPY 15m": {
+      "n": 280,
+      "wins": 115,
+      "win_rate": 0.4107,
+      "wilson_lower_win": 0.3547,
+      "expectancy_r": -0.301,
+      "gross_expectancy_r": -0.1668,
+      "ci95_r": [
+       -0.4401,
+       -0.162
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.07094,
+      "total_r": -84.29,
+      "profit_factor": 0.552,
+      "max_drawdown_r": 84.29,
+      "longest_losing_streak": 8,
+      "timeouts": 0,
+      "avg_cost_r": 0.1342,
+      "cost_share": 0.133,
+      "months": 7,
+      "months_positive_share": 0.0,
+      "best_two_months_share": null,
+      "thirds_r": [
+       -24.88,
+       -23.98,
+       -35.43
+      ],
+      "thirds_positive": 0,
+      "best_trade_removed_r": -0.3206,
+      "regimes": {
+       "down": 54,
+       "up": 226
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.08,
+      "never_reached_half_r": 0.375
+     },
+     "frxUSDJPY 1h": {
+      "n": 99,
+      "wins": 38,
+      "win_rate": 0.3838,
+      "wilson_lower_win": 0.2941,
+      "expectancy_r": -0.3546,
+      "gross_expectancy_r": -0.2926,
+      "ci95_r": [
+       -0.5562,
+       -0.1529
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.10288,
+      "total_r": -35.1,
+      "profit_factor": 0.458,
+      "max_drawdown_r": 35.92,
+      "longest_losing_streak": 7,
+      "timeouts": 0,
+      "avg_cost_r": 0.062,
+      "cost_share": 0.066,
+      "months": 7,
+      "months_positive_share": 0.143,
+      "best_two_months_share": null,
+      "thirds_r": [
+       -6.41,
+       -13.51,
+       -15.18
+      ],
+      "thirds_positive": 0,
+      "best_trade_removed_r": -0.387,
+      "regimes": {
+       "up": 76,
+       "down": 23
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 0.98,
+      "never_reached_half_r": 0.414
+     },
+     "frxXAUUSD 15m": {
+      "n": 245,
+      "wins": 124,
+      "win_rate": 0.5061,
+      "wilson_lower_win": 0.4439,
+      "expectancy_r": 0.1323,
+      "gross_expectancy_r": 0.1629,
+      "ci95_r": [
+       -0.0641,
+       0.3288
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.10024,
+      "total_r": 32.42,
+      "profit_factor": 1.26,
+      "max_drawdown_r": 11.83,
+      "longest_losing_streak": 8,
+      "timeouts": 0,
+      "avg_cost_r": 0.0306,
+      "cost_share": 0.027,
+      "months": 7,
+      "months_positive_share": 0.714,
+      "best_two_months_share": 0.828,
+      "thirds_r": [
+       11.16,
+       23.21,
+       -1.95
+      ],
+      "thirds_positive": 2,
+      "best_trade_removed_r": 0.0988,
+      "regimes": {
+       "up": 152,
+       "down": 93
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.363,
+      "never_reached_half_r": 0.339
+     },
+     "frxXAUUSD 1h": {
+      "n": 86,
+      "wins": 47,
+      "win_rate": 0.5465,
+      "wilson_lower_win": 0.4416,
+      "expectancy_r": 0.2608,
+      "gross_expectancy_r": 0.2747,
+      "ci95_r": [
+       -0.0665,
+       0.5882
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.16701,
+      "total_r": 22.43,
+      "profit_factor": 1.568,
+      "max_drawdown_r": 6.96,
+      "longest_losing_streak": 3,
+      "timeouts": 0,
+      "avg_cost_r": 0.0139,
+      "cost_share": 0.012,
+      "months": 7,
+      "months_positive_share": 0.429,
+      "best_two_months_share": 0.97,
+      "thirds_r": [
+       -2.71,
+       19.16,
+       5.98
+      ],
+      "thirds_positive": 2,
+      "best_trade_removed_r": 0.2029,
+      "regimes": {
+       "down": 38,
+       "up": 48
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.469,
+      "never_reached_half_r": 0.314
+     }
+    }
+   },
+   "val": {
+    "x1.0": {
+     "n": 1338,
+     "wins": 679,
+     "win_rate": 0.5075,
+     "wilson_lower_win": 0.4807,
+     "expectancy_r": -0.0235,
+     "gross_expectancy_r": 0.058,
+     "ci95_r": [
+      -0.0964,
+      0.0495
+     ],
+     "ci95_block_r": [
+      -0.1358,
+      0.0799
+     ],
+     "se_r": 0.03722,
+     "total_r": -31.43,
+     "profit_factor": 0.956,
+     "max_drawdown_r": 78.92,
+     "longest_losing_streak": 13,
+     "timeouts": 0,
+     "avg_cost_r": 0.0815,
+     "cost_share": 0.078,
+     "months": 3,
+     "months_positive_share": 0.0,
+     "best_two_months_share": null,
+     "thirds_r": [
+      -11.82,
+      3.27,
+      -22.89
+     ],
+     "thirds_positive": 1,
+     "best_trade_removed_r": -0.0302,
+     "regimes": {
+      "up": 771,
+      "down": 567
+     },
+     "cost_mult": 1.0,
+     "mfe_avg_r": 1.267,
+     "never_reached_half_r": 0.333
+    },
+    "x1.5": {
+     "n": 1338,
+     "wins": 679,
+     "win_rate": 0.5075,
+     "wilson_lower_win": 0.4807,
+     "expectancy_r": -0.0642,
+     "gross_expectancy_r": 0.058,
+     "ci95_r": [
+      -0.1375,
+      0.009
+     ],
+     "ci95_block_r": [
+      -0.1773,
+      0.0406
+     ],
+     "se_r": 0.03736,
+     "total_r": -85.93,
+     "profit_factor": 0.886,
+     "max_drawdown_r": 115.66,
+     "longest_losing_streak": 13,
+     "timeouts": 0,
+     "avg_cost_r": 0.1222,
+     "cost_share": 0.117,
+     "months": 3,
+     "months_positive_share": 0.0,
+     "best_two_months_share": null,
+     "thirds_r": [
+      -26.36,
+      -14.71,
+      -44.86
+     ],
+     "thirds_positive": 0,
+     "best_trade_removed_r": -0.0709,
+     "regimes": {
+      "up": 771,
+      "down": 567
+     },
+     "cost_mult": 1.5,
+     "mfe_avg_r": 1.267,
+     "never_reached_half_r": 0.333
+    },
+    "x2.0": {
+     "n": 1338,
+     "wins": 679,
+     "win_rate": 0.5075,
+     "wilson_lower_win": 0.4807,
+     "expectancy_r": -0.105,
+     "gross_expectancy_r": 0.058,
+     "ci95_r": [
+      -0.1785,
+      -0.0314
+     ],
+     "ci95_block_r": [
+      -0.2199,
+      0.0018
+     ],
+     "se_r": 0.03754,
+     "total_r": -140.44,
+     "profit_factor": 0.821,
+     "max_drawdown_r": 158.75,
+     "longest_losing_streak": 17,
+     "timeouts": 0,
+     "avg_cost_r": 0.1629,
+     "cost_share": 0.156,
+     "months": 3,
+     "months_positive_share": 0.0,
+     "best_two_months_share": null,
+     "thirds_r": [
+      -40.91,
+      -32.69,
+      -66.84
+     ],
+     "thirds_positive": 0,
+     "best_trade_removed_r": -0.1116,
+     "regimes": {
+      "up": 771,
+      "down": 567
+     },
+     "cost_mult": 2.0,
+     "mfe_avg_r": 1.267,
+     "never_reached_half_r": 0.333
+    },
+    "by_slice": {
+     "1HZ75V 15m": {
+      "n": 163,
+      "wins": 88,
+      "win_rate": 0.5399,
+      "wilson_lower_win": 0.4633,
+      "expectancy_r": 0.1234,
+      "gross_expectancy_r": 0.1448,
+      "ci95_r": [
+       -0.0938,
+       0.3405
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.11079,
+      "total_r": 20.11,
+      "profit_factor": 1.263,
+      "max_drawdown_r": 12.74,
+      "longest_losing_streak": 7,
+      "timeouts": 0,
+      "avg_cost_r": 0.0214,
+      "cost_share": 0.02,
+      "months": 3,
+      "months_positive_share": 0.667,
+      "best_two_months_share": 1.16,
+      "thirds_r": [
+       -6.69,
+       25.25,
+       1.55
+      ],
+      "thirds_positive": 2,
+      "best_trade_removed_r": 0.076,
+      "regimes": {
+       "up": 110,
+       "down": 53
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.334,
+      "never_reached_half_r": 0.307
+     },
+     "1HZ75V 1h": {
+      "n": 44,
+      "wins": 21,
+      "win_rate": 0.4773,
+      "wilson_lower_win": 0.3375,
+      "expectancy_r": 0.0097,
+      "gross_expectancy_r": 0.0201,
+      "ci95_r": [
+       -0.4218,
+       0.4411
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.22011,
+      "total_r": 0.42,
+      "profit_factor": 1.018,
+      "max_drawdown_r": 7.65,
+      "longest_losing_streak": 4,
+      "timeouts": 0,
+      "avg_cost_r": 0.0105,
+      "cost_share": 0.01,
+      "months": 3,
+      "months_positive_share": 0.667,
+      "best_two_months_share": 1.87,
+      "thirds_r": [
+       -2.4,
+       6.7,
+       -3.88
+      ],
+      "thirds_positive": 1,
+      "best_trade_removed_r": -0.1317,
+      "regimes": {
+       "up": 30,
+       "down": 14
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.248,
+      "never_reached_half_r": 0.318
+     },
+     "R_75 15m": {
+      "n": 135,
+      "wins": 64,
+      "win_rate": 0.4741,
+      "wilson_lower_win": 0.3917,
+      "expectancy_r": 0.0486,
+      "gross_expectancy_r": 0.07,
+      "ci95_r": [
+       -0.1927,
+       0.29
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.12314,
+      "total_r": 6.56,
+      "profit_factor": 1.091,
+      "max_drawdown_r": 14.27,
+      "longest_losing_streak": 8,
+      "timeouts": 0,
+      "avg_cost_r": 0.0214,
+      "cost_share": 0.019,
+      "months": 3,
+      "months_positive_share": 0.333,
+      "best_two_months_share": 2.444,
+      "thirds_r": [
+       -10.42,
+       1.82,
+       15.16
+      ],
+      "thirds_positive": 2,
+      "best_trade_removed_r": 0.0015,
+      "regimes": {
+       "up": 71,
+       "down": 64
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.267,
+      "never_reached_half_r": 0.37
+     },
+     "R_75 1h": {
+      "n": 54,
+      "wins": 25,
+      "win_rate": 0.463,
+      "wilson_lower_win": 0.3369,
+      "expectancy_r": 0.0421,
+      "gross_expectancy_r": 0.0527,
+      "ci95_r": [
+       -0.358,
+       0.4422
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.20416,
+      "total_r": 2.27,
+      "profit_factor": 1.078,
+      "max_drawdown_r": 8.22,
+      "longest_losing_streak": 5,
+      "timeouts": 0,
+      "avg_cost_r": 0.0106,
+      "cost_share": 0.009,
+      "months": 3,
+      "months_positive_share": 0.667,
+      "best_two_months_share": 3.442,
+      "thirds_r": [
+       -6.26,
+       3.29,
+       5.25
+      ],
+      "thirds_positive": 2,
+      "best_trade_removed_r": -0.0792,
+      "regimes": {
+       "down": 21,
+       "up": 33
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.277,
+      "never_reached_half_r": 0.389
+     },
+     "cryBTCUSD 15m": {
+      "n": 169,
+      "wins": 88,
+      "win_rate": 0.5207,
+      "wilson_lower_win": 0.4458,
+      "expectancy_r": -0.0384,
+      "gross_expectancy_r": 0.0739,
+      "ci95_r": [
+       -0.2302,
+       0.1533
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.09784,
+      "total_r": -6.5,
+      "profit_factor": 0.928,
+      "max_drawdown_r": 27.75,
+      "longest_losing_streak": 12,
+      "timeouts": 0,
+      "avg_cost_r": 0.1123,
+      "cost_share": 0.109,
+      "months": 3,
+      "months_positive_share": 0.333,
+      "best_two_months_share": null,
+      "thirds_r": [
+       -1.02,
+       -19.27,
+       13.79
+      ],
+      "thirds_positive": 1,
+      "best_trade_removed_r": -0.0637,
+      "regimes": {
+       "down": 80,
+       "up": 89
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.274,
+      "never_reached_half_r": 0.331
+     },
+     "cryBTCUSD 1h": {
+      "n": 55,
+      "wins": 29,
+      "win_rate": 0.5273,
+      "wilson_lower_win": 0.3979,
+      "expectancy_r": -0.0045,
+      "gross_expectancy_r": 0.041,
+      "ci95_r": [
+       -0.3147,
+       0.3057
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.15827,
+      "total_r": -0.25,
+      "profit_factor": 0.991,
+      "max_drawdown_r": 12.32,
+      "longest_losing_streak": 6,
+      "timeouts": 0,
+      "avg_cost_r": 0.0455,
+      "cost_share": 0.046,
+      "months": 3,
+      "months_positive_share": 0.333,
+      "best_two_months_share": null,
+      "thirds_r": [
+       -0.68,
+       -6.46,
+       6.89
+      ],
+      "thirds_positive": 1,
+      "best_trade_removed_r": -0.0665,
+      "regimes": {
+       "up": 32,
+       "down": 23
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.271,
+      "never_reached_half_r": 0.291
+     },
+     "frxEURUSD 15m": {
+      "n": 120,
+      "wins": 63,
+      "win_rate": 0.525,
+      "wilson_lower_win": 0.4363,
+      "expectancy_r": -0.1117,
+      "gross_expectancy_r": 0.042,
+      "ci95_r": [
+       -0.3367,
+       0.1134
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.11481,
+      "total_r": -13.4,
+      "profit_factor": 0.8,
+      "max_drawdown_r": 24.56,
+      "longest_losing_streak": 5,
+      "timeouts": 0,
+      "avg_cost_r": 0.1537,
+      "cost_share": 0.155,
+      "months": 3,
+      "months_positive_share": 0.333,
+      "best_two_months_share": null,
+      "thirds_r": [
+       1.57,
+       0.26,
+       -15.22
+      ],
+      "thirds_positive": 2,
+      "best_trade_removed_r": -0.1642,
+      "regimes": {
+       "down": 77,
+       "up": 43
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.246,
+      "never_reached_half_r": 0.35
+     },
+     "frxEURUSD 1h": {
+      "n": 55,
+      "wins": 29,
+      "win_rate": 0.5273,
+      "wilson_lower_win": 0.3979,
+      "expectancy_r": 0.0021,
+      "gross_expectancy_r": 0.0807,
+      "ci95_r": [
+       -0.399,
+       0.4033
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.20466,
+      "total_r": 0.12,
+      "profit_factor": 1.004,
+      "max_drawdown_r": 12.63,
+      "longest_losing_streak": 5,
+      "timeouts": 0,
+      "avg_cost_r": 0.0786,
+      "cost_share": 0.077,
+      "months": 3,
+      "months_positive_share": 0.667,
+      "best_two_months_share": 81.346,
+      "thirds_r": [
+       7.74,
+       1.51,
+       -9.13
+      ],
+      "thirds_positive": 2,
+      "best_trade_removed_r": -0.1196,
+      "regimes": {
+       "up": 23,
+       "down": 32
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.32,
+      "never_reached_half_r": 0.291
+     },
+     "frxGBPUSD 15m": {
+      "n": 106,
+      "wins": 56,
+      "win_rate": 0.5283,
+      "wilson_lower_win": 0.434,
+      "expectancy_r": -0.0806,
+      "gross_expectancy_r": 0.0797,
+      "ci95_r": [
+       -0.3584,
+       0.1972
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.14175,
+      "total_r": -8.55,
+      "profit_factor": 0.854,
+      "max_drawdown_r": 18.67,
+      "longest_losing_streak": 9,
+      "timeouts": 0,
+      "avg_cost_r": 0.1603,
+      "cost_share": 0.157,
+      "months": 3,
+      "months_positive_share": 0.667,
+      "best_two_months_share": null,
+      "thirds_r": [
+       -1.56,
+       10.38,
+       -17.36
+      ],
+      "thirds_positive": 1,
+      "best_trade_removed_r": -0.1662,
+      "regimes": {
+       "up": 65,
+       "down": 41
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.277,
+      "never_reached_half_r": 0.311
+     },
+     "frxGBPUSD 1h": {
+      "n": 31,
+      "wins": 14,
+      "win_rate": 0.4516,
+      "wilson_lower_win": 0.2916,
+      "expectancy_r": -0.0327,
+      "gross_expectancy_r": 0.052,
+      "ci95_r": [
+       -0.6335,
+       0.5681
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.30654,
+      "total_r": -1.01,
+      "profit_factor": 0.945,
+      "max_drawdown_r": 8.98,
+      "longest_losing_streak": 5,
+      "timeouts": 0,
+      "avg_cost_r": 0.0847,
+      "cost_share": 0.074,
+      "months": 3,
+      "months_positive_share": 0.333,
+      "best_two_months_share": null,
+      "thirds_r": [
+       -0.34,
+       7.22,
+       -7.89
+      ],
+      "thirds_positive": 1,
+      "best_trade_removed_r": -0.2299,
+      "regimes": {
+       "up": 20,
+       "down": 11
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.293,
+      "never_reached_half_r": 0.355
+     },
+     "frxNAS100 15m": {
+      "n": 70,
+      "wins": 42,
+      "win_rate": 0.6,
+      "wilson_lower_win": 0.4829,
+      "expectancy_r": 0.3645,
+      "gross_expectancy_r": 0.3898,
+      "ci95_r": [
+       0.0055,
+       0.7235
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.18317,
+      "total_r": 25.52,
+      "profit_factor": 1.889,
+      "max_drawdown_r": 4.6,
+      "longest_losing_streak": 4,
+      "timeouts": 0,
+      "avg_cost_r": 0.0252,
+      "cost_share": 0.021,
+      "months": 3,
+      "months_positive_share": 0.667,
+      "best_two_months_share": 1.14,
+      "thirds_r": [
+       13.97,
+       7.12,
+       4.43
+      ],
+      "thirds_positive": 3,
+      "best_trade_removed_r": 0.2645,
+      "regimes": {
+       "up": 67,
+       "down": 3
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.559,
+      "never_reached_half_r": 0.271
+     },
+     "frxNAS100 1h": {
+      "n": 21,
+      "wins": 13,
+      "win_rate": 0.619,
+      "wilson_lower_win": 0.4088,
+      "expectancy_r": 0.4948,
+      "gross_expectancy_r": 0.5064,
+      "ci95_r": [
+       -0.36,
+       1.3496
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.43612,
+      "total_r": 10.39,
+      "profit_factor": 2.282,
+      "max_drawdown_r": 3.04,
+      "longest_losing_streak": 3,
+      "timeouts": 0,
+      "avg_cost_r": 0.0116,
+      "cost_share": 0.009,
+      "months": 3,
+      "months_positive_share": 0.667,
+      "best_two_months_share": 1.293,
+      "thirds_r": [
+       7.64,
+       4.28,
+       -1.53
+      ],
+      "thirds_positive": 2,
+      "best_trade_removed_r": 0.1229,
+      "regimes": {
+       "up": 21
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.621,
+      "never_reached_half_r": 0.333
+     },
+     "frxUSDJPY 15m": {
+      "n": 124,
+      "wins": 58,
+      "win_rate": 0.4677,
+      "wilson_lower_win": 0.3822,
+      "expectancy_r": -0.4345,
+      "gross_expectancy_r": -0.2066,
+      "ci95_r": [
+       -0.6101,
+       -0.2589
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.08959,
+      "total_r": -53.88,
+      "profit_factor": 0.351,
+      "max_drawdown_r": 53.88,
+      "longest_losing_streak": 12,
+      "timeouts": 0,
+      "avg_cost_r": 0.228,
+      "cost_share": 0.266,
+      "months": 3,
+      "months_positive_share": 0.0,
+      "best_two_months_share": null,
+      "thirds_r": [
+       -17.82,
+       -19.5,
+       -16.56
+      ],
+      "thirds_positive": 0,
+      "best_trade_removed_r": -0.4642,
+      "regimes": {
+       "up": 98,
+       "down": 26
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 0.999,
+      "never_reached_half_r": 0.395
+     },
+     "frxUSDJPY 1h": {
+      "n": 36,
+      "wins": 14,
+      "win_rate": 0.3889,
+      "wilson_lower_win": 0.2478,
+      "expectancy_r": -0.3751,
+      "gross_expectancy_r": -0.2787,
+      "ci95_r": [
+       -0.7044,
+       -0.0459
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.16799,
+      "total_r": -13.51,
+      "profit_factor": 0.443,
+      "max_drawdown_r": 13.51,
+      "longest_losing_streak": 4,
+      "timeouts": 0,
+      "avg_cost_r": 0.0965,
+      "cost_share": 0.102,
+      "months": 3,
+      "months_positive_share": 0.0,
+      "best_two_months_share": null,
+      "thirds_r": [
+       -4.83,
+       -3.88,
+       -4.8
+      ],
+      "thirds_positive": 0,
+      "best_trade_removed_r": -0.4445,
+      "regimes": {
+       "up": 27,
+       "down": 9
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.072,
+      "never_reached_half_r": 0.278
+     },
+     "frxXAUUSD 15m": {
+      "n": 106,
+      "wins": 51,
+      "win_rate": 0.4811,
+      "wilson_lower_win": 0.3883,
+      "expectancy_r": 0.0216,
+      "gross_expectancy_r": 0.0522,
+      "ci95_r": [
+       -0.234,
+       0.2772
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.13041,
+      "total_r": 2.29,
+      "profit_factor": 1.04,
+      "max_drawdown_r": 14.94,
+      "longest_losing_streak": 9,
+      "timeouts": 0,
+      "avg_cost_r": 0.0306,
+      "cost_share": 0.028,
+      "months": 3,
+      "months_positive_share": 0.667,
+      "best_two_months_share": 3.889,
+      "thirds_r": [
+       -3.85,
+       2.75,
+       3.39
+      ],
+      "thirds_positive": 2,
+      "best_trade_removed_r": -0.018,
+      "regimes": {
+       "up": 29,
+       "down": 77
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.31,
+      "never_reached_half_r": 0.311
+     },
+     "frxXAUUSD 1h": {
+      "n": 49,
+      "wins": 24,
+      "win_rate": 0.4898,
+      "wilson_lower_win": 0.3557,
+      "expectancy_r": -0.0413,
+      "gross_expectancy_r": -0.0265,
+      "ci95_r": [
+       -0.36,
+       0.2774
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.16262,
+      "total_r": -2.02,
+      "profit_factor": 0.92,
+      "max_drawdown_r": 7.83,
+      "longest_losing_streak": 5,
+      "timeouts": 0,
+      "avg_cost_r": 0.0148,
+      "cost_share": 0.015,
+      "months": 3,
+      "months_positive_share": 0.333,
+      "best_two_months_share": null,
+      "thirds_r": [
+       1.13,
+       -1.41,
+       -1.74
+      ],
+      "thirds_positive": 1,
+      "best_trade_removed_r": -0.1029,
+      "regimes": {
+       "up": 13,
+       "down": 36
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.131,
+      "never_reached_half_r": 0.388
+     }
+    }
+   },
+   "holdout": {
+    "x1.0": {
+     "n": 1979,
+     "wins": 985,
+     "win_rate": 0.4977,
+     "wilson_lower_win": 0.4757,
+     "expectancy_r": -0.0359,
+     "gross_expectancy_r": 0.053,
+     "ci95_r": [
+      -0.0996,
+      0.0279
+     ],
+     "ci95_block_r": [
+      -0.1037,
+      0.0407
+     ],
+     "se_r": 0.0325,
+     "total_r": -70.96,
+     "profit_factor": 0.935,
+     "max_drawdown_r": 140.32,
+     "longest_losing_streak": 15,
+     "timeouts": 2,
+     "avg_cost_r": 0.0889,
+     "cost_share": 0.084,
+     "months": 5,
+     "months_positive_share": 0.4,
+     "best_two_months_share": null,
+     "thirds_r": [
+      23.84,
+      -67.0,
+      -27.8
+     ],
+     "thirds_positive": 1,
+     "best_trade_removed_r": -0.0478,
+     "regimes": {
+      "up": 1014,
+      "down": 965
+     },
+     "cost_mult": 1.0,
+     "mfe_avg_r": 1.28,
+     "never_reached_half_r": 0.335
+    },
+    "x1.5": {
+     "n": 1979,
+     "wins": 985,
+     "win_rate": 0.4977,
+     "wilson_lower_win": 0.4757,
+     "expectancy_r": -0.0803,
+     "gross_expectancy_r": 0.053,
+     "ci95_r": [
+      -0.1441,
+      -0.0165
+     ],
+     "ci95_block_r": [
+      -0.1489,
+      -0.0034
+     ],
+     "se_r": 0.03254,
+     "total_r": -158.89,
+     "profit_factor": 0.86,
+     "max_drawdown_r": 212.96,
+     "longest_losing_streak": 15,
+     "timeouts": 2,
+     "avg_cost_r": 0.1333,
+     "cost_share": 0.126,
+     "months": 5,
+     "months_positive_share": 0.4,
+     "best_two_months_share": null,
+     "thirds_r": [
+      -3.79,
+      -99.05,
+      -56.05
+     ],
+     "thirds_positive": 0,
+     "best_trade_removed_r": -0.0922,
+     "regimes": {
+      "up": 1014,
+      "down": 965
+     },
+     "cost_mult": 1.5,
+     "mfe_avg_r": 1.28,
+     "never_reached_half_r": 0.335
+    },
+    "x2.0": {
+     "n": 1979,
+     "wins": 985,
+     "win_rate": 0.4977,
+     "wilson_lower_win": 0.4757,
+     "expectancy_r": -0.1247,
+     "gross_expectancy_r": 0.053,
+     "ci95_r": [
+      -0.1887,
+      -0.0608
+     ],
+     "ci95_block_r": [
+      -0.1932,
+      -0.0487
+     ],
+     "se_r": 0.03262,
+     "total_r": -246.82,
+     "profit_factor": 0.793,
+     "max_drawdown_r": 290.32,
+     "longest_losing_streak": 15,
+     "timeouts": 2,
+     "avg_cost_r": 0.1777,
+     "cost_share": 0.168,
+     "months": 5,
+     "months_positive_share": 0.4,
+     "best_two_months_share": null,
+     "thirds_r": [
+      -31.41,
+      -131.09,
+      -84.31
+     ],
+     "thirds_positive": 0,
+     "best_trade_removed_r": -0.1366,
+     "regimes": {
+      "up": 1014,
+      "down": 965
+     },
+     "cost_mult": 2.0,
+     "mfe_avg_r": 1.28,
+     "never_reached_half_r": 0.335
+    },
+    "by_slice": {
+     "1HZ75V 15m": {
+      "n": 216,
+      "wins": 110,
+      "win_rate": 0.5093,
+      "wilson_lower_win": 0.443,
+      "expectancy_r": -0.0062,
+      "gross_expectancy_r": 0.0149,
+      "ci95_r": [
+       -0.1673,
+       0.1549
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.08218,
+      "total_r": -1.34,
+      "profit_factor": 0.988,
+      "max_drawdown_r": 23.67,
+      "longest_losing_streak": 6,
+      "timeouts": 0,
+      "avg_cost_r": 0.0211,
+      "cost_share": 0.021,
+      "months": 5,
+      "months_positive_share": 0.6,
+      "best_two_months_share": null,
+      "thirds_r": [
+       9.07,
+       -15.72,
+       5.32
+      ],
+      "thirds_positive": 2,
+      "best_trade_removed_r": -0.0277,
+      "regimes": {
+       "down": 114,
+       "up": 102
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.221,
+      "never_reached_half_r": 0.306
+     },
+     "1HZ75V 1h": {
+      "n": 74,
+      "wins": 34,
+      "win_rate": 0.4595,
+      "wilson_lower_win": 0.3507,
+      "expectancy_r": 0.0433,
+      "gross_expectancy_r": 0.0537,
+      "ci95_r": [
+       -0.3167,
+       0.4034
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.1837,
+      "total_r": 3.2,
+      "profit_factor": 1.079,
+      "max_drawdown_r": 12.14,
+      "longest_losing_streak": 4,
+      "timeouts": 0,
+      "avg_cost_r": 0.0104,
+      "cost_share": 0.009,
+      "months": 5,
+      "months_positive_share": 0.6,
+      "best_two_months_share": 3.235,
+      "thirds_r": [
+       0.21,
+       -3.94,
+       6.94
+      ],
+      "thirds_positive": 2,
+      "best_trade_removed_r": -0.0761,
+      "regimes": {
+       "up": 37,
+       "down": 37
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.26,
+      "never_reached_half_r": 0.365
+     },
+     "R_75 15m": {
+      "n": 231,
+      "wins": 102,
+      "win_rate": 0.4416,
+      "wilson_lower_win": 0.379,
+      "expectancy_r": -0.2215,
+      "gross_expectancy_r": -0.1998,
+      "ci95_r": [
+       -0.352,
+       -0.0909
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.0666,
+      "total_r": -51.16,
+      "profit_factor": 0.612,
+      "max_drawdown_r": 52.35,
+      "longest_losing_streak": 12,
+      "timeouts": 0,
+      "avg_cost_r": 0.0217,
+      "cost_share": 0.024,
+      "months": 5,
+      "months_positive_share": 0.0,
+      "best_two_months_share": null,
+      "thirds_r": [
+       -11.47,
+       -7.6,
+       -32.08
+      ],
+      "thirds_positive": 0,
+      "best_trade_removed_r": -0.2356,
+      "regimes": {
+       "up": 137,
+       "down": 94
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.005,
+      "never_reached_half_r": 0.377
+     },
+     "R_75 1h": {
+      "n": 85,
+      "wins": 41,
+      "win_rate": 0.4824,
+      "wilson_lower_win": 0.3792,
+      "expectancy_r": -0.1764,
+      "gross_expectancy_r": -0.1657,
+      "ci95_r": [
+       -0.3855,
+       0.0327
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.10666,
+      "total_r": -14.99,
+      "profit_factor": 0.663,
+      "max_drawdown_r": 19.6,
+      "longest_losing_streak": 4,
+      "timeouts": 0,
+      "avg_cost_r": 0.0107,
+      "cost_share": 0.012,
+      "months": 5,
+      "months_positive_share": 0.2,
+      "best_two_months_share": null,
+      "thirds_r": [
+       -1.02,
+       -3.36,
+       -10.62
+      ],
+      "thirds_positive": 0,
+      "best_trade_removed_r": -0.2072,
+      "regimes": {
+       "up": 47,
+       "down": 38
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.037,
+      "never_reached_half_r": 0.329
+     },
+     "cryBTCUSD 15m": {
+      "n": 218,
+      "wins": 106,
+      "win_rate": 0.4862,
+      "wilson_lower_win": 0.4207,
+      "expectancy_r": -0.0966,
+      "gross_expectancy_r": 0.0629,
+      "ci95_r": [
+       -0.2796,
+       0.0863
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.09334,
+      "total_r": -21.06,
+      "profit_factor": 0.837,
+      "max_drawdown_r": 36.05,
+      "longest_losing_streak": 8,
+      "timeouts": 2,
+      "avg_cost_r": 0.1595,
+      "cost_share": 0.148,
+      "months": 5,
+      "months_positive_share": 0.4,
+      "best_two_months_share": null,
+      "thirds_r": [
+       -7.13,
+       -5.86,
+       -8.07
+      ],
+      "thirds_positive": 0,
+      "best_trade_removed_r": -0.1304,
+      "regimes": {
+       "up": 141,
+       "down": 77
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.275,
+      "never_reached_half_r": 0.353
+     },
+     "cryBTCUSD 1h": {
+      "n": 65,
+      "wins": 32,
+      "win_rate": 0.4923,
+      "wilson_lower_win": 0.3746,
+      "expectancy_r": 0.1892,
+      "gross_expectancy_r": 0.2488,
+      "ci95_r": [
+       -0.5637,
+       0.9421
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.38413,
+      "total_r": 12.3,
+      "profit_factor": 1.352,
+      "max_drawdown_r": 15.66,
+      "longest_losing_streak": 5,
+      "timeouts": 0,
+      "avg_cost_r": 0.0597,
+      "cost_share": 0.047,
+      "months": 5,
+      "months_positive_share": 0.6,
+      "best_two_months_share": 1.963,
+      "thirds_r": [
+       -9.62,
+       16.58,
+       5.34
+      ],
+      "thirds_positive": 2,
+      "best_trade_removed_r": -0.175,
+      "regimes": {
+       "down": 26,
+       "up": 39
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.512,
+      "never_reached_half_r": 0.323
+     },
+     "frxEURUSD 15m": {
+      "n": 184,
+      "wins": 100,
+      "win_rate": 0.5435,
+      "wilson_lower_win": 0.4714,
+      "expectancy_r": 0.0022,
+      "gross_expectancy_r": 0.1763,
+      "ci95_r": [
+       -0.2172,
+       0.2215
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.11191,
+      "total_r": 0.4,
+      "profit_factor": 1.004,
+      "max_drawdown_r": 23.52,
+      "longest_losing_streak": 5,
+      "timeouts": 0,
+      "avg_cost_r": 0.1742,
+      "cost_share": 0.16,
+      "months": 5,
+      "months_positive_share": 0.6,
+      "best_two_months_share": 33.713,
+      "thirds_r": [
+       -16.28,
+       5.06,
+       11.63
+      ],
+      "thirds_positive": 2,
+      "best_trade_removed_r": -0.0535,
+      "regimes": {
+       "down": 113,
+       "up": 71
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.409,
+      "never_reached_half_r": 0.326
+     },
+     "frxEURUSD 1h": {
+      "n": 68,
+      "wins": 35,
+      "win_rate": 0.5147,
+      "wilson_lower_win": 0.3983,
+      "expectancy_r": 0.0752,
+      "gross_expectancy_r": 0.1581,
+      "ci95_r": [
+       -0.2512,
+       0.4015
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.1665,
+      "total_r": 5.11,
+      "profit_factor": 1.143,
+      "max_drawdown_r": 14.4,
+      "longest_losing_streak": 6,
+      "timeouts": 0,
+      "avg_cost_r": 0.083,
+      "cost_share": 0.074,
+      "months": 5,
+      "months_positive_share": 0.6,
+      "best_two_months_share": 1.642,
+      "thirds_r": [
+       -3.15,
+       0.48,
+       7.78
+      ],
+      "thirds_positive": 2,
+      "best_trade_removed_r": 0.0147,
+      "regimes": {
+       "down": 43,
+       "up": 25
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.506,
+      "never_reached_half_r": 0.324
+     },
+     "frxGBPUSD 15m": {
+      "n": 180,
+      "wins": 93,
+      "win_rate": 0.5167,
+      "wilson_lower_win": 0.4441,
+      "expectancy_r": -0.1071,
+      "gross_expectancy_r": 0.0863,
+      "ci95_r": [
+       -0.3141,
+       0.1
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.10563,
+      "total_r": -19.28,
+      "profit_factor": 0.819,
+      "max_drawdown_r": 39.67,
+      "longest_losing_streak": 8,
+      "timeouts": 0,
+      "avg_cost_r": 0.1934,
+      "cost_share": 0.184,
+      "months": 5,
+      "months_positive_share": 0.2,
+      "best_two_months_share": null,
+      "thirds_r": [
+       10.84,
+       -16.42,
+       -13.7
+      ],
+      "thirds_positive": 1,
+      "best_trade_removed_r": -0.1542,
+      "regimes": {
+       "down": 98,
+       "up": 82
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.304,
+      "never_reached_half_r": 0.311
+     },
+     "frxGBPUSD 1h": {
+      "n": 75,
+      "wins": 43,
+      "win_rate": 0.5733,
+      "wilson_lower_win": 0.4605,
+      "expectancy_r": 0.0961,
+      "gross_expectancy_r": 0.1962,
+      "ci95_r": [
+       -0.2001,
+       0.3922
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.1511,
+      "total_r": 7.21,
+      "profit_factor": 1.205,
+      "max_drawdown_r": 6.61,
+      "longest_losing_streak": 6,
+      "timeouts": 0,
+      "avg_cost_r": 0.1001,
+      "cost_share": 0.095,
+      "months": 5,
+      "months_positive_share": 0.6,
+      "best_two_months_share": 1.358,
+      "thirds_r": [
+       9.59,
+       -1.15,
+       -1.23
+      ],
+      "thirds_positive": 1,
+      "best_trade_removed_r": 0.0389,
+      "regimes": {
+       "down": 48,
+       "up": 27
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.433,
+      "never_reached_half_r": 0.293
+     },
+     "frxNAS100 15m": {
+      "n": 111,
+      "wins": 54,
+      "win_rate": 0.4865,
+      "wilson_lower_win": 0.3955,
+      "expectancy_r": 0.0545,
+      "gross_expectancy_r": 0.0781,
+      "ci95_r": [
+       -0.2398,
+       0.3488
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.15016,
+      "total_r": 6.05,
+      "profit_factor": 1.104,
+      "max_drawdown_r": 16.48,
+      "longest_losing_streak": 10,
+      "timeouts": 0,
+      "avg_cost_r": 0.0236,
+      "cost_share": 0.021,
+      "months": 5,
+      "months_positive_share": 0.4,
+      "best_two_months_share": 1.619,
+      "thirds_r": [
+       6.5,
+       -0.93,
+       0.47
+      ],
+      "thirds_positive": 2,
+      "best_trade_removed_r": -0.0243,
+      "regimes": {
+       "up": 46,
+       "down": 65
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.29,
+      "never_reached_half_r": 0.414
+     },
+     "frxNAS100 1h": {
+      "n": 38,
+      "wins": 18,
+      "win_rate": 0.4737,
+      "wilson_lower_win": 0.3248,
+      "expectancy_r": -0.1431,
+      "gross_expectancy_r": -0.1325,
+      "ci95_r": [
+       -0.4526,
+       0.1664
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.15792,
+      "total_r": -5.44,
+      "profit_factor": 0.731,
+      "max_drawdown_r": 9.99,
+      "longest_losing_streak": 6,
+      "timeouts": 0,
+      "avg_cost_r": 0.0106,
+      "cost_share": 0.012,
+      "months": 5,
+      "months_positive_share": 0.6,
+      "best_two_months_share": null,
+      "thirds_r": [
+       -1.64,
+       4.84,
+       -8.63
+      ],
+      "thirds_positive": 1,
+      "best_trade_removed_r": -0.2019,
+      "regimes": {
+       "up": 13,
+       "down": 25
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.057,
+      "never_reached_half_r": 0.395
+     },
+     "frxUSDJPY 15m": {
+      "n": 158,
+      "wins": 70,
+      "win_rate": 0.443,
+      "wilson_lower_win": 0.3678,
+      "expectancy_r": -0.1997,
+      "gross_expectancy_r": -0.0052,
+      "ci95_r": [
+       -0.4326,
+       0.0331
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.11879,
+      "total_r": -31.56,
+      "profit_factor": 0.703,
+      "max_drawdown_r": 35.38,
+      "longest_losing_streak": 8,
+      "timeouts": 0,
+      "avg_cost_r": 0.1946,
+      "cost_share": 0.175,
+      "months": 5,
+      "months_positive_share": 0.2,
+      "best_two_months_share": null,
+      "thirds_r": [
+       -12.67,
+       -9.96,
+       -8.93
+      ],
+      "thirds_positive": 0,
+      "best_trade_removed_r": -0.2446,
+      "regimes": {
+       "up": 119,
+       "down": 39
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.269,
+      "never_reached_half_r": 0.361
+     },
+     "frxUSDJPY 1h": {
+      "n": 67,
+      "wins": 29,
+      "win_rate": 0.4328,
+      "wilson_lower_win": 0.321,
+      "expectancy_r": -0.0823,
+      "gross_expectancy_r": 0.0078,
+      "ci95_r": [
+       -0.443,
+       0.2784
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.18402,
+      "total_r": -5.51,
+      "profit_factor": 0.867,
+      "max_drawdown_r": 16.09,
+      "longest_losing_streak": 8,
+      "timeouts": 0,
+      "avg_cost_r": 0.0901,
+      "cost_share": 0.079,
+      "months": 5,
+      "months_positive_share": 0.4,
+      "best_two_months_share": null,
+      "thirds_r": [
+       -1.11,
+       -5.31,
+       0.91
+      ],
+      "thirds_positive": 1,
+      "best_trade_removed_r": -0.1573,
+      "regimes": {
+       "up": 49,
+       "down": 18
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.311,
+      "never_reached_half_r": 0.358
+     },
+     "frxXAUUSD 15m": {
+      "n": 160,
+      "wins": 91,
+      "win_rate": 0.5687,
+      "wilson_lower_win": 0.4913,
+      "expectancy_r": 0.2171,
+      "gross_expectancy_r": 0.2507,
+      "ci95_r": [
+       -0.006,
+       0.4402
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.11382,
+      "total_r": 34.74,
+      "profit_factor": 1.487,
+      "max_drawdown_r": 10.53,
+      "longest_losing_streak": 5,
+      "timeouts": 0,
+      "avg_cost_r": 0.0336,
+      "cost_share": 0.03,
+      "months": 5,
+      "months_positive_share": 0.6,
+      "best_two_months_share": 0.927,
+      "thirds_r": [
+       19.69,
+       12.69,
+       2.36
+      ],
+      "thirds_positive": 3,
+      "best_trade_removed_r": 0.1833,
+      "regimes": {
+       "up": 61,
+       "down": 99
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.446,
+      "never_reached_half_r": 0.281
+     },
+     "frxXAUUSD 1h": {
+      "n": 49,
+      "wins": 27,
+      "win_rate": 0.551,
+      "wilson_lower_win": 0.4131,
+      "expectancy_r": 0.2118,
+      "gross_expectancy_r": 0.2278,
+      "ci95_r": [
+       -0.1639,
+       0.5874
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.19166,
+      "total_r": 10.38,
+      "profit_factor": 1.464,
+      "max_drawdown_r": 4.74,
+      "longest_losing_streak": 4,
+      "timeouts": 0,
+      "avg_cost_r": 0.016,
+      "cost_share": 0.014,
+      "months": 4,
+      "months_positive_share": 0.75,
+      "best_two_months_share": 1.076,
+      "thirds_r": [
+       7.4,
+       1.22,
+       1.75
+      ],
+      "thirds_positive": 3,
+      "best_trade_removed_r": 0.1459,
+      "regimes": {
+       "up": 18,
+       "down": 31
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.496,
+      "never_reached_half_r": 0.204
+     }
+    }
+   },
+   "all": {
+    "x1.0": {
+     "n": 6257,
+     "wins": 3066,
+     "win_rate": 0.49,
+     "wilson_lower_win": 0.4776,
+     "expectancy_r": -0.0355,
+     "gross_expectancy_r": 0.0407,
+     "ci95_r": [
+      -0.0699,
+      -0.001
+     ],
+     "ci95_block_r": [
+      -0.0764,
+      0.0088
+     ],
+     "se_r": 0.01757,
+     "total_r": -222.01,
+     "profit_factor": 0.936,
+     "max_drawdown_r": 270.07,
+     "longest_losing_streak": 20,
+     "timeouts": 4,
+     "avg_cost_r": 0.0762,
+     "cost_share": 0.072,
+     "months": 13,
+     "months_positive_share": 0.308,
+     "best_two_months_share": null,
+     "thirds_r": [
+      -56.44,
+      -105.33,
+      -60.24
+     ],
+     "thirds_positive": 0,
+     "best_trade_removed_r": -0.0392,
+     "regimes": {
+      "up": 3162,
+      "down": 3095
+     },
+     "cost_mult": 1.0,
+     "mfe_avg_r": 1.262,
+     "never_reached_half_r": 0.337
+    },
+    "x1.5": {
+     "n": 6257,
+     "wins": 3066,
+     "win_rate": 0.49,
+     "wilson_lower_win": 0.4776,
+     "expectancy_r": -0.0736,
+     "gross_expectancy_r": 0.0407,
+     "ci95_r": [
+      -0.1081,
+      -0.0391
+     ],
+     "ci95_block_r": [
+      -0.1158,
+      -0.0292
+     ],
+     "se_r": 0.0176,
+     "total_r": -460.5,
+     "profit_factor": 0.872,
+     "max_drawdown_r": 495.41,
+     "longest_losing_streak": 20,
+     "timeouts": 4,
+     "avg_cost_r": 0.1143,
+     "cost_share": 0.108,
+     "months": 13,
+     "months_positive_share": 0.231,
+     "best_two_months_share": null,
+     "thirds_r": [
+      -126.36,
+      -179.48,
+      -154.66
+     ],
+     "thirds_positive": 0,
+     "best_trade_removed_r": -0.0774,
+     "regimes": {
+      "up": 3162,
+      "down": 3095
+     },
+     "cost_mult": 1.5,
+     "mfe_avg_r": 1.262,
+     "never_reached_half_r": 0.337
+    },
+    "x2.0": {
+     "n": 6257,
+     "wins": 3066,
+     "win_rate": 0.49,
+     "wilson_lower_win": 0.4776,
+     "expectancy_r": -0.1117,
+     "gross_expectancy_r": 0.0407,
+     "ci95_r": [
+      -0.1463,
+      -0.0771
+     ],
+     "ci95_block_r": [
+      -0.1553,
+      -0.0679
+     ],
+     "se_r": 0.01765,
+     "total_r": -698.98,
+     "profit_factor": 0.813,
+     "max_drawdown_r": 724.92,
+     "longest_losing_streak": 20,
+     "timeouts": 4,
+     "avg_cost_r": 0.1525,
+     "cost_share": 0.144,
+     "months": 13,
+     "months_positive_share": 0.154,
+     "best_two_months_share": null,
+     "thirds_r": [
+      -196.28,
+      -253.63,
+      -249.07
+     ],
+     "thirds_positive": 0,
+     "best_trade_removed_r": -0.1155,
+     "regimes": {
+      "up": 3162,
+      "down": 3095
+     },
+     "cost_mult": 2.0,
+     "mfe_avg_r": 1.262,
+     "never_reached_half_r": 0.337
+    },
+    "by_slice": {
+     "1HZ75V 15m": {
+      "n": 713,
+      "wins": 356,
+      "win_rate": 0.4993,
+      "wilson_lower_win": 0.4627,
+      "expectancy_r": 0.0122,
+      "gross_expectancy_r": 0.0336,
+      "ci95_r": [
+       -0.0843,
+       0.1087
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.04924,
+      "total_r": 8.71,
+      "profit_factor": 1.024,
+      "max_drawdown_r": 28.1,
+      "longest_losing_streak": 9,
+      "timeouts": 0,
+      "avg_cost_r": 0.0213,
+      "cost_share": 0.021,
+      "months": 13,
+      "months_positive_share": 0.692,
+      "best_two_months_share": 3.055,
+      "thirds_r": [
+       -14.87,
+       23.52,
+       0.06
+      ],
+      "thirds_positive": 2,
+      "best_trade_removed_r": -0.0007,
+      "regimes": {
+       "down": 342,
+       "up": 371
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.232,
+      "never_reached_half_r": 0.331
+     },
+     "1HZ75V 1h": {
+      "n": 233,
+      "wins": 114,
+      "win_rate": 0.4893,
+      "wilson_lower_win": 0.4258,
+      "expectancy_r": 0.0341,
+      "gross_expectancy_r": 0.0446,
+      "ci95_r": [
+       -0.1518,
+       0.22
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.09485,
+      "total_r": 7.95,
+      "profit_factor": 1.066,
+      "max_drawdown_r": 19.75,
+      "longest_losing_streak": 9,
+      "timeouts": 0,
+      "avg_cost_r": 0.0105,
+      "cost_share": 0.01,
+      "months": 13,
+      "months_positive_share": 0.615,
+      "best_two_months_share": 1.835,
+      "thirds_r": [
+       -4.31,
+       11.56,
+       0.7
+      ],
+      "thirds_positive": 2,
+      "best_trade_removed_r": -0.0035,
+      "regimes": {
+       "down": 104,
+       "up": 129
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.24,
+      "never_reached_half_r": 0.339
+     },
+     "R_75 15m": {
+      "n": 684,
+      "wins": 336,
+      "win_rate": 0.4912,
+      "wilson_lower_win": 0.4539,
+      "expectancy_r": -0.0325,
+      "gross_expectancy_r": -0.0111,
+      "ci95_r": [
+       -0.1258,
+       0.0608
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.0476,
+      "total_r": -22.24,
+      "profit_factor": 0.937,
+      "max_drawdown_r": 58.91,
+      "longest_losing_streak": 12,
+      "timeouts": 0,
+      "avg_cost_r": 0.0215,
+      "cost_share": 0.021,
+      "months": 13,
+      "months_positive_share": 0.462,
+      "best_two_months_share": null,
+      "thirds_r": [
+       24.15,
+       3.54,
+       -49.94
+      ],
+      "thirds_positive": 2,
+      "best_trade_removed_r": -0.0419,
+      "regimes": {
+       "down": 361,
+       "up": 323
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.183,
+      "never_reached_half_r": 0.338
+     },
+     "R_75 1h": {
+      "n": 264,
+      "wins": 120,
+      "win_rate": 0.4545,
+      "wilson_lower_win": 0.3956,
+      "expectancy_r": -0.1071,
+      "gross_expectancy_r": -0.0966,
+      "ci95_r": [
+       -0.2515,
+       0.0372
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.07364,
+      "total_r": -28.28,
+      "profit_factor": 0.806,
+      "max_drawdown_r": 28.9,
+      "longest_losing_streak": 8,
+      "timeouts": 0,
+      "avg_cost_r": 0.0106,
+      "cost_share": 0.011,
+      "months": 13,
+      "months_positive_share": 0.308,
+      "best_two_months_share": null,
+      "thirds_r": [
+       -13.58,
+       -2.92,
+       -11.77
+      ],
+      "thirds_positive": 0,
+      "best_trade_removed_r": -0.1321,
+      "regimes": {
+       "down": 138,
+       "up": 126
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.12,
+      "never_reached_half_r": 0.356
+     },
+     "cryBTCUSD 15m": {
+      "n": 743,
+      "wins": 368,
+      "win_rate": 0.4953,
+      "wilson_lower_win": 0.4595,
+      "expectancy_r": -0.0473,
+      "gross_expectancy_r": 0.0647,
+      "ci95_r": [
+       -0.1488,
+       0.0541
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.05175,
+      "total_r": -35.17,
+      "profit_factor": 0.916,
+      "max_drawdown_r": 43.15,
+      "longest_losing_streak": 12,
+      "timeouts": 2,
+      "avg_cost_r": 0.112,
+      "cost_share": 0.105,
+      "months": 13,
+      "months_positive_share": 0.308,
+      "best_two_months_share": null,
+      "thirds_r": [
+       -12.29,
+       -4.2,
+       -18.69
+      ],
+      "thirds_positive": 0,
+      "best_trade_removed_r": -0.0582,
+      "regimes": {
+       "down": 400,
+       "up": 343
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.3,
+      "never_reached_half_r": 0.33
+     },
+     "cryBTCUSD 1h": {
+      "n": 232,
+      "wins": 110,
+      "win_rate": 0.4741,
+      "wilson_lower_win": 0.4108,
+      "expectancy_r": 0.0471,
+      "gross_expectancy_r": 0.0909,
+      "ci95_r": [
+       -0.2126,
+       0.3068
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.1325,
+      "total_r": 10.92,
+      "profit_factor": 1.086,
+      "max_drawdown_r": 21.1,
+      "longest_losing_streak": 8,
+      "timeouts": 0,
+      "avg_cost_r": 0.0439,
+      "cost_share": 0.038,
+      "months": 13,
+      "months_positive_share": 0.538,
+      "best_two_months_share": 2.775,
+      "thirds_r": [
+       0.53,
+       -5.75,
+       16.14
+      ],
+      "thirds_positive": 2,
+      "best_trade_removed_r": -0.0544,
+      "regimes": {
+       "down": 127,
+       "up": 105
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.342,
+      "never_reached_half_r": 0.328
+     },
+     "frxEURUSD 15m": {
+      "n": 560,
+      "wins": 283,
+      "win_rate": 0.5054,
+      "wilson_lower_win": 0.4641,
+      "expectancy_r": -0.0841,
+      "gross_expectancy_r": 0.0685,
+      "ci95_r": [
+       -0.1984,
+       0.0301
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.05829,
+      "total_r": -47.1,
+      "profit_factor": 0.854,
+      "max_drawdown_r": 69.18,
+      "longest_losing_streak": 8,
+      "timeouts": 0,
+      "avg_cost_r": 0.1526,
+      "cost_share": 0.144,
+      "months": 13,
+      "months_positive_share": 0.385,
+      "best_two_months_share": null,
+      "thirds_r": [
+       -24.0,
+       -20.96,
+       -2.15
+      ],
+      "thirds_positive": 0,
+      "best_trade_removed_r": -0.1025,
+      "regimes": {
+       "down": 345,
+       "up": 215
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.291,
+      "never_reached_half_r": 0.348
+     },
+     "frxEURUSD 1h": {
+      "n": 218,
+      "wins": 112,
+      "win_rate": 0.5138,
+      "wilson_lower_win": 0.4478,
+      "expectancy_r": 0.0119,
+      "gross_expectancy_r": 0.0872,
+      "ci95_r": [
+       -0.1638,
+       0.1875
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.08962,
+      "total_r": 2.59,
+      "profit_factor": 1.023,
+      "max_drawdown_r": 20.31,
+      "longest_losing_streak": 6,
+      "timeouts": 0,
+      "avg_cost_r": 0.0754,
+      "cost_share": 0.071,
+      "months": 13,
+      "months_positive_share": 0.615,
+      "best_two_months_share": 4.268,
+      "thirds_r": [
+       5.46,
+       -6.45,
+       3.58
+      ],
+      "thirds_positive": 2,
+      "best_trade_removed_r": -0.0184,
+      "regimes": {
+       "down": 131,
+       "up": 87
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.368,
+      "never_reached_half_r": 0.303
+     },
+     "frxGBPUSD 15m": {
+      "n": 532,
+      "wins": 268,
+      "win_rate": 0.5038,
+      "wilson_lower_win": 0.4614,
+      "expectancy_r": -0.0907,
+      "gross_expectancy_r": 0.0775,
+      "ci95_r": [
+       -0.2096,
+       0.0283
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.06068,
+      "total_r": -48.24,
+      "profit_factor": 0.845,
+      "max_drawdown_r": 60.88,
+      "longest_losing_streak": 9,
+      "timeouts": 0,
+      "avg_cost_r": 0.1682,
+      "cost_share": 0.157,
+      "months": 13,
+      "months_positive_share": 0.308,
+      "best_two_months_share": null,
+      "thirds_r": [
+       -4.68,
+       -19.41,
+       -24.16
+      ],
+      "thirds_positive": 0,
+      "best_trade_removed_r": -0.1076,
+      "regimes": {
+       "up": 243,
+       "down": 289
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.293,
+      "never_reached_half_r": 0.321
+     },
+     "frxGBPUSD 1h": {
+      "n": 202,
+      "wins": 100,
+      "win_rate": 0.495,
+      "wilson_lower_win": 0.4268,
+      "expectancy_r": 0.0168,
+      "gross_expectancy_r": 0.1013,
+      "ci95_r": [
+       -0.1786,
+       0.2122
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.09971,
+      "total_r": 3.39,
+      "profit_factor": 1.031,
+      "max_drawdown_r": 15.85,
+      "longest_losing_streak": 6,
+      "timeouts": 0,
+      "avg_cost_r": 0.0845,
+      "cost_share": 0.076,
+      "months": 13,
+      "months_positive_share": 0.385,
+      "best_two_months_share": 3.384,
+      "thirds_r": [
+       5.17,
+       -4.98,
+       3.2
+      ],
+      "thirds_positive": 2,
+      "best_trade_removed_r": -0.0124,
+      "regimes": {
+       "down": 118,
+       "up": 84
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.362,
+      "never_reached_half_r": 0.307
+     },
+     "frxNAS100 15m": {
+      "n": 305,
+      "wins": 160,
+      "win_rate": 0.5246,
+      "wilson_lower_win": 0.4686,
+      "expectancy_r": 0.1877,
+      "gross_expectancy_r": 0.2129,
+      "ci95_r": [
+       0.0165,
+       0.359
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.08737,
+      "total_r": 57.26,
+      "profit_factor": 1.39,
+      "max_drawdown_r": 16.48,
+      "longest_losing_streak": 10,
+      "timeouts": 2,
+      "avg_cost_r": 0.0252,
+      "cost_share": 0.022,
+      "months": 13,
+      "months_positive_share": 0.692,
+      "best_two_months_share": 0.508,
+      "thirds_r": [
+       18.61,
+       35.31,
+       3.33
+      ],
+      "thirds_positive": 3,
+      "best_trade_removed_r": 0.1597,
+      "regimes": {
+       "up": 163,
+       "down": 142
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.409,
+      "never_reached_half_r": 0.348
+     },
+     "frxNAS100 1h": {
+      "n": 112,
+      "wins": 51,
+      "win_rate": 0.4554,
+      "wilson_lower_win": 0.3661,
+      "expectancy_r": -0.073,
+      "gross_expectancy_r": -0.0613,
+      "ci95_r": [
+       -0.3142,
+       0.1682
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.12305,
+      "total_r": -8.18,
+      "profit_factor": 0.868,
+      "max_drawdown_r": 19.8,
+      "longest_losing_streak": 6,
+      "timeouts": 0,
+      "avg_cost_r": 0.0117,
+      "cost_share": 0.011,
+      "months": 13,
+      "months_positive_share": 0.462,
+      "best_two_months_share": null,
+      "thirds_r": [
+       -12.79,
+       10.05,
+       -5.44
+      ],
+      "thirds_positive": 1,
+      "best_trade_removed_r": -0.1451,
+      "regimes": {
+       "up": 57,
+       "down": 55
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.128,
+      "never_reached_half_r": 0.411
+     },
+     "frxUSDJPY 15m": {
+      "n": 562,
+      "wins": 243,
+      "win_rate": 0.4324,
+      "wilson_lower_win": 0.392,
+      "expectancy_r": -0.302,
+      "gross_expectancy_r": -0.1301,
+      "ci95_r": [
+       -0.4049,
+       -0.1991
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.05251,
+      "total_r": -169.72,
+      "profit_factor": 0.551,
+      "max_drawdown_r": 170.56,
+      "longest_losing_streak": 12,
+      "timeouts": 0,
+      "avg_cost_r": 0.1719,
+      "cost_share": 0.171,
+      "months": 13,
+      "months_positive_share": 0.0,
+      "best_two_months_share": null,
+      "thirds_r": [
+       -50.0,
+       -74.36,
+       -45.36
+      ],
+      "thirds_positive": 0,
+      "best_trade_removed_r": -0.3147,
+      "regimes": {
+       "down": 119,
+       "up": 443
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.115,
+      "never_reached_half_r": 0.375
+     },
+     "frxUSDJPY 1h": {
+      "n": 202,
+      "wins": 81,
+      "win_rate": 0.401,
+      "wilson_lower_win": 0.3359,
+      "expectancy_r": -0.2679,
+      "gross_expectancy_r": -0.1905,
+      "ci95_r": [
+       -0.434,
+       -0.1019
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.08473,
+      "total_r": -54.12,
+      "profit_factor": 0.585,
+      "max_drawdown_r": 57.85,
+      "longest_losing_streak": 8,
+      "timeouts": 0,
+      "avg_cost_r": 0.0775,
+      "cost_share": 0.077,
+      "months": 13,
+      "months_positive_share": 0.231,
+      "best_two_months_share": null,
+      "thirds_r": [
+       -20.96,
+       -26.54,
+       -6.63
+      ],
+      "thirds_positive": 0,
+      "best_trade_removed_r": -0.2935,
+      "regimes": {
+       "up": 152,
+       "down": 50
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.106,
+      "never_reached_half_r": 0.371
+     },
+     "frxXAUUSD 15m": {
+      "n": 511,
+      "wins": 266,
+      "win_rate": 0.5205,
+      "wilson_lower_win": 0.4772,
+      "expectancy_r": 0.1359,
+      "gross_expectancy_r": 0.1674,
+      "ci95_r": [
+       0.0073,
+       0.2645
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.06561,
+      "total_r": 69.44,
+      "profit_factor": 1.275,
+      "max_drawdown_r": 14.94,
+      "longest_losing_streak": 9,
+      "timeouts": 0,
+      "avg_cost_r": 0.0315,
+      "cost_share": 0.028,
+      "months": 13,
+      "months_positive_share": 0.692,
+      "best_two_months_share": 0.569,
+      "thirds_r": [
+       34.44,
+       -3.75,
+       38.75
+      ],
+      "thirds_positive": 2,
+      "best_trade_removed_r": 0.1199,
+      "regimes": {
+       "up": 242,
+       "down": 269
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.378,
+      "never_reached_half_r": 0.315
+     },
+     "frxXAUUSD 1h": {
+      "n": 184,
+      "wins": 98,
+      "win_rate": 0.5326,
+      "wilson_lower_win": 0.4606,
+      "expectancy_r": 0.1673,
+      "gross_expectancy_r": 0.182,
+      "ci95_r": [
+       -0.0341,
+       0.3687
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.10275,
+      "total_r": 30.79,
+      "profit_factor": 1.353,
+      "max_drawdown_r": 9.14,
+      "longest_losing_streak": 5,
+      "timeouts": 0,
+      "avg_cost_r": 0.0147,
+      "cost_share": 0.013,
+      "months": 12,
+      "months_positive_share": 0.583,
+      "best_two_months_share": 0.707,
+      "thirds_r": [
+       16.35,
+       1.74,
+       12.7
+      ],
+      "thirds_positive": 3,
+      "best_trade_removed_r": 0.1399,
+      "regimes": {
+       "down": 105,
+       "up": 79
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.386,
+      "never_reached_half_r": 0.304
+     }
+    }
+   },
+   "rules": {
+    "entry": "aria",
+    "model": "7.2c",
+    "mtf": null,
+    "wave5_veto": null,
+    "gates": {
+     "acf": {
+      "n": 100,
+      "min": 0.0,
+      "readings_only": true
+     }
+    },
+    "stop": {
+     "kind": "aria"
+    },
+    "exit": {
+     "kind": "model"
+    },
+    "donchian": {
+     "lookback": 20,
+     "trend": true,
+     "sides": "both"
+    },
+    "shadows": false
+   },
+   "version": "4c5d20458e"
+  },
+  "acf100": {
+   "n": 2637,
+   "dev": {
+    "x1.0": {
+     "n": 1265,
+     "wins": 622,
+     "win_rate": 0.4917,
+     "wilson_lower_win": 0.4642,
+     "expectancy_r": -0.0079,
+     "gross_expectancy_r": 0.0545,
+     "ci95_r": [
+      -0.0832,
+      0.0673
+     ],
+     "ci95_block_r": [
+      -0.0671,
+      0.0501
+     ],
+     "se_r": 0.0384,
+     "total_r": -10.05,
+     "profit_factor": 0.985,
+     "max_drawdown_r": 65.93,
+     "longest_losing_streak": 11,
+     "timeouts": 0,
+     "avg_cost_r": 0.0625,
+     "cost_share": 0.058,
+     "months": 7,
+     "months_positive_share": 0.286,
+     "best_two_months_share": null,
+     "thirds_r": [
+      -29.46,
+      27.1,
+      -7.69
+     ],
+     "thirds_positive": 1,
+     "best_trade_removed_r": -0.0152,
+     "regimes": {
+      "up": 569,
+      "down": 696
+     },
+     "cost_mult": 1.0,
+     "mfe_avg_r": 1.267,
+     "never_reached_half_r": 0.344
+    },
+    "x1.5": {
+     "n": 1265,
+     "wins": 622,
+     "win_rate": 0.4917,
+     "wilson_lower_win": 0.4642,
+     "expectancy_r": -0.0392,
+     "gross_expectancy_r": 0.0545,
+     "ci95_r": [
+      -0.1146,
+      0.0362
+     ],
+     "ci95_block_r": [
+      -0.101,
+      0.0199
+     ],
+     "se_r": 0.03845,
+     "total_r": -49.58,
+     "profit_factor": 0.93,
+     "max_drawdown_r": 82.93,
+     "longest_losing_streak": 11,
+     "timeouts": 0,
+     "avg_cost_r": 0.0937,
+     "cost_share": 0.088,
+     "months": 7,
+     "months_positive_share": 0.286,
+     "best_two_months_share": null,
+     "thirds_r": [
+      -43.18,
+      13.71,
+      -20.12
+     ],
+     "thirds_positive": 1,
+     "best_trade_removed_r": -0.0465,
+     "regimes": {
+      "up": 569,
+      "down": 696
+     },
+     "cost_mult": 1.5,
+     "mfe_avg_r": 1.267,
+     "never_reached_half_r": 0.344
+    },
+    "x2.0": {
+     "n": 1265,
+     "wins": 622,
+     "win_rate": 0.4917,
+     "wilson_lower_win": 0.4642,
+     "expectancy_r": -0.0704,
+     "gross_expectancy_r": 0.0545,
+     "ci95_r": [
+      -0.146,
+      0.0051
+     ],
+     "ci95_block_r": [
+      -0.1316,
+      -0.0104
+     ],
+     "se_r": 0.03853,
+     "total_r": -89.1,
+     "profit_factor": 0.878,
+     "max_drawdown_r": 106.43,
+     "longest_losing_streak": 11,
+     "timeouts": 0,
+     "avg_cost_r": 0.125,
+     "cost_share": 0.117,
+     "months": 7,
+     "months_positive_share": 0.286,
+     "best_two_months_share": null,
+     "thirds_r": [
+      -56.89,
+      0.33,
+      -32.54
+     ],
+     "thirds_positive": 1,
+     "best_trade_removed_r": -0.0777,
+     "regimes": {
+      "up": 569,
+      "down": 696
+     },
+     "cost_mult": 2.0,
+     "mfe_avg_r": 1.267,
+     "never_reached_half_r": 0.344
+    },
+    "by_slice": {
+     "1HZ75V 15m": {
+      "n": 162,
+      "wins": 81,
+      "win_rate": 0.5,
+      "wilson_lower_win": 0.4239,
+      "expectancy_r": 0.0524,
+      "gross_expectancy_r": 0.0738,
+      "ci95_r": [
+       -0.1683,
+       0.2731
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.11261,
+      "total_r": 8.49,
+      "profit_factor": 1.103,
+      "max_drawdown_r": 17.46,
+      "longest_losing_streak": 8,
+      "timeouts": 0,
+      "avg_cost_r": 0.0214,
+      "cost_share": 0.02,
+      "months": 7,
+      "months_positive_share": 0.571,
+      "best_two_months_share": 2.053,
+      "thirds_r": [
+       -4.23,
+       -0.59,
+       13.3
+      ],
+      "thirds_positive": 1,
+      "best_trade_removed_r": -0.0043,
+      "regimes": {
+       "down": 87,
+       "up": 75
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.266,
+      "never_reached_half_r": 0.333
+     },
+     "1HZ75V 1h": {
+      "n": 63,
+      "wins": 34,
+      "win_rate": 0.5397,
+      "wilson_lower_win": 0.4179,
+      "expectancy_r": 0.2163,
+      "gross_expectancy_r": 0.2268,
+      "ci95_r": [
+       -0.1714,
+       0.6039
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.1978,
+      "total_r": 13.62,
+      "profit_factor": 1.465,
+      "max_drawdown_r": 6.65,
+      "longest_losing_streak": 4,
+      "timeouts": 0,
+      "avg_cost_r": 0.0106,
+      "cost_share": 0.009,
+      "months": 7,
+      "months_positive_share": 0.857,
+      "best_two_months_share": 0.596,
+      "thirds_r": [
+       5.33,
+       -2.13,
+       10.42
+      ],
+      "thirds_positive": 2,
+      "best_trade_removed_r": 0.1269,
+      "regimes": {
+       "up": 36,
+       "down": 27
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.393,
+      "never_reached_half_r": 0.333
+     },
+     "R_75 15m": {
+      "n": 148,
+      "wins": 81,
+      "win_rate": 0.5473,
+      "wilson_lower_win": 0.4669,
+      "expectancy_r": 0.1302,
+      "gross_expectancy_r": 0.1514,
+      "ci95_r": [
+       -0.087,
+       0.3474
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.11082,
+      "total_r": 19.27,
+      "profit_factor": 1.282,
+      "max_drawdown_r": 10.25,
+      "longest_losing_streak": 6,
+      "timeouts": 0,
+      "avg_cost_r": 0.0213,
+      "cost_share": 0.02,
+      "months": 6,
+      "months_positive_share": 0.5,
+      "best_two_months_share": 1.137,
+      "thirds_r": [
+       1.56,
+       19.0,
+       -1.29
+      ],
+      "thirds_positive": 2,
+      "best_trade_removed_r": 0.0897,
+      "regimes": {
+       "down": 95,
+       "up": 53
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.325,
+      "never_reached_half_r": 0.284
+     },
+     "R_75 1h": {
+      "n": 76,
+      "wins": 34,
+      "win_rate": 0.4474,
+      "wilson_lower_win": 0.3408,
+      "expectancy_r": -0.085,
+      "gross_expectancy_r": -0.0745,
+      "ci95_r": [
+       -0.3445,
+       0.1746
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.13242,
+      "total_r": -6.46,
+      "profit_factor": 0.848,
+      "max_drawdown_r": 13.96,
+      "longest_losing_streak": 5,
+      "timeouts": 0,
+      "avg_cost_r": 0.0105,
+      "cost_share": 0.01,
+      "months": 6,
+      "months_positive_share": 0.333,
+      "best_two_months_share": null,
+      "thirds_r": [
+       -8.33,
+       -1.74,
+       3.61
+      ],
+      "thirds_positive": 1,
+      "best_trade_removed_r": -0.1211,
+      "regimes": {
+       "down": 61,
+       "up": 15
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.127,
+      "never_reached_half_r": 0.355
+     },
+     "cryBTCUSD 15m": {
+      "n": 91,
+      "wins": 45,
+      "win_rate": 0.4945,
+      "wilson_lower_win": 0.3941,
+      "expectancy_r": -0.1106,
+      "gross_expectancy_r": -0.0344,
+      "ci95_r": [
+       -0.3657,
+       0.1445
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.13014,
+      "total_r": -10.06,
+      "profit_factor": 0.796,
+      "max_drawdown_r": 16.84,
+      "longest_losing_streak": 6,
+      "timeouts": 0,
+      "avg_cost_r": 0.0761,
+      "cost_share": 0.078,
+      "months": 6,
+      "months_positive_share": 0.333,
+      "best_two_months_share": null,
+      "thirds_r": [
+       -9.99,
+       -4.17,
+       4.09
+      ],
+      "thirds_positive": 1,
+      "best_trade_removed_r": -0.1682,
+      "regimes": {
+       "down": 60,
+       "up": 31
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.209,
+      "never_reached_half_r": 0.319
+     },
+     "cryBTCUSD 1h": {
+      "n": 55,
+      "wins": 24,
+      "win_rate": 0.4364,
+      "wilson_lower_win": 0.3137,
+      "expectancy_r": -0.1264,
+      "gross_expectancy_r": -0.0928,
+      "ci95_r": [
+       -0.4726,
+       0.2199
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.17667,
+      "total_r": -6.95,
+      "profit_factor": 0.783,
+      "max_drawdown_r": 10.47,
+      "longest_losing_streak": 6,
+      "timeouts": 0,
+      "avg_cost_r": 0.0336,
+      "cost_share": 0.032,
+      "months": 7,
+      "months_positive_share": 0.286,
+      "best_two_months_share": null,
+      "thirds_r": [
+       -4.31,
+       0.37,
+       -3.01
+      ],
+      "thirds_positive": 1,
+      "best_trade_removed_r": -0.2172,
+      "regimes": {
+       "down": 38,
+       "up": 17
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.156,
+      "never_reached_half_r": 0.364
+     },
+     "frxEURUSD 15m": {
+      "n": 107,
+      "wins": 51,
+      "win_rate": 0.4766,
+      "wilson_lower_win": 0.3845,
+      "expectancy_r": -0.1098,
+      "gross_expectancy_r": 0.0284,
+      "ci95_r": [
+       -0.3696,
+       0.1501
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.13258,
+      "total_r": -11.75,
+      "profit_factor": 0.817,
+      "max_drawdown_r": 12.98,
+      "longest_losing_streak": 7,
+      "timeouts": 0,
+      "avg_cost_r": 0.1381,
+      "cost_share": 0.128,
+      "months": 7,
+      "months_positive_share": 0.0,
+      "best_two_months_share": null,
+      "thirds_r": [
+       -5.73,
+       -5.02,
+       -0.99
+      ],
+      "thirds_positive": 0,
+      "best_trade_removed_r": -0.1549,
+      "regimes": {
+       "down": 68,
+       "up": 39
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.265,
+      "never_reached_half_r": 0.374
+     },
+     "frxEURUSD 1h": {
+      "n": 49,
+      "wins": 23,
+      "win_rate": 0.4694,
+      "wilson_lower_win": 0.337,
+      "expectancy_r": -0.1647,
+      "gross_expectancy_r": -0.0958,
+      "ci95_r": [
+       -0.4661,
+       0.1366
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.15375,
+      "total_r": -8.07,
+      "profit_factor": 0.709,
+      "max_drawdown_r": 11.32,
+      "longest_losing_streak": 4,
+      "timeouts": 0,
+      "avg_cost_r": 0.069,
+      "cost_share": 0.071,
+      "months": 6,
+      "months_positive_share": 0.167,
+      "best_two_months_share": null,
+      "thirds_r": [
+       -2.84,
+       6.09,
+       -11.32
+      ],
+      "thirds_positive": 1,
+      "best_trade_removed_r": -0.2142,
+      "regimes": {
+       "up": 25,
+       "down": 24
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.177,
+      "never_reached_half_r": 0.347
+     },
+     "frxGBPUSD 15m": {
+      "n": 112,
+      "wins": 56,
+      "win_rate": 0.5,
+      "wilson_lower_win": 0.4089,
+      "expectancy_r": -0.0871,
+      "gross_expectancy_r": 0.069,
+      "ci95_r": [
+       -0.342,
+       0.1678
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.13004,
+      "total_r": -9.76,
+      "profit_factor": 0.849,
+      "max_drawdown_r": 17.8,
+      "longest_losing_streak": 6,
+      "timeouts": 0,
+      "avg_cost_r": 0.1561,
+      "cost_share": 0.146,
+      "months": 7,
+      "months_positive_share": 0.286,
+      "best_two_months_share": null,
+      "thirds_r": [
+       -2.88,
+       0.19,
+       -7.06
+      ],
+      "thirds_positive": 1,
+      "best_trade_removed_r": -0.1359,
+      "regimes": {
+       "up": 39,
+       "down": 73
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.262,
+      "never_reached_half_r": 0.357
+     },
+     "frxGBPUSD 1h": {
+      "n": 33,
+      "wins": 17,
+      "win_rate": 0.5152,
+      "wilson_lower_win": 0.3522,
+      "expectancy_r": 0.167,
+      "gross_expectancy_r": 0.2351,
+      "ci95_r": [
+       -0.361,
+       0.6949
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.26935,
+      "total_r": 5.51,
+      "profit_factor": 1.323,
+      "max_drawdown_r": 9.03,
+      "longest_losing_streak": 6,
+      "timeouts": 0,
+      "avg_cost_r": 0.0682,
+      "cost_share": 0.057,
+      "months": 5,
+      "months_positive_share": 0.6,
+      "best_two_months_share": 1.528,
+      "thirds_r": [
+       2.33,
+       7.72,
+       -4.53
+      ],
+      "thirds_positive": 2,
+      "best_trade_removed_r": 0.0472,
+      "regimes": {
+       "down": 15,
+       "up": 18
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.51,
+      "never_reached_half_r": 0.333
+     },
+     "frxNAS100 15m": {
+      "n": 52,
+      "wins": 29,
+      "win_rate": 0.5577,
+      "wilson_lower_win": 0.4234,
+      "expectancy_r": 0.2424,
+      "gross_expectancy_r": 0.2711,
+      "ci95_r": [
+       -0.146,
+       0.6308
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.19817,
+      "total_r": 12.6,
+      "profit_factor": 1.533,
+      "max_drawdown_r": 6.06,
+      "longest_losing_streak": 5,
+      "timeouts": 0,
+      "avg_cost_r": 0.0287,
+      "cost_share": 0.025,
+      "months": 6,
+      "months_positive_share": 0.5,
+      "best_two_months_share": 1.118,
+      "thirds_r": [
+       4.22,
+       10.48,
+       -2.1
+      ],
+      "thirds_positive": 2,
+      "best_trade_removed_r": 0.1693,
+      "regimes": {
+       "up": 19,
+       "down": 33
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.445,
+      "never_reached_half_r": 0.365
+     },
+     "frxNAS100 1h": {
+      "n": 28,
+      "wins": 11,
+      "win_rate": 0.3929,
+      "wilson_lower_win": 0.2357,
+      "expectancy_r": -0.0679,
+      "gross_expectancy_r": -0.0572,
+      "ci95_r": [
+       -0.5482,
+       0.4123
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.24503,
+      "total_r": -1.9,
+      "profit_factor": 0.889,
+      "max_drawdown_r": 7.6,
+      "longest_losing_streak": 5,
+      "timeouts": 0,
+      "avg_cost_r": 0.0107,
+      "cost_share": 0.009,
+      "months": 5,
+      "months_positive_share": 0.2,
+      "best_two_months_share": null,
+      "thirds_r": [
+       -3.74,
+       2.49,
+       -0.65
+      ],
+      "thirds_positive": 1,
+      "best_trade_removed_r": -0.1646,
+      "regimes": {
+       "up": 6,
+       "down": 22
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.143,
+      "never_reached_half_r": 0.464
+     },
+     "frxUSDJPY 15m": {
+      "n": 120,
+      "wins": 52,
+      "win_rate": 0.4333,
+      "wilson_lower_win": 0.3481,
+      "expectancy_r": -0.2721,
+      "gross_expectancy_r": -0.1336,
+      "ci95_r": [
+       -0.4888,
+       -0.0555
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.11053,
+      "total_r": -32.66,
+      "profit_factor": 0.579,
+      "max_drawdown_r": 33.13,
+      "longest_losing_streak": 8,
+      "timeouts": 0,
+      "avg_cost_r": 0.1385,
+      "cost_share": 0.139,
+      "months": 7,
+      "months_positive_share": 0.0,
+      "best_two_months_share": null,
+      "thirds_r": [
+       -13.22,
+       -8.3,
+       -11.14
+      ],
+      "thirds_positive": 0,
+      "best_trade_removed_r": -0.3178,
+      "regimes": {
+       "down": 12,
+       "up": 108
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.092,
+      "never_reached_half_r": 0.383
+     },
+     "frxUSDJPY 1h": {
+      "n": 41,
+      "wins": 16,
+      "win_rate": 0.3902,
+      "wilson_lower_win": 0.2566,
+      "expectancy_r": -0.3272,
+      "gross_expectancy_r": -0.2662,
+      "ci95_r": [
+       -0.6849,
+       0.0304
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.18245,
+      "total_r": -13.42,
+      "profit_factor": 0.494,
+      "max_drawdown_r": 18.41,
+      "longest_losing_streak": 5,
+      "timeouts": 0,
+      "avg_cost_r": 0.061,
+      "cost_share": 0.064,
+      "months": 5,
+      "months_positive_share": 0.2,
+      "best_two_months_share": null,
+      "thirds_r": [
+       -0.53,
+       -3.89,
+       -9.0
+      ],
+      "thirds_positive": 0,
+      "best_trade_removed_r": -0.4295,
+      "regimes": {
+       "up": 22,
+       "down": 19
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.051,
+      "never_reached_half_r": 0.415
+     },
+     "frxXAUUSD 15m": {
+      "n": 99,
+      "wins": 48,
+      "win_rate": 0.4848,
+      "wilson_lower_win": 0.3888,
+      "expectancy_r": 0.159,
+      "gross_expectancy_r": 0.1896,
+      "ci95_r": [
+       -0.1546,
+       0.4727
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.16004,
+      "total_r": 15.74,
+      "profit_factor": 1.3,
+      "max_drawdown_r": 10.74,
+      "longest_losing_streak": 5,
+      "timeouts": 0,
+      "avg_cost_r": 0.0306,
+      "cost_share": 0.025,
+      "months": 7,
+      "months_positive_share": 0.714,
+      "best_two_months_share": 1.226,
+      "thirds_r": [
+       11.61,
+       2.05,
+       2.08
+      ],
+      "thirds_positive": 3,
+      "best_trade_removed_r": 0.1045,
+      "regimes": {
+       "up": 58,
+       "down": 41
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.41,
+      "never_reached_half_r": 0.323
+     },
+     "frxXAUUSD 1h": {
+      "n": 29,
+      "wins": 20,
+      "win_rate": 0.6897,
+      "wilson_lower_win": 0.5077,
+      "expectancy_r": 0.5424,
+      "gross_expectancy_r": 0.5546,
+      "ci95_r": [
+       -0.0171,
+       1.1019
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.28547,
+      "total_r": 15.73,
+      "profit_factor": 2.73,
+      "max_drawdown_r": 3.03,
+      "longest_losing_streak": 3,
+      "timeouts": 0,
+      "avg_cost_r": 0.0122,
+      "cost_share": 0.01,
+      "months": 6,
+      "months_positive_share": 0.833,
+      "best_two_months_share": 0.745,
+      "thirds_r": [
+       2.09,
+       5.01,
+       8.64
+      ],
+      "thirds_positive": 3,
+      "best_trade_removed_r": 0.3767,
+      "regimes": {
+       "down": 21,
+       "up": 8
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.698,
+      "never_reached_half_r": 0.241
+     }
+    }
+   },
+   "val": {
+    "x1.0": {
+     "n": 508,
+     "wins": 258,
+     "win_rate": 0.5079,
+     "wilson_lower_win": 0.4645,
+     "expectancy_r": -0.0192,
+     "gross_expectancy_r": 0.0534,
+     "ci95_r": [
+      -0.1353,
+      0.0969
+     ],
+     "ci95_block_r": [
+      -0.1245,
+      0.0911
+     ],
+     "se_r": 0.05924,
+     "total_r": -9.74,
+     "profit_factor": 0.964,
+     "max_drawdown_r": 29.08,
+     "longest_losing_streak": 12,
+     "timeouts": 0,
+     "avg_cost_r": 0.0726,
+     "cost_share": 0.07,
+     "months": 3,
+     "months_positive_share": 0.333,
+     "best_two_months_share": null,
+     "thirds_r": [
+      -16.93,
+      8.68,
+      -1.48
+     ],
+     "thirds_positive": 1,
+     "best_trade_removed_r": -0.032,
+     "regimes": {
+      "up": 308,
+      "down": 200
+     },
+     "cost_mult": 1.0,
+     "mfe_avg_r": 1.258,
+     "never_reached_half_r": 0.325
+    },
+    "x1.5": {
+     "n": 508,
+     "wins": 258,
+     "win_rate": 0.5079,
+     "wilson_lower_win": 0.4645,
+     "expectancy_r": -0.0555,
+     "gross_expectancy_r": 0.0534,
+     "ci95_r": [
+      -0.1722,
+      0.0612
+     ],
+     "ci95_block_r": [
+      -0.1584,
+      0.0517
+     ],
+     "se_r": 0.05954,
+     "total_r": -28.17,
+     "profit_factor": 0.901,
+     "max_drawdown_r": 43.76,
+     "longest_losing_streak": 12,
+     "timeouts": 0,
+     "avg_cost_r": 0.1089,
+     "cost_share": 0.105,
+     "months": 3,
+     "months_positive_share": 0.333,
+     "best_two_months_share": null,
+     "thirds_r": [
+      -22.79,
+      3.8,
+      -9.18
+     ],
+     "thirds_positive": 1,
+     "best_trade_removed_r": -0.0683,
+     "regimes": {
+      "up": 308,
+      "down": 200
+     },
+     "cost_mult": 1.5,
+     "mfe_avg_r": 1.258,
+     "never_reached_half_r": 0.325
+    },
+    "x2.0": {
+     "n": 508,
+     "wins": 258,
+     "win_rate": 0.5079,
+     "wilson_lower_win": 0.4645,
+     "expectancy_r": -0.0917,
+     "gross_expectancy_r": 0.0534,
+     "ci95_r": [
+      -0.2091,
+      0.0256
+     ],
+     "ci95_block_r": [
+      -0.1914,
+      0.0121
+     ],
+     "se_r": 0.05989,
+     "total_r": -46.6,
+     "profit_factor": 0.842,
+     "max_drawdown_r": 60.92,
+     "longest_losing_streak": 12,
+     "timeouts": 0,
+     "avg_cost_r": 0.1452,
+     "cost_share": 0.14,
+     "months": 3,
+     "months_positive_share": 0.0,
+     "best_two_months_share": null,
+     "thirds_r": [
+      -28.64,
+      -1.08,
+      -16.89
+     ],
+     "thirds_positive": 0,
+     "best_trade_removed_r": -0.1047,
+     "regimes": {
+      "up": 308,
+      "down": 200
+     },
+     "cost_mult": 2.0,
+     "mfe_avg_r": 1.258,
+     "never_reached_half_r": 0.325
+    },
+    "by_slice": {
+     "1HZ75V 15m": {
+      "n": 81,
+      "wins": 47,
+      "win_rate": 0.5802,
+      "wilson_lower_win": 0.4715,
+      "expectancy_r": 0.1615,
+      "gross_expectancy_r": 0.1831,
+      "ci95_r": [
+       -0.1159,
+       0.4389
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.14153,
+      "total_r": 13.08,
+      "profit_factor": 1.377,
+      "max_drawdown_r": 8.16,
+      "longest_losing_streak": 5,
+      "timeouts": 0,
+      "avg_cost_r": 0.0216,
+      "cost_share": 0.021,
+      "months": 3,
+      "months_positive_share": 0.667,
+      "best_two_months_share": 1.28,
+      "thirds_r": [
+       -2.6,
+       10.15,
+       5.53
+      ],
+      "thirds_positive": 2,
+      "best_trade_removed_r": 0.109,
+      "regimes": {
+       "up": 50,
+       "down": 31
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.356,
+      "never_reached_half_r": 0.259
+     },
+     "1HZ75V 1h": {
+      "n": 20,
+      "wins": 13,
+      "win_rate": 0.65,
+      "wilson_lower_win": 0.4329,
+      "expectancy_r": 0.4025,
+      "gross_expectancy_r": 0.4129,
+      "ci95_r": [
+       -0.2795,
+       1.0844
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.34792,
+      "total_r": 8.05,
+      "profit_factor": 2.138,
+      "max_drawdown_r": 2.89,
+      "longest_losing_streak": 2,
+      "timeouts": 0,
+      "avg_cost_r": 0.0104,
+      "cost_share": 0.009,
+      "months": 3,
+      "months_positive_share": 0.667,
+      "best_two_months_share": 1.162,
+      "thirds_r": [
+       2.45,
+       7.64,
+       -2.04
+      ],
+      "thirds_positive": 2,
+      "best_trade_removed_r": 0.1663,
+      "regimes": {
+       "up": 12,
+       "down": 8
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.599,
+      "never_reached_half_r": 0.15
+     },
+     "R_75 15m": {
+      "n": 51,
+      "wins": 29,
+      "win_rate": 0.5686,
+      "wilson_lower_win": 0.4327,
+      "expectancy_r": 0.151,
+      "gross_expectancy_r": 0.1723,
+      "ci95_r": [
+       -0.2128,
+       0.5148
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.18559,
+      "total_r": 7.7,
+      "profit_factor": 1.343,
+      "max_drawdown_r": 7.45,
+      "longest_losing_streak": 7,
+      "timeouts": 0,
+      "avg_cost_r": 0.0213,
+      "cost_share": 0.021,
+      "months": 3,
+      "months_positive_share": 0.667,
+      "best_two_months_share": 1.89,
+      "thirds_r": [
+       -3.51,
+       -1.82,
+       13.03
+      ],
+      "thirds_positive": 1,
+      "best_trade_removed_r": 0.0524,
+      "regimes": {
+       "down": 18,
+       "up": 33
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.299,
+      "never_reached_half_r": 0.353
+     },
+     "R_75 1h": {
+      "n": 29,
+      "wins": 15,
+      "win_rate": 0.5172,
+      "wilson_lower_win": 0.3443,
+      "expectancy_r": 0.3313,
+      "gross_expectancy_r": 0.342,
+      "ci95_r": [
+       -0.3138,
+       0.9764
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.32911,
+      "total_r": 9.61,
+      "profit_factor": 1.679,
+      "max_drawdown_r": 3.03,
+      "longest_losing_streak": 3,
+      "timeouts": 0,
+      "avg_cost_r": 0.0107,
+      "cost_share": 0.008,
+      "months": 3,
+      "months_positive_share": 0.667,
+      "best_two_months_share": 1.089,
+      "thirds_r": [
+       -0.86,
+       8.35,
+       2.11
+      ],
+      "thirds_positive": 2,
+      "best_trade_removed_r": 0.112,
+      "regimes": {
+       "down": 6,
+       "up": 23
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.525,
+      "never_reached_half_r": 0.414
+     },
+     "cryBTCUSD 15m": {
+      "n": 66,
+      "wins": 32,
+      "win_rate": 0.4848,
+      "wilson_lower_win": 0.3685,
+      "expectancy_r": -0.1372,
+      "gross_expectancy_r": -0.0379,
+      "ci95_r": [
+       -0.447,
+       0.1725
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.15802,
+      "total_r": -9.06,
+      "profit_factor": 0.76,
+      "max_drawdown_r": 15.96,
+      "longest_losing_streak": 8,
+      "timeouts": 0,
+      "avg_cost_r": 0.0993,
+      "cost_share": 0.1,
+      "months": 3,
+      "months_positive_share": 0.333,
+      "best_two_months_share": null,
+      "thirds_r": [
+       -8.74,
+       -2.77,
+       2.45
+      ],
+      "thirds_positive": 1,
+      "best_trade_removed_r": -0.204,
+      "regimes": {
+       "up": 39,
+       "down": 27
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.144,
+      "never_reached_half_r": 0.364
+     },
+     "cryBTCUSD 1h": {
+      "n": 18,
+      "wins": 8,
+      "win_rate": 0.4444,
+      "wilson_lower_win": 0.2456,
+      "expectancy_r": -0.3389,
+      "gross_expectancy_r": -0.2973,
+      "ci95_r": [
+       -0.7264,
+       0.0486
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.19768,
+      "total_r": -6.1,
+      "profit_factor": 0.416,
+      "max_drawdown_r": 7.56,
+      "longest_losing_streak": 6,
+      "timeouts": 0,
+      "avg_cost_r": 0.0416,
+      "cost_share": 0.051,
+      "months": 3,
+      "months_positive_share": 0.333,
+      "best_two_months_share": null,
+      "thirds_r": [
+       -0.44,
+       -6.26,
+       0.6
+      ],
+      "thirds_positive": 1,
+      "best_trade_removed_r": -0.4149,
+      "regimes": {
+       "up": 11,
+       "down": 7
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 0.955,
+      "never_reached_half_r": 0.278
+     },
+     "frxEURUSD 15m": {
+      "n": 48,
+      "wins": 19,
+      "win_rate": 0.3958,
+      "wilson_lower_win": 0.2702,
+      "expectancy_r": -0.4823,
+      "gross_expectancy_r": -0.3163,
+      "ci95_r": [
+       -0.7541,
+       -0.2104
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.13871,
+      "total_r": -23.15,
+      "profit_factor": 0.332,
+      "max_drawdown_r": 23.75,
+      "longest_losing_streak": 5,
+      "timeouts": 0,
+      "avg_cost_r": 0.166,
+      "cost_share": 0.186,
+      "months": 3,
+      "months_positive_share": 0.0,
+      "best_two_months_share": null,
+      "thirds_r": [
+       -1.98,
+       -10.17,
+       -11.0
+      ],
+      "thirds_positive": 0,
+      "best_trade_removed_r": -0.5409,
+      "regimes": {
+       "up": 25,
+       "down": 23
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 0.943,
+      "never_reached_half_r": 0.417
+     },
+     "frxEURUSD 1h": {
+      "n": 22,
+      "wins": 11,
+      "win_rate": 0.5,
+      "wilson_lower_win": 0.3072,
+      "expectancy_r": -0.0496,
+      "gross_expectancy_r": 0.0217,
+      "ci95_r": [
+       -0.6727,
+       0.5734
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.31789,
+      "total_r": -1.09,
+      "profit_factor": 0.908,
+      "max_drawdown_r": 5.35,
+      "longest_losing_streak": 4,
+      "timeouts": 0,
+      "avg_cost_r": 0.0714,
+      "cost_share": 0.07,
+      "months": 3,
+      "months_positive_share": 0.667,
+      "best_two_months_share": null,
+      "thirds_r": [
+       1.19,
+       2.76,
+       -5.05
+      ],
+      "thirds_positive": 2,
+      "best_trade_removed_r": -0.2538,
+      "regimes": {
+       "up": 12,
+       "down": 10
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.329,
+      "never_reached_half_r": 0.182
+     },
+     "frxGBPUSD 15m": {
+      "n": 25,
+      "wins": 10,
+      "win_rate": 0.4,
+      "wilson_lower_win": 0.234,
+      "expectancy_r": -0.3953,
+      "gross_expectancy_r": -0.2164,
+      "ci95_r": [
+       -0.83,
+       0.0395
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.22181,
+      "total_r": -9.88,
+      "profit_factor": 0.442,
+      "max_drawdown_r": 12.94,
+      "longest_losing_streak": 6,
+      "timeouts": 0,
+      "avg_cost_r": 0.1788,
+      "cost_share": 0.182,
+      "months": 3,
+      "months_positive_share": 0.333,
+      "best_two_months_share": null,
+      "thirds_r": [
+       0.34,
+       -3.47,
+       -6.75
+      ],
+      "thirds_positive": 1,
+      "best_trade_removed_r": -0.5029,
+      "regimes": {
+       "up": 17,
+       "down": 8
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.056,
+      "never_reached_half_r": 0.36
+     },
+     "frxGBPUSD 1h": {
+      "n": 15,
+      "wins": 8,
+      "win_rate": 0.5333,
+      "wilson_lower_win": 0.3012,
+      "expectancy_r": 0.4638,
+      "gross_expectancy_r": 0.5399,
+      "ci95_r": [
+       -0.6523,
+       1.5798
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.56942,
+      "total_r": 6.96,
+      "profit_factor": 1.928,
+      "max_drawdown_r": 2.18,
+      "longest_losing_streak": 2,
+      "timeouts": 0,
+      "avg_cost_r": 0.0761,
+      "cost_share": 0.052,
+      "months": 3,
+      "months_positive_share": 0.667,
+      "best_two_months_share": 1.262,
+      "thirds_r": [
+       0.62,
+       2.24,
+       4.09
+      ],
+      "thirds_positive": 3,
+      "best_trade_removed_r": 0.0767,
+      "regimes": {
+       "up": 10,
+       "down": 5
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.678,
+      "never_reached_half_r": 0.4
+     },
+     "frxNAS100 15m": {
+      "n": 32,
+      "wins": 20,
+      "win_rate": 0.625,
+      "wilson_lower_win": 0.4525,
+      "expectancy_r": 0.3814,
+      "gross_expectancy_r": 0.4069,
+      "ci95_r": [
+       -0.1233,
+       0.886
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.25749,
+      "total_r": 12.2,
+      "profit_factor": 1.99,
+      "max_drawdown_r": 3.09,
+      "longest_losing_streak": 3,
+      "timeouts": 0,
+      "avg_cost_r": 0.0255,
+      "cost_share": 0.022,
+      "months": 3,
+      "months_positive_share": 0.667,
+      "best_two_months_share": 1.157,
+      "thirds_r": [
+       3.69,
+       3.04,
+       5.47
+      ],
+      "thirds_positive": 3,
+      "best_trade_removed_r": 0.273,
+      "regimes": {
+       "up": 30,
+       "down": 2
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.558,
+      "never_reached_half_r": 0.25
+     },
+     "frxNAS100 1h": {
+      "n": 5,
+      "wins": 2,
+      "win_rate": 0.4,
+      "wilson_lower_win": 0.1176,
+      "expectancy_r": -0.1447,
+      "gross_expectancy_r": -0.1331,
+      "ci95_r": [
+       -1.1964,
+       0.907
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.53658,
+      "total_r": -0.72,
+      "profit_factor": 0.762,
+      "max_drawdown_r": 1.11,
+      "longest_losing_streak": 1,
+      "timeouts": 0,
+      "avg_cost_r": 0.0116,
+      "cost_share": 0.011,
+      "months": 2,
+      "months_positive_share": 0.0,
+      "best_two_months_share": null,
+      "thirds_r": [
+       -1.02,
+       -0.09,
+       0.38
+      ],
+      "thirds_positive": 1,
+      "best_trade_removed_r": -0.5292,
+      "regimes": {
+       "up": 5
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.054,
+      "never_reached_half_r": 0.4
+     },
+     "frxUSDJPY 15m": {
+      "n": 41,
+      "wins": 19,
+      "win_rate": 0.4634,
+      "wilson_lower_win": 0.3206,
+      "expectancy_r": -0.3524,
+      "gross_expectancy_r": -0.1419,
+      "ci95_r": [
+       -0.693,
+       -0.0119
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.17373,
+      "total_r": -14.45,
+      "profit_factor": 0.461,
+      "max_drawdown_r": 15.42,
+      "longest_losing_streak": 9,
+      "timeouts": 0,
+      "avg_cost_r": 0.2105,
+      "cost_share": 0.226,
+      "months": 3,
+      "months_positive_share": 0.0,
+      "best_two_months_share": null,
+      "thirds_r": [
+       -7.51,
+       -3.54,
+       -3.41
+      ],
+      "thirds_positive": 0,
+      "best_trade_removed_r": -0.4418,
+      "regimes": {
+       "up": 27,
+       "down": 14
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.055,
+      "never_reached_half_r": 0.39
+     },
+     "frxUSDJPY 1h": {
+      "n": 7,
+      "wins": 2,
+      "win_rate": 0.2857,
+      "wilson_lower_win": 0.0822,
+      "expectancy_r": -0.7454,
+      "gross_expectancy_r": -0.6805,
+      "ci95_r": [
+       -1.1552,
+       -0.3357
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.20904,
+      "total_r": -5.22,
+      "profit_factor": 0.03,
+      "max_drawdown_r": 5.22,
+      "longest_losing_streak": 3,
+      "timeouts": 0,
+      "avg_cost_r": 0.0649,
+      "cost_share": 0.087,
+      "months": 3,
+      "months_positive_share": 0.0,
+      "best_two_months_share": null,
+      "thirds_r": [
+       -2.09,
+       0.12,
+       -3.24
+      ],
+      "thirds_positive": 1,
+      "best_trade_removed_r": -0.8969,
+      "regimes": {
+       "down": 4,
+       "up": 3
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 0.577,
+      "never_reached_half_r": 0.429
+     },
+     "frxXAUUSD 15m": {
+      "n": 27,
+      "wins": 14,
+      "win_rate": 0.5185,
+      "wilson_lower_win": 0.3399,
+      "expectancy_r": 0.254,
+      "gross_expectancy_r": 0.2838,
+      "ci95_r": [
+       -0.3,
+       0.8081
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.2827,
+      "total_r": 6.86,
+      "profit_factor": 1.512,
+      "max_drawdown_r": 4.82,
+      "longest_losing_streak": 3,
+      "timeouts": 0,
+      "avg_cost_r": 0.0297,
+      "cost_share": 0.024,
+      "months": 3,
+      "months_positive_share": 1.0,
+      "best_two_months_share": 0.845,
+      "thirds_r": [
+       5.84,
+       -3.34,
+       4.36
+      ],
+      "thirds_positive": 2,
+      "best_trade_removed_r": 0.141,
+      "regimes": {
+       "up": 5,
+       "down": 22
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.665,
+      "never_reached_half_r": 0.185
+     },
+     "frxXAUUSD 1h": {
+      "n": 21,
+      "wins": 9,
+      "win_rate": 0.4286,
+      "wilson_lower_win": 0.2447,
+      "expectancy_r": -0.2153,
+      "gross_expectancy_r": -0.2012,
+      "ci95_r": [
+       -0.6315,
+       0.201
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.21237,
+      "total_r": -4.52,
+      "profit_factor": 0.629,
+      "max_drawdown_r": 8.17,
+      "longest_losing_streak": 5,
+      "timeouts": 0,
+      "avg_cost_r": 0.0141,
+      "cost_share": 0.015,
+      "months": 3,
+      "months_positive_share": 0.0,
+      "best_two_months_share": null,
+      "thirds_r": [
+       -1.7,
+       -4.11,
+       1.29
+      ],
+      "thirds_positive": 1,
+      "best_trade_removed_r": -0.2885,
+      "regimes": {
+       "up": 6,
+       "down": 15
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 0.987,
+      "never_reached_half_r": 0.429
+     }
+    }
+   },
+   "holdout": {
+    "x1.0": {
+     "n": 864,
+     "wins": 433,
+     "win_rate": 0.5012,
+     "wilson_lower_win": 0.4679,
+     "expectancy_r": 0.016,
+     "gross_expectancy_r": 0.0909,
+     "ci95_r": [
+      -0.0897,
+      0.1217
+     ],
+     "ci95_block_r": [
+      -0.0652,
+      0.115
+     ],
+     "se_r": 0.05394,
+     "total_r": 13.84,
+     "profit_factor": 1.03,
+     "max_drawdown_r": 41.3,
+     "longest_losing_streak": 11,
+     "timeouts": 1,
+     "avg_cost_r": 0.0749,
+     "cost_share": 0.069,
+     "months": 5,
+     "months_positive_share": 0.4,
+     "best_two_months_share": 2.32,
+     "thirds_r": [
+      23.08,
+      11.0,
+      -20.25
+     ],
+     "thirds_positive": 2,
+     "best_trade_removed_r": -0.0112,
+     "regimes": {
+      "down": 423,
+      "up": 441
+     },
+     "cost_mult": 1.0,
+     "mfe_avg_r": 1.315,
+     "never_reached_half_r": 0.337
+    },
+    "x1.5": {
+     "n": 864,
+     "wins": 433,
+     "win_rate": 0.5012,
+     "wilson_lower_win": 0.4679,
+     "expectancy_r": -0.0214,
+     "gross_expectancy_r": 0.0909,
+     "ci95_r": [
+      -0.1273,
+      0.0844
+     ],
+     "ci95_block_r": [
+      -0.1022,
+      0.0775
+     ],
+     "se_r": 0.05402,
+     "total_r": -18.53,
+     "profit_factor": 0.962,
+     "max_drawdown_r": 60.04,
+     "longest_losing_streak": 11,
+     "timeouts": 1,
+     "avg_cost_r": 0.1124,
+     "cost_share": 0.103,
+     "months": 5,
+     "months_positive_share": 0.2,
+     "best_two_months_share": null,
+     "thirds_r": [
+      13.32,
+      -0.55,
+      -31.3
+     ],
+     "thirds_positive": 1,
+     "best_trade_removed_r": -0.0486,
+     "regimes": {
+      "down": 423,
+      "up": 441
+     },
+     "cost_mult": 1.5,
+     "mfe_avg_r": 1.315,
+     "never_reached_half_r": 0.337
+    },
+    "x2.0": {
+     "n": 864,
+     "wins": 433,
+     "win_rate": 0.5012,
+     "wilson_lower_win": 0.4679,
+     "expectancy_r": -0.0589,
+     "gross_expectancy_r": 0.0909,
+     "ci95_r": [
+      -0.165,
+      0.0472
+     ],
+     "ci95_block_r": [
+      -0.1393,
+      0.0391
+     ],
+     "se_r": 0.05413,
+     "total_r": -50.9,
+     "profit_factor": 0.899,
+     "max_drawdown_r": 89.02,
+     "longest_losing_streak": 11,
+     "timeouts": 1,
+     "avg_cost_r": 0.1499,
+     "cost_share": 0.138,
+     "months": 5,
+     "months_positive_share": 0.2,
+     "best_two_months_share": null,
+     "thirds_r": [
+      3.56,
+      -12.11,
+      -42.34
+     ],
+     "thirds_positive": 1,
+     "best_trade_removed_r": -0.086,
+     "regimes": {
+      "down": 423,
+      "up": 441
+     },
+     "cost_mult": 2.0,
+     "mfe_avg_r": 1.315,
+     "never_reached_half_r": 0.337
+    },
+    "by_slice": {
+     "1HZ75V 15m": {
+      "n": 110,
+      "wins": 56,
+      "win_rate": 0.5091,
+      "wilson_lower_win": 0.4169,
+      "expectancy_r": 0.0176,
+      "gross_expectancy_r": 0.0389,
+      "ci95_r": [
+       -0.2167,
+       0.2518
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.11952,
+      "total_r": 1.94,
+      "profit_factor": 1.035,
+      "max_drawdown_r": 10.2,
+      "longest_losing_streak": 6,
+      "timeouts": 0,
+      "avg_cost_r": 0.0213,
+      "cost_share": 0.021,
+      "months": 5,
+      "months_positive_share": 0.6,
+      "best_two_months_share": 5.333,
+      "thirds_r": [
+       -5.53,
+       5.87,
+       1.6
+      ],
+      "thirds_positive": 2,
+      "best_trade_removed_r": -0.0214,
+      "regimes": {
+       "up": 50,
+       "down": 60
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.245,
+      "never_reached_half_r": 0.282
+     },
+     "1HZ75V 1h": {
+      "n": 39,
+      "wins": 20,
+      "win_rate": 0.5128,
+      "wilson_lower_win": 0.362,
+      "expectancy_r": 0.0614,
+      "gross_expectancy_r": 0.0718,
+      "ci95_r": [
+       -0.3497,
+       0.4724
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.20972,
+      "total_r": 2.39,
+      "profit_factor": 1.125,
+      "max_drawdown_r": 8.24,
+      "longest_losing_streak": 4,
+      "timeouts": 0,
+      "avg_cost_r": 0.0104,
+      "cost_share": 0.01,
+      "months": 5,
+      "months_positive_share": 0.6,
+      "best_two_months_share": 2.349,
+      "thirds_r": [
+       -1.14,
+       -4.95,
+       8.48
+      ],
+      "thirds_positive": 1,
+      "best_trade_removed_r": -0.063,
+      "regimes": {
+       "up": 20,
+       "down": 19
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.206,
+      "never_reached_half_r": 0.385
+     },
+     "R_75 15m": {
+      "n": 110,
+      "wins": 46,
+      "win_rate": 0.4182,
+      "wilson_lower_win": 0.3303,
+      "expectancy_r": -0.1945,
+      "gross_expectancy_r": -0.1729,
+      "ci95_r": [
+       -0.4017,
+       0.0127
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.10572,
+      "total_r": -21.39,
+      "profit_factor": 0.673,
+      "max_drawdown_r": 23.22,
+      "longest_losing_streak": 13,
+      "timeouts": 0,
+      "avg_cost_r": 0.0216,
+      "cost_share": 0.022,
+      "months": 5,
+      "months_positive_share": 0.2,
+      "best_two_months_share": null,
+      "thirds_r": [
+       -6.53,
+       3.78,
+       -18.65
+      ],
+      "thirds_positive": 1,
+      "best_trade_removed_r": -0.2242,
+      "regimes": {
+       "up": 77,
+       "down": 33
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.039,
+      "never_reached_half_r": 0.4
+     },
+     "R_75 1h": {
+      "n": 33,
+      "wins": 15,
+      "win_rate": 0.4545,
+      "wilson_lower_win": 0.2984,
+      "expectancy_r": -0.2283,
+      "gross_expectancy_r": -0.2176,
+      "ci95_r": [
+       -0.5476,
+       0.091
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.16289,
+      "total_r": -7.53,
+      "profit_factor": 0.586,
+      "max_drawdown_r": 13.58,
+      "longest_losing_streak": 4,
+      "timeouts": 0,
+      "avg_cost_r": 0.0107,
+      "cost_share": 0.012,
+      "months": 4,
+      "months_positive_share": 0.25,
+      "best_two_months_share": null,
+      "thirds_r": [
+       0.46,
+       -5.89,
+       -2.1
+      ],
+      "thirds_positive": 1,
+      "best_trade_removed_r": -0.2915,
+      "regimes": {
+       "up": 14,
+       "down": 19
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 0.992,
+      "never_reached_half_r": 0.364
+     },
+     "cryBTCUSD 15m": {
+      "n": 77,
+      "wins": 39,
+      "win_rate": 0.5065,
+      "wilson_lower_win": 0.3972,
+      "expectancy_r": -0.1041,
+      "gross_expectancy_r": 0.0404,
+      "ci95_r": [
+       -0.3853,
+       0.1772
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.1435,
+      "total_r": -8.01,
+      "profit_factor": 0.814,
+      "max_drawdown_r": 13.73,
+      "longest_losing_streak": 8,
+      "timeouts": 1,
+      "avg_cost_r": 0.1445,
+      "cost_share": 0.143,
+      "months": 5,
+      "months_positive_share": 0.4,
+      "best_two_months_share": null,
+      "thirds_r": [
+       -2.61,
+       0.94,
+       -6.34
+      ],
+      "thirds_positive": 1,
+      "best_trade_removed_r": -0.1635,
+      "regimes": {
+       "down": 28,
+       "up": 49
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.209,
+      "never_reached_half_r": 0.416
+     },
+     "cryBTCUSD 1h": {
+      "n": 31,
+      "wins": 12,
+      "win_rate": 0.3871,
+      "wilson_lower_win": 0.2373,
+      "expectancy_r": 0.4257,
+      "gross_expectancy_r": 0.4931,
+      "ci95_r": [
+       -1.1207,
+       1.9721
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.78897,
+      "total_r": 13.2,
+      "profit_factor": 1.654,
+      "max_drawdown_r": 10.08,
+      "longest_losing_streak": 6,
+      "timeouts": 0,
+      "avg_cost_r": 0.0674,
+      "cost_share": 0.039,
+      "months": 4,
+      "months_positive_share": 0.5,
+      "best_two_months_share": 1.356,
+      "thirds_r": [
+       -3.97,
+       17.54,
+       -0.37
+      ],
+      "thirds_positive": 1,
+      "best_trade_removed_r": -0.3432,
+      "regimes": {
+       "down": 10,
+       "up": 21
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.814,
+      "never_reached_half_r": 0.387
+     },
+     "frxEURUSD 15m": {
+      "n": 77,
+      "wins": 45,
+      "win_rate": 0.5844,
+      "wilson_lower_win": 0.4729,
+      "expectancy_r": 0.0437,
+      "gross_expectancy_r": 0.2226,
+      "ci95_r": [
+       -0.3309,
+       0.4183
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.19113,
+      "total_r": 3.36,
+      "profit_factor": 1.088,
+      "max_drawdown_r": 10.04,
+      "longest_losing_streak": 5,
+      "timeouts": 0,
+      "avg_cost_r": 0.1789,
+      "cost_share": 0.17,
+      "months": 5,
+      "months_positive_share": 0.4,
+      "best_two_months_share": 2.91,
+      "thirds_r": [
+       1.2,
+       -5.87,
+       8.03
+      ],
+      "thirds_positive": 2,
+      "best_trade_removed_r": -0.0899,
+      "regimes": {
+       "down": 48,
+       "up": 29
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.446,
+      "never_reached_half_r": 0.273
+     },
+     "frxEURUSD 1h": {
+      "n": 27,
+      "wins": 13,
+      "win_rate": 0.4815,
+      "wilson_lower_win": 0.3074,
+      "expectancy_r": 0.1673,
+      "gross_expectancy_r": 0.252,
+      "ci95_r": [
+       -0.4191,
+       0.7537
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.29918,
+      "total_r": 4.52,
+      "profit_factor": 1.296,
+      "max_drawdown_r": 5.18,
+      "longest_losing_streak": 2,
+      "timeouts": 0,
+      "avg_cost_r": 0.0847,
+      "cost_share": 0.066,
+      "months": 5,
+      "months_positive_share": 0.6,
+      "best_two_months_share": 1.747,
+      "thirds_r": [
+       3.27,
+       -0.62,
+       1.87
+      ],
+      "thirds_positive": 2,
+      "best_trade_removed_r": 0.015,
+      "regimes": {
+       "down": 21,
+       "up": 6
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.752,
+      "never_reached_half_r": 0.296
+     },
+     "frxGBPUSD 15m": {
+      "n": 54,
+      "wins": 23,
+      "win_rate": 0.4259,
+      "wilson_lower_win": 0.3033,
+      "expectancy_r": -0.2197,
+      "gross_expectancy_r": -0.0454,
+      "ci95_r": [
+       -0.6562,
+       0.2168
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.22272,
+      "total_r": -11.86,
+      "profit_factor": 0.683,
+      "max_drawdown_r": 24.38,
+      "longest_losing_streak": 11,
+      "timeouts": 0,
+      "avg_cost_r": 0.1743,
+      "cost_share": 0.158,
+      "months": 5,
+      "months_positive_share": 0.2,
+      "best_two_months_share": null,
+      "thirds_r": [
+       11.36,
+       -8.93,
+       -14.28
+      ],
+      "thirds_positive": 1,
+      "best_trade_removed_r": -0.3809,
+      "regimes": {
+       "down": 29,
+       "up": 25
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.21,
+      "never_reached_half_r": 0.389
+     },
+     "frxGBPUSD 1h": {
+      "n": 31,
+      "wins": 22,
+      "win_rate": 0.7097,
+      "wilson_lower_win": 0.5341,
+      "expectancy_r": 0.4449,
+      "gross_expectancy_r": 0.5447,
+      "ci95_r": [
+       -0.0423,
+       0.9321
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.24855,
+      "total_r": 13.79,
+      "profit_factor": 2.392,
+      "max_drawdown_r": 2.69,
+      "longest_losing_streak": 2,
+      "timeouts": 0,
+      "avg_cost_r": 0.0998,
+      "cost_share": 0.089,
+      "months": 5,
+      "months_positive_share": 0.8,
+      "best_two_months_share": 0.64,
+      "thirds_r": [
+       8.3,
+       4.07,
+       1.42
+      ],
+      "thirds_positive": 3,
+      "best_trade_removed_r": 0.3154,
+      "regimes": {
+       "down": 20,
+       "up": 11
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.721,
+      "never_reached_half_r": 0.226
+     },
+     "frxNAS100 15m": {
+      "n": 63,
+      "wins": 33,
+      "win_rate": 0.5238,
+      "wilson_lower_win": 0.4027,
+      "expectancy_r": 0.1239,
+      "gross_expectancy_r": 0.1478,
+      "ci95_r": [
+       -0.2719,
+       0.5196
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.20192,
+      "total_r": 7.8,
+      "profit_factor": 1.253,
+      "max_drawdown_r": 11.14,
+      "longest_losing_streak": 8,
+      "timeouts": 0,
+      "avg_cost_r": 0.024,
+      "cost_share": 0.022,
+      "months": 5,
+      "months_positive_share": 0.6,
+      "best_two_months_share": 1.014,
+      "thirds_r": [
+       10.85,
+       -3.76,
+       0.72
+      ],
+      "thirds_positive": 2,
+      "best_trade_removed_r": -0.0147,
+      "regimes": {
+       "down": 41,
+       "up": 22
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.342,
+      "never_reached_half_r": 0.365
+     },
+     "frxNAS100 1h": {
+      "n": 16,
+      "wins": 9,
+      "win_rate": 0.5625,
+      "wilson_lower_win": 0.3318,
+      "expectancy_r": 0.0705,
+      "gross_expectancy_r": 0.0809,
+      "ci95_r": [
+       -0.4298,
+       0.5709
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.25529,
+      "total_r": 1.13,
+      "profit_factor": 1.159,
+      "max_drawdown_r": 3.05,
+      "longest_losing_streak": 3,
+      "timeouts": 0,
+      "avg_cost_r": 0.0104,
+      "cost_share": 0.011,
+      "months": 4,
+      "months_positive_share": 0.5,
+      "best_two_months_share": 3.84,
+      "thirds_r": [
+       1.59,
+       -0.28,
+       -0.19
+      ],
+      "thirds_positive": 1,
+      "best_trade_removed_r": -0.019,
+      "regimes": {
+       "up": 4,
+       "down": 12
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.261,
+      "never_reached_half_r": 0.312
+     },
+     "frxUSDJPY 15m": {
+      "n": 52,
+      "wins": 20,
+      "win_rate": 0.3846,
+      "wilson_lower_win": 0.2647,
+      "expectancy_r": -0.2956,
+      "gross_expectancy_r": -0.1185,
+      "ci95_r": [
+       -0.6525,
+       0.0613
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.1821,
+      "total_r": -15.37,
+      "profit_factor": 0.599,
+      "max_drawdown_r": 18.26,
+      "longest_losing_streak": 5,
+      "timeouts": 0,
+      "avg_cost_r": 0.1771,
+      "cost_share": 0.159,
+      "months": 5,
+      "months_positive_share": 0.2,
+      "best_two_months_share": null,
+      "thirds_r": [
+       -6.88,
+       0.84,
+       -9.34
+      ],
+      "thirds_positive": 1,
+      "best_trade_removed_r": -0.3716,
+      "regimes": {
+       "up": 39,
+       "down": 13
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.147,
+      "never_reached_half_r": 0.385
+     },
+     "frxUSDJPY 1h": {
+      "n": 42,
+      "wins": 22,
+      "win_rate": 0.5238,
+      "wilson_lower_win": 0.3772,
+      "expectancy_r": 0.0695,
+      "gross_expectancy_r": 0.1541,
+      "ci95_r": [
+       -0.3692,
+       0.5081
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.22381,
+      "total_r": 2.92,
+      "profit_factor": 1.134,
+      "max_drawdown_r": 8.55,
+      "longest_losing_streak": 4,
+      "timeouts": 0,
+      "avg_cost_r": 0.0846,
+      "cost_share": 0.076,
+      "months": 5,
+      "months_positive_share": 0.6,
+      "best_two_months_share": 2.909,
+      "thirds_r": [
+       4.42,
+       -6.07,
+       4.57
+      ],
+      "thirds_positive": 2,
+      "best_trade_removed_r": -0.0445,
+      "regimes": {
+       "up": 30,
+       "down": 12
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.436,
+      "never_reached_half_r": 0.333
+     },
+     "frxXAUUSD 15m": {
+      "n": 79,
+      "wins": 45,
+      "win_rate": 0.5696,
+      "wilson_lower_win": 0.4597,
+      "expectancy_r": 0.2671,
+      "gross_expectancy_r": 0.3009,
+      "ci95_r": [
+       -0.0536,
+       0.5879
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.16364,
+      "total_r": 21.1,
+      "profit_factor": 1.6,
+      "max_drawdown_r": 5.06,
+      "longest_losing_streak": 4,
+      "timeouts": 0,
+      "avg_cost_r": 0.0338,
+      "cost_share": 0.029,
+      "months": 5,
+      "months_positive_share": 0.6,
+      "best_two_months_share": 0.987,
+      "thirds_r": [
+       3.34,
+       9.45,
+       8.31
+      ],
+      "thirds_positive": 3,
+      "best_trade_removed_r": 0.2109,
+      "regimes": {
+       "up": 34,
+       "down": 45
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.497,
+      "never_reached_half_r": 0.291
+     },
+     "frxXAUUSD 1h": {
+      "n": 23,
+      "wins": 13,
+      "win_rate": 0.5652,
+      "wilson_lower_win": 0.3681,
+      "expectancy_r": 0.2547,
+      "gross_expectancy_r": 0.2707,
+      "ci95_r": [
+       -0.3417,
+       0.851
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.30425,
+      "total_r": 5.86,
+      "profit_factor": 1.576,
+      "max_drawdown_r": 3.75,
+      "longest_losing_streak": 2,
+      "timeouts": 0,
+      "avg_cost_r": 0.016,
+      "cost_share": 0.014,
+      "months": 4,
+      "months_positive_share": 0.75,
+      "best_two_months_share": 1.398,
+      "thirds_r": [
+       6.55,
+       0.77,
+       -1.47
+      ],
+      "thirds_positive": 2,
+      "best_trade_removed_r": 0.1128,
+      "regimes": {
+       "up": 10,
+       "down": 13
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.56,
+      "never_reached_half_r": 0.13
+     }
+    }
+   },
+   "all": {
+    "x1.0": {
+     "n": 2637,
+     "wins": 1313,
+     "win_rate": 0.4979,
+     "wilson_lower_win": 0.4788,
+     "expectancy_r": -0.0023,
+     "gross_expectancy_r": 0.0662,
+     "ci95_r": [
+      -0.057,
+      0.0525
+     ],
+     "ci95_block_r": [
+      -0.0523,
+      0.0428
+     ],
+     "se_r": 0.02795,
+     "total_r": -5.95,
+     "profit_factor": 0.996,
+     "max_drawdown_r": 65.93,
+     "longest_losing_streak": 12,
+     "timeouts": 1,
+     "avg_cost_r": 0.0685,
+     "cost_share": 0.064,
+     "months": 13,
+     "months_positive_share": 0.385,
+     "best_two_months_share": null,
+     "thirds_r": [
+      -12.7,
+      -10.92,
+      17.66
+     ],
+     "thirds_positive": 1,
+     "best_trade_removed_r": -0.0112,
+     "regimes": {
+      "up": 1318,
+      "down": 1319
+     },
+     "cost_mult": 1.0,
+     "mfe_avg_r": 1.281,
+     "never_reached_half_r": 0.338
+    },
+    "x1.5": {
+     "n": 2637,
+     "wins": 1313,
+     "win_rate": 0.4979,
+     "wilson_lower_win": 0.4788,
+     "expectancy_r": -0.0365,
+     "gross_expectancy_r": 0.0662,
+     "ci95_r": [
+      -0.0914,
+      0.0184
+     ],
+     "ci95_block_r": [
+      -0.0875,
+      0.0099
+     ],
+     "se_r": 0.02801,
+     "total_r": -96.28,
+     "profit_factor": 0.935,
+     "max_drawdown_r": 124.62,
+     "longest_losing_streak": 12,
+     "timeouts": 1,
+     "avg_cost_r": 0.1028,
+     "cost_share": 0.096,
+     "months": 13,
+     "months_positive_share": 0.308,
+     "best_two_months_share": null,
+     "thirds_r": [
+      -40.78,
+      -40.1,
+      -15.39
+     ],
+     "thirds_positive": 0,
+     "best_trade_removed_r": -0.0454,
+     "regimes": {
+      "up": 1318,
+      "down": 1319
+     },
+     "cost_mult": 1.5,
+     "mfe_avg_r": 1.281,
+     "never_reached_half_r": 0.338
+    },
+    "x2.0": {
+     "n": 2637,
+     "wins": 1313,
+     "win_rate": 0.4979,
+     "wilson_lower_win": 0.4788,
+     "expectancy_r": -0.0708,
+     "gross_expectancy_r": 0.0662,
+     "ci95_r": [
+      -0.1258,
+      -0.0157
+     ],
+     "ci95_block_r": [
+      -0.1223,
+      -0.0236
+     ],
+     "se_r": 0.02808,
+     "total_r": -186.6,
+     "profit_factor": 0.878,
+     "max_drawdown_r": 211.81,
+     "longest_losing_streak": 12,
+     "timeouts": 1,
+     "avg_cost_r": 0.137,
+     "cost_share": 0.128,
+     "months": 13,
+     "months_positive_share": 0.231,
+     "best_two_months_share": null,
+     "thirds_r": [
+      -68.87,
+      -69.28,
+      -48.45
+     ],
+     "thirds_positive": 0,
+     "best_trade_removed_r": -0.0796,
+     "regimes": {
+      "up": 1318,
+      "down": 1319
+     },
+     "cost_mult": 2.0,
+     "mfe_avg_r": 1.281,
+     "never_reached_half_r": 0.338
+    },
+    "by_slice": {
+     "1HZ75V 15m": {
+      "n": 353,
+      "wins": 184,
+      "win_rate": 0.5212,
+      "wilson_lower_win": 0.4692,
+      "expectancy_r": 0.0666,
+      "gross_expectancy_r": 0.088,
+      "ci95_r": [
+       -0.0733,
+       0.2065
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.07136,
+      "total_r": 23.5,
+      "profit_factor": 1.136,
+      "max_drawdown_r": 17.46,
+      "longest_losing_streak": 8,
+      "timeouts": 0,
+      "avg_cost_r": 0.0214,
+      "cost_share": 0.021,
+      "months": 13,
+      "months_positive_share": 0.692,
+      "best_two_months_share": 0.824,
+      "thirds_r": [
+       0.36,
+       18.29,
+       4.85
+      ],
+      "thirds_positive": 3,
+      "best_trade_removed_r": 0.0407,
+      "regimes": {
+       "down": 178,
+       "up": 175
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.28,
+      "never_reached_half_r": 0.3
+     },
+     "1HZ75V 1h": {
+      "n": 122,
+      "wins": 67,
+      "win_rate": 0.5492,
+      "wilson_lower_win": 0.4607,
+      "expectancy_r": 0.1973,
+      "gross_expectancy_r": 0.2078,
+      "ci95_r": [
+       -0.0656,
+       0.4602
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.13413,
+      "total_r": 24.07,
+      "profit_factor": 1.433,
+      "max_drawdown_r": 11.13,
+      "longest_losing_streak": 5,
+      "timeouts": 0,
+      "avg_cost_r": 0.0105,
+      "cost_share": 0.009,
+      "months": 13,
+      "months_positive_share": 0.769,
+      "best_two_months_share": 0.629,
+      "thirds_r": [
+       5.23,
+       18.47,
+       0.37
+      ],
+      "thirds_positive": 3,
+      "best_trade_removed_r": 0.1514,
+      "regimes": {
+       "up": 68,
+       "down": 54
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.367,
+      "never_reached_half_r": 0.32
+     },
+     "R_75 15m": {
+      "n": 309,
+      "wins": 156,
+      "win_rate": 0.5049,
+      "wilson_lower_win": 0.4494,
+      "expectancy_r": 0.018,
+      "gross_expectancy_r": 0.0394,
+      "ci95_r": [
+       -0.1236,
+       0.1596
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.07225,
+      "total_r": 5.58,
+      "profit_factor": 1.036,
+      "max_drawdown_r": 23.22,
+      "longest_losing_streak": 13,
+      "timeouts": 0,
+      "avg_cost_r": 0.0214,
+      "cost_share": 0.021,
+      "months": 13,
+      "months_positive_share": 0.462,
+      "best_two_months_share": 5.067,
+      "thirds_r": [
+       22.55,
+       2.12,
+       -19.1
+      ],
+      "thirds_positive": 2,
+      "best_trade_removed_r": -0.0016,
+      "regimes": {
+       "down": 146,
+       "up": 163
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.219,
+      "never_reached_half_r": 0.337
+     },
+     "R_75 1h": {
+      "n": 138,
+      "wins": 64,
+      "win_rate": 0.4638,
+      "wilson_lower_win": 0.3827,
+      "expectancy_r": -0.0318,
+      "gross_expectancy_r": -0.0212,
+      "ci95_r": [
+       -0.2438,
+       0.1802
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.10818,
+      "total_r": -4.39,
+      "profit_factor": 0.941,
+      "max_drawdown_r": 13.96,
+      "longest_losing_streak": 5,
+      "timeouts": 0,
+      "avg_cost_r": 0.0106,
+      "cost_share": 0.01,
+      "months": 12,
+      "months_positive_share": 0.417,
+      "best_two_months_share": null,
+      "thirds_r": [
+       -12.68,
+       11.85,
+       -3.56
+      ],
+      "thirds_positive": 1,
+      "best_trade_removed_r": -0.0793,
+      "regimes": {
+       "down": 86,
+       "up": 52
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.179,
+      "never_reached_half_r": 0.37
+     },
+     "cryBTCUSD 15m": {
+      "n": 234,
+      "wins": 116,
+      "win_rate": 0.4957,
+      "wilson_lower_win": 0.4323,
+      "expectancy_r": -0.116,
+      "gross_expectancy_r": -0.0108,
+      "ci95_r": [
+       -0.2766,
+       0.0447
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.08198,
+      "total_r": -27.13,
+      "profit_factor": 0.792,
+      "max_drawdown_r": 28.81,
+      "longest_losing_streak": 8,
+      "timeouts": 1,
+      "avg_cost_r": 0.1052,
+      "cost_share": 0.106,
+      "months": 13,
+      "months_positive_share": 0.308,
+      "best_two_months_share": null,
+      "thirds_r": [
+       -4.99,
+       -13.04,
+       -9.1
+      ],
+      "thirds_positive": 0,
+      "best_trade_removed_r": -0.1382,
+      "regimes": {
+       "down": 115,
+       "up": 119
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.191,
+      "never_reached_half_r": 0.363
+     },
+     "cryBTCUSD 1h": {
+      "n": 104,
+      "wins": 44,
+      "win_rate": 0.4231,
+      "wilson_lower_win": 0.3325,
+      "expectancy_r": 0.0014,
+      "gross_expectancy_r": 0.0465,
+      "ci95_r": [
+       -0.4968,
+       0.4996
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.25419,
+      "total_r": 0.15,
+      "profit_factor": 1.002,
+      "max_drawdown_r": 24.68,
+      "longest_losing_streak": 6,
+      "timeouts": 0,
+      "avg_cost_r": 0.0451,
+      "cost_share": 0.038,
+      "months": 12,
+      "months_positive_share": 0.333,
+      "best_two_months_share": 135.727,
+      "thirds_r": [
+       -4.43,
+       -9.57,
+       14.15
+      ],
+      "thirds_positive": 1,
+      "best_trade_removed_r": -0.2267,
+      "regimes": {
+       "down": 55,
+       "up": 49
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.317,
+      "never_reached_half_r": 0.356
+     },
+     "frxEURUSD 15m": {
+      "n": 232,
+      "wins": 115,
+      "win_rate": 0.4957,
+      "wilson_lower_win": 0.4319,
+      "expectancy_r": -0.1359,
+      "gross_expectancy_r": 0.0215,
+      "ci95_r": [
+       -0.3184,
+       0.0466
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.09313,
+      "total_r": -31.53,
+      "profit_factor": 0.77,
+      "max_drawdown_r": 41.78,
+      "longest_losing_streak": 7,
+      "timeouts": 0,
+      "avg_cost_r": 0.1574,
+      "cost_share": 0.153,
+      "months": 13,
+      "months_positive_share": 0.154,
+      "best_two_months_share": null,
+      "thirds_r": [
+       -8.75,
+       -25.01,
+       2.23
+      ],
+      "thirds_positive": 1,
+      "best_trade_removed_r": -0.1806,
+      "regimes": {
+       "down": 139,
+       "up": 93
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.258,
+      "never_reached_half_r": 0.349
+     },
+     "frxEURUSD 1h": {
+      "n": 98,
+      "wins": 47,
+      "win_rate": 0.4796,
+      "wilson_lower_win": 0.3833,
+      "expectancy_r": -0.0474,
+      "gross_expectancy_r": 0.0264,
+      "ci95_r": [
+       -0.3072,
+       0.2124
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.13256,
+      "total_r": -4.65,
+      "profit_factor": 0.915,
+      "max_drawdown_r": 12.72,
+      "longest_losing_streak": 4,
+      "timeouts": 0,
+      "avg_cost_r": 0.0738,
+      "cost_share": 0.069,
+      "months": 13,
+      "months_positive_share": 0.462,
+      "best_two_months_share": null,
+      "thirds_r": [
+       3.25,
+       -9.51,
+       1.61
+      ],
+      "thirds_positive": 2,
+      "best_trade_removed_r": -0.0916,
+      "regimes": {
+       "up": 43,
+       "down": 55
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.37,
+      "never_reached_half_r": 0.296
+     },
+     "frxGBPUSD 15m": {
+      "n": 191,
+      "wins": 89,
+      "win_rate": 0.466,
+      "wilson_lower_win": 0.3966,
+      "expectancy_r": -0.1649,
+      "gross_expectancy_r": -0.0007,
+      "ci95_r": [
+       -0.3665,
+       0.0367
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.10285,
+      "total_r": -31.5,
+      "profit_factor": 0.737,
+      "max_drawdown_r": 39.15,
+      "longest_losing_streak": 11,
+      "timeouts": 0,
+      "avg_cost_r": 0.1642,
+      "cost_share": 0.154,
+      "months": 13,
+      "months_positive_share": 0.231,
+      "best_two_months_share": null,
+      "thirds_r": [
+       -7.94,
+       -3.7,
+       -19.86
+      ],
+      "thirds_positive": 0,
+      "best_trade_removed_r": -0.2096,
+      "regimes": {
+       "up": 81,
+       "down": 110
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.221,
+      "never_reached_half_r": 0.366
+     },
+     "frxGBPUSD 1h": {
+      "n": 79,
+      "wins": 47,
+      "win_rate": 0.5949,
+      "wilson_lower_win": 0.4847,
+      "expectancy_r": 0.3324,
+      "gross_expectancy_r": 0.4145,
+      "ci95_r": [
+       -0.024,
+       0.6888
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.18182,
+      "total_r": 26.26,
+      "profit_factor": 1.762,
+      "max_drawdown_r": 9.03,
+      "longest_losing_streak": 6,
+      "timeouts": 0,
+      "avg_cost_r": 0.0821,
+      "cost_share": 0.067,
+      "months": 12,
+      "months_positive_share": 0.75,
+      "best_two_months_share": 0.505,
+      "thirds_r": [
+       6.86,
+       7.39,
+       12.01
+      ],
+      "thirds_positive": 3,
+      "best_trade_removed_r": 0.2612,
+      "regimes": {
+       "down": 40,
+       "up": 39
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.625,
+      "never_reached_half_r": 0.304
+     },
+     "frxNAS100 15m": {
+      "n": 147,
+      "wins": 82,
+      "win_rate": 0.5578,
+      "wilson_lower_win": 0.4771,
+      "expectancy_r": 0.2218,
+      "gross_expectancy_r": 0.2478,
+      "ci95_r": [
+       -0.0214,
+       0.4651
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.12412,
+      "total_r": 32.61,
+      "profit_factor": 1.488,
+      "max_drawdown_r": 11.14,
+      "longest_losing_streak": 8,
+      "timeouts": 0,
+      "avg_cost_r": 0.026,
+      "cost_share": 0.023,
+      "months": 13,
+      "months_positive_share": 0.615,
+      "best_two_months_share": 0.524,
+      "thirds_r": [
+       15.68,
+       13.83,
+       3.11
+      ],
+      "thirds_positive": 3,
+      "best_trade_removed_r": 0.1637,
+      "regimes": {
+       "up": 71,
+       "down": 76
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.426,
+      "never_reached_half_r": 0.34
+     },
+     "frxNAS100 1h": {
+      "n": 49,
+      "wins": 22,
+      "win_rate": 0.449,
+      "wilson_lower_win": 0.3185,
+      "expectancy_r": -0.0305,
+      "gross_expectancy_r": -0.0199,
+      "ci95_r": [
+       -0.3615,
+       0.3004
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.16885,
+      "total_r": -1.5,
+      "profit_factor": 0.945,
+      "max_drawdown_r": 7.6,
+      "longest_losing_streak": 5,
+      "timeouts": 0,
+      "avg_cost_r": 0.0107,
+      "cost_share": 0.01,
+      "months": 11,
+      "months_positive_share": 0.273,
+      "best_two_months_share": null,
+      "thirds_r": [
+       -1.91,
+       0.3,
+       0.12
+      ],
+      "thirds_positive": 2,
+      "best_trade_removed_r": -0.0842,
+      "regimes": {
+       "up": 15,
+       "down": 34
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.173,
+      "never_reached_half_r": 0.408
+     },
+     "frxUSDJPY 15m": {
+      "n": 213,
+      "wins": 91,
+      "win_rate": 0.4272,
+      "wilson_lower_win": 0.3627,
+      "expectancy_r": -0.2933,
+      "gross_expectancy_r": -0.1315,
+      "ci95_r": [
+       -0.4563,
+       -0.1304
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.08313,
+      "total_r": -62.48,
+      "profit_factor": 0.562,
+      "max_drawdown_r": 64.03,
+      "longest_losing_streak": 9,
+      "timeouts": 0,
+      "avg_cost_r": 0.1618,
+      "cost_share": 0.16,
+      "months": 13,
+      "months_positive_share": 0.0,
+      "best_two_months_share": null,
+      "thirds_r": [
+       -14.43,
+       -27.12,
+       -20.92
+      ],
+      "thirds_positive": 0,
+      "best_trade_removed_r": -0.319,
+      "regimes": {
+       "down": 39,
+       "up": 174
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.098,
+      "never_reached_half_r": 0.385
+     },
+     "frxUSDJPY 1h": {
+      "n": 90,
+      "wins": 40,
+      "win_rate": 0.4444,
+      "wilson_lower_win": 0.3462,
+      "expectancy_r": -0.1746,
+      "gross_expectancy_r": -0.1023,
+      "ci95_r": [
+       -0.4414,
+       0.0922
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.13612,
+      "total_r": -15.72,
+      "profit_factor": 0.707,
+      "max_drawdown_r": 24.88,
+      "longest_losing_streak": 5,
+      "timeouts": 0,
+      "avg_cost_r": 0.0723,
+      "cost_share": 0.072,
+      "months": 12,
+      "months_positive_share": 0.333,
+      "best_two_months_share": null,
+      "thirds_r": [
+       -7.57,
+       -7.39,
+       -0.76
+      ],
+      "thirds_positive": 0,
+      "best_trade_removed_r": -0.2299,
+      "regimes": {
+       "up": 55,
+       "down": 35
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.194,
+      "never_reached_half_r": 0.378
+     },
+     "frxXAUUSD 15m": {
+      "n": 205,
+      "wins": 107,
+      "win_rate": 0.522,
+      "wilson_lower_win": 0.4538,
+      "expectancy_r": 0.2132,
+      "gross_expectancy_r": 0.2449,
+      "ci95_r": [
+       0.0054,
+       0.421
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.10603,
+      "total_r": 43.71,
+      "profit_factor": 1.432,
+      "max_drawdown_r": 10.74,
+      "longest_losing_streak": 5,
+      "timeouts": 0,
+      "avg_cost_r": 0.0317,
+      "cost_share": 0.026,
+      "months": 13,
+      "months_positive_share": 0.769,
+      "best_two_months_share": 0.525,
+      "thirds_r": [
+       11.65,
+       15.16,
+       16.89
+      ],
+      "thirds_positive": 3,
+      "best_trade_removed_r": 0.1873,
+      "regimes": {
+       "up": 97,
+       "down": 108
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.477,
+      "never_reached_half_r": 0.293
+     },
+     "frxXAUUSD 1h": {
+      "n": 73,
+      "wins": 42,
+      "win_rate": 0.5753,
+      "wilson_lower_win": 0.461,
+      "expectancy_r": 0.2338,
+      "gross_expectancy_r": 0.2477,
+      "ci95_r": [
+       -0.0849,
+       0.5525
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.1626,
+      "total_r": 17.07,
+      "profit_factor": 1.543,
+      "max_drawdown_r": 10.63,
+      "longest_losing_streak": 5,
+      "timeouts": 0,
+      "avg_cost_r": 0.0139,
+      "cost_share": 0.013,
+      "months": 12,
+      "months_positive_share": 0.667,
+      "best_two_months_share": 0.926,
+      "thirds_r": [
+       15.7,
+       -4.71,
+       6.08
+      ],
+      "thirds_positive": 2,
+      "best_trade_removed_r": 0.165,
+      "regimes": {
+       "down": 49,
+       "up": 24
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.45,
+      "never_reached_half_r": 0.26
+     }
+    }
+   },
+   "rules": {
+    "entry": "aria",
+    "model": "7.2c",
+    "mtf": null,
+    "wave5_veto": null,
+    "gates": {
+     "acf": {
+      "n": 100,
+      "min": 0.0
+     }
+    },
+    "stop": {
+     "kind": "aria"
+    },
+    "exit": {
+     "kind": "model"
+    },
+    "donchian": {
+     "lookback": 20,
+     "trend": true,
+     "sides": "both"
+    },
+    "shadows": false
+   },
+   "version": "a6303440e3"
+  }
+ },
+ "filter_tests": {
+  "acf100": {
+   "gate": "acf",
+   "cfg": {
+    "n": 100,
+    "min": 0.0
+   },
+   "dev": {
+    "n_base": 2940,
+    "n_accepted": 1173,
+    "accepted_net_r": 0.0008,
+    "base_net_r": -0.0407,
+    "accepted_gross_r": 0.0618,
+    "base_gross_r": 0.0247,
+    "p_net": 0.086,
+    "p_gross": 0.103,
+    "permutations": 1000
+   },
+   "val": {
+    "n_base": 1338,
+    "n_accepted": 472,
+    "accepted_net_r": -0.0103,
+    "base_net_r": -0.0235,
+    "accepted_gross_r": 0.0605,
+    "base_gross_r": 0.058,
+    "p_net": 0.391,
+    "p_gross": 0.464,
+    "permutations": 1000
+   },
+   "holdout": {
+    "n_base": 1979,
+    "n_accepted": 802,
+    "accepted_net_r": 0.0275,
+    "base_net_r": -0.0359,
+    "accepted_gross_r": 0.1015,
+    "base_gross_r": 0.053,
+    "p_net": 0.053,
+    "p_gross": 0.108,
+    "permutations": 1000
+   }
+  }
+ },
+ "neighbourhood": [
+  {
+   "label": "n100 min0.0",
+   "cfg": {
+    "n": 100,
+    "min": 0.0
+   },
+   "dev": {
+    "n": 1173,
+    "expectancy_r": 0.0008,
+    "gross": 0.0618
+   },
+   "val": {
+    "n": 472,
+    "expectancy_r": -0.0103,
+    "gross": 0.0605
+   },
+   "holdout": {
+    "n": 802,
+    "expectancy_r": 0.0275,
+    "gross": 0.1015
+   }
+  },
+  {
+   "label": "n100 min0.05",
+   "cfg": {
+    "n": 100,
+    "min": 0.05
+   },
+   "dev": {
+    "n": 711,
+    "expectancy_r": 0.0511,
+    "gross": 0.1119
+   },
+   "val": {
+    "n": 263,
+    "expectancy_r": -0.058,
+    "gross": 0.0193
+   },
+   "holdout": {
+    "n": 493,
+    "expectancy_r": 0.0118,
+    "gross": 0.0808
+   }
+  },
+  {
+   "label": "n100 min0.1",
+   "cfg": {
+    "n": 100,
+    "min": 0.1
+   },
+   "dev": {
+    "n": 375,
+    "expectancy_r": -0.0097,
+    "gross": 0.0542
+   },
+   "val": {
+    "n": 144,
+    "expectancy_r": -0.0359,
+    "gross": 0.039
+   },
+   "holdout": {
+    "n": 271,
+    "expectancy_r": -0.0544,
+    "gross": 0.0126
+   }
+  }
+ ],
+ "configurations_tried": 4,
+ "seconds": 172
+}

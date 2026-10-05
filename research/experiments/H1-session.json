@@ -1,0 +1,1107 @@
+{
+ "id": "H1-session",
+ "hypothesis": "H1",
+ "slices": [
+  [
+   "frxNAS100",
+   "15m"
+  ],
+  [
+   "frxNAS100",
+   "1h"
+  ],
+  [
+   "frxXAUUSD",
+   "15m"
+  ],
+  [
+   "frxXAUUSD",
+   "1h"
+  ],
+  [
+   "cryBTCUSD",
+   "15m"
+  ],
+  [
+   "cryBTCUSD",
+   "1h"
+  ],
+  [
+   "frxEURUSD",
+   "15m"
+  ],
+  [
+   "frxEURUSD",
+   "1h"
+  ],
+  [
+   "frxGBPUSD",
+   "15m"
+  ],
+  [
+   "frxGBPUSD",
+   "1h"
+  ],
+  [
+   "frxUSDJPY",
+   "15m"
+  ],
+  [
+   "frxUSDJPY",
+   "1h"
+  ],
+  [
+   "R_75",
+   "15m"
+  ],
+  [
+   "R_75",
+   "1h"
+  ],
+  [
+   "1HZ75V",
+   "15m"
+  ],
+  [
+   "1HZ75V",
+   "1h"
+  ]
+ ],
+ "base": {},
+ "variants": {
+  "session": {
+   "gates": {
+    "session": {
+     "frxNAS100": [
+      [
+       13.5,
+       20.0
+      ]
+     ],
+     "frxXAUUSD": [
+      [
+       7.0,
+       20.0
+      ]
+     ],
+     "frxEURUSD": [
+      [
+       7.0,
+       17.0
+      ]
+     ],
+     "frxGBPUSD": [
+      [
+       7.0,
+       17.0
+      ]
+     ],
+     "frxUSDJPY": [
+      [
+       7.0,
+       17.0
+      ]
+     ]
+    }
+   }
+  },
+  "session_nomtf": {
+   "gates": {
+    "session": {
+     "frxNAS100": [
+      [
+       13.5,
+       20.0
+      ]
+     ],
+     "frxXAUUSD": [
+      [
+       7.0,
+       20.0
+      ]
+     ],
+     "frxEURUSD": [
+      [
+       7.0,
+       17.0
+      ]
+     ],
+     "frxGBPUSD": [
+      [
+       7.0,
+       17.0
+      ]
+     ],
+     "frxUSDJPY": [
+      [
+       7.0,
+       17.0
+      ]
+     ]
+    }
+   },
+   "mtf": false
+  },
+  "nomtf": {
+   "mtf": false
+  },
+  "session_fixed": {
+   "model": "fixed",
+   "gates": {
+    "session": {
+     "frxNAS100": [
+      [
+       13.5,
+       20.0
+      ]
+     ],
+     "frxXAUUSD": [
+      [
+       7.0,
+       20.0
+      ]
+     ],
+     "frxEURUSD": [
+      [
+       7.0,
+       17.0
+      ]
+     ],
+     "frxGBPUSD": [
+      [
+       7.0,
+       17.0
+      ]
+     ],
+     "frxUSDJPY": [
+      [
+       7.0,
+       17.0
+      ]
+     ]
+    }
+   }
+  },
+  "fixed": {
+   "model": "fixed"
+  }
+ },
+ "filter_tests": [
+  {
+   "variant": "session",
+   "gate": "session",
+   "cfg": {
+    "frxNAS100": [
+     [
+      13.5,
+      20.0
+     ]
+    ],
+    "frxXAUUSD": [
+     [
+      7.0,
+      20.0
+     ]
+    ],
+    "frxEURUSD": [
+     [
+      7.0,
+      17.0
+     ]
+    ],
+    "frxGBPUSD": [
+     [
+      7.0,
+      17.0
+     ]
+    ],
+    "frxUSDJPY": [
+     [
+      7.0,
+      17.0
+     ]
+    ]
+   }
+  }
+ ],
+ "neighbourhood": {
+  "gate": "session",
+  "cells": [
+   {
+    "label": "start-1.0 end-1.0",
+    "cfg": {
+     "frxNAS100": [
+      [
+       12.5,
+       19.0
+      ]
+     ],
+     "frxXAUUSD": [
+      [
+       6.0,
+       19.0
+      ]
+     ],
+     "frxEURUSD": [
+      [
+       6.0,
+       16.0
+      ]
+     ],
+     "frxGBPUSD": [
+      [
+       6.0,
+       16.0
+      ]
+     ],
+     "frxUSDJPY": [
+      [
+       6.0,
+       16.0
+      ]
+     ]
+    }
+   },
+   {
+    "label": "start-1.0 end-0.5",
+    "cfg": {
+     "frxNAS100": [
+      [
+       12.5,
+       19.5
+      ]
+     ],
+     "frxXAUUSD": [
+      [
+       6.0,
+       19.5
+      ]
+     ],
+     "frxEURUSD": [
+      [
+       6.0,
+       16.5
+      ]
+     ],
+     "frxGBPUSD": [
+      [
+       6.0,
+       16.5
+      ]
+     ],
+     "frxUSDJPY": [
+      [
+       6.0,
+       16.5
+      ]
+     ]
+    }
+   },
+   {
+    "label": "start-1.0 end+0.0",
+    "cfg": {
+     "frxNAS100": [
+      [
+       12.5,
+       20.0
+      ]
+     ],
+     "frxXAUUSD": [
+      [
+       6.0,
+       20.0
+      ]
+     ],
+     "frxEURUSD": [
+      [
+       6.0,
+       17.0
+      ]
+     ],
+     "frxGBPUSD": [
+      [
+       6.0,
+       17.0
+      ]
+     ],
+     "frxUSDJPY": [
+      [
+       6.0,
+       17.0
+      ]
+     ]
+    }
+   },
+   {
+    "label": "start-1.0 end+0.5",
+    "cfg": {
+     "frxNAS100": [
+      [
+       12.5,
+       20.5
+      ]
+     ],
+     "frxXAUUSD": [
+      [
+       6.0,
+       20.5
+      ]
+     ],
+     "frxEURUSD": [
+      [
+       6.0,
+       17.5
+      ]
+     ],
+     "frxGBPUSD": [
+      [
+       6.0,
+       17.5
+      ]
+     ],
+     "frxUSDJPY": [
+      [
+       6.0,
+       17.5
+      ]
+     ]
+    }
+   },
+   {
+    "label": "start-1.0 end+1.0",
+    "cfg": {
+     "frxNAS100": [
+      [
+       12.5,
+       21.0
+      ]
+     ],
+     "frxXAUUSD": [
+      [
+       6.0,
+       21.0
+      ]
+     ],
+     "frxEURUSD": [
+      [
+       6.0,
+       18.0
+      ]
+     ],
+     "frxGBPUSD": [
+      [
+       6.0,
+       18.0
+      ]
+     ],
+     "frxUSDJPY": [
+      [
+       6.0,
+       18.0
+      ]
+     ]
+    }
+   },
+   {
+    "label": "start-0.5 end-1.0",
+    "cfg": {
+     "frxNAS100": [
+      [
+       13.0,
+       19.0
+      ]
+     ],
+     "frxXAUUSD": [
+      [
+       6.5,
+       19.0
+      ]
+     ],
+     "frxEURUSD": [
+      [
+       6.5,
+       16.0
+      ]
+     ],
+     "frxGBPUSD": [
+      [
+       6.5,
+       16.0
+      ]
+     ],
+     "frxUSDJPY": [
+      [
+       6.5,
+       16.0
+      ]
+     ]
+    }
+   },
+   {
+    "label": "start-0.5 end-0.5",
+    "cfg": {
+     "frxNAS100": [
+      [
+       13.0,
+       19.5
+      ]
+     ],
+     "frxXAUUSD": [
+      [
+       6.5,
+       19.5
+      ]
+     ],
+     "frxEURUSD": [
+      [
+       6.5,
+       16.5
+      ]
+     ],
+     "frxGBPUSD": [
+      [
+       6.5,
+       16.5
+      ]
+     ],
+     "frxUSDJPY": [
+      [
+       6.5,
+       16.5
+      ]
+     ]
+    }
+   },
+   {
+    "label": "start-0.5 end+0.0",
+    "cfg": {
+     "frxNAS100": [
+      [
+       13.0,
+       20.0
+      ]
+     ],
+     "frxXAUUSD": [
+      [
+       6.5,
+       20.0
+      ]
+     ],
+     "frxEURUSD": [
+      [
+       6.5,
+       17.0
+      ]
+     ],
+     "frxGBPUSD": [
+      [
+       6.5,
+       17.0
+      ]
+     ],
+     "frxUSDJPY": [
+      [
+       6.5,
+       17.0
+      ]
+     ]
+    }
+   },
+   {
+    "label": "start-0.5 end+0.5",
+    "cfg": {
+     "frxNAS100": [
+      [
+       13.0,
+       20.5
+      ]
+     ],
+     "frxXAUUSD": [
+      [
+       6.5,
+       20.5
+      ]
+     ],
+     "frxEURUSD": [
+      [
+       6.5,
+       17.5
+      ]
+     ],
+     "frxGBPUSD": [
+      [
+       6.5,
+       17.5
+      ]
+     ],
+     "frxUSDJPY": [
+      [
+       6.5,
+       17.5
+      ]
+     ]
+    }
+   },
+   {
+    "label": "start-0.5 end+1.0",
+    "cfg": {
+     "frxNAS100": [
+      [
+       13.0,
+       21.0
+      ]
+     ],
+     "frxXAUUSD": [
+      [
+       6.5,
+       21.0
+      ]
+     ],
+     "frxEURUSD": [
+      [
+       6.5,
+       18.0
+      ]
+     ],
+     "frxGBPUSD": [
+      [
+       6.5,
+       18.0
+      ]
+     ],
+     "frxUSDJPY": [
+      [
+       6.5,
+       18.0
+      ]
+     ]
+    }
+   },
+   {
+    "label": "start+0.0 end-1.0",
+    "cfg": {
+     "frxNAS100": [
+      [
+       13.5,
+       19.0
+      ]
+     ],
+     "frxXAUUSD": [
+      [
+       7.0,
+       19.0
+      ]
+     ],
+     "frxEURUSD": [
+      [
+       7.0,
+       16.0
+      ]
+     ],
+     "frxGBPUSD": [
+      [
+       7.0,
+       16.0
+      ]
+     ],
+     "frxUSDJPY": [
+      [
+       7.0,
+       16.0
+      ]
+     ]
+    }
+   },
+   {
+    "label": "start+0.0 end-0.5",
+    "cfg": {
+     "frxNAS100": [
+      [
+       13.5,
+       19.5
+      ]
+     ],
+     "frxXAUUSD": [
+      [
+       7.0,
+       19.5
+      ]
+     ],
+     "frxEURUSD": [
+      [
+       7.0,
+       16.5
+      ]
+     ],
+     "frxGBPUSD": [
+      [
+       7.0,
+       16.5
+      ]
+     ],
+     "frxUSDJPY": [
+      [
+       7.0,
+       16.5
+      ]
+     ]
+    }
+   },
+   {
+    "label": "start+0.0 end+0.0",
+    "cfg": {
+     "frxNAS100": [
+      [
+       13.5,
+       20.0
+      ]
+     ],
+     "frxXAUUSD": [
+      [
+       7.0,
+       20.0
+      ]
+     ],
+     "frxEURUSD": [
+      [
+       7.0,
+       17.0
+      ]
+     ],
+     "frxGBPUSD": [
+      [
+       7.0,
+       17.0
+      ]
+     ],
+     "frxUSDJPY": [
+      [
+       7.0,
+       17.0
+      ]
+     ]
+    }
+   },
+   {
+    "label": "start+0.0 end+0.5",
+    "cfg": {
+     "frxNAS100": [
+      [
+       13.5,
+       20.5
+      ]
+     ],
+     "frxXAUUSD": [
+      [
+       7.0,
+       20.5
+      ]
+     ],
+     "frxEURUSD": [
+      [
+       7.0,
+       17.5
+      ]
+     ],
+     "frxGBPUSD": [
+      [
+       7.0,
+       17.5
+      ]
+     ],
+     "frxUSDJPY": [
+      [
+       7.0,
+       17.5
+      ]
+     ]
+    }
+   },
+   {
+    "label": "start+0.0 end+1.0",
+    "cfg": {
+     "frxNAS100": [
+      [
+       13.5,
+       21.0
+      ]
+     ],
+     "frxXAUUSD": [
+      [
+       7.0,
+       21.0
+      ]
+     ],
+     "frxEURUSD": [
+      [
+       7.0,
+       18.0
+      ]
+     ],
+     "frxGBPUSD": [
+      [
+       7.0,
+       18.0
+      ]
+     ],
+     "frxUSDJPY": [
+      [
+       7.0,
+       18.0
+      ]
+     ]
+    }
+   },
+   {
+    "label": "start+0.5 end-1.0",
+    "cfg": {
+     "frxNAS100": [
+      [
+       14.0,
+       19.0
+      ]
+     ],
+     "frxXAUUSD": [
+      [
+       7.5,
+       19.0
+      ]
+     ],
+     "frxEURUSD": [
+      [
+       7.5,
+       16.0
+      ]
+     ],
+     "frxGBPUSD": [
+      [
+       7.5,
+       16.0
+      ]
+     ],
+     "frxUSDJPY": [
+      [
+       7.5,
+       16.0
+      ]
+     ]
+    }
+   },
+   {
+    "label": "start+0.5 end-0.5",
+    "cfg": {
+     "frxNAS100": [
+      [
+       14.0,
+       19.5
+      ]
+     ],
+     "frxXAUUSD": [
+      [
+       7.5,
+       19.5
+      ]
+     ],
+     "frxEURUSD": [
+      [
+       7.5,
+       16.5
+      ]
+     ],
+     "frxGBPUSD": [
+      [
+       7.5,
+       16.5
+      ]
+     ],
+     "frxUSDJPY": [
+      [
+       7.5,
+       16.5
+      ]
+     ]
+    }
+   },
+   {
+    "label": "start+0.5 end+0.0",
+    "cfg": {
+     "frxNAS100": [
+      [
+       14.0,
+       20.0
+      ]
+     ],
+     "frxXAUUSD": [
+      [
+       7.5,
+       20.0
+      ]
+     ],
+     "frxEURUSD": [
+      [
+       7.5,
+       17.0
+      ]
+     ],
+     "frxGBPUSD": [
+      [
+       7.5,
+       17.0
+      ]
+     ],
+     "frxUSDJPY": [
+      [
+       7.5,
+       17.0
+      ]
+     ]
+    }
+   },
+   {
+    "label": "start+0.5 end+0.5",
+    "cfg": {
+     "frxNAS100": [
+      [
+       14.0,
+       20.5
+      ]
+     ],
+     "frxXAUUSD": [
+      [
+       7.5,
+       20.5
+      ]
+     ],
+     "frxEURUSD": [
+      [
+       7.5,
+       17.5
+      ]
+     ],
+     "frxGBPUSD": [
+      [
+       7.5,
+       17.5
+      ]
+     ],
+     "frxUSDJPY": [
+      [
+       7.5,
+       17.5
+      ]
+     ]
+    }
+   },
+   {
+    "label": "start+0.5 end+1.0",
+    "cfg": {
+     "frxNAS100": [
+      [
+       14.0,
+       21.0
+      ]
+     ],
+     "frxXAUUSD": [
+      [
+       7.5,
+       21.0
+      ]
+     ],
+     "frxEURUSD": [
+      [
+       7.5,
+       18.0
+      ]
+     ],
+     "frxGBPUSD": [
+      [
+       7.5,
+       18.0
+      ]
+     ],
+     "frxUSDJPY": [
+      [
+       7.5,
+       18.0
+      ]
+     ]
+    }
+   },
+   {
+    "label": "start+1.0 end-1.0",
+    "cfg": {
+     "frxNAS100": [
+      [
+       14.5,
+       19.0
+      ]
+     ],
+     "frxXAUUSD": [
+      [
+       8.0,
+       19.0
+      ]
+     ],
+     "frxEURUSD": [
+      [
+       8.0,
+       16.0
+      ]
+     ],
+     "frxGBPUSD": [
+      [
+       8.0,
+       16.0
+      ]
+     ],
+     "frxUSDJPY": [
+      [
+       8.0,
+       16.0
+      ]
+     ]
+    }
+   },
+   {
+    "label": "start+1.0 end-0.5",
+    "cfg": {
+     "frxNAS100": [
+      [
+       14.5,
+       19.5
+      ]
+     ],
+     "frxXAUUSD": [
+      [
+       8.0,
+       19.5
+      ]
+     ],
+     "frxEURUSD": [
+      [
+       8.0,
+       16.5
+      ]
+     ],
+     "frxGBPUSD": [
+      [
+       8.0,
+       16.5
+      ]
+     ],
+     "frxUSDJPY": [
+      [
+       8.0,
+       16.5
+      ]
+     ]
+    }
+   },
+   {
+    "label": "start+1.0 end+0.0",
+    "cfg": {
+     "frxNAS100": [
+      [
+       14.5,
+       20.0
+      ]
+     ],
+     "frxXAUUSD": [
+      [
+       8.0,
+       20.0
+      ]
+     ],
+     "frxEURUSD": [
+      [
+       8.0,
+       17.0
+      ]
+     ],
+     "frxGBPUSD": [
+      [
+       8.0,
+       17.0
+      ]
+     ],
+     "frxUSDJPY": [
+      [
+       8.0,
+       17.0
+      ]
+     ]
+    }
+   },
+   {
+    "label": "start+1.0 end+0.5",
+    "cfg": {
+     "frxNAS100": [
+      [
+       14.5,
+       20.5
+      ]
+     ],
+     "frxXAUUSD": [
+      [
+       8.0,
+       20.5
+      ]
+     ],
+     "frxEURUSD": [
+      [
+       8.0,
+       17.5
+      ]
+     ],
+     "frxGBPUSD": [
+      [
+       8.0,
+       17.5
+      ]
+     ],
+     "frxUSDJPY": [
+      [
+       8.0,
+       17.5
+      ]
+     ]
+    }
+   },
+   {
+    "label": "start+1.0 end+1.0",
+    "cfg": {
+     "frxNAS100": [
+      [
+       14.5,
+       21.0
+      ]
+     ],
+     "frxXAUUSD": [
+      [
+       8.0,
+       21.0
+      ]
+     ],
+     "frxEURUSD": [
+      [
+       8.0,
+       18.0
+      ]
+     ],
+     "frxGBPUSD": [
+      [
+       8.0,
+       18.0
+      ]
+     ],
+     "frxUSDJPY": [
+      [
+       8.0,
+       18.0
+      ]
+     ]
+    }
+   }
+  ]
+ }
+}
