@@ -1,0 +1,539 @@
+{
+ "_about": "Ranked candidate shortlist derived from the library (research/library.json) and the current-system assessment (research/docs/01). Scores are 0-3 each: evidence (what the sources show), feasibility (can it run identically in replay, forward paper and the app), robustness (few parameters, placebo-testable), improvement (expected effect on net R relative to Sentinel's known weaknesses). Rank = sum, ties broken by feasibility. 'state' is the research state of the hypothesis itself (proposed | queued | testing | tested | rejected | promoted-to-version). Rejection criteria are written before any test runs and are not relaxed afterwards.",
+ "working_strategy_criteria": {
+  "defined_before_selection": true,
+  "text": "A strategy version is 'working' (eligible for promotion to paper incumbent) only when, on a forward paper cohort of unique resolved positions: n >= 150; net expectancy's 95 % interval (block bootstrap by week, Bonferroni-corrected for the number of versions under evaluation) lies above 0; profit factor >= 1.2; max drawdown <= 25 R; the cohort spans >= 60 calendar days and trades in at least two of the three 4h regimes; expectancy stays > 0 at spreads x 1.5; it is not worse than the incumbent on the matched period; and it is positive in at least two of three chronological thirds. Development evidence (replays) can only qualify a candidate for a paper cohort; it never promotes."
+ },
+ "placebo_rule": "For any filter-type hypothesis: run the base strategy without the filter to get all base trades; the filter's accepted subset must have higher net AND gross expectancy than at least 95 % of 1,000 random subsets of the same size (p < 0.05 after Bonferroni over the filter hypotheses tested in the same round), on the development window and again on the validation window. A filter that passes on net R but not gross R is a cost rule, recorded as such, never as an edge.",
+ "rows": [
+  {
+   "id": "H1",
+   "rank": 1,
+   "state": "rejected",
+   "title": "Session-window entry filter on ARIA 7.2c signals",
+   "library_ids": [
+    "L01",
+    "L34",
+    "L13"
+   ],
+   "sources": [
+    3292,
+    2842,
+    1457,
+    3195,
+    4277,
+    4114
+   ],
+   "hypothesis": "ARIA signals whose bar closes inside the instrument's main liquidity session have higher net expectancy than signals outside it, because spreads are narrower and pullbacks follow through more often. Signals outside the session should be skipped.",
+   "rules": {
+    "base": "ARIA 7.1 engine, model 7.2c unchanged (4h trend, Wave-5 veto, 1.5/2.0/2.5 x ATR stop, +1R arm, 1R trail, 96-bar timeout)",
+    "gate": "enter only if the signal bar's close time (UTC) is inside the market's window",
+    "windows_utc": {
+     "frxNAS100": "13:30-20:00",
+     "frxXAUUSD": "07:00-20:00",
+     "frxEURUSD": "07:00-17:00",
+     "frxGBPUSD": "07:00-17:00",
+     "frxUSDJPY": "07:00-17:00",
+     "cryBTCUSD": "none (control)",
+     "R_75": "none (control)",
+     "1HZ75V": "none (control)"
+    },
+    "open_trades": "managed to their own exit; the window gates entries only"
+   },
+   "parameter_bounds": {
+    "start": "window start -1h .. +1h in 30-minute steps",
+    "end": "window end -1h .. +1h in 30-minute steps",
+    "report": "full neighbourhood table (plateau), not the best cell"
+   },
+   "expected_benefit": "+0.05 to +0.10 R/trade on NAS100 and XAU slices (the one quantified source, #3292, reports +0.083 R on US_TECH100 H1), with 60-80 % fewer trades; no change on the controls.",
+   "failure_conditions": [
+    "in-window expectancy not above the placebo distribution (p >= 0.05 corrected) on development or validation",
+    "sign of the effect differs between development and validation",
+    "effect present only in net R (cost) and absent in gross R: record as a cost rule",
+    "controls (BTC, synthetics) change: implementation bug, stop",
+    "fewer than 100 in-window trades per year across the focus slices: too thin to test forward"
+   ],
+   "rejection_criteria": "Reject if any failure condition holds. Accept to a paper cohort only if the placebo test passes on development and validation, the plateau table shows no isolated peak, and the holdout (last 30 %, logged as reused) does not reverse the sign.",
+   "ablations": [
+    "session only (no 4h trend filter)",
+    "4h trend only (= 7.2c, baseline)",
+    "both",
+    "session on the 'fixed' exit model (separates the gate from the trailing exit)",
+    "per-slice: NAS100 15m, XAU 15m, XAU 1h, FX 1h"
+   ],
+   "scores": {
+    "evidence": 2,
+    "feasibility": 3,
+    "robustness": 2,
+    "improvement": 2
+   },
+   "why_first": "Only candidate with a quantified source, two bounded parameters, identical implementation in replay and live (bar close hour is already computed by sentinel_core.bar_close_hour), and a mechanism that attacks Sentinel's largest known weakness (cost share of the stop).",
+   "result_ref": "H1-session",
+   "result": "placebo p 0.13 dev / 0.002 val / 0.35 holdout; gross unchanged; cost, not edge",
+   "tested_at": "2026-10-05"
+  },
+  {
+   "id": "H2",
+   "rank": 2,
+   "state": "tested",
+   "title": "Cost-to-stop cap at entry (skip signals whose spread is more than a share of the stop)",
+   "library_ids": [
+    "L05",
+    "L34"
+   ],
+   "sources": [
+    4282,
+    2850,
+    3730,
+    3904
+   ],
+   "hypothesis": "Signals where the round-trip spread exceeds a fixed share of the stop distance lose money net even if gross-neutral; skipping them raises net expectancy without changing the signal.",
+   "rules": {
+    "base": "7.2c unchanged",
+    "gate": "enter only if cost_r = spread / stop distance <= cap",
+    "cap": 0.08,
+    "spread_source": "estimated per market (replay); measured median when samples exist (live); provenance recorded per trade"
+   },
+   "parameter_bounds": {
+    "cap": "0.04 .. 0.15 in 0.01 steps; plateau table"
+   },
+   "expected_benefit": "Removes most 15m FX signals (spread ~17 % of the stop in the one-year replay) and some BTC signals; +0.02 to +0.05 R on the aggregate, by construction mostly from cost.",
+   "failure_conditions": [
+    "gross-R placebo test fails (expected): then it is a cost rule, not an edge",
+    "net-R improvement below +0.02 R on validation",
+    "cap removes > 90 % of trades on a slice (slice is simply untradeable at this cost)"
+   ],
+   "rejection_criteria": "As a cost rule it is accepted if net expectancy rises on development and validation and the accepted set is not smaller than 40 % of base trades on the index/gold slices; it is never counted as evidence of edge.",
+   "ablations": [
+    "cap alone",
+    "cap + session (H1)",
+    "cap at measured spreads by hour once samples exist"
+   ],
+   "scores": {
+    "evidence": 1,
+    "feasibility": 3,
+    "robustness": 3,
+    "improvement": 1
+   },
+   "result_ref": "H2-costcap",
+   "result": "cost rule only: net improves dev/val, gross never beats placebo, holdout -0.012; adopt as cost rule after measured spreads, zero edge evidence",
+   "tested_at": "2026-10-05"
+  },
+  {
+   "id": "H3",
+   "rank": 3,
+   "state": "rejected",
+   "title": "ADX(14) trend-strength gate on ARIA signals",
+   "library_ids": [
+    "L02"
+   ],
+   "sources": [
+    3513,
+    4301,
+    4196,
+    4057,
+    3292
+   ],
+   "hypothesis": "ARIA pullback signals taken only when ADX(14) on the signal timeframe is >= 20 and higher than on the previous bar, with DI agreeing with direction, have higher net expectancy than the rest.",
+   "rules": {
+    "base": "7.2c unchanged",
+    "gate": "ADX(14)[1] >= T and ADX(14)[1] > ADX(14)[2]; +DI > -DI for buys, -DI > +DI for sells, on closed bars",
+    "T": 20
+   },
+   "parameter_bounds": {
+    "T": "18 .. 28 in steps of 2; rising condition on/off"
+   },
+   "expected_benefit": "+0.02 to +0.05 R with 30-50 % fewer trades; the one quantified source (#3292) found its regime layer added little, so the prior is weak.",
+   "failure_conditions": [
+    "placebo test fails on development or validation",
+    "best T is an isolated peak",
+    "gate removes < 15 % of trades (ARIA's EMA-stack gate already implies it)"
+   ],
+   "rejection_criteria": "Reject if any failure condition holds; a null result is recorded as 'ADX adds nothing to ARIA' and the family is closed for this version.",
+   "ablations": [
+    "ADX gate alone",
+    "ADX instead of the 4h trend (component swap)",
+    "ADX + session"
+   ],
+   "scores": {
+    "evidence": 1,
+    "feasibility": 3,
+    "robustness": 2,
+    "improvement": 1
+   },
+   "result_ref": "H3-adx",
+   "result": "worse than random subsets in every window; family closed for this version",
+   "tested_at": "2026-10-05"
+  },
+  {
+   "id": "H4",
+   "rank": 4,
+   "state": "tested",
+   "title": "Exit challengers as shadows: 2 x ATR ratchet trail (no arming) and 10-bar channel exit",
+   "library_ids": [
+    "L09",
+    "L10"
+   ],
+   "sources": [
+    4283,
+    3106,
+    4208,
+    2420
+   ],
+   "hypothesis": "A volatility-unit trail that never loosens, or a 10-bar counter-channel exit, keeps more of each move than the 7.2c rule (arm at +1R, trail 1R) on the same entries.",
+   "rules": {
+    "entries": "identical to 7.2c (paired)",
+    "shadow_atr": "stop = best -/+ 2.0 x ATR(14) at entry, ratchet only, no breakeven step, 96-bar timeout",
+    "shadow_channel": "exit at the close of the first bar that closes below the lowest low (buy) / above the highest high (sell) of the prior 10 bars, after the initial stop",
+    "comparison": "paired difference in net R per trade, 95 % interval"
+   },
+   "parameter_bounds": {
+    "atr_multiple": "1.5 .. 3.0 in 0.5 steps",
+    "channel": "10 and 20 bars"
+   },
+   "expected_benefit": "Capture ratio from 41 % toward 50-55 %; +0.03 to +0.06 R paired.",
+   "failure_conditions": [
+    "paired interval includes 0 at n >= 150 forward (same rule as the pre-registered hybrid test)",
+    "full-loss rate higher than 7.2c's",
+    "development and validation disagree in sign"
+   ],
+   "rejection_criteria": "Reject if the paired interval includes zero at the 150-trade formal review or if the full-loss rate is higher; otherwise it becomes a candidate child version, never a silent change.",
+   "ablations": [
+    "ATR trail with and without breakeven at +1R",
+    "channel 10 vs 20"
+   ],
+   "scores": {
+    "evidence": 2,
+    "feasibility": 3,
+    "robustness": 2,
+    "improvement": 1
+   },
+   "result_ref": "H4-exits",
+   "result": "inconclusive: chan10 -0.003 vs base -0.035, windows disagree; propose shadows on the forward journal (B3)",
+   "tested_at": "2026-10-05"
+  },
+  {
+   "id": "H5",
+   "rank": 5,
+   "state": "rejected",
+   "title": "Return-persistence gate (lag-1 autocorrelation of closed-bar returns)",
+   "library_ids": [
+    "L03"
+   ],
+   "sources": [
+    3926,
+    2956,
+    3986,
+    3166,
+    3674
+   ],
+   "hypothesis": "ARIA trend-pullback signals pay only when recent returns are persistent; a positive rolling lag-1 autocorrelation over the last N bars separates them.",
+   "rules": {
+    "base": "7.2c unchanged",
+    "gate": "rho1(N) computed on log returns of the last N closed bars of the signal timeframe > theta",
+    "N": 100,
+    "theta": 0.0
+   },
+   "parameter_bounds": {
+    "N": "50, 100, 200",
+    "theta": "0.0, 0.05, 0.10"
+   },
+   "expected_benefit": "Unknown; the sources are logic-only. +0.02 R would be a success; the honest prior is a null.",
+   "failure_conditions": [
+    "placebo test fails",
+    "only one (N, theta) cell is positive",
+    "the gate correlates > 0.8 with the ADX gate's decisions (then it is the same test twice)"
+   ],
+   "rejection_criteria": "Reject on any failure condition; record the null for the whole persistence family (Hurst, FDI, ApEn) unless a later source shows a quantified gain.",
+   "ablations": [
+    "gate alone",
+    "gate + session"
+   ],
+   "scores": {
+    "evidence": 1,
+    "feasibility": 2,
+    "robustness": 2,
+    "improvement": 1
+   },
+   "result_ref": "H5-acf",
+   "result": "p 0.086 dev / 0.39 val; null",
+   "tested_at": "2026-10-05"
+  },
+  {
+   "id": "H6",
+   "rank": 6,
+   "state": "rejected",
+   "title": "Challenger strategy: Donchian-20 breakout with trend filter (1h and 4h), 2 x ATR(20) stop, two exits",
+   "library_ids": [
+    "L15",
+    "L16",
+    "L10"
+   ],
+   "sources": [
+    4282,
+    4283,
+    3760,
+    3453
+   ],
+   "hypothesis": "A simple breakout entry (close beyond the prior 20-bar extreme, in the direction of the 4h/daily EMA trend) with a volatility stop has a positive net edge on gold and indices on 1h/4h, where the spread is a small share of the stop, and is a better use of the paper book than ARIA signals on those slices.",
+   "rules": {
+    "entry": "last closed bar closes above the prior 20-bar high (buy) / below the prior 20-bar low (sell); entry at that close (same convention as ARIA)",
+    "filter": "direction agrees with the last closed 4h EMA20/50 trend (for 4h bars: the daily EMA 20/50 trend)",
+    "stop": "2.0 x ATR(20) at entry",
+    "exit_A": "fixed 2R target",
+    "exit_B": "2 x ATR ratchet trail",
+    "timeout": "96 bars",
+    "one_position": "per market x timeframe",
+    "sides": "long and short (shorts are the control the source said failed)"
+   },
+   "parameter_bounds": {
+    "lookback": "20 and 55",
+    "atr_multiple": "1.5, 2.0, 2.5",
+    "trend_filter": "on/off"
+   },
+   "expected_benefit": "The source claims PF 1.77 on XAU H4 over 6.7 years, concentrated in 2024-25; on one year of Deriv data the expected result is 'positive on XAU 4h, noisy elsewhere'. Success = positive net R on at least two markets with the trend filter and both exits, surviving spreads x 1.5.",
+   "failure_conditions": [
+    "positive only on XAU with longs (beta, not edge)",
+    "best two months carry > 60 % of total R",
+    "fewer than 100 trades/year across the 8 focus markets on 1h+4h",
+    "negative at spreads x 1.5"
+   ],
+   "rejection_criteria": "Reject on any failure condition. Pass to a paper cohort only with the working-strategy criteria as the promotion bar and with its rejection criteria recorded before the cohort starts.",
+   "ablations": [
+    "no trend filter",
+    "20 vs 55 lookback",
+    "exit A vs B",
+    "long-only vs both"
+   ],
+   "scores": {
+    "evidence": 2,
+    "feasibility": 2,
+    "robustness": 2,
+    "improvement": 2
+   },
+   "note": "Ranked below the filters only because it is a new strategy (new code path, parity work) rather than a gate on the existing one; it is the first alternative to run once the research loop exists.",
+   "result_ref": "H6-donchian",
+   "result": "no variant positive on validation and holdout; #4282's XAU H4 result absent in the last year",
+   "tested_at": "2026-10-05"
+  },
+  {
+   "id": "H7",
+   "rank": 7,
+   "state": "tested",
+   "title": "ARIA gate ablation: which of the ten gates carries information",
+   "library_ids": [
+    "L25",
+    "L18",
+    "L24"
+   ],
+   "sources": [
+    3977,
+    3979
+   ],
+   "hypothesis": "Most ARIA gates pass > 76 % of signals and the score does not order outcomes; a few gates (candidates: Stochastic, Fibonacci, candle) may carry the information, and the rest may be removable without loss.",
+   "rules": {
+    "base": "7.2c",
+    "variants": "for each gate g: (a) require g in addition to score >= 8, (b) score >= 8 computed without g (threshold 7 of 9)",
+    "comparison": "expectancy and placebo test per variant on development; confirm on validation"
+   },
+   "parameter_bounds": {
+    "none": "no free parameters; 20 variants = 20 comparisons in the correction"
+   },
+   "expected_benefit": "Knowledge, not R: a map of which gates matter, feeding the next version's design.",
+   "failure_conditions": [
+    "no gate passes the placebo test: record 'no gate carries information at this horizon'"
+   ],
+   "rejection_criteria": "Any gate whose required-variant beats placebo on development and validation is kept as a mandatory gate in a child version; gates whose removal does not hurt on both windows are candidates for removal in a child version; nothing changes in 7.2c itself.",
+   "ablations": [
+    "this hypothesis is the ablation"
+   ],
+   "scores": {
+    "evidence": 2,
+    "feasibility": 3,
+    "robustness": 1,
+    "improvement": 1
+   },
+   "result_ref": "H7-gates",
+   "result": "no gate makes the system positive; Fib/Stoch carry some information (require Fib ≈ 0 R net); EMA/RSI/structure/macro inert",
+   "tested_at": "2026-10-05"
+  },
+  {
+   "id": "H8",
+   "rank": 8,
+   "state": "proposed",
+   "title": "MAE-calibrated initial stop (winners' p90 MAE in ATR units, fitted on development only)",
+   "library_ids": [
+    "L11"
+   ],
+   "sources": [
+    3747,
+    4119,
+    4091
+   ],
+   "hypothesis": "The 1.5 x ATR stop is wider than winners need; a stop at the winners' p90 MAE raises R per trade without raising the full-loss rate.",
+   "rules": {
+    "base": "7.2c",
+    "stop": "k x ATR where k = p90 of winners' MAE/ATR on the development window",
+    "then": "evaluate on validation and holdout only"
+   },
+   "parameter_bounds": {
+    "percentile": "p80, p90, p95"
+   },
+   "expected_benefit": "+0.03 R if the stop is loose; nothing if MAE sits near the stop.",
+   "failure_conditions": [
+    "full-loss rate rises on validation",
+    "k differs by > 30 % between development halves (unstable)"
+   ],
+   "rejection_criteria": "Reject on any failure condition.",
+   "ablations": [
+    "k from all trades vs winners only"
+   ],
+   "scores": {
+    "evidence": 1,
+    "feasibility": 2,
+    "robustness": 1,
+    "improvement": 1
+   }
+  },
+  {
+   "id": "H9",
+   "rank": 9,
+   "state": "proposed",
+   "title": "H4 swing-structure state instead of the 4h EMA trend",
+   "library_ids": [
+    "L04",
+    "L07"
+   ],
+   "sources": [
+    3976,
+    3017
+   ],
+   "hypothesis": "A swing-label H4 state (HH/HL = up, LH/LL = down) reacts to turns faster than EMA20/50 and lags less at boundaries, improving the 7.2c trend filter.",
+   "rules": {
+    "base": "7.2c with the mtf filter replaced",
+    "state": "last two confirmed H4 swings (strength 3) define up/down/none"
+   },
+   "parameter_bounds": {
+    "strength": "2, 3, 5"
+   },
+   "expected_benefit": "+0.02 R; fewer 'flat' blocks.",
+   "failure_conditions": [
+    "placebo fails",
+    "trade count rises > 50 % with no expectancy gain"
+   ],
+   "rejection_criteria": "Reject on any failure condition.",
+   "ablations": [
+    "swing state alone",
+    "swing AND EMA"
+   ],
+   "scores": {
+    "evidence": 1,
+    "feasibility": 2,
+    "robustness": 1,
+    "improvement": 1
+   }
+  },
+  {
+   "id": "H10",
+   "rank": 10,
+   "state": "proposed",
+   "title": "Challenger: sweep-and-reclaim entries on XAU 15m in the 4h trend direction",
+   "library_ids": [
+    "L22"
+   ],
+   "sources": [
+    4270,
+    3633,
+    1991
+   ],
+   "hypothesis": "False breaks of confirmed swings that close back inside, taken with the 4h trend, have positive net expectancy on gold 15m despite the spread.",
+   "rules": {
+    "entry": "wick beyond the last confirmed swing (strength 3), close back inside, close through the sweep candle body in trend direction",
+    "stop": "beyond the sweep extreme, minimum 1 x ATR",
+    "exit": "2R and 2 x ATR trail (paired)"
+   },
+   "parameter_bounds": {
+    "strength": "3, 5",
+    "min_stop_atr": "1.0, 1.5"
+   },
+   "expected_benefit": "Unknown; the only source gives no numbers after its sizing fix.",
+   "failure_conditions": [
+    "negative at spreads x 1.5",
+    "< 100 trades/year"
+   ],
+   "rejection_criteria": "Reject on any failure condition.",
+   "ablations": [
+    "with and without the 4h trend"
+   ],
+   "scores": {
+    "evidence": 1,
+    "feasibility": 2,
+    "robustness": 1,
+    "improvement": 1
+   }
+  },
+  {
+   "id": "H11",
+   "rank": 11,
+   "state": "deferred",
+   "title": "Machine-learning meta-label gate on ARIA signals",
+   "library_ids": [
+    "L27"
+   ],
+   "sources": [
+    3387,
+    4079,
+    4027,
+    4209
+   ],
+   "hypothesis": "A classifier on signal-time features can veto losing ARIA trades.",
+   "rules": {
+    "deferred": "no rules until the base strategy has an edge to protect"
+   },
+   "parameter_bounds": {},
+   "expected_benefit": "Unknown; the channel's quantified attempts on gold were null (AUC ~0.50).",
+   "failure_conditions": [
+    "too few signals per training window (< 500)"
+   ],
+   "rejection_criteria": "Not queued; re-evaluate after a positive base result.",
+   "ablations": [],
+   "scores": {
+    "evidence": 0,
+    "feasibility": 1,
+    "robustness": 0,
+    "improvement": 1
+   }
+  },
+  {
+   "id": "H12",
+   "rank": 12,
+   "state": "proposed",
+   "title": "Time-of-day study: gold around the daily reopen on Deriv's feed",
+   "library_ids": [
+    "L23"
+   ],
+   "sources": [
+    4121
+   ],
+   "hypothesis": "Gold drifts up in the first hour after its daily break; on Deriv's XAU 1h bars the 23:00-01:00 UTC bars have positive mean return net of the reopen spread.",
+   "rules": {
+    "study": "mean and t-statistic of 1h log returns by UTC hour on the one-year history, net of the estimated reopen spread; no strategy unless t > 3 after costs"
+   },
+   "parameter_bounds": {
+    "hours": "each of 24; correction for 24 comparisons"
+   },
+   "expected_benefit": "Knowledge; the source's edge (1.6 bps) is below Deriv's reopen spread unless held long.",
+   "failure_conditions": [
+    "no hour clears t > 3 after the Bonferroni correction"
+   ],
+   "rejection_criteria": "Study only; a rule is drafted only if the failure condition does not hold.",
+   "ablations": [],
+   "scores": {
+    "evidence": 2,
+    "feasibility": 2,
+    "robustness": 1,
+    "improvement": 0
+   }
+  }
+ ]
+}
