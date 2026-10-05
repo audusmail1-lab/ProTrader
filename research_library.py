@@ -172,7 +172,19 @@ def coverage(con: sqlite3.Connection) -> dict:
     cited_by_rel = dict(q("SELECT d.relevance, COUNT(DISTINCT s.msg_id) FROM library_sources s JOIN dispositions d ON d.msg_id=s.msg_id AND d.channel=s.channel GROUP BY d.relevance"))
     lib_n = q("SELECT classification, COUNT(*) FROM library GROUP BY classification")
     pages = q("SELECT COUNT(*) FROM tg_pages WHERE channel=?", CHANNEL)[0][0]
+    export = None
+    try:
+        row = q("SELECT source, exported_by, messages, service, photos, missing_ids, imported_at, verification FROM tg_export_meta WHERE channel=?", CHANNEL)
+        if row:
+            matched = q("SELECT COUNT(*) FROM tg_export WHERE channel=? AND kind='default' AND text_matches_preview=1", CHANNEL)[0][0]
+            media = dict(q("SELECT kind, COUNT(*) FROM tg_media_notes WHERE channel=? GROUP BY kind", CHANNEL))
+            export = {"source": row[0][0], "exported_by": row[0][1], "posts": row[0][2], "service": row[0][3], "photos": row[0][4],
+                      "missing_ids": json.loads(row[0][5]), "posts_matching_preview": matched, "media_reviewed": media,
+                      "imported_at": time.strftime("%Y-%m-%d %H:%M UTC", time.gmtime(row[0][6])), "verification": row[0][7]}
+    except sqlite3.OperationalError:
+        pass
     return {
+        "owner_export": export,
         "channel": {"handle": CHANNEL, "title": meta[0][0] if meta else None, "subscribers": meta[0][1] if meta else None,
                     "newest_id": meta[0][2] if meta else None, "oldest_id": meta[0][3] if meta else None,
                     "crawled_at": time.strftime("%Y-%m-%d %H:%M UTC", time.gmtime(meta[0][4])) if meta else None},
