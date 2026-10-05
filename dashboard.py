@@ -767,9 +767,16 @@ def multi_timeframe(ticker: str) -> dict:
     results = {}
     with ThreadPoolExecutor(max_workers=4) as ex:
         futs = {ex.submit(_analyze_tf, tf): tf for tf in timeframes}
-        for fut in as_completed(futs, timeout=120):
-            r = fut.result()
-            results[r["interval"]] = r
+        try:
+            for fut in as_completed(futs, timeout=120):
+                r = fut.result()
+                results[r["interval"]] = r
+        except TimeoutError:
+            # the timeframes that did not arrive are reported as such, not as a 500
+            for fut, tf in futs.items():
+                if tf not in results:
+                    results[tf] = {"interval": tf, "label": _tf_labels[tf],
+                                    "signal": "ERROR", "confidence": 0, "ok": False, "error": "timed out"}
 
     ordered    = [results.get(tf, {"interval": tf, "label": _tf_labels[tf], "signal": "—", "ok": False})
                   for tf in timeframes]
@@ -1102,9 +1109,16 @@ def watchlist() -> list:
     """Return quick snapshots for all watchlist tickers in parallel."""
     futures = {_executor.submit(_quick_snapshot, t): t for t in WATCHLIST_DEFAULT}
     results = {}
-    for fut in as_completed(futures, timeout=90):
-        data = fut.result()
-        results[data["ticker"]] = data
+    try:
+        for fut in as_completed(futures, timeout=90):
+            data = fut.result()
+            results[data["ticker"]] = data
+    except TimeoutError:
+        # the rows that did not arrive are reported as such, not as a 500
+        for fut, t in futures.items():
+            if t not in results:
+                results[t] = {"ticker": t, "price": None, "change": None,
+                              "signal": "N/A", "ok": False, "error": "timed out"}
     # Return in original order
     return [results[t] for t in WATCHLIST_DEFAULT if t in results]
 
