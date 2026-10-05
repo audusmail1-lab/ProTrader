@@ -312,6 +312,11 @@ async def _scan_one(m: core.Market, tf: str, focused: bool = True) -> None:
         if t not in closed_now:
             _save_trade(t)
     last = bars[-1]
+    # Only enter on a bar that closed moments ago. After a restart or an
+    # outage the latest close may be stale, and its price is no longer
+    # available to a trader — record the read, skip the entry.
+    fresh = time.time() - (last["time"] + core.TF_SEC[tf]) < FRESH_S
+    await _research_bars(m, tf, bars, fresh)
     if not focused:          # dropped from focus: only finish its open trade
         t = _book.open.get((m.id, tf))
         if t:
@@ -320,10 +325,6 @@ async def _scan_one(m: core.Market, tf: str, focused: bool = True) -> None:
         return
     seen = _state["board"].get(key, {}).get("bar")
     evaluated = _meta_get(f"eval:{key}", 0)
-    # Only enter on a bar that closed moments ago. After a restart or an
-    # outage the latest close may be stale, and its price is no longer
-    # available to a trader — record the read, skip the entry.
-    fresh = time.time() - (last["time"] + core.TF_SEC[tf]) < FRESH_S
     t4 = None
     if last["time"] > evaluated or seen is None:
         try:
@@ -353,6 +354,17 @@ async def _scan_one(m: core.Market, tf: str, focused: bool = True) -> None:
 _wake: Optional[asyncio.Event] = None
 
 
+async def _research_bars(m: core.Market, tf: str, bars: list[dict], fresh: bool) -> None:
+    """Challenger versions (sentinel_research) judge the same bars the
+    incumbent just saw. They must never break the scanner."""
+    if _research is None:
+        return
+    try:
+        await _research.on_bars(m, tf, bars, fresh, lambda: _trend_4h(m))
+    except Exception as e:
+        log.warning("research %s %s: %s", m.id, tf, e)
+
+
 def _live_call(fn: str, *a) -> None:
     """The live test (sentinel_live) must never break the scanner."""
     if _live is None:
@@ -371,6 +383,11 @@ async def _loop() -> None:
     _state.update(running=True, started_at=time.time())
     if _live is not None:
         _live.start_loop()
+    if _research is not None:
+        try:
+            _research.init()                 # registry, incumbent cohort, challenger books (restart-safe)
+        except Exception as e:
+            log.warning("research init: %s", e)
     log.info("Sentinel started: focus %s", _slices())
     while True:
         cycle_start = time.time()
@@ -394,6 +411,8 @@ async def _loop() -> None:
             _state["board"].pop(key, None)
         _state["last_cycle"] = time.time()
         _state["cycles"] += 1
+        if _research is not None:
+            _research.on_cycle()             # integrity first, then any review that is due; idempotent
         # Wake shortly after the next 15-minute close, or at once when the
         # focus list changes so new markets appear on the board.
         nxt = (int(cycle_start // 900) + 1) * 900 + 8
@@ -1053,3 +1072,13 @@ try:
 except Exception as e:                  # the scanner runs without it
     log.warning("sentinel live test unavailable: %s", e)
     _live = None
+
+# ── Research loop: versions, cohorts, 100/150-trade reviews (sentinel_research.py)
+try:
+    import sentinel_research as _research
+    import sys as _sys2
+    _research.attach(_sys2.modules[__name__])
+    router.include_router(_research.router)
+except Exception as e:                  # the scanner runs without it
+    log.warning("sentinel research loop unavailable: %s", e)
+    _research = None

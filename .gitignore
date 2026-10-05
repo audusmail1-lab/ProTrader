@@ -17,3 +17,6 @@ sentinel.db-*
 .sentinel_src.bundle
 accounts.db
 notify_state.json
+sentinel_research.db*
+research/history/
+research/batches/
