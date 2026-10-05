@@ -2618,8 +2618,12 @@ const FEEDQ = (() => {
     if (now >= limitedUntil) { episodes++; strikes = now - lastRefusal > WINDOW * 2 ? 1 : strikes + 1; learn(now); }
     lastRefusal = now;
     // Deriv's window runs a minute from the first request it counted; wait for our oldest send
-    // to age out of the window, and a full minute when that was not enough last time.
-    const until = strikes > 1 ? now + WINDOW + 1500 : Math.min(now + WINDOW + 1500, (sent[0] || now) + WINDOW + 1500);
+    // to age out of the window, and a full minute when that was not enough last time. A refusal
+    // with little of our own in the window was another device's doing (the pool is shared across
+    // the network): try again sooner, and later each time it happens again.
+    const ours = used(now) >= CAP_MIN;
+    const until = !ours ? now + Math.min(WINDOW + 1500, 15000 * strikes)
+      : strikes > 1 ? now + WINDOW + 1500 : Math.min(now + WINDOW + 1500, (sent[0] || now) + WINDOW + 1500);
     limitedUntil = Math.max(limitedUntil, until);
     clearInterval(ticker); ticker = setInterval(() => { if (Date.now() >= limitedUntil) { clearInterval(ticker); ticker = null; } notify(); }, 1000);
     let again = false;

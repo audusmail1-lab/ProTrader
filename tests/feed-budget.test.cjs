@@ -112,6 +112,7 @@ test('a refusal holds the queue until the minute clears, then sends the refused 
   const {Q, sock, c} = setup();
   const sentAt = [];
   Q.send({ticks_history: 'R_25', granularity: 14400, subscribe: 1}, 0, {key: 'chart', onSent: () => sentAt.push(c.now())});
+  for (let i = 0; i < 70; i++) Q.send({ticks: 't' + i}, 1);           // enough of our own in the window for the refusal to be ours
   const first = sock.out[0];
   assert.ok(first.req_id >= 1000000, 'the budget tags its requests so a refusal can find them');
   c.advance(5_000);
@@ -121,11 +122,11 @@ test('a refusal holds the queue until the minute clears, then sends the refused 
   assert.equal(st.limitedUntil, c.now() - 5_000 + 62_500, 'held until the oldest send is a minute old; a burst of refusals is one episode');
   assert.equal(st.episodes, 1); assert.equal(st.strikes, 1);
   Q.send({ticks: 'X'}, 1);
-  assert.equal(sock.out.length, 1, 'nothing leaves while Deriv is refusing');
+  assert.equal(sock.out.length, 71, 'nothing leaves while Deriv is refusing');
   c.advance(st.limitedUntil - c.now() + 200);
-  assert.equal(sock.out.length, 3);
-  assert.equal(sock.out[1].req_id, first.req_id, 'the chart request went again, first, same id');
-  assert.equal(sock.out[2].ticks, 'X');
+  assert.equal(sock.out.length, 73);
+  assert.equal(sock.out[71].req_id, first.req_id, 'the chart request went again, first, same id');
+  assert.equal(sock.out[72].ticks, 'X');
   assert.deepEqual(sentAt.length, 2);
 });
 
@@ -163,8 +164,8 @@ test('FEEDX: the timeout runs from the send, a RateLimit keeps the promise waiti
   assert.equal(sentReq.ticks_history, 'R_50'); assert.deepEqual(sentReq.passthrough, {fx: 1});
   assert.equal(X.route({req_id: sentReq.req_id, passthrough: {fx: 1}, error: {code: 'RateLimit', message: 'You have reached the rate limit for ticks_history.'}}), true);
   await Promise.resolve();
-  assert.equal(done, null, 'a refusal is not an answer: the request waits for the minute');
-  c.advance(62_000);
+  assert.equal(done, null, 'a refusal is not an answer: the request waits out the hold');
+  c.advance(16_000);                                                   // little of ours in the window: a short hold
   const again = sock.out[sock.out.length - 1];
   assert.equal(again.req_id, sentReq.req_id);
   assert.equal(X.route({req_id: again.req_id, passthrough: {fx: 1}, msg_type: 'candles', candles: [{epoch: 1}]}), true);
@@ -235,6 +236,20 @@ test('serial: a second chart request waits for Deriv to answer the first, and go
   Q2.send({ticks_history: 'A', granularity: 300, subscribe: 1}, 0, {key: 'chart', replace: true, serial: true});
   assert.equal(Q2.refused({req_id: s2.out[0].req_id, error: {code: 'RateLimit'}}), false, 'the refused one is dropped: a newer flip is waiting');
   assert.ok(Q2.status().limitedUntil > 0);
+});
+
+test('a refusal with little of our own in the window is another device\'s doing: a short hold, longer each time', () => {
+  const {Q, sock, c} = setup();
+  for (let i = 0; i < 20; i++) Q.send({ticks: 't' + i}, 1);
+  Q.refused({req_id: sock.out[5].req_id, error: {code: 'RateLimit'}});
+  assert.equal(Q.status().limitedUntil, c.now() + 15_000, 'fifteen seconds, not a minute');
+  assert.equal(Q.status().cap, 180, 'and nothing learned from it');
+  c.advance(16_000);
+  Q.send({ticks: 'again'}, 1);
+  assert.equal(sock.out[sock.out.length - 1].ticks, 'again');
+  Q.refused({req_id: sock.out[sock.out.length - 1].req_id, error: {code: 'RateLimit'}});
+  assert.equal(Q.status().limitedUntil, c.now() + 30_000, 'twice as long the second time');
+  assert.equal(Q.status().strikes, 2);
 });
 
 test('inline application JavaScript parses', () => {
