@@ -618,9 +618,17 @@ class PaperBook:
             read["block"] = "Wave 5 exhaustion"
         if not allow_open or (m.id, tf) in self.open or read["block"]:
             return read, None
+        return read, self._open_from_read(m, tf, window, read, trend_4h)
+
+    def _open_from_read(self, m: Market, tf: str, window: list[dict], read: dict,
+                        trend_4h: Optional[str]) -> Optional[Trade]:
+        """Open the paper trade an ARIA read calls for (exec/qualified tier,
+        valid stop). Split out of consider() so research books can apply
+        extra gates between the read and the entry without copying this."""
+        last = window[-1]
         tier = {"EXEC_READY": "exec", "QUALIFIED": "qualified"}.get(read["verdict"])
         if not tier or not (read["sl_dist"] > 0):
-            return read, None
+            return None
         cost = spread_for(m, read["entry"]) / read["sl_dist"]
         t = Trade(
             id=f"{m.id}-{tf}-{last['time']}", market=m.id, tf=tf, mode=m.mode, tier=tier,
@@ -637,7 +645,7 @@ class PaperBook:
         )
         t.grade = grade_of(t.to_dict())
         self.open[(m.id, tf)] = t
-        return read, t
+        return t
 
 
 # ── Statistics ───────────────────────────────────────────────────────────────
