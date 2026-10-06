@@ -1408,6 +1408,8 @@ svg.ico{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.7;st
 .ws-trade-label.entry.sell{border-color:var(--red)}.ws-trade-label.entry.sell .c-qty{background:var(--red);color:#2a0705;border-color:var(--red)}
 .ws-trade-label.entry .c-x{border-color:inherit}
 .ws-trade-label.ticket{border-style:dashed;opacity:.9}
+.ws-trade-label.order{border-color:var(--amber);color:var(--amber)}.ws-trade-label.order .c-qty,.ws-trade-label.order .c-x{border-color:var(--amber)}
+.ws-trade-label.order .c-amt{color:var(--tx-1)}.ws-trade-label.order.is-static{cursor:default}
 .ws-trade-label.is-draft{border-style:dashed}.ws-trade-label.is-draft .c-amt::after{content:'draft';margin-left:6px;font-size:var(--fs-1);letter-spacing:.06em;text-transform:uppercase;color:var(--amber);font-weight:700}
 .ws-trade-label.is-selected .c-x{color:var(--tx-1)}
 .ws-trade-label.is-dragging{box-shadow:0 0 0 1px var(--blue)}
@@ -2894,7 +2896,10 @@ const CH = {
         panes: { separatorColor: p.border, separatorHoverColor: 'rgba(59,130,246,.25)', enableResize: true },
       },
       grid: { vertLines: { color: p.grid }, horzLines: { color: p.grid } },
-      rightPriceScale: { borderColor: p.border, scaleMargins: { top: 0.08, bottom: 0.08 } },
+      // alignLabels off: a price label sits at its price, as on TradeLocker and
+      // TradingView. With it on, the library stacks crowded labels apart and a
+      // pending order's tag can end up far above the level it was placed at.
+      rightPriceScale: { borderColor: p.border, scaleMargins: { top: 0.08, bottom: 0.08 }, alignLabels: false },
       timeScale: {
         borderColor: p.border, timeVisible: true, secondsVisible: false,
         tickMarkFormatter: (t, type) => TZ.tick(typeof t === 'number' ? t : Date.UTC(t.year, t.month - 1, t.day) / 1000, type),
@@ -3269,20 +3274,29 @@ const CH = {
     this.lines.forEach(l => { try { this.candle.removePriceLine(l); } catch (_) {} });
     this.lines = [];
     this._lineKeys = new Set();
+    this._lineById = new Map();
   },
 
-  addLine(price, color, title, style) {
+  addLine(price, color, title, style, id) {
     if (!Number.isFinite(price)) return;
     // The working ticket and a live position often hold the same SL/TP;
     // drawing both stacks identical labels on the axis.
     const key = `${title}|${color}@${price.toFixed(Number.isFinite(S.dp) ? S.dp : 4)}`;
     if (this._lineKeys.has(key)) return;
     this._lineKeys.add(key);
-    this.lines.push(this.candle.createPriceLine({
+    const line = this.candle.createPriceLine({
       price, color, lineWidth: 1,
       lineStyle: style === undefined ? LWC.LineStyle.Dashed : style,
       axisLabelVisible: true, title,
-    }));
+    });
+    this.lines.push(line);
+    if (id) { if (!this._lineById) this._lineById = new Map(); this._lineById.set(id, line); }
+  },
+
+  // Move one keyed line (a pending order being dragged) without a rebuild.
+  setLinePrice(id, price) {
+    const l = this._lineById && this._lineById.get(id);
+    if (l && Number.isFinite(price)) { try { l.applyOptions({ price }); } catch (_) {} }
   },
 
   // Draws the working order ticket, every open position and every pending
@@ -3301,7 +3315,9 @@ const CH = {
       (typeof TR !== 'undefined' ? TR.positions.filter(p => p.symbol === sym).map(p => [p.id, p.entry, p.sl, p.tp, p.volume]) : []),
       (typeof TR !== 'undefined' ? TR.orders.filter(o => o.symbol === sym).map(o => [o.id, o.price, o.volume]) : []),
       (typeof LIVE !== 'undefined' && LIVE.on && LIVE.snap() ? (LIVE.snap().positions || []).filter(p => p.symbol === LIVE.mt5Symbol(sym)).map(p => [p.ticket, p.entry, p.sl, p.tp, p.volume]) : []),
+      (typeof LIVE !== 'undefined' && LIVE.on && LIVE.snap() ? (LIVE.snap().orders || []).filter(o => o.symbol === LIVE.mt5Symbol(sym)).map(o => [o.ticket, o.price, o.volume]) : []),
       (typeof LEVELS !== 'undefined' && LEVELS.draft ? [LEVELS.draft.key, LEVELS.draft.sl, LEVELS.draft.tp] : null),
+      (typeof LEVELS !== 'undefined' && LEVELS.orderDraft ? [LEVELS.orderDraft.key, LEVELS.orderDraft.price] : null),
       (S.showPatterns && S.activePatterns || []).map(x => [x.name, x.conf, x.tEnd]),
     ]);
     if (sig === this._levelSig) return;
@@ -3337,9 +3353,18 @@ const CH = {
           text: `${p.side.toUpperCase()} ${p.volume}`,
         });
       });
+      // pending orders: the line is untitled and sits at the order price (a drag
+      // draft wins while the finger is down); the pill beside the axis carries
+      // side, type, size, the price and the ×, and is what the trader drags
       TR.orders.filter(o => o.symbol === sym).forEach(o => {
-        this.addLine(o.price, 'rgba(245,158,11,.9)',
-                     `${o.side.toUpperCase()} ${o.orderType.toUpperCase()} ${o.volume}`, LWC.LineStyle.Dotted);
+        const id = 'ord:' + o.id, od = (typeof LEVELS !== 'undefined' && LEVELS.orderDraft && LEVELS.orderDraft.key === id) ? LEVELS.orderDraft : null;
+        this.addLine(od ? od.price : o.price, 'rgba(245,158,11,.9)', '', LWC.LineStyle.Dotted, id);
+      });
+    }
+    if (typeof LIVE !== 'undefined' && LIVE.on && LIVE.snap()) {
+      const name = LIVE.mt5Symbol(sym);
+      (LIVE.snap().orders || []).filter(o => o.symbol === name).forEach(o => {
+        if (Number.isFinite(+o.price)) this.addLine(+o.price, 'rgba(245,158,11,.9)', '', LWC.LineStyle.Dotted, 'mt5ord:' + o.ticket);
       });
     }
 
@@ -4304,7 +4329,7 @@ const DT = (() => {
    being composed is different: its levels follow the finger live.
 ════════════════════════════════════════════════════════════ */
 const LEVELS = {
-  layer: null, editor: null, els: new Map(), drag: null, draft: null, selected: null, _raf: 0, _lastSym: null,
+  layer: null, editor: null, els: new Map(), drag: null, draft: null, orderDraft: null, selected: null, _raf: 0, _lastSym: null,
 
   init() {
     const wrap = document.getElementById('chartWrap'); if (!wrap || this.layer) return;
@@ -4351,6 +4376,21 @@ const LEVELS = {
     const out = [];
     if (TK.slOn && Number.isFinite(TK.sl) && !dup(TK.sl)) out.push({ key: 'tk:sl', which: 'sl', price: TK.sl });
     if (TK.tpOn && Number.isFinite(TK.tp) && !dup(TK.tp)) out.push({ key: 'tk:tp', which: 'tp', price: TK.tp });
+    return out;
+  },
+  /* pending orders on the charted symbol: paper (movable here) and MT5 (shown
+     and cancellable; moving one still happens in MT5 until the EA learns it) */
+  orders() {
+    const sym = S.sym, out = [];
+    if (typeof TR !== 'undefined') TR.orders.filter(o => o.symbol === sym && o.state !== 'cancelled').forEach(o => out.push({
+      key: 'ord:' + o.id, kind: 'paper', id: o.id, side: o.side, type: o.orderType, vol: o.volume, price: o.price, sl: o.sl, tp: o.tp, label: o.label || S.symLabel, o,
+    }));
+    if (typeof LIVE !== 'undefined' && LIVE.on) {
+      const name = LIVE.mt5Symbol(sym), s = LIVE.snap();
+      ((s && s.orders) || []).filter(o => o.symbol === name && Number.isFinite(+o.price)).forEach(o => out.push({
+        key: 'mt5ord:' + o.ticket, kind: 'mt5', ticket: String(o.ticket), side: o.side, type: String(o.kind || 'pending').toLowerCase(), vol: +o.volume, price: +o.price, sl: o.sl > 0 ? +o.sl : null, tp: o.tp > 0 ? +o.tp : null, label: o.symbol,
+      }));
+    }
     return out;
   },
   money(g, price) {
@@ -4408,6 +4448,27 @@ const LEVELS = {
       e.querySelector('.c-amt').textContent = Number.isFinite(entry) ? this.outcome(TK.side, entry, t.price, TK.volume) : '—';
       e.classList.toggle('is-positive', m != null && m >= 0); e.classList.toggle('is-negative', m != null && m < 0);
       e.title = `Ticket ${t.which === 'sl' ? 'stop' : 'target'} · drag to move`; e.setAttribute('aria-label', e.title + ' ' + otFmtPx(S.sym, t.price));
+      put(e, y);
+    });
+    // pending orders: "SELL LIMIT · 0.16 @ 887519.59 ×" at the order's own price
+    this.orders().forEach(o => {
+      const e = this.el(o.key, 'ws-trade-label order ' + o.side, `<span class="c-qty"></span><strong class="c-amt"></strong><span class="lvl-x c-x" role="button" tabindex="0" title="Cancel order" aria-label="Cancel order">×</span>`, el => {
+        this.bindDrag(el);
+        const x = el.querySelector('.lvl-x');
+        x.addEventListener('pointerdown', ev => ev.stopPropagation());
+        x.addEventListener('click', ev => { ev.stopPropagation(); this.cancelOrder(el._item.o); });
+        x.addEventListener('keydown', ev => { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); this.cancelOrder(el._item.o); } });
+      });
+      const od = this.orderDraft && this.orderDraft.key === o.key ? this.orderDraft : null;
+      const price = od ? od.price : o.price;
+      e._item = { kind: 'order', which: 'price', price, o };
+      const y = CH.toY(price); if (y == null) { e.hidden = true; return; }
+      e.querySelector('.c-qty').textContent = `${o.side.toUpperCase()} ${o.type.toUpperCase()}`;
+      e.querySelector('.c-amt').textContent = `${o.vol} @ ${otFmtPx(S.sym, price)}`;
+      e.classList.toggle('is-draft', !!od); e.classList.toggle('is-static', o.kind === 'mt5');
+      e.title = o.kind === 'mt5' ? `Pending MT5 order #${o.ticket} · move it in MT5 (the EA does not move orders yet) · × cancels`
+                                 : `Pending ${o.side} ${o.type} ${otFmtPx(S.sym, price)} · drag or use arrow keys to move · × cancels`;
+      e.setAttribute('aria-label', e.title);
       put(e, y);
     });
     // positions
@@ -4599,6 +4660,7 @@ const LEVELS = {
       e.preventDefault(); e.stopPropagation();
       const it = el._item, sp = otSpec(S.sym), step = sp.tick * (e.shiftKey ? 10 : 1) * (e.key === 'ArrowUp' ? 1 : -1);
       if (it.kind === 'ticket') { this.setTicket(it.which, +((it.which === 'sl' ? TK.sl : TK.tp) + step).toFixed(sp.dp)); return; }
+      if (it.kind === 'order') { this.moveOrder(it.o, +(it.o.price + step).toFixed(sp.dp)); return; }
       const d = this.begin(it.g); if (!d) return;
       d[it.which] = { intent: 'set', price: this.clamp(it.g, it.which, (this.eff(it.g, it.which) ?? it.price) + step) };
       this.renderEditor(); this.schedule();
@@ -4609,8 +4671,14 @@ const LEVELS = {
     if (e.target.closest('.lvl-x') || e.target.closest('.lvl-add')) return;
     const it = el._item; if (!it) return;
     e.preventDefault(); e.stopPropagation();
-    if (it.kind !== 'ticket' && !this.begin(it.g, true)) return;
-    this.drag = { el, it, y0: e.clientY, p0: it.kind === 'ticket' ? it.price : (this.eff(it.g, it.which) ?? it.price), pid: e.pointerId, moved: false };
+    if (it.kind === 'order') {
+      if (it.o.kind === 'mt5') { showToast('MT5 pending orders can be cancelled here; to move one, edit it in MT5 for now.', 3600); return; }
+      this.drag = { el, it, y0: e.clientY, p0: it.o.price, pid: e.pointerId, moved: false };
+      this.orderDraft = { key: it.o.key, price: it.o.price };
+    } else {
+      if (it.kind !== 'ticket' && !this.begin(it.g, true)) return;
+      this.drag = { el, it, y0: e.clientY, p0: it.kind === 'ticket' ? it.price : (this.eff(it.g, it.which) ?? it.price), pid: e.pointerId, moved: false };
+    }
     el.classList.add('is-dragging'); el.setPointerCapture(e.pointerId);
     const move = ev => this.move(ev), up = ev => this.end(ev, move, up);
     el.addEventListener('pointermove', move); el.addEventListener('pointerup', up); el.addEventListener('pointercancel', up);
@@ -4647,6 +4715,11 @@ const LEVELS = {
     if (!Number.isFinite(a) || !Number.isFinite(z)) return;
     const sp = otSpec(S.sym); let price = Math.round((d.p0 + z - a) / sp.tick) * sp.tick;
     d.moved = d.moved || Math.abs(e.clientY - d.y0) > 2;
+    if (d.it.kind === 'order') {
+      price = +price.toFixed(sp.dp);
+      this.orderDraft = { key: d.it.o.key, price }; d.it.price = price;
+      CH.setLinePrice(d.it.o.key, price); this.schedule(); return;
+    }
     if (d.it.kind === 'ticket') { this.setTicket(d.it.which, price); d.it.price = price; this.schedule(); return; }
     const dr = this.draft; if (!dr) return;
     dr[d.it.which] = { intent: 'set', price: this.clamp(d.it.g, d.it.which, price) };
@@ -4659,6 +4732,13 @@ const LEVELS = {
     try { el.releasePointerCapture(d.pid); } catch (_) {}
     d.el.classList.remove('is-dragging');
     this.drag = null;
+    if (d.it.kind === 'order') {
+      const want = this.orderDraft && this.orderDraft.price;
+      this.orderDraft = null;
+      if (e.type === 'pointerup' && d.moved && Number.isFinite(want)) this.moveOrder(d.it.o, want);
+      else { CH.setLinePrice(d.it.o.key, d.it.o.price); this.schedule(); }
+      return;
+    }
     if (d.it.kind === 'ticket') { OT.render(); this.schedule(); return; }
     if (e.type === 'pointerup' && !d.moved && !d.fromHandle && this.draft) this.editor.hidden = false;
     if (e.type !== 'pointerup' && this.draft) { this.draft[d.it.which] = { intent: d.fromHandle ? 'unchanged' : 'set', price: d.fromHandle ? d.it.g[d.it.which] : d.p0 }; }
@@ -4670,6 +4750,45 @@ const LEVELS = {
     if (e.type !== 'pointerup' || !this.draft || this.draft.key !== d.it.g.key) return;
     if (d.moved) this.applyDrag(d.it.which);
     else if (d.fromHandle) { this.draft[d.it.which] = { intent: 'unchanged', price: d.it.g[d.it.which] }; this.addByKey(d.it.g, d.it.which); }
+  },
+  /* A pending order's new price must still be a pending price: a limit on the
+     far side of the market, a stop beyond it, outside the broker's minimum
+     distance — otherwise the next tick would fill it where it was dropped. */
+  checkOrder(o, price) {
+    const q = otQuote(S.sym), sp = otSpec(S.sym), minDist = otMinDist(S.sym);
+    if (!q.ok || q.stale) return 'A current quote is required.';
+    const dist = sp.isForex ? (minDist / sp.pip).toFixed(1) + ' pips' : minDist.toFixed(sp.dp);
+    const buy = o.side === 'buy', limit = o.type === 'limit';
+    const mustBeBelow = buy === limit;                   // buy limit, sell stop sit below the market
+    const ref = mustBeBelow ? q.bid : q.ask;
+    if (mustBeBelow && price > ref - minDist) return `A ${o.side} ${o.type} must stay below the market by at least ${dist}.`;
+    if (!mustBeBelow && price < ref + minDist) return `A ${o.side} ${o.type} must stay above the market by at least ${dist}.`;
+    if (o.sl != null && (buy ? o.sl >= price : o.sl <= price)) return `The order's stop ${otFmtPx(S.sym, o.sl)} would be on the wrong side of ${otFmtPx(S.sym, price)}; change the stop first.`;
+    if (o.tp != null && (buy ? o.tp <= price : o.tp >= price)) return `The order's target ${otFmtPx(S.sym, o.tp)} would be on the wrong side of ${otFmtPx(S.sym, price)}; change the target first.`;
+    return '';
+  },
+  moveOrder(o, price) {
+    if (!o || o.kind === 'mt5') return;
+    const rec = TR.orders.find(x => x.id === o.id); if (!rec || rec.state !== 'working') { this.schedule(); return; }
+    const sp = otSpec(S.sym); price = +(+price).toFixed(sp.dp);
+    if (!Number.isFinite(price) || price <= 0) return;
+    const err = this.checkOrder(o, price);
+    if (err) { showToast(err, 4200); CH.setLinePrice(o.key, rec.price); this.schedule(); return; }
+    if (price === rec.price) { this.schedule(); return; }
+    const from = rec.price;
+    rec.price = price; rec.modified = Date.now();
+    o.price = price;
+    showToast(`${o.side.toUpperCase()} ${o.type.toUpperCase()} ${o.vol} moved ${otFmtPx(S.sym, from)} → ${otFmtPx(S.sym, price)}`, 2800);
+    if (typeof OT !== 'undefined') { OT.renderBook(); OT.save(); }
+    if (typeof CH !== 'undefined' && CH.ready) { CH._levelSig = null; CH.refreshLevels(); }
+    this.schedule();
+  },
+  async cancelOrder(o) {
+    if (!o) return;
+    if (o.kind === 'mt5') { LIVE.cancelOrder(o.ticket); return; }
+    await OT.cancelOrder(o.id);
+    if (typeof CH !== 'undefined' && CH.ready) { CH._levelSig = null; CH.refreshLevels(); }
+    this.schedule();
   },
   async applyDrag(which) {
     const d = this.draft; if (!d) return;
