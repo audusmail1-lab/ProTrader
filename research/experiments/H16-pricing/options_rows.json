@@ -1,0 +1,3570 @@
+[
+{
+"sym": "1HZ50V",
+"ct": "CALL",
+"dur": "1t",
+"barrier": null,
+"payout": 19.53,
+"implied": 0.5120327700972862,
+"fair": 0.499585,
+"ev": -0.024310494999999932
+},
+{
+"sym": "1HZ50V",
+"ct": "PUT",
+"dur": "1t",
+"barrier": null,
+"payout": 19.53,
+"implied": 0.5120327700972862,
+"fair": 0.500035,
+"ev": -0.023431644999999945
+},
+{
+"sym": "1HZ50V",
+"ct": "CALL",
+"dur": "2t",
+"barrier": null,
+"payout": 19.53,
+"implied": 0.5120327700972862,
+"fair": 0.501185,
+"ev": -0.021185695000000004
+},
+{
+"sym": "1HZ50V",
+"ct": "PUT",
+"dur": "2t",
+"barrier": null,
+"payout": 19.53,
+"implied": 0.5120327700972862,
+"fair": 0.4997275,
+"ev": -0.024032192499999994
+},
+{
+"sym": "1HZ50V",
+"ct": "CALL",
+"dur": "3t",
+"barrier": null,
+"payout": 19.53,
+"implied": 0.5120327700972862,
+"fair": 0.4998625,
+"ev": -0.023768537499999964
+},
+{
+"sym": "1HZ50V",
+"ct": "PUT",
+"dur": "3t",
+"barrier": null,
+"payout": 19.53,
+"implied": 0.5120327700972862,
+"fair": 0.4997625,
+"ev": -0.023963837499999974
+},
+{
+"sym": "1HZ50V",
+"ct": "CALL",
+"dur": "5t",
+"barrier": null,
+"payout": 19.53,
+"implied": 0.5120327700972862,
+"fair": 0.5004,
+"ev": -0.02271880000000004
+},
+{
+"sym": "1HZ50V",
+"ct": "PUT",
+"dur": "5t",
+"barrier": null,
+"payout": 19.53,
+"implied": 0.5120327700972862,
+"fair": 0.50105,
+"ev": -0.021449349999999923
+},
+{
+"sym": "1HZ50V",
+"ct": "CALL",
+"dur": "10t",
+"barrier": null,
+"payout": 19.53,
+"implied": 0.5120327700972862,
+"fair": 0.5011925,
+"ev": -0.021171047499999873
+},
+{
+"sym": "1HZ50V",
+"ct": "PUT",
+"dur": "10t",
+"barrier": null,
+"payout": 19.53,
+"implied": 0.5120327700972862,
+"fair": 0.5009825,
+"ev": -0.021581177499999882
+},
+{
+"sym": "1HZ50V",
+"ct": "DIGITEVEN",
+"dur": "1t",
+"barrier": null,
+"payout": 19.53,
+"implied": 0.5120327700972862,
+"fair": 0.5,
+"ev": -0.023499999999999965
+},
+{
+"sym": "1HZ50V",
+"ct": "DIGITODD",
+"dur": "1t",
+"barrier": null,
+"payout": 19.53,
+"implied": 0.5120327700972862,
+"fair": 0.5,
+"ev": -0.023499999999999965
+},
+{
+"sym": "1HZ50V",
+"ct": "DIGITOVER",
+"dur": "1t",
+"barrier": "0",
+"payout": 10.96,
+"implied": 0.9124087591240875,
+"fair": 0.9,
+"ev": -0.013599999999999945
+},
+{
+"sym": "1HZ50V",
+"ct": "DIGITOVER",
+"dur": "1t",
+"barrier": "4",
+"payout": 19.53,
+"implied": 0.5120327700972862,
+"fair": 0.5,
+"ev": -0.023499999999999965
+},
+{
+"sym": "1HZ50V",
+"ct": "DIGITOVER",
+"dur": "1t",
+"barrier": "8",
+"payout": 89.29,
+"implied": 0.11199462425803561,
+"fair": 0.1,
+"ev": -0.10709999999999997
+},
+{
+"sym": "1HZ50V",
+"ct": "DIGITUNDER",
+"dur": "1t",
+"barrier": "1",
+"payout": 89.29,
+"implied": 0.11199462425803561,
+"fair": 0.1,
+"ev": -0.10709999999999997
+},
+{
+"sym": "1HZ50V",
+"ct": "DIGITUNDER",
+"dur": "1t",
+"barrier": "5",
+"payout": 19.53,
+"implied": 0.5120327700972862,
+"fair": 0.5,
+"ev": -0.023499999999999965
+},
+{
+"sym": "1HZ50V",
+"ct": "DIGITUNDER",
+"dur": "1t",
+"barrier": "9",
+"payout": 10.96,
+"implied": 0.9124087591240875,
+"fair": 0.9,
+"ev": -0.013599999999999945
+},
+{
+"sym": "1HZ50V",
+"ct": "DIGITMATCH",
+"dur": "1t",
+"barrier": "5",
+"payout": 89.29,
+"implied": 0.11199462425803561,
+"fair": 0.1,
+"ev": -0.10709999999999997
+},
+{
+"sym": "1HZ50V",
+"ct": "DIGITDIFF",
+"dur": "1t",
+"barrier": "5",
+"payout": 10.96,
+"implied": 0.9124087591240875,
+"fair": 0.9,
+"ev": -0.013599999999999945
+},
+{
+"sym": "1HZ50V",
+"ct": "TICKHIGH",
+"dur": "5t",
+"barrier": 1,
+"payout": 35.09,
+"implied": 0.28498147620404674,
+"fair": 0.27382,
+"ev": -0.03916561999999979
+},
+{
+"sym": "1HZ50V",
+"ct": "TICKLOW",
+"dur": "5t",
+"barrier": 1,
+"payout": 35.09,
+"implied": 0.28498147620404674,
+"fair": 0.2735575,
+"ev": -0.04008673249999983
+},
+{
+"sym": "1HZ50V",
+"ct": "TICKHIGH",
+"dur": "5t",
+"barrier": 2,
+"payout": 59.52,
+"implied": 0.16801075268817203,
+"fair": 0.1558225,
+"ev": -0.07254448000000002
+},
+{
+"sym": "1HZ50V",
+"ct": "TICKLOW",
+"dur": "5t",
+"barrier": 2,
+"payout": 59.52,
+"implied": 0.16801075268817203,
+"fair": 0.15526,
+"ev": -0.07589247999999993
+},
+{
+"sym": "1HZ50V",
+"ct": "TICKHIGH",
+"dur": "5t",
+"barrier": 3,
+"payout": 65.36,
+"implied": 0.15299877600979192,
+"fair": 0.1404875,
+"ev": -0.08177370000000006
+},
+{
+"sym": "1HZ50V",
+"ct": "TICKLOW",
+"dur": "5t",
+"barrier": 3,
+"payout": 65.36,
+"implied": 0.15299877600979192,
+"fair": 0.14062,
+"ev": -0.08090767999999993
+},
+{
+"sym": "1HZ50V",
+"ct": "TICKHIGH",
+"dur": "5t",
+"barrier": 4,
+"payout": 59.52,
+"implied": 0.16801075268817203,
+"fair": 0.1564,
+"ev": -0.06910719999999981
+},
+{
+"sym": "1HZ50V",
+"ct": "TICKLOW",
+"dur": "5t",
+"barrier": 4,
+"payout": 59.52,
+"implied": 0.16801075268817203,
+"fair": 0.1574725,
+"ev": -0.06272368000000006
+},
+{
+"sym": "1HZ50V",
+"ct": "TICKHIGH",
+"dur": "5t",
+"barrier": 5,
+"payout": 35.09,
+"implied": 0.28498147620404674,
+"fair": 0.2726775,
+"ev": -0.043174652499999744
+},
+{
+"sym": "1HZ50V",
+"ct": "TICKLOW",
+"dur": "5t",
+"barrier": 5,
+"payout": 35.09,
+"implied": 0.28498147620404674,
+"fair": 0.274495,
+"ev": -0.03679704499999992
+},
+{
+"sym": "1HZ50V",
+"ct": "RUNHIGH",
+"dur": "2t",
+"barrier": null,
+"payout": 38.17,
+"implied": 0.26198585276395076,
+"fair": 0.25024,
+"ev": -0.04483391999999997
+},
+{
+"sym": "1HZ50V",
+"ct": "RUNLOW",
+"dur": "2t",
+"barrier": null,
+"payout": 38.17,
+"implied": 0.26198585276395076,
+"fair": 0.2511925,
+"ev": -0.04119822750000002
+},
+{
+"sym": "1HZ50V",
+"ct": "RUNHIGH",
+"dur": "3t",
+"barrier": null,
+"payout": 76.34,
+"implied": 0.13099292638197538,
+"fair": 0.1251725,
+"ev": -0.04443313500000001
+},
+{
+"sym": "1HZ50V",
+"ct": "RUNLOW",
+"dur": "3t",
+"barrier": null,
+"payout": 76.34,
+"implied": 0.13099292638197538,
+"fair": 0.1253925,
+"ev": -0.04275365500000006
+},
+{
+"sym": "1HZ50V",
+"ct": "RUNHIGH",
+"dur": "5t",
+"barrier": null,
+"payout": 305.34,
+"implied": 0.03275037662933124,
+"fair": 0.0306325,
+"ev": -0.0646672450000001
+},
+{
+"sym": "1HZ50V",
+"ct": "RUNLOW",
+"dur": "5t",
+"barrier": null,
+"payout": 305.34,
+"implied": 0.03275037662933124,
+"fair": 0.0310075,
+"ev": -0.05321699499999999
+},
+{
+"sym": "1HZ50V",
+"ct": "ASIANU",
+"dur": "5t",
+"barrier": null,
+"payout": 19.53,
+"implied": 0.5120327700972862,
+"fair": 0.499065,
+"ev": -0.02532605500000007
+},
+{
+"sym": "1HZ50V",
+"ct": "ASIAND",
+"dur": "5t",
+"barrier": null,
+"payout": 19.53,
+"implied": 0.5120327700972862,
+"fair": 0.501015,
+"ev": -0.021517704999999943
+},
+{
+"sym": "1HZ50V",
+"ct": "ONETOUCH",
+"dur": "5t",
+"barrier": "+17.76",
+"payout": 20.87,
+"implied": 0.4791566842357451,
+"fair": 0.45665,
+"ev": -0.046971450000000026
+},
+{
+"sym": "1HZ50V",
+"ct": "ONETOUCH",
+"dur": "5t",
+"barrier": "-17.76",
+"payout": 20.87,
+"implied": 0.4791566842357451,
+"fair": 0.456625,
+"ev": -0.0470236249999999
+},
+{
+"sym": "1HZ50V",
+"ct": "NOTOUCH",
+"dur": "5t",
+"barrier": "+17.76",
+"payout": 17.1,
+"implied": 0.5847953216374269,
+"fair": 0.54318,
+"ev": -0.07116219999999984
+},
+{
+"sym": "1HZ50V",
+"ct": "NOTOUCH",
+"dur": "5t",
+"barrier": "-17.76",
+"payout": 17.1,
+"implied": 0.5847953216374269,
+"fair": 0.543085,
+"ev": -0.07132464999999988
+},
+{
+"sym": "1HZ50V",
+"ct": "CALL",
+"dur": "5t",
+"barrier": "+17.76",
+"error": "Invalid barrier."
+},
+{
+"sym": "1HZ50V",
+"ct": "PUT",
+"dur": "5t",
+"barrier": "-17.76",
+"error": "Invalid barrier."
+},
+{
+"sym": "1HZ50V",
+"ct": "ONETOUCH",
+"dur": "5t",
+"barrier": "+35.52",
+"payout": 41.73,
+"implied": 0.23963575365444525,
+"fair": 0.21909,
+"ev": -0.08573743
+},
+{
+"sym": "1HZ50V",
+"ct": "ONETOUCH",
+"dur": "5t",
+"barrier": "-35.52",
+"payout": 41.74,
+"implied": 0.23957834211787254,
+"fair": 0.22052,
+"ev": -0.07954951999999993
+},
+{
+"sym": "1HZ50V",
+"ct": "NOTOUCH",
+"dur": "5t",
+"barrier": "+35.52",
+"payout": 12.13,
+"implied": 0.8244023083264632,
+"fair": 0.78076,
+"ev": -0.05293811999999998
+},
+{
+"sym": "1HZ50V",
+"ct": "NOTOUCH",
+"dur": "5t",
+"barrier": "-35.52",
+"payout": 12.13,
+"implied": 0.8244023083264632,
+"fair": 0.7813975,
+"ev": -0.052164832499999925
+},
+{
+"sym": "1HZ50V",
+"ct": "CALL",
+"dur": "5t",
+"barrier": "+35.52",
+"error": "Invalid barrier."
+},
+{
+"sym": "1HZ50V",
+"ct": "PUT",
+"dur": "5t",
+"barrier": "-35.52",
+"error": "Invalid barrier."
+},
+{
+"sym": "1HZ50V",
+"ct": "ONETOUCH",
+"dur": "5t",
+"barrier": "+71.05",
+"payout": 179.13,
+"implied": 0.05582537821693742,
+"fair": 0.027875,
+"ev": -0.500675125
+},
+{
+"sym": "1HZ50V",
+"ct": "ONETOUCH",
+"dur": "5t",
+"barrier": "-71.05",
+"payout": 179.25,
+"implied": 0.05578800557880056,
+"fair": 0.027425,
+"ev": -0.508406875
+},
+{
+"sym": "1HZ50V",
+"ct": "NOTOUCH",
+"dur": "5t",
+"barrier": "+71.05",
+"error": "This contract offers no return."
+},
+{
+"sym": "1HZ50V",
+"ct": "NOTOUCH",
+"dur": "5t",
+"barrier": "-71.05",
+"error": "This contract offers no return."
+},
+{
+"sym": "1HZ50V",
+"ct": "CALL",
+"dur": "5t",
+"barrier": "+71.05",
+"error": "Invalid barrier."
+},
+{
+"sym": "1HZ50V",
+"ct": "PUT",
+"dur": "5t",
+"barrier": "-71.05",
+"error": "Invalid barrier."
+},
+{
+"sym": "1HZ50V",
+"ct": "ASIANU",
+"dur": "10t",
+"barrier": null,
+"payout": 19.53,
+"implied": 0.5120327700972862,
+"fair": 0.50012,
+"ev": -0.023265639999999976
+},
+{
+"sym": "1HZ50V",
+"ct": "ASIAND",
+"dur": "10t",
+"barrier": null,
+"payout": 19.53,
+"implied": 0.5120327700972862,
+"fair": 0.4997825,
+"ev": -0.023924777499999883
+},
+{
+"sym": "1HZ50V",
+"ct": "ONETOUCH",
+"dur": "10t",
+"barrier": "+25.12",
+"payout": 19.02,
+"implied": 0.5257623554153523,
+"fair": 0.498905,
+"ev": -0.051082689999999986
+},
+{
+"sym": "1HZ50V",
+"ct": "ONETOUCH",
+"dur": "10t",
+"barrier": "-25.12",
+"payout": 19.01,
+"implied": 0.5260389268805892,
+"fair": 0.4996375,
+"ev": -0.0501891124999998
+},
+{
+"sym": "1HZ50V",
+"ct": "NOTOUCH",
+"dur": "10t",
+"barrier": "+25.12",
+"payout": 18.58,
+"implied": 0.5382131324004307,
+"fair": 0.5007025,
+"ev": -0.06969475499999989
+},
+{
+"sym": "1HZ50V",
+"ct": "NOTOUCH",
+"dur": "10t",
+"barrier": "-25.12",
+"payout": 18.59,
+"implied": 0.5379236148466918,
+"fair": 0.5005175,
+"ev": -0.06953796750000019
+},
+{
+"sym": "1HZ50V",
+"ct": "CALL",
+"dur": "10t",
+"barrier": "+25.12",
+"error": "Invalid barrier."
+},
+{
+"sym": "1HZ50V",
+"ct": "PUT",
+"dur": "10t",
+"barrier": "-25.12",
+"error": "Invalid barrier."
+},
+{
+"sym": "1HZ50V",
+"ct": "ONETOUCH",
+"dur": "10t",
+"barrier": "+50.24",
+"payout": 37.25,
+"implied": 0.2684563758389262,
+"fair": 0.2437125,
+"ev": -0.09217093750000005
+},
+{
+"sym": "1HZ50V",
+"ct": "ONETOUCH",
+"dur": "10t",
+"barrier": "-50.24",
+"payout": 37.26,
+"implied": 0.2683843263553409,
+"fair": 0.24061,
+"ev": -0.10348714000000003
+},
+{
+"sym": "1HZ50V",
+"ct": "NOTOUCH",
+"dur": "10t",
+"barrier": "+50.24",
+"payout": 12.57,
+"implied": 0.7955449482895783,
+"fair": 0.7582675,
+"ev": -0.046857752500000016
+},
+{
+"sym": "1HZ50V",
+"ct": "NOTOUCH",
+"dur": "10t",
+"barrier": "-50.24",
+"payout": 12.57,
+"implied": 0.7955449482895783,
+"fair": 0.7573425,
+"ev": -0.048020477499999936
+},
+{
+"sym": "1HZ50V",
+"ct": "CALL",
+"dur": "10t",
+"barrier": "+50.24",
+"error": "Invalid barrier."
+},
+{
+"sym": "1HZ50V",
+"ct": "PUT",
+"dur": "10t",
+"barrier": "-50.24",
+"error": "Invalid barrier."
+},
+{
+"sym": "1HZ50V",
+"ct": "ONETOUCH",
+"dur": "10t",
+"barrier": "+100.47",
+"payout": 163.91,
+"implied": 0.061009090354462815,
+"fair": 0.0308825,
+"ev": -0.49380494249999995
+},
+{
+"sym": "1HZ50V",
+"ct": "ONETOUCH",
+"dur": "10t",
+"barrier": "-100.47",
+"payout": 164.03,
+"implied": 0.06096445772114857,
+"fair": 0.03075,
+"ev": -0.49560775
+},
+{
+"sym": "1HZ50V",
+"ct": "NOTOUCH",
+"dur": "10t",
+"barrier": "+100.47",
+"error": "This contract offers no return."
+},
+{
+"sym": "1HZ50V",
+"ct": "NOTOUCH",
+"dur": "10t",
+"barrier": "-100.47",
+"error": "This contract offers no return."
+},
+{
+"sym": "1HZ50V",
+"ct": "CALL",
+"dur": "10t",
+"barrier": "+100.47",
+"error": "Invalid barrier."
+},
+{
+"sym": "1HZ50V",
+"ct": "PUT",
+"dur": "10t",
+"barrier": "-100.47",
+"error": "Invalid barrier."
+},
+{
+"sym": "1HZ50V",
+"ct": "ONETOUCH",
+"dur": "2m",
+"barrier": "+87.01",
+"payout": 16.89,
+"implied": 0.5920663114268798,
+"fair": 0.58138,
+"ev": -0.018049179999999998
+},
+{
+"sym": "1HZ50V",
+"ct": "NOTOUCH",
+"dur": "2m",
+"barrier": "+87.01",
+"payout": 23.16,
+"implied": 0.4317789291882556,
+"fair": 0.4194025,
+"ev": -0.028663809999999956
+},
+{
+"sym": "1HZ50V",
+"ct": "RANGE",
+"dur": "2m",
+"barrier": "+87.01",
+"payout": 289.87,
+"implied": 0.034498223341497915,
+"fair": 0.0223375,
+"ev": -0.35250288750000003
+},
+{
+"sym": "1HZ50V",
+"ct": "UPORDOWN",
+"dur": "2m",
+"barrier": "+87.01",
+"payout": 10.11,
+"implied": 0.9891196834817013,
+"fair": 0.9779975,
+"ev": -0.011244527500000046
+},
+{
+"sym": "1HZ50V",
+"ct": "EXPIRYRANGE",
+"dur": "2m",
+"barrier": "+87.01",
+"payout": 25.33,
+"implied": 0.3947887879984209,
+"fair": 0.3800375,
+"ev": -0.03736501250000013
+},
+{
+"sym": "1HZ50V",
+"ct": "EXPIRYMISS",
+"dur": "2m",
+"barrier": "+87.01",
+"payout": 15.89,
+"implied": 0.6293266205160478,
+"fair": 0.6169225,
+"ev": -0.019710147499999886
+},
+{
+"sym": "1HZ50V",
+"ct": "ONETOUCH",
+"dur": "2m",
+"barrier": "+174.02",
+"payout": 32.83,
+"implied": 0.3045994517209869,
+"fair": 0.2920125,
+"ev": -0.041322962500000004
+},
+{
+"sym": "1HZ50V",
+"ct": "NOTOUCH",
+"dur": "2m",
+"barrier": "+174.02",
+"payout": 13.9,
+"implied": 0.7194244604316546,
+"fair": 0.7079275,
+"ev": -0.015980774999999836
+},
+{
+"sym": "1HZ50V",
+"ct": "RANGE",
+"dur": "2m",
+"barrier": "+174.02",
+"payout": 23.26,
+"implied": 0.42992261392949266,
+"fair": 0.41727,
+"ev": -0.029429979999999967
+},
+{
+"sym": "1HZ50V",
+"ct": "UPORDOWN",
+"dur": "2m",
+"barrier": "+174.02",
+"payout": 16.84,
+"implied": 0.5938242280285035,
+"fair": 0.5839099999999999,
+"ev": -0.016695560000000165
+},
+{
+"sym": "1HZ50V",
+"ct": "EXPIRYRANGE",
+"dur": "2m",
+"barrier": "+174.02",
+"payout": 14.4,
+"implied": 0.6944444444444444,
+"fair": 0.680885,
+"ev": -0.019525600000000032
+},
+{
+"sym": "1HZ50V",
+"ct": "EXPIRYMISS",
+"dur": "2m",
+"barrier": "+174.02",
+"payout": 30.33,
+"implied": 0.3297065611605671,
+"fair": 0.3178475,
+"ev": -0.035968532500000094
+},
+{
+"sym": "1HZ50V",
+"ct": "ONETOUCH",
+"dur": "2m",
+"barrier": "+348.05",
+"payout": 191.14,
+"implied": 0.05231767290990897,
+"fair": 0.0401975,
+"ev": -0.2316649850000001
+},
+{
+"sym": "1HZ50V",
+"ct": "NOTOUCH",
+"dur": "2m",
+"barrier": "+348.05",
+"payout": 10.29,
+"implied": 0.9718172983479106,
+"fair": 0.959275,
+"ev": -0.012906025000000043
+},
+{
+"sym": "1HZ50V",
+"ct": "RANGE",
+"dur": "2m",
+"barrier": "+348.05",
+"payout": 10.73,
+"implied": 0.9319664492078285,
+"fair": 0.9191025,
+"ev": -0.013803017499999903
+},
+{
+"sym": "1HZ50V",
+"ct": "UPORDOWN",
+"dur": "2m",
+"barrier": "+348.05",
+"payout": 108.16,
+"implied": 0.09245562130177515,
+"fair": 0.08110499999999998,
+"ev": -0.12276832000000015
+},
+{
+"sym": "1HZ50V",
+"ct": "EXPIRYRANGE",
+"dur": "2m",
+"barrier": "+348.05",
+"payout": 10.35,
+"implied": 0.9661835748792271,
+"fair": 0.953885,
+"ev": -0.01272902499999995
+},
+{
+"sym": "1HZ50V",
+"ct": "EXPIRYMISS",
+"dur": "2m",
+"barrier": "+348.05",
+"payout": 173.35,
+"implied": 0.05768676088837612,
+"fair": 0.046015,
+"ev": -0.20232997500000005
+},
+{
+"sym": "1HZ100V",
+"ct": "CALL",
+"dur": "1t",
+"barrier": null,
+"payout": 19.53,
+"implied": 0.5120327700972862,
+"fair": 0.50075,
+"ev": -0.02203524999999984
+},
+{
+"sym": "1HZ100V",
+"ct": "PUT",
+"dur": "1t",
+"barrier": null,
+"payout": 19.53,
+"implied": 0.5120327700972862,
+"fair": 0.50106,
+"ev": -0.021429820000000044
+},
+{
+"sym": "1HZ100V",
+"ct": "CALL",
+"dur": "2t",
+"barrier": null,
+"payout": 19.53,
+"implied": 0.5120327700972862,
+"fair": 0.49915,
+"ev": -0.02516004999999999
+},
+{
+"sym": "1HZ100V",
+"ct": "PUT",
+"dur": "2t",
+"barrier": null,
+"payout": 19.53,
+"implied": 0.5120327700972862,
+"fair": 0.499355,
+"ev": -0.02475968499999992
+},
+{
+"sym": "1HZ100V",
+"ct": "CALL",
+"dur": "3t",
+"barrier": null,
+"payout": 19.53,
+"implied": 0.5120327700972862,
+"fair": 0.500655,
+"ev": -0.02222078500000002
+},
+{
+"sym": "1HZ100V",
+"ct": "PUT",
+"dur": "3t",
+"barrier": null,
+"payout": 19.53,
+"implied": 0.5120327700972862,
+"fair": 0.501965,
+"ev": -0.01966235500000002
+},
+{
+"sym": "1HZ100V",
+"ct": "CALL",
+"dur": "5t",
+"barrier": null,
+"payout": 19.53,
+"implied": 0.5120327700972862,
+"fair": 0.500375,
+"ev": -0.022767624999999958
+},
+{
+"sym": "1HZ100V",
+"ct": "PUT",
+"dur": "5t",
+"barrier": null,
+"payout": 19.53,
+"implied": 0.5120327700972862,
+"fair": 0.500315,
+"ev": -0.022884805000000008
+},
+{
+"sym": "1HZ100V",
+"ct": "CALL",
+"dur": "10t",
+"barrier": null,
+"payout": 19.54,
+"implied": 0.5117707267144319,
+"fair": 0.49987,
+"ev": -0.023254020000000097
+},
+{
+"sym": "1HZ100V",
+"ct": "PUT",
+"dur": "10t",
+"barrier": null,
+"payout": 19.53,
+"implied": 0.5120327700972862,
+"fair": 0.499795,
+"ev": -0.023900364999999923
+},
+{
+"sym": "1HZ100V",
+"ct": "DIGITEVEN",
+"dur": "1t",
+"barrier": null,
+"payout": 19.53,
+"implied": 0.5120327700972862,
+"fair": 0.5,
+"ev": -0.023499999999999965
+},
+{
+"sym": "1HZ100V",
+"ct": "DIGITODD",
+"dur": "1t",
+"barrier": null,
+"payout": 19.53,
+"implied": 0.5120327700972862,
+"fair": 0.5,
+"ev": -0.023499999999999965
+},
+{
+"sym": "1HZ100V",
+"ct": "DIGITOVER",
+"dur": "1t",
+"barrier": "0",
+"payout": 10.96,
+"implied": 0.9124087591240875,
+"fair": 0.9,
+"ev": -0.013599999999999945
+},
+{
+"sym": "1HZ100V",
+"ct": "DIGITOVER",
+"dur": "1t",
+"barrier": "4",
+"payout": 19.53,
+"implied": 0.5120327700972862,
+"fair": 0.5,
+"ev": -0.023499999999999965
+},
+{
+"sym": "1HZ100V",
+"ct": "DIGITOVER",
+"dur": "1t",
+"barrier": "8",
+"payout": 89.29,
+"implied": 0.11199462425803561,
+"fair": 0.1,
+"ev": -0.10709999999999997
+},
+{
+"sym": "1HZ100V",
+"ct": "DIGITUNDER",
+"dur": "1t",
+"barrier": "1",
+"payout": 89.29,
+"implied": 0.11199462425803561,
+"fair": 0.1,
+"ev": -0.10709999999999997
+},
+{
+"sym": "1HZ100V",
+"ct": "DIGITUNDER",
+"dur": "1t",
+"barrier": "5",
+"payout": 19.53,
+"implied": 0.5120327700972862,
+"fair": 0.5,
+"ev": -0.023499999999999965
+},
+{
+"sym": "1HZ100V",
+"ct": "DIGITUNDER",
+"dur": "1t",
+"barrier": "9",
+"payout": 10.96,
+"implied": 0.9124087591240875,
+"fair": 0.9,
+"ev": -0.013599999999999945
+},
+{
+"sym": "1HZ100V",
+"ct": "DIGITMATCH",
+"dur": "1t",
+"barrier": "5",
+"payout": 89.29,
+"implied": 0.11199462425803561,
+"fair": 0.1,
+"ev": -0.10709999999999997
+},
+{
+"sym": "1HZ100V",
+"ct": "DIGITDIFF",
+"dur": "1t",
+"barrier": "5",
+"payout": 10.96,
+"implied": 0.9124087591240875,
+"fair": 0.9,
+"ev": -0.013599999999999945
+},
+{
+"sym": "1HZ100V",
+"ct": "TICKHIGH",
+"dur": "5t",
+"barrier": 1,
+"payout": 35.09,
+"implied": 0.28498147620404674,
+"fair": 0.272995,
+"ev": -0.042060545000000005
+},
+{
+"sym": "1HZ100V",
+"ct": "TICKLOW",
+"dur": "5t",
+"barrier": 1,
+"payout": 35.09,
+"implied": 0.28498147620404674,
+"fair": 0.273495,
+"ev": -0.04030604500000001
+},
+{
+"sym": "1HZ100V",
+"ct": "TICKHIGH",
+"dur": "5t",
+"barrier": 2,
+"payout": 59.52,
+"implied": 0.16801075268817203,
+"fair": 0.1571825,
+"ev": -0.06444975999999991
+},
+{
+"sym": "1HZ100V",
+"ct": "TICKLOW",
+"dur": "5t",
+"barrier": 2,
+"payout": 59.52,
+"implied": 0.16801075268817203,
+"fair": 0.15684,
+"ev": -0.06648831999999982
+},
+{
+"sym": "1HZ100V",
+"ct": "TICKHIGH",
+"dur": "5t",
+"barrier": 3,
+"payout": 65.36,
+"implied": 0.15299877600979192,
+"fair": 0.140495,
+"ev": -0.08172468
+},
+{
+"sym": "1HZ100V",
+"ct": "TICKLOW",
+"dur": "5t",
+"barrier": 3,
+"payout": 65.36,
+"implied": 0.15299877600979192,
+"fair": 0.14024,
+"ev": -0.08339136000000003
+},
+{
+"sym": "1HZ100V",
+"ct": "TICKHIGH",
+"dur": "5t",
+"barrier": 4,
+"payout": 59.52,
+"implied": 0.16801075268817203,
+"fair": 0.1559,
+"ev": -0.07208320000000001
+},
+{
+"sym": "1HZ100V",
+"ct": "TICKLOW",
+"dur": "5t",
+"barrier": 4,
+"payout": 59.52,
+"implied": 0.16801075268817203,
+"fair": 0.156085,
+"ev": -0.07098207999999995
+},
+{
+"sym": "1HZ100V",
+"ct": "TICKHIGH",
+"dur": "5t",
+"barrier": 5,
+"payout": 35.09,
+"implied": 0.28498147620404674,
+"fair": 0.27329,
+"ev": -0.04102539000000005
+},
+{
+"sym": "1HZ100V",
+"ct": "TICKLOW",
+"dur": "5t",
+"barrier": 5,
+"payout": 35.09,
+"implied": 0.28498147620404674,
+"fair": 0.2734625,
+"ev": -0.040420087499999924
+},
+{
+"sym": "1HZ100V",
+"ct": "RUNHIGH",
+"dur": "2t",
+"barrier": null,
+"payout": 38.17,
+"implied": 0.26198585276395076,
+"fair": 0.2509025,
+"ev": -0.04230515750000008
+},
+{
+"sym": "1HZ100V",
+"ct": "RUNLOW",
+"dur": "2t",
+"barrier": null,
+"payout": 38.17,
+"implied": 0.26198585276395076,
+"fair": 0.251955,
+"ev": -0.038287764999999974
+},
+{
+"sym": "1HZ100V",
+"ct": "RUNHIGH",
+"dur": "3t",
+"barrier": null,
+"payout": 76.34,
+"implied": 0.13099292638197538,
+"fair": 0.1246175,
+"ev": -0.04867000499999996
+},
+{
+"sym": "1HZ100V",
+"ct": "RUNLOW",
+"dur": "3t",
+"barrier": null,
+"payout": 76.34,
+"implied": 0.13099292638197538,
+"fair": 0.125715,
+"ev": -0.04029168999999988
+},
+{
+"sym": "1HZ100V",
+"ct": "RUNHIGH",
+"dur": "5t",
+"barrier": null,
+"payout": 305.34,
+"implied": 0.03275037662933124,
+"fair": 0.03081,
+"ev": -0.05924746000000014
+},
+{
+"sym": "1HZ100V",
+"ct": "RUNLOW",
+"dur": "5t",
+"barrier": null,
+"payout": 305.34,
+"implied": 0.03275037662933124,
+"fair": 0.030705,
+"ev": -0.0624535300000002
+},
+{
+"sym": "1HZ100V",
+"ct": "ASIANU",
+"dur": "5t",
+"barrier": null,
+"payout": 19.53,
+"implied": 0.5120327700972862,
+"fair": 0.500325,
+"ev": -0.022865274999999796
+},
+{
+"sym": "1HZ100V",
+"ct": "ASIAND",
+"dur": "5t",
+"barrier": null,
+"payout": 19.53,
+"implied": 0.5120327700972862,
+"fair": 0.500315,
+"ev": -0.022884805000000008
+},
+{
+"sym": "1HZ100V",
+"ct": "ONETOUCH",
+"dur": "5t",
+"barrier": "+0.26",
+"payout": 21.01,
+"implied": 0.47596382674916704,
+"fair": 0.45407,
+"ev": -0.04599892999999999
+},
+{
+"sym": "1HZ100V",
+"ct": "ONETOUCH",
+"dur": "5t",
+"barrier": "-0.26",
+"payout": 21.01,
+"implied": 0.47596382674916704,
+"fair": 0.45301,
+"ev": -0.04822598999999994
+},
+{
+"sym": "1HZ100V",
+"ct": "NOTOUCH",
+"dur": "5t",
+"barrier": "+0.26",
+"payout": 17.0,
+"implied": 0.5882352941176471,
+"fair": 0.54501,
+"ev": -0.07348300000000008
+},
+{
+"sym": "1HZ100V",
+"ct": "NOTOUCH",
+"dur": "5t",
+"barrier": "-0.26",
+"payout": 17.01,
+"implied": 0.5878894767783656,
+"fair": 0.5458725,
+"ev": -0.07147087750000003
+},
+{
+"sym": "1HZ100V",
+"ct": "CALL",
+"dur": "5t",
+"barrier": "+0.26",
+"error": "Invalid barrier."
+},
+{
+"sym": "1HZ100V",
+"ct": "PUT",
+"dur": "5t",
+"barrier": "-0.26",
+"error": "Invalid barrier."
+},
+{
+"sym": "1HZ100V",
+"ct": "ONETOUCH",
+"dur": "5t",
+"barrier": "+0.52",
+"payout": 42.39,
+"implied": 0.2359046945034206,
+"fair": 0.2146575,
+"ev": -0.09006685749999988
+},
+{
+"sym": "1HZ100V",
+"ct": "ONETOUCH",
+"dur": "5t",
+"barrier": "-0.52",
+"payout": 42.39,
+"implied": 0.2359046945034206,
+"fair": 0.216185,
+"ev": -0.08359178499999997
+},
+{
+"sym": "1HZ100V",
+"ct": "NOTOUCH",
+"dur": "5t",
+"barrier": "+0.52",
+"payout": 12.08,
+"implied": 0.8278145695364238,
+"fair": 0.7847275,
+"ev": -0.05204918000000003
+},
+{
+"sym": "1HZ100V",
+"ct": "NOTOUCH",
+"dur": "5t",
+"barrier": "-0.52",
+"payout": 12.08,
+"implied": 0.8278145695364238,
+"fair": 0.78449,
+"ev": -0.052336079999999896
+},
+{
+"sym": "1HZ100V",
+"ct": "CALL",
+"dur": "5t",
+"barrier": "+0.52",
+"error": "Invalid barrier."
+},
+{
+"sym": "1HZ100V",
+"ct": "PUT",
+"dur": "5t",
+"barrier": "-0.52",
+"error": "Invalid barrier."
+},
+{
+"sym": "1HZ100V",
+"ct": "ONETOUCH",
+"dur": "5t",
+"barrier": "+1.03",
+"payout": 179.08,
+"implied": 0.05584096493187402,
+"fair": 0.027755,
+"ev": -0.5029634599999999
+},
+{
+"sym": "1HZ100V",
+"ct": "ONETOUCH",
+"dur": "5t",
+"barrier": "-1.03",
+"payout": 179.43,
+"implied": 0.05573204034999721,
+"fair": 0.0273025,
+"ev": -0.5101112425000001
+},
+{
+"sym": "1HZ100V",
+"ct": "NOTOUCH",
+"dur": "5t",
+"barrier": "+1.03",
+"error": "This contract offers no return."
+},
+{
+"sym": "1HZ100V",
+"ct": "NOTOUCH",
+"dur": "5t",
+"barrier": "-1.03",
+"error": "This contract offers no return."
+},
+{
+"sym": "1HZ100V",
+"ct": "CALL",
+"dur": "5t",
+"barrier": "+1.03",
+"error": "Invalid barrier."
+},
+{
+"sym": "1HZ100V",
+"ct": "PUT",
+"dur": "5t",
+"barrier": "-1.03",
+"error": "Invalid barrier."
+},
+{
+"sym": "1HZ100V",
+"ct": "ASIANU",
+"dur": "10t",
+"barrier": null,
+"payout": 19.54,
+"implied": 0.5117707267144319,
+"fair": 0.5000325,
+"ev": -0.022936495000000057
+},
+{
+"sym": "1HZ100V",
+"ct": "ASIAND",
+"dur": "10t",
+"barrier": null,
+"payout": 19.53,
+"implied": 0.5120327700972862,
+"fair": 0.5010175,
+"ev": -0.021512822499999862
+},
+{
+"sym": "1HZ100V",
+"ct": "ONETOUCH",
+"dur": "10t",
+"barrier": "+0.36",
+"payout": 18.89,
+"implied": 0.529380624669137,
+"fair": 0.503,
+"ev": -0.049832999999999905
+},
+{
+"sym": "1HZ100V",
+"ct": "ONETOUCH",
+"dur": "10t",
+"barrier": "-0.36",
+"payout": 18.89,
+"implied": 0.529380624669137,
+"fair": 0.5043475,
+"ev": -0.04728757250000015
+},
+{
+"sym": "1HZ100V",
+"ct": "NOTOUCH",
+"dur": "10t",
+"barrier": "+0.36",
+"payout": 18.7,
+"implied": 0.5347593582887701,
+"fair": 0.4982875,
+"ev": -0.06820237500000004
+},
+{
+"sym": "1HZ100V",
+"ct": "NOTOUCH",
+"dur": "10t",
+"barrier": "-0.36",
+"payout": 18.71,
+"implied": 0.5344735435595938,
+"fair": 0.49650249999999996,
+"ev": -0.07104382250000008
+},
+{
+"sym": "1HZ100V",
+"ct": "CALL",
+"dur": "10t",
+"barrier": "+0.36",
+"error": "Invalid barrier."
+},
+{
+"sym": "1HZ100V",
+"ct": "PUT",
+"dur": "10t",
+"barrier": "-0.36",
+"error": "Invalid barrier."
+},
+{
+"sym": "1HZ100V",
+"ct": "ONETOUCH",
+"dur": "10t",
+"barrier": "+0.73",
+"payout": 37.41,
+"implied": 0.26730820636193536,
+"fair": 0.2414275,
+"ev": -0.09681972250000004
+},
+{
+"sym": "1HZ100V",
+"ct": "ONETOUCH",
+"dur": "10t",
+"barrier": "-0.73",
+"payout": 37.42,
+"implied": 0.2672367717797969,
+"fair": 0.2412025,
+"ev": -0.09742024500000002
+},
+{
+"sym": "1HZ100V",
+"ct": "NOTOUCH",
+"dur": "10t",
+"barrier": "+0.73",
+"payout": 12.55,
+"implied": 0.796812749003984,
+"fair": 0.7592875,
+"ev": -0.04709418749999994
+},
+{
+"sym": "1HZ100V",
+"ct": "NOTOUCH",
+"dur": "10t",
+"barrier": "-0.73",
+"payout": 12.55,
+"implied": 0.796812749003984,
+"fair": 0.75989,
+"ev": -0.04633804999999991
+},
+{
+"sym": "1HZ100V",
+"ct": "CALL",
+"dur": "10t",
+"barrier": "+0.73",
+"error": "Invalid barrier."
+},
+{
+"sym": "1HZ100V",
+"ct": "PUT",
+"dur": "10t",
+"barrier": "-0.73",
+"error": "Invalid barrier."
+},
+{
+"sym": "1HZ100V",
+"ct": "ONETOUCH",
+"dur": "10t",
+"barrier": "+1.46",
+"payout": 164.84,
+"implied": 0.06066488716330987,
+"fair": 0.0309825,
+"ev": -0.4892844700000001
+},
+{
+"sym": "1HZ100V",
+"ct": "ONETOUCH",
+"dur": "10t",
+"barrier": "-1.46",
+"payout": 165.19,
+"implied": 0.06053635207942369,
+"fair": 0.030725,
+"ev": -0.49245372500000006
+},
+{
+"sym": "1HZ100V",
+"ct": "NOTOUCH",
+"dur": "10t",
+"barrier": "+1.46",
+"error": "This contract offers no return."
+},
+{
+"sym": "1HZ100V",
+"ct": "NOTOUCH",
+"dur": "10t",
+"barrier": "-1.46",
+"error": "This contract offers no return."
+},
+{
+"sym": "1HZ100V",
+"ct": "CALL",
+"dur": "10t",
+"barrier": "+1.46",
+"error": "Invalid barrier."
+},
+{
+"sym": "1HZ100V",
+"ct": "PUT",
+"dur": "10t",
+"barrier": "-1.46",
+"error": "Invalid barrier."
+},
+{
+"sym": "1HZ100V",
+"ct": "ONETOUCH",
+"dur": "2m",
+"barrier": "+1.26",
+"payout": 16.88,
+"implied": 0.5924170616113744,
+"fair": 0.581155,
+"ev": -0.019010360000000004
+},
+{
+"sym": "1HZ100V",
+"ct": "NOTOUCH",
+"dur": "2m",
+"barrier": "+1.26",
+"payout": 23.18,
+"implied": 0.4314063848144953,
+"fair": 0.41925250000000003,
+"ev": -0.02817270499999991
+},
+{
+"sym": "1HZ100V",
+"ct": "RANGE",
+"dur": "2m",
+"barrier": "+1.26",
+"payout": 291.28,
+"implied": 0.03433122768470201,
+"fair": 0.022475,
+"ev": -0.3453482000000001
+},
+{
+"sym": "1HZ100V",
+"ct": "UPORDOWN",
+"dur": "2m",
+"barrier": "+1.26",
+"payout": 10.1,
+"implied": 0.9900990099009901,
+"fair": 0.9777625,
+"ev": -0.01245987500000001
+},
+{
+"sym": "1HZ100V",
+"ct": "EXPIRYRANGE",
+"dur": "2m",
+"barrier": "+1.26",
+"payout": 25.35,
+"implied": 0.3944773175542406,
+"fair": 0.381075,
+"ev": -0.03397487499999996
+},
+{
+"sym": "1HZ100V",
+"ct": "EXPIRYMISS",
+"dur": "2m",
+"barrier": "+1.26",
+"payout": 15.89,
+"implied": 0.6293266205160478,
+"fair": 0.6167175,
+"ev": -0.02003589249999993
+},
+{
+"sym": "1HZ100V",
+"ct": "ONETOUCH",
+"dur": "2m",
+"barrier": "+2.52",
+"payout": 32.78,
+"implied": 0.3050640634533252,
+"fair": 0.29472,
+"ev": -0.03390784000000002
+},
+{
+"sym": "1HZ100V",
+"ct": "NOTOUCH",
+"dur": "2m",
+"barrier": "+2.52",
+"payout": 13.91,
+"implied": 0.7189072609633357,
+"fair": 0.70702,
+"ev": -0.016535179999999983
+},
+{
+"sym": "1HZ100V",
+"ct": "RANGE",
+"dur": "2m",
+"barrier": "+2.52",
+"payout": 23.29,
+"implied": 0.42936882782310004,
+"fair": 0.4154825,
+"ev": -0.032341257500000054
+},
+{
+"sym": "1HZ100V",
+"ct": "UPORDOWN",
+"dur": "2m",
+"barrier": "+2.52",
+"payout": 16.82,
+"implied": 0.5945303210463734,
+"fair": 0.5829075,
+"ev": -0.019549584999999814
+},
+{
+"sym": "1HZ100V",
+"ct": "EXPIRYRANGE",
+"dur": "2m",
+"barrier": "+2.52",
+"payout": 14.41,
+"implied": 0.6939625260235948,
+"fair": 0.68208,
+"ev": -0.017122719999999925
+},
+{
+"sym": "1HZ100V",
+"ct": "EXPIRYMISS",
+"dur": "2m",
+"barrier": "+2.52",
+"payout": 30.31,
+"implied": 0.32992411745298583,
+"fair": 0.316965,
+"ev": -0.0392790850000001
+},
+{
+"sym": "1HZ100V",
+"ct": "ONETOUCH",
+"dur": "2m",
+"barrier": "+5.05",
+"payout": 191.38,
+"implied": 0.05225206395652628,
+"fair": 0.0404425,
+"ev": -0.22601143499999998
+},
+{
+"sym": "1HZ100V",
+"ct": "NOTOUCH",
+"dur": "2m",
+"barrier": "+5.05",
+"payout": 10.29,
+"implied": 0.9718172983479106,
+"fair": 0.9595875,
+"ev": -0.012584462500000115
+},
+{
+"sym": "1HZ100V",
+"ct": "RANGE",
+"dur": "2m",
+"barrier": "+5.05",
+"payout": 10.73,
+"implied": 0.9319664492078285,
+"fair": 0.9192825,
+"ev": -0.013609877499999867
+},
+{
+"sym": "1HZ100V",
+"ct": "UPORDOWN",
+"dur": "2m",
+"barrier": "+5.05",
+"payout": 108.97,
+"implied": 0.09176837661741764,
+"fair": 0.079785,
+"ev": -0.1305828550000001
+},
+{
+"sym": "1HZ100V",
+"ct": "EXPIRYRANGE",
+"dur": "2m",
+"barrier": "+5.05",
+"payout": 10.34,
+"implied": 0.9671179883945842,
+"fair": 0.954435,
+"ev": -0.013114210000000015
+},
+{
+"sym": "1HZ100V",
+"ct": "EXPIRYMISS",
+"dur": "2m",
+"barrier": "+5.05",
+"payout": 174.64,
+"implied": 0.05726065048098947,
+"fair": 0.0456175,
+"ev": -0.20333598000000008
+},
+{
+"sym": "R_50",
+"ct": "CALL",
+"dur": "1t",
+"barrier": null,
+"payout": 19.53,
+"implied": 0.5120327700972862,
+"fair": 0.5005225,
+"ev": -0.02247955749999997
+},
+{
+"sym": "R_50",
+"ct": "PUT",
+"dur": "1t",
+"barrier": null,
+"payout": 19.53,
+"implied": 0.5120327700972862,
+"fair": 0.4998775,
+"ev": -0.023739242499999924
+},
+{
+"sym": "R_50",
+"ct": "CALL",
+"dur": "2t",
+"barrier": null,
+"payout": 19.53,
+"implied": 0.5120327700972862,
+"fair": 0.499145,
+"ev": -0.02516981499999993
+},
+{
+"sym": "R_50",
+"ct": "PUT",
+"dur": "2t",
+"barrier": null,
+"payout": 19.53,
+"implied": 0.5120327700972862,
+"fair": 0.501,
+"ev": -0.021546999999999983
+},
+{
+"sym": "R_50",
+"ct": "CALL",
+"dur": "3t",
+"barrier": null,
+"payout": 19.53,
+"implied": 0.5120327700972862,
+"fair": 0.50079,
+"ev": -0.02195712999999999
+},
+{
+"sym": "R_50",
+"ct": "PUT",
+"dur": "3t",
+"barrier": null,
+"payout": 19.53,
+"implied": 0.5120327700972862,
+"fair": 0.49846,
+"ev": -0.026507619999999954
+},
+{
+"sym": "R_50",
+"ct": "CALL",
+"dur": "5t",
+"barrier": null,
+"payout": 19.53,
+"implied": 0.5120327700972862,
+"fair": 0.499535,
+"ev": -0.024408144999999992
+},
+{
+"sym": "R_50",
+"ct": "PUT",
+"dur": "5t",
+"barrier": null,
+"payout": 19.53,
+"implied": 0.5120327700972862,
+"fair": 0.5009025,
+"ev": -0.0217374174999998
+},
+{
+"sym": "R_50",
+"ct": "CALL",
+"dur": "10t",
+"barrier": null,
+"payout": 19.53,
+"implied": 0.5120327700972862,
+"fair": 0.4982575,
+"ev": -0.02690310249999983
+},
+{
+"sym": "R_50",
+"ct": "PUT",
+"dur": "10t",
+"barrier": null,
+"payout": 19.53,
+"implied": 0.5120327700972862,
+"fair": 0.50018,
+"ev": -0.023148460000000037
+},
+{
+"sym": "R_50",
+"ct": "DIGITEVEN",
+"dur": "1t",
+"barrier": null,
+"payout": 19.53,
+"implied": 0.5120327700972862,
+"fair": 0.5,
+"ev": -0.023499999999999965
+},
+{
+"sym": "R_50",
+"ct": "DIGITODD",
+"dur": "1t",
+"barrier": null,
+"payout": 19.53,
+"implied": 0.5120327700972862,
+"fair": 0.5,
+"ev": -0.023499999999999965
+},
+{
+"sym": "R_50",
+"ct": "DIGITOVER",
+"dur": "1t",
+"barrier": "0",
+"payout": 10.96,
+"implied": 0.9124087591240875,
+"fair": 0.9,
+"ev": -0.013599999999999945
+},
+{
+"sym": "R_50",
+"ct": "DIGITOVER",
+"dur": "1t",
+"barrier": "4",
+"payout": 19.53,
+"implied": 0.5120327700972862,
+"fair": 0.5,
+"ev": -0.023499999999999965
+},
+{
+"sym": "R_50",
+"ct": "DIGITOVER",
+"dur": "1t",
+"barrier": "8",
+"payout": 89.29,
+"implied": 0.11199462425803561,
+"fair": 0.1,
+"ev": -0.10709999999999997
+},
+{
+"sym": "R_50",
+"ct": "DIGITUNDER",
+"dur": "1t",
+"barrier": "1",
+"payout": 89.29,
+"implied": 0.11199462425803561,
+"fair": 0.1,
+"ev": -0.10709999999999997
+},
+{
+"sym": "R_50",
+"ct": "DIGITUNDER",
+"dur": "1t",
+"barrier": "5",
+"payout": 19.53,
+"implied": 0.5120327700972862,
+"fair": 0.5,
+"ev": -0.023499999999999965
+},
+{
+"sym": "R_50",
+"ct": "DIGITUNDER",
+"dur": "1t",
+"barrier": "9",
+"payout": 10.96,
+"implied": 0.9124087591240875,
+"fair": 0.9,
+"ev": -0.013599999999999945
+},
+{
+"sym": "R_50",
+"ct": "DIGITMATCH",
+"dur": "1t",
+"barrier": "5",
+"payout": 89.29,
+"implied": 0.11199462425803561,
+"fair": 0.1,
+"ev": -0.10709999999999997
+},
+{
+"sym": "R_50",
+"ct": "DIGITDIFF",
+"dur": "1t",
+"barrier": "5",
+"payout": 10.96,
+"implied": 0.9124087591240875,
+"fair": 0.9,
+"ev": -0.013599999999999945
+},
+{
+"sym": "R_50",
+"ct": "TICKHIGH",
+"dur": "5t",
+"barrier": 1,
+"payout": 35.09,
+"implied": 0.28498147620404674,
+"fair": 0.272945,
+"ev": -0.04223599499999986
+},
+{
+"sym": "R_50",
+"ct": "TICKLOW",
+"dur": "5t",
+"barrier": 1,
+"payout": 35.09,
+"implied": 0.28498147620404674,
+"fair": 0.273505,
+"ev": -0.040270954999999886
+},
+{
+"sym": "R_50",
+"ct": "TICKHIGH",
+"dur": "5t",
+"barrier": 2,
+"payout": 59.52,
+"implied": 0.16801075268817203,
+"fair": 0.15663,
+"ev": -0.06773824000000006
+},
+{
+"sym": "R_50",
+"ct": "TICKLOW",
+"dur": "5t",
+"barrier": 2,
+"payout": 59.52,
+"implied": 0.16801075268817203,
+"fair": 0.15642,
+"ev": -0.06898815999999997
+},
+{
+"sym": "R_50",
+"ct": "TICKHIGH",
+"dur": "5t",
+"barrier": 3,
+"payout": 65.36,
+"implied": 0.15299877600979192,
+"fair": 0.141005,
+"ev": -0.07839132000000004
+},
+{
+"sym": "R_50",
+"ct": "TICKLOW",
+"dur": "5t",
+"barrier": 3,
+"payout": 65.36,
+"implied": 0.15299877600979192,
+"fair": 0.14054,
+"ev": -0.08143056000000004
+},
+{
+"sym": "R_50",
+"ct": "TICKHIGH",
+"dur": "5t",
+"barrier": 4,
+"payout": 59.52,
+"implied": 0.16801075268817203,
+"fair": 0.15596,
+"ev": -0.07172608000000003
+},
+{
+"sym": "R_50",
+"ct": "TICKLOW",
+"dur": "5t",
+"barrier": 4,
+"payout": 59.52,
+"implied": 0.16801075268817203,
+"fair": 0.15729,
+"ev": -0.06380991999999996
+},
+{
+"sym": "R_50",
+"ct": "TICKHIGH",
+"dur": "5t",
+"barrier": 5,
+"payout": 35.09,
+"implied": 0.28498147620404674,
+"fair": 0.2719475,
+"ev": -0.04573622249999987
+},
+{
+"sym": "R_50",
+"ct": "TICKLOW",
+"dur": "5t",
+"barrier": 5,
+"payout": 35.09,
+"implied": 0.28498147620404674,
+"fair": 0.2722,
+"ev": -0.04485019999999995
+},
+{
+"sym": "R_50",
+"ct": "RUNHIGH",
+"dur": "2t",
+"barrier": null,
+"payout": 38.17,
+"implied": 0.26198585276395076,
+"fair": 0.25131,
+"ev": -0.04074973000000015
+},
+{
+"sym": "R_50",
+"ct": "RUNLOW",
+"dur": "2t",
+"barrier": null,
+"payout": 38.17,
+"implied": 0.26198585276395076,
+"fair": 0.2484525,
+"ev": -0.05165680750000001
+},
+{
+"sym": "R_50",
+"ct": "RUNHIGH",
+"dur": "3t",
+"barrier": null,
+"payout": 76.34,
+"implied": 0.13099292638197538,
+"fair": 0.1260675,
+"ev": -0.03760070500000001
+},
+{
+"sym": "R_50",
+"ct": "RUNLOW",
+"dur": "3t",
+"barrier": null,
+"payout": 76.34,
+"implied": 0.13099292638197538,
+"fair": 0.125125,
+"ev": -0.044795750000000134
+},
+{
+"sym": "R_50",
+"ct": "RUNHIGH",
+"dur": "5t",
+"barrier": null,
+"payout": 305.34,
+"implied": 0.03275037662933124,
+"fair": 0.031575,
+"ev": -0.03588895000000014
+},
+{
+"sym": "R_50",
+"ct": "RUNLOW",
+"dur": "5t",
+"barrier": null,
+"payout": 305.34,
+"implied": 0.03275037662933124,
+"fair": 0.0310725,
+"ev": -0.05123228499999999
+},
+{
+"sym": "R_50",
+"ct": "ASIANU",
+"dur": "5t",
+"barrier": null,
+"payout": 19.53,
+"implied": 0.5120327700972862,
+"fair": 0.49841,
+"ev": -0.026605269999999903
+},
+{
+"sym": "R_50",
+"ct": "ASIAND",
+"dur": "5t",
+"barrier": null,
+"payout": 19.53,
+"implied": 0.5120327700972862,
+"fair": 0.50149,
+"ev": -0.020590029999999926
+},
+{
+"sym": "R_50",
+"ct": "ONETOUCH",
+"dur": "5t",
+"barrier": "+0.0118",
+"payout": 20.92,
+"implied": 0.4780114722753346,
+"fair": 0.457175,
+"ev": -0.04358989999999996
+},
+{
+"sym": "R_50",
+"ct": "ONETOUCH",
+"dur": "5t",
+"barrier": "-0.0118",
+"payout": 20.92,
+"implied": 0.4780114722753346,
+"fair": 0.4574825,
+"ev": -0.042946609999999885
+},
+{
+"sym": "R_50",
+"ct": "NOTOUCH",
+"dur": "5t",
+"barrier": "+0.0118",
+"payout": 17.07,
+"implied": 0.5858230814294083,
+"fair": 0.54428,
+"ev": -0.07091404000000012
+},
+{
+"sym": "R_50",
+"ct": "NOTOUCH",
+"dur": "5t",
+"barrier": "-0.0118",
+"payout": 17.07,
+"implied": 0.5858230814294083,
+"fair": 0.543385,
+"ev": -0.07244180500000008
+},
+{
+"sym": "R_50",
+"ct": "CALL",
+"dur": "5t",
+"barrier": "+0.0118",
+"error": "Invalid barrier."
+},
+{
+"sym": "R_50",
+"ct": "PUT",
+"dur": "5t",
+"barrier": "-0.0118",
+"error": "Invalid barrier."
+},
+{
+"sym": "R_50",
+"ct": "ONETOUCH",
+"dur": "5t",
+"barrier": "+0.0235",
+"payout": 41.67,
+"implied": 0.23998080153587711,
+"fair": 0.2194875,
+"ev": -0.08539558749999987
+},
+{
+"sym": "R_50",
+"ct": "ONETOUCH",
+"dur": "5t",
+"barrier": "-0.0235",
+"payout": 41.68,
+"implied": 0.2399232245681382,
+"fair": 0.21975,
+"ev": -0.0840820000000001
+},
+{
+"sym": "R_50",
+"ct": "NOTOUCH",
+"dur": "5t",
+"barrier": "+0.0235",
+"payout": 12.14,
+"implied": 0.8237232289950577,
+"fair": 0.78056,
+"ev": -0.05240015999999981
+},
+{
+"sym": "R_50",
+"ct": "NOTOUCH",
+"dur": "5t",
+"barrier": "-0.0235",
+"payout": 12.13,
+"implied": 0.8244023083264632,
+"fair": 0.7790075,
+"ev": -0.05506390250000004
+},
+{
+"sym": "R_50",
+"ct": "CALL",
+"dur": "5t",
+"barrier": "+0.0235",
+"error": "Invalid barrier."
+},
+{
+"sym": "R_50",
+"ct": "PUT",
+"dur": "5t",
+"barrier": "-0.0235",
+"error": "Invalid barrier."
+},
+{
+"sym": "R_50",
+"ct": "ONETOUCH",
+"dur": "5t",
+"barrier": "+0.0470",
+"payout": 178.65,
+"implied": 0.055975370836831795,
+"fair": 0.027695,
+"ev": -0.5052288249999999
+},
+{
+"sym": "R_50",
+"ct": "ONETOUCH",
+"dur": "5t",
+"barrier": "-0.0470",
+"payout": 178.87,
+"implied": 0.055906524291384804,
+"fair": 0.02824,
+"ev": -0.49487112
+},
+{
+"sym": "R_50",
+"ct": "NOTOUCH",
+"dur": "5t",
+"barrier": "+0.0470",
+"error": "This contract offers no return."
+},
+{
+"sym": "R_50",
+"ct": "NOTOUCH",
+"dur": "5t",
+"barrier": "-0.0470",
+"error": "This contract offers no return."
+},
+{
+"sym": "R_50",
+"ct": "CALL",
+"dur": "5t",
+"barrier": "+0.0470",
+"error": "Invalid barrier."
+},
+{
+"sym": "R_50",
+"ct": "PUT",
+"dur": "5t",
+"barrier": "-0.0470",
+"error": "Invalid barrier."
+},
+{
+"sym": "R_50",
+"ct": "ASIANU",
+"dur": "10t",
+"barrier": null,
+"payout": 19.53,
+"implied": 0.5120327700972862,
+"fair": 0.4991275,
+"ev": -0.02520399250000005
+},
+{
+"sym": "R_50",
+"ct": "ASIAND",
+"dur": "10t",
+"barrier": null,
+"payout": 19.53,
+"implied": 0.5120327700972862,
+"fair": 0.50022,
+"ev": -0.023070339999999967
+},
+{
+"sym": "R_50",
+"ct": "ONETOUCH",
+"dur": "10t",
+"barrier": "+0.0166",
+"payout": 18.99,
+"implied": 0.5265929436545551,
+"fair": 0.50102,
+"ev": -0.04856302000000012
+},
+{
+"sym": "R_50",
+"ct": "ONETOUCH",
+"dur": "10t",
+"barrier": "-0.0166",
+"payout": 18.99,
+"implied": 0.5265929436545551,
+"fair": 0.4997575,
+"ev": -0.05096050749999992
+},
+{
+"sym": "R_50",
+"ct": "NOTOUCH",
+"dur": "10t",
+"barrier": "+0.0166",
+"payout": 18.6,
+"implied": 0.5376344086021505,
+"fair": 0.49879249999999997,
+"ev": -0.07224594999999989
+},
+{
+"sym": "R_50",
+"ct": "NOTOUCH",
+"dur": "10t",
+"barrier": "-0.0166",
+"payout": 18.61,
+"implied": 0.537345513164965,
+"fair": 0.5004824999999999,
+"ev": -0.0686020675000002
+},
+{
+"sym": "R_50",
+"ct": "CALL",
+"dur": "10t",
+"barrier": "+0.0166",
+"error": "Invalid barrier."
+},
+{
+"sym": "R_50",
+"ct": "PUT",
+"dur": "10t",
+"barrier": "-0.0166",
+"error": "Invalid barrier."
+},
+{
+"sym": "R_50",
+"ct": "ONETOUCH",
+"dur": "10t",
+"barrier": "+0.0333",
+"payout": 37.31,
+"implied": 0.2680246582685607,
+"fair": 0.24194,
+"ev": -0.09732185999999987
+},
+{
+"sym": "R_50",
+"ct": "ONETOUCH",
+"dur": "10t",
+"barrier": "-0.0333",
+"payout": 37.31,
+"implied": 0.2680246582685607,
+"fair": 0.24137,
+"ev": -0.09944852999999987
+},
+{
+"sym": "R_50",
+"ct": "NOTOUCH",
+"dur": "10t",
+"barrier": "+0.0333",
+"payout": 12.56,
+"implied": 0.7961783439490445,
+"fair": 0.756955,
+"ev": -0.04926451999999981
+},
+{
+"sym": "R_50",
+"ct": "NOTOUCH",
+"dur": "10t",
+"barrier": "-0.0333",
+"payout": 12.56,
+"implied": 0.7961783439490445,
+"fair": 0.7578400000000001,
+"ev": -0.0481529599999998
+},
+{
+"sym": "R_50",
+"ct": "CALL",
+"dur": "10t",
+"barrier": "+0.0333",
+"error": "Invalid barrier."
+},
+{
+"sym": "R_50",
+"ct": "PUT",
+"dur": "10t",
+"barrier": "-0.0333",
+"error": "Invalid barrier."
+},
+{
+"sym": "R_50",
+"ct": "ONETOUCH",
+"dur": "10t",
+"barrier": "+0.0665",
+"payout": 163.63,
+"implied": 0.06111348774674571,
+"fair": 0.031465,
+"ev": -0.48513820499999993
+},
+{
+"sym": "R_50",
+"ct": "ONETOUCH",
+"dur": "10t",
+"barrier": "-0.0665",
+"payout": 163.85,
+"implied": 0.061031431187061336,
+"fair": 0.0312925,
+"ev": -0.4872723875
+},
+{
+"sym": "R_50",
+"ct": "NOTOUCH",
+"dur": "10t",
+"barrier": "+0.0665",
+"error": "This contract offers no return."
+},
+{
+"sym": "R_50",
+"ct": "NOTOUCH",
+"dur": "10t",
+"barrier": "-0.0665",
+"error": "This contract offers no return."
+},
+{
+"sym": "R_50",
+"ct": "CALL",
+"dur": "10t",
+"barrier": "+0.0665",
+"error": "Invalid barrier."
+},
+{
+"sym": "R_50",
+"ct": "PUT",
+"dur": "10t",
+"barrier": "-0.0665",
+"error": "Invalid barrier."
+},
+{
+"sym": "R_50",
+"ct": "ONETOUCH",
+"dur": "2m",
+"barrier": "+0.0407",
+"payout": 17.41,
+"implied": 0.5743825387708213,
+"fair": 0.5661725,
+"ev": -0.014293677500000102
+},
+{
+"sym": "R_50",
+"ct": "NOTOUCH",
+"dur": "2m",
+"barrier": "+0.0407",
+"payout": 22.24,
+"implied": 0.4496402877697842,
+"fair": 0.4341475,
+"ev": -0.03445596000000006
+},
+{
+"sym": "R_50",
+"ct": "RANGE",
+"dur": "2m",
+"barrier": "+0.0407",
+"payout": 226.09,
+"implied": 0.04423017382458313,
+"fair": 0.0302275,
+"ev": -0.31658645249999995
+},
+{
+"sym": "R_50",
+"ct": "UPORDOWN",
+"dur": "2m",
+"barrier": "+0.0407",
+"payout": 10.21,
+"implied": 0.979431929480901,
+"fair": 0.9698125,
+"ev": -0.009821437499999974
+},
+{
+"sym": "R_50",
+"ct": "EXPIRYRANGE",
+"dur": "2m",
+"barrier": "+0.0407",
+"payout": 25.16,
+"implied": 0.397456279809221,
+"fair": 0.38224,
+"ev": -0.0382841599999999
+},
+{
+"sym": "R_50",
+"ct": "EXPIRYMISS",
+"dur": "2m",
+"barrier": "+0.0407",
+"payout": 15.96,
+"implied": 0.6265664160401002,
+"fair": 0.6167175,
+"ev": -0.01571886999999994
+},
+{
+"sym": "R_50",
+"ct": "ONETOUCH",
+"dur": "2m",
+"barrier": "+0.0815",
+"payout": 34.45,
+"implied": 0.29027576197387517,
+"fair": 0.283785,
+"ev": -0.02236067499999983
+},
+{
+"sym": "R_50",
+"ct": "NOTOUCH",
+"dur": "2m",
+"barrier": "+0.0815",
+"payout": 13.63,
+"implied": 0.7336757153338224,
+"fair": 0.71699,
+"ev": -0.022742629999999986
+},
+{
+"sym": "R_50",
+"ct": "RANGE",
+"dur": "2m",
+"barrier": "+0.0815",
+"payout": 21.84,
+"implied": 0.45787545787545786,
+"fair": 0.435975,
+"ev": -0.047830599999999945
+},
+{
+"sym": "R_50",
+"ct": "UPORDOWN",
+"dur": "2m",
+"barrier": "+0.0815",
+"payout": 17.66,
+"implied": 0.5662514156285391,
+"fair": 0.564075,
+"ev": -0.003843550000000029
+},
+{
+"sym": "R_50",
+"ct": "EXPIRYRANGE",
+"dur": "2m",
+"barrier": "+0.0815",
+"payout": 14.31,
+"implied": 0.6988120195667366,
+"fair": 0.68306,
+"ev": -0.02254114000000007
+},
+{
+"sym": "R_50",
+"ct": "EXPIRYMISS",
+"dur": "2m",
+"barrier": "+0.0815",
+"payout": 30.74,
+"implied": 0.3253090435914119,
+"fair": 0.3179625,
+"ev": -0.022583275000000014
+},
+{
+"sym": "R_50",
+"ct": "ONETOUCH",
+"dur": "2m",
+"barrier": "+0.1630",
+"payout": 205.91,
+"implied": 0.0485649069982031,
+"fair": 0.03858,
+"ev": -0.20559921999999997
+},
+{
+"sym": "R_50",
+"ct": "NOTOUCH",
+"dur": "2m",
+"barrier": "+0.1630",
+"payout": 10.25,
+"implied": 0.975609756097561,
+"fair": 0.961465,
+"ev": -0.014498374999999952
+},
+{
+"sym": "R_50",
+"ct": "RANGE",
+"dur": "2m",
+"barrier": "+0.1630",
+"payout": 10.65,
+"implied": 0.9389671361502347,
+"fair": 0.9230525,
+"ev": -0.016949087499999904
+},
+{
+"sym": "R_50",
+"ct": "UPORDOWN",
+"dur": "2m",
+"barrier": "+0.1630",
+"payout": 117.94,
+"implied": 0.08478887569950823,
+"fair": 0.0767525,
+"ev": -0.09478101500000002
+},
+{
+"sym": "R_50",
+"ct": "EXPIRYRANGE",
+"dur": "2m",
+"barrier": "+0.1630",
+"payout": 10.33,
+"implied": 0.968054211035818,
+"fair": 0.9544275,
+"ev": -0.014076392500000035
+},
+{
+"sym": "R_50",
+"ct": "EXPIRYMISS",
+"dur": "2m",
+"barrier": "+0.1630",
+"payout": 179.48,
+"implied": 0.055716514374860714,
+"fair": 0.04558,
+"ev": -0.18193015999999995
+},
+{
+"sym": "R_100",
+"ct": "CALL",
+"dur": "1t",
+"barrier": null,
+"payout": 19.53,
+"implied": 0.5120327700972862,
+"fair": 0.5002325,
+"ev": -0.023045927499999896
+},
+{
+"sym": "R_100",
+"ct": "PUT",
+"dur": "1t",
+"barrier": null,
+"payout": 19.53,
+"implied": 0.5120327700972862,
+"fair": 0.5006075,
+"ev": -0.0223135525
+},
+{
+"sym": "R_100",
+"ct": "CALL",
+"dur": "2t",
+"barrier": null,
+"payout": 19.53,
+"implied": 0.5120327700972862,
+"fair": 0.5003775,
+"ev": -0.02276274249999999
+},
+{
+"sym": "R_100",
+"ct": "PUT",
+"dur": "2t",
+"barrier": null,
+"payout": 19.53,
+"implied": 0.5120327700972862,
+"fair": 0.49944,
+"ev": -0.02459367999999995
+},
+{
+"sym": "R_100",
+"ct": "CALL",
+"dur": "3t",
+"barrier": null,
+"payout": 19.53,
+"implied": 0.5120327700972862,
+"fair": 0.4992725,
+"ev": -0.02492080749999981
+},
+{
+"sym": "R_100",
+"ct": "PUT",
+"dur": "3t",
+"barrier": null,
+"payout": 19.53,
+"implied": 0.5120327700972862,
+"fair": 0.50102,
+"ev": -0.021507939999999892
+},
+{
+"sym": "R_100",
+"ct": "CALL",
+"dur": "5t",
+"barrier": null,
+"payout": 19.54,
+"implied": 0.5117707267144319,
+"fair": 0.50018,
+"ev": -0.022648280000000076
+},
+{
+"sym": "R_100",
+"ct": "PUT",
+"dur": "5t",
+"barrier": null,
+"payout": 19.53,
+"implied": 0.5120327700972862,
+"fair": 0.5013425,
+"ev": -0.020878097500000026
+},
+{
+"sym": "R_100",
+"ct": "CALL",
+"dur": "10t",
+"barrier": null,
+"payout": 19.54,
+"implied": 0.5117707267144319,
+"fair": 0.5000225,
+"ev": -0.022956034999999986
+},
+{
+"sym": "R_100",
+"ct": "PUT",
+"dur": "10t",
+"barrier": null,
+"payout": 19.53,
+"implied": 0.5120327700972862,
+"fair": 0.5004775,
+"ev": -0.02256744249999998
+},
+{
+"sym": "R_100",
+"ct": "DIGITEVEN",
+"dur": "1t",
+"barrier": null,
+"payout": 19.53,
+"implied": 0.5120327700972862,
+"fair": 0.5,
+"ev": -0.023499999999999965
+},
+{
+"sym": "R_100",
+"ct": "DIGITODD",
+"dur": "1t",
+"barrier": null,
+"payout": 19.53,
+"implied": 0.5120327700972862,
+"fair": 0.5,
+"ev": -0.023499999999999965
+},
+{
+"sym": "R_100",
+"ct": "DIGITOVER",
+"dur": "1t",
+"barrier": "0",
+"payout": 10.96,
+"implied": 0.9124087591240875,
+"fair": 0.9,
+"ev": -0.013599999999999945
+},
+{
+"sym": "R_100",
+"ct": "DIGITOVER",
+"dur": "1t",
+"barrier": "4",
+"payout": 19.53,
+"implied": 0.5120327700972862,
+"fair": 0.5,
+"ev": -0.023499999999999965
+},
+{
+"sym": "R_100",
+"ct": "DIGITOVER",
+"dur": "1t",
+"barrier": "8",
+"payout": 89.29,
+"implied": 0.11199462425803561,
+"fair": 0.1,
+"ev": -0.10709999999999997
+},
+{
+"sym": "R_100",
+"ct": "DIGITUNDER",
+"dur": "1t",
+"barrier": "1",
+"payout": 89.29,
+"implied": 0.11199462425803561,
+"fair": 0.1,
+"ev": -0.10709999999999997
+},
+{
+"sym": "R_100",
+"ct": "DIGITUNDER",
+"dur": "1t",
+"barrier": "5",
+"payout": 19.53,
+"implied": 0.5120327700972862,
+"fair": 0.5,
+"ev": -0.023499999999999965
+},
+{
+"sym": "R_100",
+"ct": "DIGITUNDER",
+"dur": "1t",
+"barrier": "9",
+"payout": 10.96,
+"implied": 0.9124087591240875,
+"fair": 0.9,
+"ev": -0.013599999999999945
+},
+{
+"sym": "R_100",
+"ct": "DIGITMATCH",
+"dur": "1t",
+"barrier": "5",
+"payout": 89.29,
+"implied": 0.11199462425803561,
+"fair": 0.1,
+"ev": -0.10709999999999997
+},
+{
+"sym": "R_100",
+"ct": "DIGITDIFF",
+"dur": "1t",
+"barrier": "5",
+"payout": 10.96,
+"implied": 0.9124087591240875,
+"fair": 0.9,
+"ev": -0.013599999999999945
+},
+{
+"sym": "R_100",
+"ct": "TICKHIGH",
+"dur": "5t",
+"barrier": 1,
+"payout": 35.09,
+"implied": 0.28498147620404674,
+"fair": 0.27324,
+"ev": -0.041200839999999905
+},
+{
+"sym": "R_100",
+"ct": "TICKLOW",
+"dur": "5t",
+"barrier": 1,
+"payout": 35.09,
+"implied": 0.28498147620404674,
+"fair": 0.2741625,
+"ev": -0.03796378750000007
+},
+{
+"sym": "R_100",
+"ct": "TICKHIGH",
+"dur": "5t",
+"barrier": 2,
+"payout": 59.52,
+"implied": 0.16801075268817203,
+"fair": 0.15545,
+"ev": -0.07476159999999987
+},
+{
+"sym": "R_100",
+"ct": "TICKLOW",
+"dur": "5t",
+"barrier": 2,
+"payout": 59.52,
+"implied": 0.16801075268817203,
+"fair": 0.156015,
+"ev": -0.07139872000000003
+},
+{
+"sym": "R_100",
+"ct": "TICKHIGH",
+"dur": "5t",
+"barrier": 3,
+"payout": 65.36,
+"implied": 0.15299877600979192,
+"fair": 0.1405525,
+"ev": -0.08134885999999997
+},
+{
+"sym": "R_100",
+"ct": "TICKLOW",
+"dur": "5t",
+"barrier": 3,
+"payout": 65.36,
+"implied": 0.15299877600979192,
+"fair": 0.1408475,
+"ev": -0.0794207400000001
+},
+{
+"sym": "R_100",
+"ct": "TICKHIGH",
+"dur": "5t",
+"barrier": 4,
+"payout": 59.52,
+"implied": 0.16801075268817203,
+"fair": 0.1565225,
+"ev": -0.0683780799999999
+},
+{
+"sym": "R_100",
+"ct": "TICKLOW",
+"dur": "5t",
+"barrier": 4,
+"payout": 59.52,
+"implied": 0.16801075268817203,
+"fair": 0.1562125,
+"ev": -0.07022319999999982
+},
+{
+"sym": "R_100",
+"ct": "TICKHIGH",
+"dur": "5t",
+"barrier": 5,
+"payout": 35.09,
+"implied": 0.28498147620404674,
+"fair": 0.2743475,
+"ev": -0.03731462249999973
+},
+{
+"sym": "R_100",
+"ct": "TICKLOW",
+"dur": "5t",
+"barrier": 5,
+"payout": 35.09,
+"implied": 0.28498147620404674,
+"fair": 0.2732525,
+"ev": -0.0411569774999998
+},
+{
+"sym": "R_100",
+"ct": "RUNHIGH",
+"dur": "2t",
+"barrier": null,
+"payout": 38.17,
+"implied": 0.26198585276395076,
+"fair": 0.249685,
+"ev": -0.046952354999999946
+},
+{
+"sym": "R_100",
+"ct": "RUNLOW",
+"dur": "2t",
+"barrier": null,
+"payout": 38.17,
+"implied": 0.26198585276395076,
+"fair": 0.2495,
+"ev": -0.04765850000000005
+},
+{
+"sym": "R_100",
+"ct": "RUNHIGH",
+"dur": "3t",
+"barrier": null,
+"payout": 76.34,
+"implied": 0.13099292638197538,
+"fair": 0.125985,
+"ev": -0.03823050999999977
+},
+{
+"sym": "R_100",
+"ct": "RUNLOW",
+"dur": "3t",
+"barrier": null,
+"payout": 76.34,
+"implied": 0.13099292638197538,
+"fair": 0.124795,
+"ev": -0.047314969999999845
+},
+{
+"sym": "R_100",
+"ct": "RUNHIGH",
+"dur": "5t",
+"barrier": null,
+"payout": 305.34,
+"implied": 0.03275037662933124,
+"fair": 0.03075,
+"ev": -0.061079500000000175
+},
+{
+"sym": "R_100",
+"ct": "RUNLOW",
+"dur": "5t",
+"barrier": null,
+"payout": 305.34,
+"implied": 0.03275037662933124,
+"fair": 0.0313225,
+"ev": -0.04359878500000003
+},
+{
+"sym": "R_100",
+"ct": "ASIANU",
+"dur": "5t",
+"barrier": null,
+"payout": 19.54,
+"implied": 0.5117707267144319,
+"fair": 0.4995375,
+"ev": -0.02390372499999993
+},
+{
+"sym": "R_100",
+"ct": "ASIAND",
+"dur": "5t",
+"barrier": null,
+"payout": 19.53,
+"implied": 0.5120327700972862,
+"fair": 0.49967,
+"ev": -0.024144489999999963
+},
+{
+"sym": "R_100",
+"ct": "ONETOUCH",
+"dur": "5t",
+"barrier": "+0.17",
+"payout": 20.72,
+"implied": 0.48262548262548266,
+"fair": 0.4616075,
+"ev": -0.043549260000000034
+},
+{
+"sym": "R_100",
+"ct": "ONETOUCH",
+"dur": "5t",
+"barrier": "-0.17",
+"payout": 20.71,
+"implied": 0.48285852245292127,
+"fair": 0.460785,
+"ev": -0.045714264999999976
+},
+{
+"sym": "R_100",
+"ct": "NOTOUCH",
+"dur": "5t",
+"barrier": "+0.17",
+"payout": 17.2,
+"implied": 0.5813953488372093,
+"fair": 0.5401,
+"ev": -0.07102799999999987
+},
+{
+"sym": "R_100",
+"ct": "NOTOUCH",
+"dur": "5t",
+"barrier": "-0.17",
+"payout": 17.21,
+"implied": 0.5810575246949448,
+"fair": 0.5386949999999999,
+"ev": -0.07290590500000005
+},
+{
+"sym": "R_100",
+"ct": "CALL",
+"dur": "5t",
+"barrier": "+0.17",
+"error": "Invalid barrier."
+},
+{
+"sym": "R_100",
+"ct": "PUT",
+"dur": "5t",
+"barrier": "-0.17",
+"error": "Invalid barrier."
+},
+{
+"sym": "R_100",
+"ct": "ONETOUCH",
+"dur": "5t",
+"barrier": "+0.34",
+"payout": 40.94,
+"implied": 0.2442598925256473,
+"fair": 0.224065,
+"ev": -0.08267789000000003
+},
+{
+"sym": "R_100",
+"ct": "ONETOUCH",
+"dur": "5t",
+"barrier": "-0.34",
+"payout": 40.95,
+"implied": 0.2442002442002442,
+"fair": 0.2240875,
+"ev": -0.08236168749999995
+},
+{
+"sym": "R_100",
+"ct": "NOTOUCH",
+"dur": "5t",
+"barrier": "+0.34",
+"payout": 12.2,
+"implied": 0.819672131147541,
+"fair": 0.7762575,
+"ev": -0.05296584999999998
+},
+{
+"sym": "R_100",
+"ct": "NOTOUCH",
+"dur": "5t",
+"barrier": "-0.34",
+"payout": 12.2,
+"implied": 0.819672131147541,
+"fair": 0.7757725,
+"ev": -0.053557550000000065
+},
+{
+"sym": "R_100",
+"ct": "CALL",
+"dur": "5t",
+"barrier": "+0.34",
+"error": "Invalid barrier."
+},
+{
+"sym": "R_100",
+"ct": "PUT",
+"dur": "5t",
+"barrier": "-0.34",
+"error": "Invalid barrier."
+},
+{
+"sym": "R_100",
+"ct": "ONETOUCH",
+"dur": "5t",
+"barrier": "+0.69",
+"payout": 179.74,
+"implied": 0.05563591854901524,
+"fair": 0.02711,
+"ev": -0.51272486
+},
+{
+"sym": "R_100",
+"ct": "ONETOUCH",
+"dur": "5t",
+"barrier": "-0.69",
+"payout": 180.09,
+"implied": 0.05552779165972569,
+"fair": 0.0271075,
+"ev": -0.5118210325
+},
+{
+"sym": "R_100",
+"ct": "NOTOUCH",
+"dur": "5t",
+"barrier": "+0.69",
+"error": "This contract offers no return."
+},
+{
+"sym": "R_100",
+"ct": "NOTOUCH",
+"dur": "5t",
+"barrier": "-0.69",
+"error": "This contract offers no return."
+},
+{
+"sym": "R_100",
+"ct": "CALL",
+"dur": "5t",
+"barrier": "+0.69",
+"error": "Invalid barrier."
+},
+{
+"sym": "R_100",
+"ct": "PUT",
+"dur": "5t",
+"barrier": "-0.69",
+"error": "Invalid barrier."
+},
+{
+"sym": "R_100",
+"ct": "ASIANU",
+"dur": "10t",
+"barrier": null,
+"payout": 19.54,
+"implied": 0.5117707267144319,
+"fair": 0.5013475,
+"ev": -0.020366985000000115
+},
+{
+"sym": "R_100",
+"ct": "ASIAND",
+"dur": "10t",
+"barrier": null,
+"payout": 19.53,
+"implied": 0.5120327700972862,
+"fair": 0.5000075,
+"ev": -0.023485352499999834
+},
+{
+"sym": "R_100",
+"ct": "ONETOUCH",
+"dur": "10t",
+"barrier": "+0.24",
+"payout": 18.86,
+"implied": 0.5302226935312832,
+"fair": 0.5028525,
+"ev": -0.051620184999999985
+},
+{
+"sym": "R_100",
+"ct": "ONETOUCH",
+"dur": "10t",
+"barrier": "-0.24",
+"payout": 18.85,
+"implied": 0.5305039787798408,
+"fair": 0.50432,
+"ev": -0.04935679999999998
+},
+{
+"sym": "R_100",
+"ct": "NOTOUCH",
+"dur": "10t",
+"barrier": "+0.24",
+"payout": 18.74,
+"implied": 0.5336179295624334,
+"fair": 0.497285,
+"ev": -0.06808791000000025
+},
+{
+"sym": "R_100",
+"ct": "NOTOUCH",
+"dur": "10t",
+"barrier": "-0.24",
+"payout": 18.74,
+"implied": 0.5336179295624334,
+"fair": 0.49529999999999996,
+"ev": -0.0718078000000002
+},
+{
+"sym": "R_100",
+"ct": "CALL",
+"dur": "10t",
+"barrier": "+0.24",
+"error": "Invalid barrier."
+},
+{
+"sym": "R_100",
+"ct": "PUT",
+"dur": "10t",
+"barrier": "-0.24",
+"error": "Invalid barrier."
+},
+{
+"sym": "R_100",
+"ct": "ONETOUCH",
+"dur": "10t",
+"barrier": "+0.49",
+"payout": 37.61,
+"implied": 0.2658867322520606,
+"fair": 0.2394525,
+"ev": -0.09941914749999992
+},
+{
+"sym": "R_100",
+"ct": "ONETOUCH",
+"dur": "10t",
+"barrier": "-0.49",
+"payout": 37.62,
+"implied": 0.2658160552897395,
+"fair": 0.23968,
+"ev": -0.09832384000000016
+},
+{
+"sym": "R_100",
+"ct": "NOTOUCH",
+"dur": "10t",
+"barrier": "+0.49",
+"payout": 12.53,
+"implied": 0.7980845969672786,
+"fair": 0.7596825,
+"ev": -0.04811782749999993
+},
+{
+"sym": "R_100",
+"ct": "NOTOUCH",
+"dur": "10t",
+"barrier": "-0.49",
+"payout": 12.53,
+"implied": 0.7980845969672786,
+"fair": 0.760725,
+"ev": -0.046811575000000105
+},
+{
+"sym": "R_100",
+"ct": "CALL",
+"dur": "10t",
+"barrier": "+0.49",
+"error": "Invalid barrier."
+},
+{
+"sym": "R_100",
+"ct": "PUT",
+"dur": "10t",
+"barrier": "-0.49",
+"error": "Invalid barrier."
+},
+{
+"sym": "R_100",
+"ct": "ONETOUCH",
+"dur": "10t",
+"barrier": "+0.97",
+"payout": 162.09,
+"implied": 0.06169412055031155,
+"fair": 0.0317375,
+"ev": -0.48556686250000003
+},
+{
+"sym": "R_100",
+"ct": "ONETOUCH",
+"dur": "10t",
+"barrier": "-0.97",
+"payout": 162.58,
+"implied": 0.0615081805880182,
+"fair": 0.032295,
+"ev": -0.47494788999999993
+},
+{
+"sym": "R_100",
+"ct": "NOTOUCH",
+"dur": "10t",
+"barrier": "+0.97",
+"error": "This contract offers no return."
+},
+{
+"sym": "R_100",
+"ct": "NOTOUCH",
+"dur": "10t",
+"barrier": "-0.97",
+"error": "This contract offers no return."
+},
+{
+"sym": "R_100",
+"ct": "CALL",
+"dur": "10t",
+"barrier": "+0.97",
+"error": "Invalid barrier."
+},
+{
+"sym": "R_100",
+"ct": "PUT",
+"dur": "10t",
+"barrier": "-0.97",
+"error": "Invalid barrier."
+},
+{
+"sym": "R_100",
+"ct": "ONETOUCH",
+"dur": "2m",
+"barrier": "+0.60",
+"payout": 17.48,
+"implied": 0.5720823798627002,
+"fair": 0.5648675,
+"ev": -0.012611610000000106
+},
+{
+"sym": "R_100",
+"ct": "NOTOUCH",
+"dur": "2m",
+"barrier": "+0.60",
+"payout": 22.12,
+"implied": 0.4520795660036166,
+"fair": 0.43771499999999997,
+"ev": -0.03177441999999997
+},
+{
+"sym": "R_100",
+"ct": "RANGE",
+"dur": "2m",
+"barrier": "+0.60",
+"payout": 218.94,
+"implied": 0.04567461404951128,
+"fair": 0.030805,
+"ev": -0.32555533000000003
+},
+{
+"sym": "R_100",
+"ct": "UPORDOWN",
+"dur": "2m",
+"barrier": "+0.60",
+"payout": 10.22,
+"implied": 0.9784735812133072,
+"fair": 0.968975,
+"ev": -0.009707549999999898
+},
+{
+"sym": "R_100",
+"ct": "EXPIRYRANGE",
+"dur": "2m",
+"barrier": "+0.60",
+"payout": 25.02,
+"implied": 0.3996802557953637,
+"fair": 0.38583,
+"ev": -0.03465333999999998
+},
+{
+"sym": "R_100",
+"ct": "EXPIRYMISS",
+"dur": "2m",
+"barrier": "+0.60",
+"payout": 16.02,
+"implied": 0.6242197253433208,
+"fair": 0.6151875,
+"ev": -0.014469625000000041
+},
+{
+"sym": "R_100",
+"ct": "ONETOUCH",
+"dur": "2m",
+"barrier": "+1.19",
+"payout": 34.27,
+"implied": 0.2918004085205719,
+"fair": 0.2852025,
+"ev": -0.02261103249999985
+},
+{
+"sym": "R_100",
+"ct": "NOTOUCH",
+"dur": "2m",
+"barrier": "+1.19",
+"payout": 13.65,
+"implied": 0.7326007326007326,
+"fair": 0.71559,
+"ev": -0.023219650000000036
+},
+{
+"sym": "R_100",
+"ct": "RANGE",
+"dur": "2m",
+"barrier": "+1.19",
+"payout": 21.95,
+"implied": 0.45558086560364464,
+"fair": 0.4332175,
+"ev": -0.049087587500000085
+},
+{
+"sym": "R_100",
+"ct": "UPORDOWN",
+"dur": "2m",
+"barrier": "+1.19",
+"payout": 17.6,
+"implied": 0.5681818181818181,
+"fair": 0.5654375,
+"ev": -0.00482999999999989
+},
+{
+"sym": "R_100",
+"ct": "EXPIRYRANGE",
+"dur": "2m",
+"barrier": "+1.19",
+"payout": 14.34,
+"implied": 0.697350069735007,
+"fair": 0.6823375,
+"ev": -0.02152802499999995
+},
+{
+"sym": "R_100",
+"ct": "EXPIRYMISS",
+"dur": "2m",
+"barrier": "+1.19",
+"payout": 30.61,
+"implied": 0.3266906239790918,
+"fair": 0.3172675,
+"ev": -0.028844182500000093
+},
+{
+"sym": "R_100",
+"ct": "ONETOUCH",
+"dur": "2m",
+"barrier": "+2.39",
+"payout": 206.53,
+"implied": 0.04841911586694427,
+"fair": 0.0380825,
+"ev": -0.21348212750000006
+},
+{
+"sym": "R_100",
+"ct": "NOTOUCH",
+"dur": "2m",
+"barrier": "+2.39",
+"payout": 10.25,
+"implied": 0.975609756097561,
+"fair": 0.9611325,
+"ev": -0.014839187500000017
+},
+{
+"sym": "R_100",
+"ct": "RANGE",
+"dur": "2m",
+"barrier": "+2.39",
+"payout": 10.64,
+"implied": 0.9398496240601504,
+"fair": 0.9230725,
+"ev": -0.017850860000000024
+},
+{
+"sym": "R_100",
+"ct": "UPORDOWN",
+"dur": "2m",
+"barrier": "+2.39",
+"payout": 118.59,
+"implied": 0.08432414200185513,
+"fair": 0.07633749999999995,
+"ev": -0.09471358750000058
+},
+{
+"sym": "R_100",
+"ct": "EXPIRYRANGE",
+"dur": "2m",
+"barrier": "+2.39",
+"payout": 10.32,
+"implied": 0.9689922480620154,
+"fair": 0.955355,
+"ev": -0.014073639999999998
+},
+{
+"sym": "R_100",
+"ct": "EXPIRYMISS",
+"dur": "2m",
+"barrier": "+2.39",
+"payout": 180.3,
+"implied": 0.05546311702717693,
+"fair": 0.045335,
+"ev": -0.18260995000000002
+}
+]
