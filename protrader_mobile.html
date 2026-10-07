@@ -7334,6 +7334,15 @@ const OT = {
     if (!o) return;
     const res = await Broker.cancel(id);
     if (res.status !== 'cancelled') { showToast('✕ Cancel rejected', 3000); return; }
+    // A live tick can fill this same order while the cancel was in flight
+    // (checkPending runs synchronously off the quote stream, no latency).
+    // Without this check we'd blow away the fill's order record and tell
+    // the user it was cancelled when they actually have an open position.
+    if (!TR.orders.includes(o)) {
+      showToast(`${o.side.toUpperCase()} ${o.orderType.toUpperCase()} ${o.label} already filled — nothing to cancel.`, 3600);
+      this.renderBook(); this.save();
+      return;
+    }
     TR.orders = TR.orders.filter(x => x.id !== id);
     showToast(`Cancelled ${o.side.toUpperCase()} ${o.orderType.toUpperCase()} ${o.label}`, 3000);
     this.renderBook(); this.save();
