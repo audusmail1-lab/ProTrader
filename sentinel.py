@@ -417,6 +417,8 @@ async def _loop() -> None:
             _paper.cycle()                   # read the owner's saved paper account, keep its positions
         if _twin is not None:
             await _twin.cycle()              # Joel Twin: replay closed MT5 and paper positions under Joel's rules (no orders)
+        if _cbook is not None:
+            await _cbook.cycle()             # contract book: weekly paper contracts at Deriv's live prices (never bought)
         # Wake shortly after the next 15-minute close, or at once when the
         # focus list changes so new markets appear on the board.
         nxt = (int(cycle_start // 900) + 1) * 900 + 8
@@ -1227,6 +1229,27 @@ def twin(request: Request) -> dict:
                      "you": r.get("pnl"), "you_exit": r.get("exit_reason"), "rule_break": r.get("rule_break"), "twin": t})
     return {"version": _twin.TWIN_VERSION, "rules": _twin.rules_text(), "stats": _twin.stats(pairs),
             "state": _twin._state, "records": rows[:200]}
+
+
+# ── Contract book: Deriv contracts tracked on paper at live prices, never bought (contract_book.py)
+try:
+    import contract_book as _cbook
+    import sys as _sys5
+    _cbook.attach(_sys5.modules[__name__])
+except Exception as e:                  # the scanner runs without it
+    log.warning("contract book unavailable: %s", e)
+    _cbook = None
+
+
+@router.get("/contracts")
+def contracts(request: Request) -> dict:
+    """Owner-only: the weekly paper contracts, Deriv's payouts, settlements and the edge check."""
+    _check_key(request)
+    if _cbook is None:
+        raise HTTPException(503, "The contract book is not available on this server")
+    recs = _cbook.load_all()
+    return {"version": _cbook.BOOK_VERSION, "stake": _cbook.STAKE, "entry_hours_gmt": list(_cbook.ENTRY_HOURS_GMT),
+            "stats": _cbook.stats(recs), "state": _cbook._state, "records": list(reversed(recs))[:100]}
 
 
 # ── Research loop: versions, cohorts, 100/150-trade reviews (sentinel_research.py)

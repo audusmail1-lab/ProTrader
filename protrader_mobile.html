@@ -8422,6 +8422,28 @@ const SENT = (() => {
       </div>`;
   }
 
+  // Contract book: one paper contract of each kind a week at Deriv's live price, settled at expiry. Never bought.
+  function contractBlock() {
+    const c = last?.contracts;
+    if (!c || !c.stats) return '';
+    const S = c.stats, pc = v => Number.isFinite(v) ? Math.round(v * 100) + '%' : '—', sg = v => (v >= 0 ? '+' : '') + Math.round(v * 100) + '%';
+    const rows = Object.values(S.specs || {}).map(g => {
+      const cls = /wins more/.test(g.verdict) ? 'ev-proven' : /winning/.test(g.verdict) ? 'ev-negative' : 'ev-unproven';
+      return `<div class="twin-sum"><b>${esc(g.label)}</b><br>
+        ${g.taken ? `Deriv charges ${pc(g.priced_p)} odds (pays ${nb(otMoney(g.last_payout, 2))} on $${c.stake}) · it rose ${pc(g.history.won)} of the time${Number.isFinite(g.edge_on_history) ? ` → ${sg(g.edge_on_history)} a contract on history` : ''}<br>
+        ${g.taken} taken · ${g.open} open · ${g.settled} settled${g.settled ? ` · won ${g.wins} · ${nb(money(g.net))}` : ''}`
+        : `Not taken yet · it rose ${pc(g.history.won)} of the time (${esc(g.history.source)})`}
+        ${g.settled ? `<br><span class="sn-chip ${cls}">${esc(g.verdict)}</span>` : ''}</div>`;
+    }).join('');
+    return `<div class="sn-h">Contract book · on paper, never bought</div>
+      <div class="sn-card">
+        <div class="sn-meta">Each week, during the US session (from ${c.entry_hours_gmt[0] + 1}:00 Lagos time), Sentinel takes one paper contract of each kind at Deriv's live price and settles it at expiry from Deriv's own prices. The test: do these contracts win more often than Deriv charges for?</div>
+        ${rows}
+        ${S.settled ? `<div class="sn-meta" style="margin-top:6px">All settled: ${S.settled} · ${nb(money(S.net))} on $${c.stake} each</div>` : ''}
+        ${c.state && c.state.last_error ? `<div class="sn-meta">Last note from Deriv: ${esc(c.state.last_error)}</div>` : ''}
+      </div>`;
+  }
+
   // Setup tags: one tap on an open trade (TCL / SMOG / G2 / Other), before the result is known.
   const SETUPS = ['TCL', 'SMOG', 'G2', 'Other'];
   const setupPending = {};
@@ -8629,6 +8651,8 @@ const SENT = (() => {
 
       ${paperBlock()}
 
+      ${contractBlock()}
+
       ${managedBlock()}
 
       <div class="sn-h">Paper results · current model · all focus markets</div>
@@ -8660,13 +8684,13 @@ const SENT = (() => {
     busy = true;
     try {
       const [status, board, feed, stats, costs] = await Promise.all([get('status'), get('board'), get('feed?limit=30'), get('stats'), get('costs').catch(() => null)]);
-      let managed = null, liveTest = null, paperAcct = null;
+      let managed = null, liveTest = null, paperAcct = null, cbook = null;
       if (ownerKey()) {
         const own = p => fetch(`${BOT_BASE}/api/sentinel/${p}`, { cache: 'no-store', signal: AbortSignal.timeout(15000), headers: { 'X-Sentinel-Key': ownerKey() } }).then(r => r.ok ? r.json() : null).catch(() => null);
-        [managed, liveTest, paperAcct] = await Promise.all([own('managed'), own('live'), own('paper')]);
+        [managed, liveTest, paperAcct, cbook] = await Promise.all([own('managed'), own('live'), own('paper'), own('contracts')]);
       }
       if (!cat) get('markets').then(c => { c.byId = {}; c.groups.forEach(g => g.markets.forEach(m => { c.byId[m.id] = m; })); cat = cat || c; render(); }).catch(() => {});
-      last = { status, board, feed, stats, costs, managed, live: liveTest, paper: paperAcct };
+      last = { status, board, feed, stats, costs, managed, live: liveTest, paper: paperAcct, contracts: cbook };
       render();
     } catch (e) {
       const el = document.getElementById('sentinel-panel');
