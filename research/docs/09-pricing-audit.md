@@ -40,6 +40,6 @@ What it is: the equity risk premium, the most documented premium in finance, bou
 
 Deciding check (scheduled 06:20 GMT 8 Oct, when indices open): Deriv's actual payouts for Nasdaq-100 / US 500 Rise 30/91/182/365d. The edge holds if the priced probability (stake ÷ payout) is clearly below the historical win rate (0.63 / 0.70 / 0.75 / 0.82).
 
-If it holds: a paper-tracked contract book in Sentinel (read-only quotes, settled at expiry from Deriv prices, no buying) to confirm it forward before any real stake.
+Built ahead of the check (preview, not launched): the Sentinel contract book (`contract_book.py`, `/api/sentinel/contracts`, a card in the Sentinel tab). Once a week during the US session it takes one paper contract each of US Tech 100 and US 500 "Rise" 30 and 91 days at Deriv's live payout (read-only `proposal`), uses the first tick after the quote as the entry, and settles at expiry from Deriv's own prices. Verdict after 20 settled contracts per kind: wins counted against the odds Deriv charged, at 2 standard errors. Probed live on gold (quote, entry tick, settlement price); 6 tests.
 
 Scripts and raw results: `research/experiments/H16-pricing/`. Long histories from FRED (NASDAQ100, VXNCLS, VIXCLS, DTB3).
