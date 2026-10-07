@@ -1498,6 +1498,10 @@ svg.ico{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.7;st
 .sn-lv b{font-variant-numeric:tabular-nums;color:var(--tx-1);font-size:12px}
 .sn-meta{color:var(--tx-3);font-size:11px;line-height:1.4}
 .twin-sum{background:var(--bg-2);border-radius:6px;padding:6px 8px;margin:6px 0;line-height:1.55}
+.sn-setup{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-top:6px}
+.sn-setup>span{font-size:10.5px;color:var(--tx-3);font-weight:700;margin-right:2px}
+.sn-setup-btn{appearance:none;background:transparent;cursor:pointer;min-height:32px;min-width:52px;font-size:11.5px}
+.sn-setup-btn.on{color:var(--blue-lt);border-color:var(--blue);background:rgba(79,140,255,.14)}
 .twin-sum b,.twin-cell b{color:var(--tx-1);font-variant-numeric:tabular-nums}
 .twin-cell b{white-space:nowrap}.twin-cell b.green{color:var(--green-lt)}.twin-cell b.red{color:var(--red-lt)}
 .sn-warn{color:var(--amber);font-size:11px}
@@ -8385,6 +8389,51 @@ const SENT = (() => {
     } catch (e) { showToast(e.message, 4000); }
   }
 
+  // Setup tags: one tap on an open trade (TCL / SMOG / G2 / Other), before the result is known.
+  const SETUPS = ['TCL', 'SMOG', 'G2', 'Other'];
+  const setupPending = {};
+  function setupPicker(o) {
+    const k = esc(o.key), cur = o.setup || null;
+    return `<div class="sn-setup"><span>Setup</span>${SETUPS.map(x => `<button type="button" class="sn-chip sn-setup-btn${cur === x ? ' on' : ''}"
+      aria-pressed="${cur === x}" onclick="SENT.tagSetup('${k}','${x}',${o.server ? 1 : 0})">${x}</button>`).join('')}</div>`;
+  }
+  async function tagSetup(key, setup, server) {
+    const cur = setupPending[key] !== undefined ? setupPending[key]
+      : ((last?.managed?.records || []).find(r => r.key === key) || (typeof MGMT !== 'undefined' ? MGMT.recs[key] : null) || {}).setup || null;
+    const next = cur === setup ? null : setup;          // tap the chosen one again to clear it
+    if (!server) {
+      const r = typeof MGMT !== 'undefined' ? MGMT.recs[key] : null;
+      if (!r) return;
+      if (next) Object.assign(r, { setup: next, setup_at: Date.now(), setup_after_close: !!r.closed });
+      else { delete r.setup; delete r.setup_at; delete r.setup_after_close; }
+      MGMT.dirty.add(key); MGMT.save(); render();
+      return;
+    }
+    setupPending[key] = next; render();
+    try {
+      const res = await fetch(`${BOT_BASE}/api/sentinel/managed/setup`, {
+        method: 'POST', cache: 'no-store', signal: AbortSignal.timeout(15000),
+        headers: { 'Content-Type': 'application/json', 'X-Sentinel-Key': ownerKey() },
+        body: JSON.stringify({ key, setup: next }),
+      });
+      if (!res.ok) throw new Error((await res.json().catch(() => ({}))).detail || `Could not save the setup (${res.status})`);
+      const rec = (last?.managed?.records || []).find(r => r.key === key);
+      if (rec) { if (next) Object.assign(rec, { setup: next, setup_after_close: false }); else delete rec.setup; }
+      delete setupPending[key];
+      showToast(next ? `Tagged ${next}` : 'Setup cleared', 1800);
+    } catch (e) { delete setupPending[key]; showToast(e.message, 4000); }
+    render();
+  }
+  function setupSummary(bs, tw) {
+    if (!bs) return '';
+    const rows = Object.entries(bs.setups || {});
+    if (!rows.length) return `<div class="sn-meta twin-sum"><b>Setups</b> · tap TCL, SMOG, G2 or Other on an open trade. Tags given before the close count here; ${bs.untagged ? `${bs.untagged} closed trade${bs.untagged === 1 ? ' is' : 's are'} untagged.` : 'none closed yet.'}</div>`;
+    return `<div class="sn-meta twin-sum"><b>By setup</b> · tagged while open${rows.map(([k, g]) => {
+      const t = tw && tw[k];
+      return `<br>${esc(k)}: ${g.n} trade${g.n === 1 ? '' : 's'} · ${nb(money(g.pnl))} · ${pctTxt(g.win_pct)} in profit${t ? ` · twin ${nb(money(t.twin))} on ${t.n}` : ''}`;
+    }).join('')}${bs.untagged ? `<br><span style="color:var(--tx-3)">${bs.untagged} untagged${bs.tagged_after_close ? `, ${bs.tagged_after_close} tagged after the close (not counted)` : ''}</span>` : ''}</div>`;
+  }
+
   // Joel Twin: the same MT5 trade replayed under the trader's own rules, applied every time.
   const TWIN_STOP = { yours: 'your stop', capped: 'stop capped at 1%', added: 'stop added at 1%', unknown: '1% stop' };
   const nb = t => `<span style="white-space:nowrap">${t}</span>`;
@@ -8410,6 +8459,7 @@ const SENT = (() => {
   function managedBlock() {
     const m = last?.managed, st = m?.stats || {};
     const serverOpen = (m?.records || []).filter(r => !r.closed && r.tracker === 'server').map(r => ({
+      key: r.key, setup: setupPending[r.key] !== undefined ? setupPending[r.key] : r.setup,
       label: r.label, side: r.side, pnl_now: r.pnl_now, peak_pnl: r.peak_pnl, locked_pnl: r.locked_pnl,
       locked_r: r.locked_r, mfe_r: r.mfe_r, be_at: r.be_at, late: r.late, sentinel: !!r.sentinel_id, rule_break: r.rule_break,
       stops: (r.events || []).filter(e => e.type === 'stop').length, server: true,
@@ -8427,9 +8477,10 @@ const SENT = (() => {
           <div><span>Locked by stop</span><b>${o.be_at ? money(Math.max(0, o.locked_pnl || 0)) : '—'}</b></div>
         </div>
         <div class="sn-meta">${o.stops} stop move${o.stops === 1 ? '' : 's'}${Number.isFinite(o.locked_r) ? ` · locked ${o.locked_r >= 0 ? '+' : ''}${o.locked_r.toFixed(2)}R` : ''}${Number.isFinite(o.mfe_r) ? ` · peak ${o.mfe_r.toFixed(2)}R` : ''}${o.late ? ' · tracking began after entry, so the original stop (1R) is unknown' : ''}</div>
+        ${o.key ? setupPicker(o) : ''}
       </div>`).join('');
     const closedRows = recs.length ? `<table class="sn-tbl"><tbody>${recs.map(r => `<tr>
-        <td>${esc(r.label)} <span style="color:var(--tx-3)">${r.side === 'buy' ? 'L' : 'S'}</span></td>
+        <td>${esc(r.label)} <span style="color:var(--tx-3)">${r.side === 'buy' ? 'L' : 'S'}</span>${r.setup ? `<div class="sn-meta">${esc(r.setup)}${r.setup_after_close ? ' · tagged after the close' : ''}</div>` : ''}</td>
         <td><span class="sn-chip ${STAGE_CLS[r.stage] || ''}">${esc(r.stage || '—')}</span>${r.rule_break ? `<div class="sn-meta" style="color:var(--red-lt)">Rule break · ${esc(r.rule_break)}</div>` : ''}</td>
         <td style="text-align:right">${money(r.pnl)}${Number.isFinite(r.exit_r) ? `<div class="sn-meta">${r.exit_r >= 0 ? '+' : ''}${r.exit_r.toFixed(2)}R · peak ${Number.isFinite(r.mfe_r) ? r.mfe_r.toFixed(2) + 'R' : '—'}</div>` : ''}${Number.isFinite(r.sentinel_r) ? `<div class="sn-meta">Sentinel ${r.sentinel_r >= 0 ? '+' : ''}${r.sentinel_r.toFixed(2)}R</div>` : ''}${twinCell(r.twin)}</td></tr>`).join('')}</tbody></table>` : '';
     const vs = st.vs_sentinel;
@@ -8442,7 +8493,7 @@ const SENT = (() => {
         Became risk free: <b>${pctTxt(st.risk_free_pct)}</b> · of those, closed in profit: <b>${pctTxt(st.risk_free_positive_pct)}</b>${Number.isFinite(st.capture_pct) ? ` · kept ${pctTxt(st.capture_pct)} of the peak on winners` : ''}
         ${st.rule_breaks ? `<br><span style="color:var(--red-lt)">${st.rule_breaks.n} rule-break trade${st.rule_breaks.n === 1 ? '' : 's'} (${money(st.rule_breaks.pnl)}) kept out of these numbers</span>` : ''}
         ${vs ? `<br>On ${vs.n} Sentinel setups: you ${vs.trader_avg_r >= 0 ? '+' : ''}${vs.trader_avg_r.toFixed(2)}R vs Sentinel's paper ${vs.sentinel_avg_r >= 0 ? '+' : ''}${vs.sentinel_avg_r.toFixed(2)}R per trade` : ''}
-        </div>${twinSummary(tw)}${closedRows}</div>`
+        </div>${setupSummary(st.by_setup, tw && tw.by_setup)}${twinSummary(tw)}${closedRows}</div>`
         : `<div class="sn-empty">${ownerKey() ? 'Closed trades appear here with how they were managed: stop moves, when they became risk free, peak profit and the exit.' : 'Set your owner key (Choose markets) to keep this journal on the server.'}</div>`}`;
   }
 
@@ -8623,7 +8674,7 @@ const SENT = (() => {
     }
   }
 
-  return { open, refresh, load, chart, editFocus, toggle, toggleTf, saveFocus, cancelFocus, measureCosts, live };
+  return { open, refresh, load, chart, editFocus, toggle, toggleTf, saveFocus, cancelFocus, measureCosts, live, tagSetup };
 })();
 
 /* ════════════════════════════════════════════════════════════
@@ -8857,6 +8908,7 @@ const MGMT = {
 
   openSummaries() {
     return Object.values(this.recs).filter(r => !r.closed).map(r => ({
+      key: r.key, setup: r.setup || null,
       label: r.label, side: r.side, pnl_now: r.pnl_now, peak_pnl: r.peak_pnl, locked_pnl: r.locked_pnl,
       locked_r: r.locked_r, mfe_r: r.mfe_r, be_at: r.be_at, late: r.late, sentinel: !!r.sentinel_id, rule_break: r.rule_break,
       stops: r.events.filter(e => e.type === 'stop').length,

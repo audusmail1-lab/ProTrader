@@ -29,3 +29,7 @@ Set to Sentinel's own stop and the usd100 rule, the twin replay reproduces Senti
 - Instruments without a public Deriv feed (e.g. HF Volatility 50, 65 of Joel's 261 v3 trades) are listed as "not replayed".
 - Candle replay is not tick replay: inside a bar the order of high and low is unknown (stop first is the conservative choice); MT5 prices for real-market CFDs can differ slightly from the public feed.
 - On the Volatility indices no exit rule changes the expected result (docs: v3 analysis §3). What the twin can change there is the size of the losses, which is what the "added or capped" subtotal shows.
+
+## Setup tags (added at launch, 7 Oct)
+
+Every open MT5 trade in the journal has one-tap chips: TCL, SMOG, G2, Other (tap the chosen one again to clear). `POST /api/sentinel/managed/setup` (owner) stores the tag on the tracked position with the time; a tag given while the trade is open counts, one given after the close is kept but marked and left out, because by then the result is known. The journal shows, per setup, closed trades, dollars, share in profit and the twin's dollars on the same trades, plus how many closed trades are untagged. This is how the entries get studied: the v3 ledger has no setup tags on any of its 261 trades.

@@ -734,6 +734,35 @@ def rule_break(r: dict, equity: Optional[float], risk_money: Optional[float], no
         r["rule_break"] = f"risked {pct:.1f}% (limit {RISK_LIMIT_PCT:g}%)"
 
 
+SETUPS = ("TCL", "SMOG", "G2", "Other")
+
+
+def setup_counts(r: dict) -> bool:
+    """A setup tag counts only when it was given while the trade was open,
+    before the result was known."""
+    return r.get("setup") in SETUPS and not r.get("setup_after_close")
+
+
+def setup_stats(done: list[dict]) -> dict:
+    """Closed trades by the setup they were tagged with while open (rule-break
+    trades included: this is about which entries make money)."""
+    out: dict[str, Any] = {"untagged": 0, "tagged_after_close": 0, "setups": {}}
+    for r in done:
+        if r.get("setup") in SETUPS and r.get("setup_after_close"):
+            out["tagged_after_close"] += 1
+            continue
+        if not setup_counts(r):
+            out["untagged"] += 1
+            continue
+        g = out["setups"].setdefault(r["setup"], {"n": 0, "pnl": 0.0, "wins": 0})
+        g["n"] += 1
+        g["pnl"] = round(g["pnl"] + (r.get("pnl") or 0), 2)
+        g["wins"] += 1 if (r.get("pnl") or 0) > 0 else 0
+    for g in out["setups"].values():
+        g["win_pct"] = round(g["wins"] / g["n"], 4)
+    return out
+
+
 def _managed_stats(recs: list[dict]) -> dict:
     done_all = [r for r in recs if r.get("closed")]
     broke = [r for r in done_all if r.get("rule_break")]
@@ -741,7 +770,8 @@ def _managed_stats(recs: list[dict]) -> dict:
     done = [r for r in done_all if not r.get("rule_break")]
     n = len(done)
     if not n:
-        return {"n": 0, "open": sum(1 for r in recs if not r.get("closed")), "rule_breaks": rb}
+        return {"n": 0, "open": sum(1 for r in recs if not r.get("closed")), "rule_breaks": rb,
+                "by_setup": setup_stats(done_all)}
     stages: dict[str, int] = {}
     for r in done:
         stages[r.get("stage") or "Unclassified"] = stages.get(r.get("stage") or "Unclassified", 0) + 1
@@ -751,6 +781,7 @@ def _managed_stats(recs: list[dict]) -> dict:
     pnl = [r.get("pnl") or 0 for r in done]
     linked = [r for r in with_r if isinstance(r.get("sentinel_r"), (int, float))]
     return {
+        "by_setup": setup_stats(done_all),
         "n": n, "open": sum(1 for r in recs if not r.get("closed")), "stages": stages, "rule_breaks": rb,
         "pnl_total": round(sum(pnl), 2),
         "win_pct": round(sum(1 for x in pnl if x > 0) / n, 4),
@@ -1024,6 +1055,39 @@ async def managed_link(request: Request) -> dict:
         pass
     _save_managed(r)
     return {"linked": True}
+
+
+@router.post("/managed/setup")
+async def managed_setup(request: Request) -> dict:
+    """Owner-only: tag a tracked position with the setup it was taken on
+    (TCL, SMOG, G2, Other; null clears it). A tag given while the position is
+    open counts in the setup statistics; one given after the close is kept but
+    marked, because by then the result is known."""
+    _check_key(request)
+    body = await request.json()
+    key = body.get("key") if isinstance(body, dict) else None
+    setup = body.get("setup") if isinstance(body, dict) else None
+    if not isinstance(key, str) or not key or len(key) > 80:
+        raise HTTPException(400, "Send {\"key\": ..., \"setup\": \"TCL\" | \"SMOG\" | \"G2\" | \"Other\" | null}")
+    if setup is not None and setup not in SETUPS:
+        raise HTTPException(400, f"setup must be one of {', '.join(SETUPS)} or null")
+    now = int(time.time() * 1000)
+    r = _mt5_open.get(key)
+    if r is None:
+        with _lock, _db() as con:
+            row = con.execute("SELECT data FROM managed WHERE key=?", (key,)).fetchone()
+        if not row:
+            raise HTTPException(404, "No tracked position with that key")
+        r = json.loads(row[0])
+    is_open = not r.get("closed")
+    if setup is None:
+        for k in ("setup", "setup_at", "setup_after_close"):
+            r.pop(k, None)
+    else:
+        r.update(setup=setup, setup_at=now, setup_after_close=not is_open)
+    r.setdefault("events", []).append({"t": now, "type": "setup", "setup": setup, "open": is_open})
+    _save_managed(r)
+    return {"ok": True, "key": key, "setup": setup, "counts": bool(setup) and is_open}
 
 
 @router.get("/managed")

@@ -372,8 +372,15 @@ def stats(pairs: list[tuple[dict, dict]]) -> dict:
         g["n"] += 1
         g["you"] = round(g["you"] + a, 2)
         g["twin"] = round(g["twin"] + b, 2)
+    by_setup: dict[str, dict] = {}
+    for (r, t), a, b in zip(rows, you, twin):
+        if r.get("setup") and not r.get("setup_after_close"):
+            g = by_setup.setdefault(r["setup"], {"n": 0, "you": 0.0, "twin": 0.0})
+            g["n"] += 1
+            g["you"] = round(g["you"] + a, 2)
+            g["twin"] = round(g["twin"] + b, 2)
     return {
-        "n": n, "skipped": skipped, "version": TWIN_VERSION,
+        "n": n, "skipped": skipped, "version": TWIN_VERSION, "by_setup": by_setup,
         "you_total": round(sum(you), 2), "twin_total": round(sum(twin), 2),
         "diff_per_trade": round(md, 2),
         "diff_ci95": [round(md - 1.96 * sd / math.sqrt(n), 2), round(md + 1.96 * sd / math.sqrt(n), 2)] if n > 1 else None,

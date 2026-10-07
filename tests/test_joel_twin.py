@@ -156,3 +156,65 @@ def test_tracker_records_equity_and_money_per_point_at_the_fill():
     r = s._mt5_open["mt5:99"]
     assert r["eq_open"] == 1234.0 and r["per_unit"] == 5.0 and s._mt5_state["equity"] == 1234.0
     s._mt5_open.clear()
+
+
+# ── setup tags (TCL / SMOG / G2 / Other) ─────────────────────────────────────
+
+class JReq:
+    def __init__(self, body):
+        self._b = body
+        self.headers = {"x-sentinel-key": "k"}
+
+    async def json(self):
+        return self._b
+
+
+def tag(key, setup):
+    return asyncio.run(s.managed_setup(JReq({"key": key, "setup": setup})))
+
+
+def test_setup_tags_count_only_before_the_close(monkeypatch):
+    import pytest
+    from fastapi import HTTPException
+    monkeypatch.setenv("SENTINEL_ADMIN_KEY", "k")
+    with s._lock, s._db() as con:
+        con.execute("DELETE FROM managed")
+    s._meta_set("mt5_channel", "owner")
+    s._mt5_state["last"] = 0
+    t0 = int(time.time()) - 5
+    pos = lambda price, profit: {"account": {"equity": 1000.0}, "positions": [{"ticket": "55", "symbol": "Volatility 75 Index",
+            "side": "buy", "volume": 0.1, "entry": 100.0, "price": price, "sl": 99.0, "tp": 0, "profit": profit, "time": t0}]}
+    s._mt5_track("owner", pos(100.5, 0.5), None)
+    out = tag("mt5:55", "SMOG")                                    # open: counts
+    assert out["counts"] is True and s._mt5_open["mt5:55"]["setup"] == "SMOG"
+    assert tag("mt5:55", "TCL")["counts"] is True                  # changed while open: still counts
+    s._mt5_state["last"] = 0
+    s._mt5_track("owner", {"positions": []}, [{"kind": "trade", "ticket": "55", "exit": 101.0, "profit": 1.0, "reason": "Manual"}])
+    rec = [x for x in s._managed_rows() if x["key"] == "mt5:55"][0]
+    assert rec["closed"] and rec["setup"] == "TCL" and not rec["setup_after_close"]
+    assert [e["type"] for e in rec["events"]].count("setup") == 2
+    # a closed, untagged trade tagged afterwards is kept but not counted
+    s._save_managed({"key": "mt5:56", "opened": t0 * 1000, "closed": t0 * 1000 + 1, "pnl": -2.0, "events": []})
+    assert tag("mt5:56", "G2")["counts"] is False
+    s._save_managed({"key": "mt5:57", "opened": t0 * 1000, "closed": t0 * 1000 + 1, "pnl": 3.0, "events": []})
+    st = s._managed_stats(s._managed_rows())["by_setup"]
+    assert st["setups"] == {"TCL": {"n": 1, "pnl": 1.0, "wins": 1, "win_pct": 1.0}}
+    assert st["tagged_after_close"] == 1 and st["untagged"] == 1
+    # clearing, bad input
+    assert tag("mt5:56", None)["setup"] is None
+    assert "setup" not in [x for x in s._managed_rows() if x["key"] == "mt5:56"][0]
+    with pytest.raises(HTTPException) as e:
+        tag("mt5:55", "Breakout")
+    assert e.value.status_code == 400
+    with pytest.raises(HTTPException) as e:
+        tag("mt5:404", "TCL")
+    assert e.value.status_code == 404
+
+
+def test_twin_stats_split_by_setup():
+    pairs = [({"pnl": 5.0, "setup": "TCL"}, {"final": True, "pnl": 3.0, "stop_source": "yours"}),
+             ({"pnl": -9.0, "setup": "TCL"}, {"final": True, "pnl": -4.0, "stop_source": "added"}),
+             ({"pnl": 2.0, "setup": "G2", "setup_after_close": True}, {"final": True, "pnl": 2.5, "stop_source": "yours"}),
+             ({"pnl": 1.0}, {"final": True, "pnl": 1.0, "stop_source": "yours"})]
+    st = jt.stats(pairs)
+    assert st["by_setup"] == {"TCL": {"n": 2, "you": -4.0, "twin": -1.0}} and st["n"] == 4
