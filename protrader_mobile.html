@@ -1044,9 +1044,26 @@ kbd{
 .ot-summary{font-size:12px;line-height:1.45;color:var(--tx-2);background:var(--bg-3);border:1px solid var(--bd-1);border-left:2px solid var(--bd-2);border-radius:var(--r-xs);padding:6px 8px;font-family:var(--font-mono)}
 .ot-summary.buy{border-left-color:var(--green)}
 .ot-summary.sell{border-left-color:var(--red)}
+.ot-summary .plan-risk{font-family:var(--font-display);font-variant-numeric:tabular-nums;font-size:15px;font-weight:800;color:var(--tx-1)}
+.ot-summary .plan-sub{font-family:var(--font-display);font-size:12px;color:var(--tx-2);margin-top:2px}
+.ot-summary .plan-out{display:flex;gap:12px;flex-wrap:wrap;margin-top:4px;font-variant-numeric:tabular-nums}
+.ot-summary .plan-out span{color:var(--tx-2);font-family:var(--font-display)}.ot-summary .plan-out b{font-family:var(--font-mono)}
+.ot-summary .plan-out b.neg{color:var(--red-lt)}.ot-summary .plan-out b.pos{color:var(--green-lt)}
+.ot-coach{border:1px solid rgba(242,179,61,.45);background:rgba(242,179,61,.08);border-radius:var(--r-sm);padding:8px 9px;font-size:12px;line-height:1.45;color:var(--tx-2)}
+.ot-coach b.t{display:block;color:var(--amber-lt);font-size:13px;margin-bottom:2px}
+.ot-coach .acts{display:flex;flex-direction:column;gap:5px;margin-top:7px}
+.ot-coach .acts button{text-align:left;padding:7px 9px;border-radius:var(--r-xs);border:1px solid var(--bd-2);background:var(--bg-3);color:var(--tx-1);font-size:12px;font-weight:700;cursor:pointer;min-height:36px}
+.ot-coach .acts button small{display:block;font-weight:500;color:var(--tx-3)}
+.ot-coach .hint{margin-top:6px;color:var(--tx-3)}
+.ot-details{border:1px solid var(--bd-1);border-radius:var(--r-sm);background:var(--bg-2)}
+.ot-details>summary{cursor:pointer;padding:7px 9px;font-size:12px;font-weight:700;color:var(--tx-3);list-style:none}
+.ot-details>summary::-webkit-details-marker{display:none}
+.ot-details>summary::before{content:'▸ ';}
+.ot-details[open]>summary::before{content:'▾ ';}
+.ot-details-body{display:flex;flex-direction:column;gap:8px;padding:0 8px 8px}
 .ot-submit{width:100%;padding:11px;border-radius:var(--r-sm);font-size:12px;font-weight:900;letter-spacing:.4px;cursor:pointer;border:none;color:#fff;transition:all var(--t2);text-transform:uppercase}
-.ot-submit.buy{background:linear-gradient(135deg,var(--green-dk),var(--green));box-shadow:var(--glow-g)}
-.ot-submit.sell{background:linear-gradient(135deg,var(--red-dk),var(--red))}
+.ot-submit.buy{background:linear-gradient(135deg,var(--green-dk),var(--green));box-shadow:var(--glow-g);color:#fff}
+.ot-submit.sell{background:linear-gradient(135deg,var(--red-dk),var(--red));color:#fff}   /* the global .sell colour tinted this button's text */
 .ot-submit:disabled{background:var(--bg-4);color:var(--tx-3);box-shadow:none;cursor:not-allowed}
 .ot-status{font-size:12px;text-align:center;min-height:11px;color:var(--tx-3);font-weight:700;letter-spacing:.3px}
 .ot-status.ok{color:var(--green-lt)}
@@ -1867,21 +1884,6 @@ svg.ico{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.7;st
             </button>
           </div>
 
-          <!-- volume -->
-          <div class="ot-field">
-            <div class="ot-field-hdr">
-              <label class="ot-lbl" for="otVol">Lot Size</label>
-              <span class="ot-hint" id="otVolHint">—</span>
-            </div>
-            <div class="ot-step">
-              <button class="ot-step-btn" id="otVolDown" onclick="OT.stepVolume(-1)" aria-label="Decrease lot size">−</button>
-              <input class="ot-inp" id="otVol" type="number" inputmode="decimal" value="0.10"
-                     oninput="OT.onVolumeInput(this.value)" onblur="OT.normalizeVolume()"/>
-              <button class="ot-step-btn" id="otVolUp" onclick="OT.stepVolume(1)" aria-label="Increase lot size">+</button>
-            </div>
-            <div class="ot-err" id="otVolErr" style="display:none"></div>
-          </div>
-
           <!-- limit / stop price -->
           <div class="ot-field" id="otPriceField" style="display:none">
             <div class="ot-field-hdr">
@@ -1921,30 +1923,55 @@ svg.ico{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.7;st
             </div>
           </div>
 
-          <!-- metrics -->
-          <div class="ot-metrics">
-            <div class="ot-metric">
-              <div class="ot-metric-lbl">Margin</div>
-              <div class="ot-metric-val" id="otMargin">—</div>
-            </div>
-            <div class="ot-metric">
-              <div class="ot-metric-lbl" id="otPipLbl">Pip Value</div>
-              <div class="ot-metric-val" id="otPipVal">—</div>
-            </div>
-            <div class="ot-metric">
-              <div class="ot-metric-lbl">At stop</div>
-              <div class="ot-metric-val" id="otMaxLoss">—</div>
-            </div>
-            <div class="ot-metric">
-              <div class="ot-metric-lbl">At target</div>
-              <div class="ot-metric-val" id="otAtTarget">—</div>
-            </div>
-          </div>
-
+          <!-- the plan in one card: what is at risk, the size it gives, what each outcome pays -->
           <div class="ot-summary buy" id="otSummary">—</div>
+
+          <!-- the rules, as a coach: where the risk is and one-tap ways to fit -->
+          <div class="ot-coach" id="otCoach" style="display:none"></div>
 
           <button class="ot-submit buy" id="otSubmit" onclick="OT.submit()">Buy Market</button>
           <div class="ot-status" id="otStatus"></div>
+
+          <!-- the broker's numbers, for when you want them -->
+          <details class="ot-details" id="otDetails" ontoggle="OT._detailsShut = !this.open">
+            <summary>Details · lot size, margin, point value</summary>
+            <div class="ot-details-body">
+              <!-- volume -->
+              <div class="ot-field">
+                <div class="ot-field-hdr">
+                  <label class="ot-lbl" for="otVol">Lot Size</label>
+                  <span class="ot-hint" id="otVolHint">—</span>
+                </div>
+                <div class="ot-step">
+                  <button class="ot-step-btn" id="otVolDown" onclick="OT.stepVolume(-1)" aria-label="Decrease lot size">−</button>
+                  <input class="ot-inp" id="otVol" type="number" inputmode="decimal" value="0.10"
+                         oninput="OT.onVolumeInput(this.value)" onblur="OT.normalizeVolume()"/>
+                  <button class="ot-step-btn" id="otVolUp" onclick="OT.stepVolume(1)" aria-label="Increase lot size">+</button>
+                </div>
+                <div class="ot-err" id="otVolErr" style="display:none"></div>
+              </div>
+
+              <!-- metrics -->
+              <div class="ot-metrics">
+                <div class="ot-metric">
+                  <div class="ot-metric-lbl">Margin</div>
+                  <div class="ot-metric-val" id="otMargin">—</div>
+                </div>
+                <div class="ot-metric">
+                  <div class="ot-metric-lbl" id="otPipLbl">Pip Value</div>
+                  <div class="ot-metric-val" id="otPipVal">—</div>
+                </div>
+                <div class="ot-metric">
+                  <div class="ot-metric-lbl">At stop</div>
+                  <div class="ot-metric-val" id="otMaxLoss">—</div>
+                </div>
+                <div class="ot-metric">
+                  <div class="ot-metric-lbl">At target</div>
+                  <div class="ot-metric-val" id="otAtTarget">—</div>
+                </div>
+              </div>
+            </div>
+          </details>
 
           <!-- account -->
           <div class="ot-acct">
@@ -5443,6 +5470,28 @@ function paperLimits() {
   return { balance: b, maxRisk: b * S.riskPct / 100, openRisk, openCap: b * .02, unprotected, dayLoss, dayCap, losses, locked };
 }
 
+/* Who is using the 2% open-risk room right now, largest first: open trades
+   (risk to their stop) and working pending orders (risk from their price to
+   their stop). The coach names them and offers to free the room. */
+function openRiskHolders() {
+  const out = [];
+  const lossAt = (side, entry, sl, vol, sym) => {
+    if (sl == null || !Number.isFinite(entry)) return 0;
+    const v = otPnl(side, entry, sl, vol, sym);
+    return v != null && v < 0 ? -v : 0;
+  };
+  const nice = (side, kind, vol, sym) => `${side === 'buy' ? 'Buy' : 'Sell'}${kind ? ' ' + kind : ''} ${vol} ${otSpec(sym).label || sym}`;
+  (typeof TR !== 'undefined' ? TR.positions : []).forEach(p => {
+    const risk = lossAt(p.side, p.entry, p.sl, p.volume, p.symbol);
+    if (risk > 0.005) out.push({ kind: 'position', id: p.id, risk, what: `your ${nice(p.side, '', p.volume, p.symbol)}`, canBe: typeof OT !== 'undefined' && OT.canBreakeven(p) });
+  });
+  (typeof TR !== 'undefined' ? TR.orders.filter(o => o.state === 'working') : []).forEach(o => {
+    const risk = lossAt(o.side, o.price, o.sl, o.volume, o.symbol);
+    if (risk > 0.005) out.push({ kind: 'order', id: o.id, risk, what: `${nice(o.side, o.orderType === 'stop' ? 'Stop' : 'Limit', o.volume, o.symbol)} @ ${otFmtPx(o.symbol, o.price)}` });
+  });
+  return out.sort((a, b) => b.risk - a.risk);
+}
+
 /* What the next paper trade may lose at its stop: the per-trade risk on the
    smaller of balance and equity (open losses count), and never more than the
    room left under the 2% open-risk cap or the 3% daily-loss limit — so the
@@ -7148,25 +7197,66 @@ const OT = {
   /* Paper account: the risk framework is a hard rule, not a meter. Every
      order needs a stop, may lose at most S.riskPct of the balance at that
      stop, may not lift open risk past 2%, and nothing opens once the day
-     has lost 3% or three trades. There is no override on purpose. */
+     has lost 3% or three trades. There is no override on purpose.
+     The block coaches: it says where the risk is and offers one-tap fixes
+     (size to fit, cancel a pending order, stop to breakeven). */
   ruleCheck(e, id, v, entry) {
     const L = paperLimits();
-    if (L.locked) { e.general = e.general || L.locked; return; }
-    if (L.unprotected) { e.general = e.general || `${L.unprotected} open trade${L.unprotected === 1 ? ' has' : 's have'} no stop loss — add one before opening another.`; return; }
+    if (L.locked) {
+      e.general = e.general || L.locked;
+      e.coach = e.coach || { title: 'Done for today', text: L.locked + ' Stopping here is the rule working, not the app failing.' };
+      return;
+    }
+    if (L.unprotected) {
+      e.general = e.general || `${L.unprotected} open trade${L.unprotected === 1 ? ' has' : 's have'} no stop loss — add one before opening another.`;
+      e.coach = e.coach || { title: 'Protect your open trade first', text: e.general, acts: [{ label: 'Show my open trades', run: "OT.setStage('during')" }] };
+      return;
+    }
     if (!TK.slOn) { e.sl = e.sl || 'Your rules need a stop loss on every trade.'; return; }
     if (e.volume || e.sl || !Number.isFinite(TK.sl) || !Number.isFinite(entry) || !Number.isFinite(v)) return;
     const loss = otPnl(TK.side, entry, TK.sl, v, id);
     if (loss == null) return;
     const risk = Math.max(0, -loss);
+    const r = riskLots(id, entry, TK.sl, L.balance);
+    const minRisk = r ? r.riskPerLot * r.min : null;
     if (risk > L.maxRisk * 1.005 + 0.01) {
-      const r = riskLots(id, entry, TK.sl, L.balance);
-      const fix = r && r.lots >= r.min ? ` At this stop the most you can trade is ${r.lots} lots — tap “Size from risk”.` : ' Even the minimum lot is too big here — tighten the stop.';
       const pc = risk / L.balance * 100;
-      e.volume = `Risks ${otMoney(risk)} (${pc < 10 ? pc.toFixed(1) : pc.toFixed(0)}% of balance). Your limit is ${S.riskPct}% = ${otMoney(L.maxRisk)}.${fix}`;
+      e.volume = `Over your ${S.riskPct}% plan`;
+      e.general = e.general || `This size risks ${otMoney(risk)}; your plan is ${S.riskPct}% = ${otMoney(L.maxRisk)}.`;
+      const fits = r && r.lots >= r.min;
+      e.coach = e.coach || {
+        title: `This size risks more than your ${S.riskPct}% plan`,
+        text: `${v} lots lose ${otMoney(risk)} at your stop (${pc < 10 ? pc.toFixed(1) : pc.toFixed(0)}% of your balance). Your plan is ${S.riskPct}% = ${otMoney(L.maxRisk)} a trade.`,
+        acts: fits ? [{ label: `Use ${r.lots} lots`, sub: `loses ${otMoney(r.riskPerLot * r.lots)} at the stop`, run: 'OT.sizeToRisk()' }] : [],
+        hint: fits ? '' : `Even the smallest size (${r ? r.min : 'min'} lots) loses ${otMoney(minRisk)} here — move your stop closer.`,
+      };
       return;
     }
-    if (L.openRisk + risk > L.openCap * 1.005 + 0.01)
-      e.general = e.general || `Open risk would reach ${otMoney(L.openRisk + risk)}, over your 2% cap of ${otMoney(L.openCap)}. Close a trade or move its stop to breakeven first.`;
+    if (L.openRisk + risk > L.openCap * 1.005 + 0.01) {
+      const held = openRiskHolders();
+      const room = Math.max(0, L.openCap - L.openRisk);
+      const posRisk = held.filter(h => h.kind === 'position').reduce((a, h) => a + h.risk, 0);
+      const ordRisk = held.filter(h => h.kind === 'order').reduce((a, h) => a + h.risk, 0);
+      const nPos = held.filter(h => h.kind === 'position').length, nOrd = held.filter(h => h.kind === 'order').length;
+      const where = [nOrd ? `your ${nOrd} pending order${nOrd === 1 ? '' : 's'} hold ${otMoney(ordRisk)}` : '',
+                     nPos ? `your ${nPos} open trade${nPos === 1 ? '' : 's'} ${nOrd ? '' : 'hold '}${otMoney(posRisk)}` : ''].filter(Boolean).join(' and ');
+      const fitLots = r ? Math.floor(room / r.riskPerLot / (otSpec(id).lotStep || 0.01) + 1e-9) * (otSpec(id).lotStep || 0.01) : 0;
+      const fits = r && fitLots >= r.min - 1e-9;
+      const acts = [];
+      if (fits) acts.push({ label: `Size this trade to fit: ${(+fitLots.toFixed(6))} lots`, sub: `loses ${otMoney(r.riskPerLot * fitLots)} at the stop`, run: 'OT.sizeToRisk()' });
+      held.slice(0, 3).forEach(h => {
+        if (h.kind === 'order') acts.push({ label: `Cancel ${h.what}`, sub: `frees ${otMoney(h.risk)}`, run: `OT.cancelOrder(${h.id}).then(() => OT.render())` });
+        else if (h.canBe) acts.push({ label: `Move ${h.what} stop to breakeven`, sub: `frees ${otMoney(h.risk)}`, run: `OT.breakeven(${h.id}).then(() => OT.render())` });
+      });
+      e.general = e.general || `Open risk would reach ${otMoney(L.openRisk + risk)}, over your 2% cap of ${otMoney(L.openCap)}.`;
+      e.coach = e.coach || {
+        title: 'This would put more than 2% of your account at risk at once',
+        text: `Your plan allows ${otMoney(L.openCap)} at risk at one time. ${where ? where[0].toUpperCase() + where.slice(1) + ', so' : 'So'} ${otMoney(room)} is left. `
+          + (fits ? `This trade needs ${otMoney(risk)} at ${v} lots.` : `This trade needs ${otMoney(minRisk != null ? Math.min(risk, minRisk) : risk)} even at the smallest size (${r ? r.min : v} lots).`),
+        acts,
+        hint: fits ? '' : 'Or move your stop closer: a closer stop needs less money at risk.',
+      };
+    }
   },
 
   /* -- submission -- */
@@ -7702,7 +7792,7 @@ const OT = {
 
     const rrRow = el('otRrRow');
     const bothSet = TK.slOn && TK.tpOn && Number.isFinite(TK.sl) && Number.isFinite(TK.tp) && Number.isFinite(entry);
-    if (rrRow) rrRow.style.display = bothSet ? 'flex' : 'none';
+    if (rrRow) rrRow.style.display = 'none';                  // shown in the plan card instead
     if (bothSet) {
       const risk = Math.abs(entry - TK.sl), reward = Math.abs(TK.tp - entry);
       const rr = risk > 0 ? reward / risk : null;
@@ -7742,16 +7832,32 @@ const OT = {
     const at = TK.type === 'market'
       ? (Number.isFinite(entry) ? `at market ≈ ${otFmtPx(id, entry)}` : 'at market')
       : `at ${otFmtPx(id, TK.price)}`;
+    const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
     const sum = el('otSummary');
     if (sum) {
       sum.className = 'ot-summary ' + TK.side;
-      sum.innerHTML = Number.isFinite(TK.volume)
-        ? `${TK.side === 'buy' ? 'Buy' : 'Sell'} <b>${TK.volume}</b> lot${TK.volume === 1 ? '' : 's'} ${s.label} ${at}`
-          + `<br>${TK.slOn && Number.isFinite(TK.sl) ? 'SL ' + otFmtPx(id, TK.sl) : 'no SL'}`
-          + ` · ${TK.tpOn && Number.isFinite(TK.tp) ? 'TP ' + otFmtPx(id, TK.tp) : 'no TP'}`
-          + ` · margin ${otMoney(margin)}`
-        : 'Enter a lot size to see the order summary.';
+      const acct = otAccount();
+      const eqv = acct && Number.isFinite(acct.equity) && !acct.unpriced ? acct.equity : S.balance;
+      const lossAmt = maxLoss != null ? Math.max(0, -maxLoss) : null;
+      const rr = bothSet && Math.abs(entry - TK.sl) > 0 ? Math.abs(TK.tp - entry) / Math.abs(entry - TK.sl) : null;
+      const lots = Number.isFinite(TK.volume) ? `${TK.volume} lot${TK.volume === 1 ? '' : 's'}${TK.auto && TK.slOn ? ' (sized from your risk)' : ' (manual)'}` : '—';
+      sum.innerHTML = !Number.isFinite(TK.volume) ? 'Enter a lot size to see the plan.'
+        : lossAmt == null ? `<div class="plan-risk">Set a stop loss</div><div class="plan-sub">Your stop decides the size: the app sizes the trade so the stop costs your chosen risk.</div>`
+        : `<div class="plan-risk">Risk ${otMoney(lossAmt)} · ${(lossAmt / eqv * 100).toFixed(1)}% of equity</div>
+           <div class="plan-sub">${TK.side === 'buy' ? 'Buy' : 'Sell'} ${lots} ${esc(s.label)} ${at}${rr ? ` · R:R 1 : ${rr.toFixed(2)}` : ''}</div>
+           <div class="plan-out"><span>At stop <b class="neg">${otMoney(maxLoss)}</b></span>${atTarget != null ? `<span>At target <b class="${atTarget >= 0 ? 'pos' : 'neg'}">${atTarget > 0 ? '+' : ''}${otMoney(atTarget)}</b></span>` : '<span>No target set</span>'}</div>`;
     }
+    // the rules as a coach: plain words, where the risk is, one-tap fixes
+    const coach = el('otCoach');
+    if (coach) {
+      const c = errs.coach;
+      coach.style.display = c ? '' : 'none';
+      coach.innerHTML = c ? `<b class="t">${esc(c.title)}</b>${esc(c.text)}${(c.acts || []).length ? `<div class="acts">${c.acts.map(x =>
+          `<button type="button" onclick="${x.run}">${esc(x.label)}${x.sub ? `<small>${esc(x.sub)}</small>` : ''}</button>`).join('')}</div>` : ''}${c.hint ? `<div class="hint">${esc(c.hint)}</div>` : ''}` : '';
+    }
+    // lot size lives under Details: open it when the trader sizes by hand or the lot itself is wrong
+    const det = el('otDetails');
+    if (det && !det.open && ((!TK.auto && !this._detailsShut) || (errs.volume && !errs.coach))) det.open = true;
     const btn = el('otSubmit');
     if (btn) {
       btn.className = 'ot-submit ' + TK.side;
@@ -7759,7 +7865,7 @@ const OT = {
       btn.disabled = TR.busy || Object.keys(errs).length > 0;
       btn.title = errs.general || '';
     }
-    if (errs.general && !TR.busy) this.status(errs.general, 'bad');
+    if (errs.general && !errs.coach && !TR.busy) this.status(errs.general, 'bad');
 
     // account strip
     const a = otAccount();

@@ -58,7 +58,9 @@ def check_rules(page):
     assert "stop loss" in (e.get("sl") or ""), e
     # 2. the 50-lot mistake: stop 1,705 points away on $36,900 -> refused with the right lot
     e = run(page, "(() => { Object.assign(TK, {volume: 50, slOn:true, sl: 44000 - 1705}); return OT.validate(); })()")
-    assert "Your limit is 1%" in (e.get("volume") or ""), e
+    assert "Over your 1% plan" in (e.get("volume") or ""), e
+    c = e.get("coach") or {}
+    assert "more than your 1% plan" in c.get("title", "") and c["acts"] and c["acts"][0]["run"] == "OT.sizeToRisk()", c
     lots = run(page, "riskLots('R_75', 44000, 44000 - 1705, S.balance).lots")
     assert 0 < lots < 1, lots
     e = run(page, f"(() => {{ TK.volume = {lots}; return OT.validate(); }})()")
@@ -68,6 +70,33 @@ def check_rules(page):
         TR.positions = [{{id: 91, symbol:'R_75', label:'Vol 75', side:'buy', volume: {lots} * 1.5, entry: 44000, sl: 44000 - 1705, tp: null, margin: 1, openTime: Date.now()}}];
         return OT.validate(); }})()""")
     assert "2% cap" in (e.get("general") or ""), e
+    c = e.get("coach") or {}
+    assert "1 open trade" in c["text"] and "is left" in c["text"], c
+    # 3b. the case from the screenshot: no open trades, two pending orders hold the room.
+    #     The coach must name the orders (not "close a trade") and offer to cancel them, largest first.
+    e = run(page, f"""(() => {{
+        TR.positions = [];
+        TR.orders = [{{id: 7, symbol:'R_75', label:'Vol 75', side:'sell', orderType:'limit', state:'working', volume: {lots} * 1.2, price: 44500, sl: 44500 + 1705, tp: null}},
+                     {{id: 8, symbol:'R_75', label:'Vol 75', side:'buy', orderType:'stop', state:'working', volume: {lots} * 0.75, price: 44300, sl: 44300 - 1705, tp: null}}];
+        return OT.validate(); }})()""")
+    c = e.get("coach") or {}
+    assert "pending orders hold" in c.get("text", "") and "open trade" not in c["text"], c
+    runs = [a["run"] for a in c["acts"]]
+    # room is left for a smaller size, so "size to fit" comes first, then the orders, largest first
+    assert runs[0] == "OT.sizeToRisk()" and runs[1:3] == ["OT.cancelOrder(7).then(() => OT.render())", "OT.cancelOrder(8).then(() => OT.render())"], runs
+    # tapping "cancel" on the bigger order frees the room: the same trade is then accepted
+    run(page, "OT.cancelOrder(7)")
+    page.wait_for_timeout(300)
+    e = run(page, "OT.validate()")
+    assert not e.get("general") and not e.get("coach"), e
+    TR_RESET = "TR.orders = [];"
+    run(page, TR_RESET)
+    # 3c. the coach is on screen, the red status line is not
+    run(page, f"""(() => {{ TR.positions = [{{id: 91, symbol:'R_75', label:'Vol 75', side:'buy', volume: {lots} * 1.5, entry: 44000, sl: 44000 - 1705, tp: null, margin: 1, openTime: Date.now()}}];
+        TK.auto = false; OT.status(''); OT.render(); }})()""")     # manual lot: automatic sizing would shrink it to fit
+    shown = run(page, "(() => { const c = document.getElementById('otCoach'); return {coach: c.style.display !== 'none' && c.textContent, status: document.getElementById('otStatus').textContent}; })()")
+    assert shown["coach"] and "2% of your account" in shown["coach"] and not shown["status"], shown
+    run(page, "TK.auto = true; OT.render();")
     # 4. an open trade without a stop blocks new trades
     e = run(page, "(() => { TR.positions[0].sl = null; return OT.validate(); })()")
     assert "no stop loss" in (e.get("general") or ""), e
