@@ -796,14 +796,24 @@ def experiment(spec: dict, data: dict, workers: int = 2, log=print) -> dict:
     return out
 
 
+def shadow_summary(trades: list[dict]) -> dict:
+    """Paired shadow-exit statistics (each shadow rule against the model exit on
+    the same trades), only when the run carried shadows."""
+    if not any(t.get("shadow") for t in trades):
+        return {}
+    return {k: v for k, v in core.shadow_stats(trades).items() if v.get("n")}
+
+
 def _summ(trades: list[dict], bounds: dict) -> dict:
     sp = split(trades, bounds)
     out: dict[str, Any] = {"n": len(trades)}
     for w, ts in sp.items():
         out[w] = {f"x{c}": metrics(ts, c) for c in (1.0, 1.5, 2.0)}
         out[w]["by_slice"] = by_slice(ts)
+        out[w]["shadows"] = shadow_summary(ts)
     out["all"] = {f"x{c}": metrics(trades, c) for c in (1.0, 1.5, 2.0)}
     out["all"]["by_slice"] = by_slice(trades)
+    out["all"]["shadows"] = shadow_summary(trades)
     return out
 
 
@@ -838,6 +848,13 @@ def report(res: dict) -> str:
         sl = v["val"]["by_slice"]
         if sl:
             out.append("  validation by slice: " + "; ".join(f"{k} {m['expectancy_r']:+.2f} (n {m['n']})" for k, m in sl.items() if m.get("n")))
+        if v["all"].get("shadows"):
+            out.append("  shadow exits, paired against the model exit on the same trades (net R; + means the shadow did better):")
+            for w in ("dev", "val", "holdout", "all"):
+                for name, sh in (v[w].get("shadows") or {}).items():
+                    ci = sh.get("vs_live_ci95") or [float("nan")] * 2
+                    out.append(f"    {w:8s} {name:10s} n {sh['n']:5d}  exp {sh['expectancy_r']:+.3f} vs model {sh['live_expectancy_r']:+.3f}  "
+                               f"diff {sh['vs_live_r']:+.3f} [{ci[0]:+.3f},{ci[1]:+.3f}]  win {sh['win_rate']:.2f}")
         out.append("")
     if res.get("filter_tests"):
         out.append("## Placebo tests (accepted subset vs 1,000 random subsets of equal size, from the base run's signals)")

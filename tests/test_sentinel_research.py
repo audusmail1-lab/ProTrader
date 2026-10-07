@@ -325,9 +325,11 @@ def test_incumbent_cohort_counts_only_the_pinned_model_and_rerun_never_counts(re
     coh = sr.list_cohorts(active_only=True)[0]
     got, excl = sr.resolved_trades(coh)
     assert len(got) == 2 and excl["other_version"] == 2 and excl["before_cohort"] == 1
-    # init again (a restart) must not create a second cohort or version
+    # init again (a restart) must not create a second cohort or version for anyone
+    n_coh, n_ver = len(sr.list_cohorts()), len(sr.list_versions())
+    assert n_ver == 1 + len(sr.CODE_CHALLENGERS) and n_coh == n_ver
     sr.init()
-    assert len(sr.list_cohorts()) == 1 and len(sr.list_versions()) == 1
+    assert len(sr.list_cohorts()) == n_coh and len(sr.list_versions()) == n_ver
 
 
 # ── registry: reviews, gates, restart ────────────────────────────────────────
@@ -501,3 +503,136 @@ async def _on_bars_case(registry):
     assert sr.cfg_get(f"eval:{a['id']}:frxXAUUSD 15m", 0) == bars[-1]["time"]
     await sr.on_bars(m, "15m", bars + [bar(bars[-1]["time"] + 900, 100, 101, 99, 100)], True, trend)
     assert len(calls) == 2
+
+
+# ── shadows: the two lab exits run beside the model exit (B3) ────────────────
+
+def test_core_atr_matches_the_lab_atr():
+    bars = walk(80, seed=5, vol=0.7)
+    for p in (14, 20):
+        assert abs(core.wilder_atr_last(bars[-(p * 3):], p) - lab.wilder_atr(bars[-(p * 3):], p)[-1]) < 1e-12
+    assert core.wilder_atr_last(bars[:5], 14) is None
+
+
+def shadow_trade(window, dir_="buy", entry=100.0, sl_dist=2.0):
+    t = mk_trade(dir_, entry, sl_dist)
+    t.last_bar = window[-1]["time"]
+    t.shadow = core.shadow_init(t.entry, t.sl, window)
+    return t
+
+
+def test_atr2_shadow_mirrors_the_lab_atr_trail_and_never_loosens():
+    window = [bar(i * 900, 100, 100.5, 99.5, 100) for i in range(60)]            # TR 1.0 everywhere → ATR 1.0
+    t = shadow_trade(window)
+    sh = t.shadow["atr2"]
+    assert abs(sh["atr"] - 1.0) < 1e-9 and sh["state"] == "open"
+    core.shadow_step(t, "15m", [bar(60 * 900, 100, 106, 99, 105)])                # best +3R (106) → stop 106 - 2 = 104
+    assert abs(sh["stop"] - 104.0) < 1e-9
+    core.shadow_step(t, "15m", [bar(61 * 900, 105, 105.5, 104.2, 104.5)])         # lower high: stop stays
+    assert abs(sh["stop"] - 104.0) < 1e-9 and sh["protected_at"] == 61 * 900
+    core.shadow_step(t, "15m", [bar(62 * 900, 104.5, 104.6, 103.5, 103.8)])       # touches 104 → closed at +2R gross
+    assert sh["state"] == "closed" and abs(sh["gross"] - 2.0) < 1e-9 and sh["how"] == "stop"
+    # the lab's atr_trail as a main exit gives the identical path on the same bars
+    t2 = mk_trade(); b = book_with({"exit": {"kind": "atr_trail", "mult": 2.0, "period": 14}}, t2, atr=1.0)
+    for bb in (bar(900, 100, 106, 99, 105), bar(1800, 105, 105.5, 104.2, 104.5), bar(2700, 104.5, 104.6, 103.5, 103.8)):
+        b.update(t2.market, t2.tf, [bb])
+    assert t2.status == "win" and abs((t2.r + t2.cost_r) - sh["gross"]) < 1e-9
+
+
+def test_chan10_shadow_uses_prior_bars_only_and_keeps_the_stop():
+    core_n = core.SHADOW_CHANNEL
+    window = [bar(i * 900, 100, 101, 99 + i * 0.01, 100.5) for i in range(40)]  # rising lows; last 10 lows 99.30..99.39
+    t = shadow_trade(window)
+    sh = t.shadow["chan10"]
+    assert len(sh["ch"]) == core_n and abs(sh["stop"] - t.sl) < 1e-9
+    lvl = min(x[1] for x in sh["ch"])                                           # 99.30
+    core.shadow_step(t, "15m", [bar(40 * 900, 100.5, 101, lvl + 0.02, lvl + 0.01)])   # close above the channel: open
+    assert sh["state"] == "open" and len(sh["ch"]) == core_n and abs(sh["stop"] - t.sl) < 1e-9
+    core.shadow_step(t, "15m", [bar(41 * 900, 100, 100.2, lvl - 0.05, lvl - 0.01)])   # close below: exit at the close
+    assert sh["state"] == "closed" and sh["how"] == "channel"
+    assert abs(sh["gross"] - ((lvl - 0.01) - 100.0) / 2.0) < 1e-9
+    # a sell: the channel is the highest high
+    t3 = shadow_trade(window, dir_="sell")
+    hi = max(x[0] for x in t3.shadow["chan10"]["ch"])
+    core.shadow_step(t3, "15m", [bar(40 * 900, 100, hi + 0.5, 99, hi + 0.2)])
+    assert t3.shadow["chan10"]["state"] == "closed" and t3.shadow["chan10"]["how"] == "channel"
+
+
+def test_shadow_stats_pair_the_new_exits_with_the_model_exit():
+    window = [bar(i * 900, 100, 100.5, 99.5, 100) for i in range(60)]
+    recs = []
+    for i in range(3):
+        t = shadow_trade(window)
+        core.shadow_step(t, "15m", [bar(60 * 900, 100, 106, 99, 105), bar(61 * 900, 105, 105.1, 103.5, 103.6)])
+        t.status, t.r, t.closed_at = "win", 1.5 - t.cost_r, 61 * 900 + 900
+        recs.append(t.to_dict())
+    st = lab.shadow_summary(recs)
+    assert st["atr2"]["n"] == 3 and abs(st["atr2"]["expectancy_r"] - (2.0 - 0.05)) < 1e-9
+    assert abs(st["atr2"]["vs_live_r"] - 0.5) < 1e-9
+    assert "chan10" not in st or st["chan10"]["n"] == 0 or st["chan10"]["n"] == 3   # still open → not counted
+    assert lab.shadow_summary([{"r": 0.1}]) == {}
+
+
+# ── registry: the code-defined 7.3 challenger ────────────────────────────────
+
+def test_code_challenger_registered_once_in_paper_testing_with_its_cohort(registry):
+    sr.init()
+    inc = sr.cfg_get("incumbent_version")
+    ch = sr.CODE_CHALLENGERS[0]
+    vid = sr.version_id(lab.normalize(ch["rules"]), inc)
+    v = sr.get_version(vid)
+    assert v and v["state"] == "paper-testing" and v["parent_id"] == inc and v["code_backed"] == 0
+    assert v["rules"]["gates"] == {"cost_cap": 0.05} and v["rules"]["shadows"] is True
+    assert all(s[0] in sr.REAL_MARKETS for s in v["slices"]) and len(v["slices"]) == 9
+    coh = sr._active_cohort(vid)
+    assert coh and coh["evidence_kind"] == "paper" and vid in sr._books
+    with sr._lock, sr._db() as con:
+        tr = con.execute("SELECT from_state, to_state, reason, evidence_ref, by FROM transitions WHERE version_id=? ORDER BY id", (vid,)).fetchall()
+    assert [x[1] for x in tr] == ["validating", "paper-testing"] and tr[1][3] == ch["evidence_ref"] and tr[1][4] == "release"
+    # the owner's decision survives a restart: paused stays paused, no second cohort
+    sr.transition(vid, "paused", "owner pause")
+    sr._books.clear(); sr.init()
+    assert sr.get_version(vid)["state"] == "paused" and vid not in sr._books
+    assert len([c for c in sr.list_cohorts() if c["version_id"] == vid]) == 1
+    # promotion of a non-code-backed version is 'awaiting release': the scanner keeps its pinned model
+    sr.transition(vid, "paper-testing", "owner resume")
+    assert sr.promote(vid, "test", None)["awaiting_release"] is True
+    assert sr.rollback("undo")["incumbent_version"] == inc
+
+
+def test_challenger_shadows_advance_and_survive_restart(registry):
+    import asyncio
+    asyncio.run(_shadow_restart_case(registry))
+
+
+async def _shadow_restart_case(registry):
+    sr.init()
+    inc = sr.cfg_get("incumbent_version")
+    vid = sr.version_id(lab.normalize(sr.CODE_CHALLENGERS[0]["rules"]), inc)
+    coh = sr._active_cohort(vid)
+    book = sr._books[vid]
+    window = [bar(coh["started_at"] + i * 900, 100, 100.5, 99.5, 100) for i in range(60)]
+    t = shadow_trade(window); t.id = "frxXAUUSD-15m-1"; t.market, t.tf = "frxXAUUSD", "15m"
+    t.opened_at = window[-1]["time"] + 900; t.status = "open"
+    book.open[(t.market, t.tf)] = t; book.meta[t.id] = {"version": book.version, "atr": 1.0, "gates": {"cost_r": 0.03}}
+    sr._save_research_trade(vid, coh["id"], book, t)
+    m = core.MARKET_BY_ID["frxXAUUSD"]
+
+    async def trend():
+        return "up"
+    # a bar that closes the model trade at its 1R trail AND moves the atr2 shadow; chan10 stays open
+    nb = window + [bar(window[-1]["time"] + 900, 100, 106, 99, 105), bar(window[-1]["time"] + 1800, 105, 105.1, 103.5, 103.6)]
+    await sr.on_bars(m, "15m", nb, False, trend)
+    with sr._lock, sr._db() as con:
+        row = json.loads(con.execute("SELECT data FROM research_trades WHERE id=?", (t.id,)).fetchone()[0])
+    assert row["status"] != "open" and row["shadow"]["atr2"]["state"] == "closed" and row["shadow"]["chan10"]["state"] == "open"
+    sr._books.clear(); sr.init()                                               # restart: the running shadow is restored
+    assert t.id in sr._books[vid].shadowing
+    await sr.on_bars(m, "15m", nb + [bar(nb[-1]["time"] + 900, 103.6, 103.7, 98.0, 98.1)], False, trend)
+    with sr._lock, sr._db() as con:
+        row = json.loads(con.execute("SELECT data FROM research_trades WHERE id=?", (t.id,)).fetchone()[0])
+    assert row["shadow"]["chan10"]["state"] == "closed"
+    assert t.id not in sr._books[vid].shadowing
+    # and the review metrics carry the paired shadow table
+    trades, _ = sr.resolved_trades(coh)
+    assert sr._review_metrics(trades)["shadows"]["atr2"]["n"] == 1

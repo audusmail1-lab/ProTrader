@@ -1,0 +1,16 @@
+{
+ "id": "V73-candidate",
+ "hypothesis": "B2+B3",
+ "note": "The 7.3 candidate (CODE_CHALLENGERS in sentinel_research.py): ARIA 7.2c entries and exit on the real markets Sentinel scans (NAS100, XAUUSD, BTCUSD; 15m/1h/4h), skipping entries whose spread exceeds 5% of the stop, with the atr2 and chan10 exits run as shadows paired against the model exit on the same trades. Development evidence only; the forward paper cohort decides.",
+ "slices": [["frxNAS100", "15m"], ["frxNAS100", "1h"], ["frxNAS100", "4h"],
+            ["frxXAUUSD", "15m"], ["frxXAUUSD", "1h"], ["frxXAUUSD", "4h"],
+            ["cryBTCUSD", "15m"], ["cryBTCUSD", "1h"], ["cryBTCUSD", "4h"]],
+ "base": {"shadows": true},
+ "variants": {
+  "cap0.05": {"gates": {"cost_cap": 0.05}, "shadows": true}
+ },
+ "filter_tests": [{"variant": "cap0.05", "gate": "cost_cap", "cfg": 0.05}],
+ "neighbourhood": {"gate": "cost_cap", "cells": [
+  {"label": "cap 0.04", "cfg": 0.04}, {"label": "cap 0.05", "cfg": 0.05}, {"label": "cap 0.06", "cfg": 0.06},
+  {"label": "cap 0.08", "cfg": 0.08}, {"label": "cap 0.12", "cfg": 0.12}]}
+}

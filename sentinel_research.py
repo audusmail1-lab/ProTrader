@@ -61,6 +61,29 @@ CLASSES = ("eligible", "inconclusive", "underperforming", "invalid")
 # The 7.2c paper journal began on 27 Sep 2026 (research/docs/01); trades before that were another model.
 INCUMBENT_JOURNAL_START = __import__("calendar").timegm((2026, 9, 27, 0, 0, 0))
 
+# Challengers defined in code. Each is registered once (child of the incumbent at
+# the time of its first registration) and moved straight to paper-testing with
+# the evidence named here, so it runs as a research book beside the incumbent
+# without an owner-key call. It is NOT code-backed: the scanner cannot run it
+# as the incumbent until a reviewed release teaches it to, so a promotion is
+# reported as 'awaiting release'. Owner decisions (pause/retire) are respected
+# on restart: an existing version is never re-transitioned.
+REAL_MARKETS = ("frxNAS100", "frxXAUUSD", "cryBTCUSD")
+CODE_CHALLENGERS = [
+    {
+        "key": "7.3-candidate",
+        "name": "ARIA 7.3 candidate: real markets, cost cap 0.05, exit shadows",
+        "rules": {"gates": {"cost_cap": 0.05}, "shadows": True},
+        "slices": [[m, tf] for m in REAL_MARKETS for tf in ("15m", "1h", "4h")],
+        "reason": ("same ARIA 7.2c entries and exit; skips entries whose spread exceeds 5% of the stop "
+                   "(H2 cost rule: +0.057R dev, +0.109R val vs base on one year, never counted as edge); "
+                   "real markets only (synthetic indices are a random number generator by Deriv's own description: "
+                   "155 of 227 forward trades, -27.1R); shadows atr2 and chan10 paired against the model exit (H4, B3)"),
+        "evidence_ref": "research/experiments/H2-costcap.result.json; research/experiments/V73-candidate.result.json; research/docs/04 B2+B3",
+        "notes": "owner request 7 Oct 2026 ('build'); judged at 100/150 trades against the incumbent on the matched period",
+    },
+]
+
 DEFAULT_CONFIG = {
     "diagnostic_at": 100,
     "formal_at": 150,
@@ -481,6 +504,7 @@ def _review_metrics(trades: list[dict]) -> dict:
     m["at_cost_mult"] = {"1.5": lab.metrics(trades, 1.5, boot=0).get("expectancy_r"),
                          "2.0": lab.metrics(trades, 2.0, boot=0).get("expectancy_r")}
     m["by_slice"] = lab.by_slice(trades)
+    m["shadows"] = lab.shadow_summary(trades)        # each shadow exit paired against the model exit (empty when none ran)
     m["net_financial"] = all(t.get("net_financial") for t in trades) if trades else False
     m["cost_basis"] = ("reconciled net" if m["net_financial"] else
                        "price-based R minus estimated spread; commission, swap, slippage not modelled")
@@ -604,13 +628,17 @@ def _sync_books() -> None:
             continue
         book = lab.ResearchBook(v["rules"], news_week=bool(_S._meta_get("news_week", False)) if _S else False)
         with _lock, _db() as con:
-            rows = con.execute("SELECT data FROM research_trades WHERE version_id=? AND status='open'", (vid,)).fetchall()
+            rows = con.execute("SELECT data FROM research_trades WHERE version_id=?", (vid,)).fetchall()
         for (data,) in rows:
             d = json.loads(data)
             meta = d.pop("_research", {})
             t = core.Trade(**d)
-            book.open[(t.market, t.tf)] = t
-            book.meta[t.id] = meta
+            if t.status == "open":
+                book.open[(t.market, t.tf)] = t
+                book.meta[t.id] = meta
+            elif book.shadows_open(t):            # model exit done, a shadow rule still running (as sentinel.py does)
+                book.shadowing[t.id] = t
+                book.meta[t.id] = meta
         _books[vid] = book
 
 
@@ -634,13 +662,17 @@ async def on_bars(m: core.Market, tf: str, bars: list[dict], fresh: bool, trend_
     last = bars[-1]
     t4 = None
     for vid, book in list(_books.items()):
-        if [m.id, tf] not in get_version(vid)["slices"] and not book.open.get((m.id, tf)):
+        busy = book.open.get((m.id, tf)) or any(t.market == m.id and t.tf == tf for t in book.shadowing.values())
+        if [m.id, tf] not in get_version(vid)["slices"] and not busy:
             continue
         coh = _active_cohort(vid)
         if not coh:
             continue
         for t in book.update(m.id, tf, bars):
             _save_research_trade(vid, coh["id"], book, t)
+        if book.rules["shadows"]:
+            for t in book.update_shadows(m.id, tf, bars):
+                _save_research_trade(vid, coh["id"], book, t)
         evaluated = cfg_get(f"eval:{vid}:{key}", 0)
         if last["time"] > evaluated:
             if t4 is None:
@@ -781,8 +813,28 @@ def init() -> None:
             con.execute("INSERT INTO cohorts (version_id, evidence_kind, started_at, ended_at, label, trade_filter, created_at) VALUES (?,?,?,?,?,?,?)",
                         (inc["id"], "paper", start, None, f"{core.SENTINEL_MODEL} paper journal from {time.strftime('%Y-%m-%d', time.gmtime(start))}",
                          json.dumps({"kind": "incumbent"}), int(time.time())))
+    register_code_challengers(cfg_get("incumbent_version"))
     _sync_books()
     _state["started_at"] = time.time()
+
+
+def register_code_challengers(parent_id: Optional[str]) -> list[dict]:
+    """Register every CODE_CHALLENGERS entry once, as a child of `parent_id`,
+    and move it to paper-testing (which opens its cohort). A version that
+    already exists is left exactly as it is, whatever state the owner put it in."""
+    out = []
+    for ch in CODE_CHALLENGERS:
+        vid = version_id(lab.normalize(ch["rules"]), parent_id)
+        existing = get_version(vid)
+        if existing:
+            out.append(existing)
+            continue
+        v = create_version(ch["name"], ch["rules"], ch["slices"], parent_id, ch.get("notes", ""), "validating",
+                           code_backed=False, by="release")
+        v = transition(v["id"], "paper-testing", ch["reason"], ch.get("evidence_ref"), by="release")
+        _notify(f"challenger registered: {v['name']} · paper cohort open · judged at 100/150 against the incumbent")
+        out.append(v)
+    return out
 
 
 def attach(sentinel_module) -> None:

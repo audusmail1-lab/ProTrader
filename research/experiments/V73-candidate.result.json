@@ -1,0 +1,4741 @@
+{
+ "id": "V73-candidate",
+ "hypothesis": "B2+B3",
+ "generated": 1791379471,
+ "bounds": {
+  "start": 1759465961,
+  "dev_end": 1775334230,
+  "val_end": 1781681538,
+  "end": 1791202500
+ },
+ "slices": [
+  [
+   "frxNAS100",
+   "15m"
+  ],
+  [
+   "frxNAS100",
+   "1h"
+  ],
+  [
+   "frxNAS100",
+   "4h"
+  ],
+  [
+   "frxXAUUSD",
+   "15m"
+  ],
+  [
+   "frxXAUUSD",
+   "1h"
+  ],
+  [
+   "frxXAUUSD",
+   "4h"
+  ],
+  [
+   "cryBTCUSD",
+   "15m"
+  ],
+  [
+   "cryBTCUSD",
+   "1h"
+  ],
+  [
+   "cryBTCUSD",
+   "4h"
+  ]
+ ],
+ "base_rules": {
+  "entry": "aria",
+  "model": "7.2c",
+  "mtf": null,
+  "wave5_veto": null,
+  "gates": {},
+  "stop": {
+   "kind": "aria"
+  },
+  "exit": {
+   "kind": "model"
+  },
+  "donchian": {
+   "lookback": 20,
+   "trend": true,
+   "sides": "both"
+  },
+  "shadows": true
+ },
+ "base_version": "f1901b9713",
+ "variants": {
+  "base": {
+   "n": 2255,
+   "dev": {
+    "x1.0": {
+     "n": 1037,
+     "wins": 510,
+     "win_rate": 0.4918,
+     "wilson_lower_win": 0.4615,
+     "expectancy_r": 0.0782,
+     "gross_expectancy_r": 0.1233,
+     "ci95_r": [
+      -0.0143,
+      0.1708
+     ],
+     "ci95_block_r": [
+      -0.0422,
+      0.2158
+     ],
+     "se_r": 0.04724,
+     "total_r": 81.14,
+     "profit_factor": 1.148,
+     "max_drawdown_r": 43.76,
+     "longest_losing_streak": 13,
+     "timeouts": 2,
+     "avg_cost_r": 0.045,
+     "cost_share": 0.04,
+     "months": 7,
+     "months_positive_share": 0.571,
+     "best_two_months_share": 1.2,
+     "thirds_r": [
+      -3.83,
+      73.86,
+      11.11
+     ],
+     "thirds_positive": 2,
+     "best_trade_removed_r": 0.0703,
+     "regimes": {
+      "up": 444,
+      "down": 593
+     },
+     "cost_mult": 1.0,
+     "mfe_avg_r": 1.352,
+     "never_reached_half_r": 0.333
+    },
+    "x1.5": {
+     "n": 1037,
+     "wins": 510,
+     "win_rate": 0.4918,
+     "wilson_lower_win": 0.4615,
+     "expectancy_r": 0.0557,
+     "gross_expectancy_r": 0.1233,
+     "ci95_r": [
+      -0.0369,
+      0.1483
+     ],
+     "ci95_block_r": [
+      -0.0658,
+      0.1923
+     ],
+     "se_r": 0.04724,
+     "total_r": 57.8,
+     "profit_factor": 1.103,
+     "max_drawdown_r": 49.95,
+     "longest_losing_streak": 13,
+     "timeouts": 2,
+     "avg_cost_r": 0.0675,
+     "cost_share": 0.059,
+     "months": 7,
+     "months_positive_share": 0.571,
+     "best_two_months_share": 1.519,
+     "thirds_r": [
+      -11.67,
+      65.36,
+      4.11
+     ],
+     "thirds_positive": 2,
+     "best_trade_removed_r": 0.0478,
+     "regimes": {
+      "up": 444,
+      "down": 593
+     },
+     "cost_mult": 1.5,
+     "mfe_avg_r": 1.352,
+     "never_reached_half_r": 0.333
+    },
+    "x2.0": {
+     "n": 1037,
+     "wins": 510,
+     "win_rate": 0.4918,
+     "wilson_lower_win": 0.4615,
+     "expectancy_r": 0.0332,
+     "gross_expectancy_r": 0.1233,
+     "ci95_r": [
+      -0.0594,
+      0.1258
+     ],
+     "ci95_block_r": [
+      -0.0898,
+      0.1691
+     ],
+     "se_r": 0.04725,
+     "total_r": 34.46,
+     "profit_factor": 1.06,
+     "max_drawdown_r": 56.14,
+     "longest_losing_streak": 19,
+     "timeouts": 2,
+     "avg_cost_r": 0.09,
+     "cost_share": 0.079,
+     "months": 7,
+     "months_positive_share": 0.571,
+     "best_two_months_share": 2.269,
+     "thirds_r": [
+      -19.5,
+      56.85,
+      -2.89
+     ],
+     "thirds_positive": 1,
+     "best_trade_removed_r": 0.0253,
+     "regimes": {
+      "up": 444,
+      "down": 593
+     },
+     "cost_mult": 2.0,
+     "mfe_avg_r": 1.352,
+     "never_reached_half_r": 0.333
+    },
+    "by_slice": {
+     "cryBTCUSD 15m": {
+      "n": 356,
+      "wins": 174,
+      "win_rate": 0.4888,
+      "wilson_lower_win": 0.4372,
+      "expectancy_r": -0.0214,
+      "gross_expectancy_r": 0.0614,
+      "ci95_r": [
+       -0.1765,
+       0.1338
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.07915,
+      "total_r": -7.61,
+      "profit_factor": 0.961,
+      "max_drawdown_r": 41.76,
+      "longest_losing_streak": 12,
+      "timeouts": 0,
+      "avg_cost_r": 0.0828,
+      "cost_share": 0.076,
+      "months": 7,
+      "months_positive_share": 0.286,
+      "best_two_months_share": null,
+      "thirds_r": [
+       -26.2,
+       12.42,
+       6.17
+      ],
+      "thirds_positive": 2,
+      "best_trade_removed_r": -0.044,
+      "regimes": {
+       "down": 243,
+       "up": 113
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.327,
+      "never_reached_half_r": 0.315
+     },
+     "cryBTCUSD 1h": {
+      "n": 112,
+      "wins": 49,
+      "win_rate": 0.4375,
+      "wilson_lower_win": 0.3492,
+      "expectancy_r": -0.0101,
+      "gross_expectancy_r": 0.0239,
+      "ci95_r": [
+       -0.2884,
+       0.2683
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.14203,
+      "total_r": -1.13,
+      "profit_factor": 0.983,
+      "max_drawdown_r": 9.62,
+      "longest_losing_streak": 8,
+      "timeouts": 0,
+      "avg_cost_r": 0.0339,
+      "cost_share": 0.03,
+      "months": 7,
+      "months_positive_share": 0.429,
+      "best_two_months_share": null,
+      "thirds_r": [
+       -5.39,
+       7.57,
+       -3.3
+      ],
+      "thirds_positive": 1,
+      "best_trade_removed_r": -0.0752,
+      "regimes": {
+       "down": 78,
+       "up": 34
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.277,
+      "never_reached_half_r": 0.348
+     },
+     "cryBTCUSD 4h": {
+      "n": 31,
+      "wins": 16,
+      "win_rate": 0.5161,
+      "wilson_lower_win": 0.3484,
+      "expectancy_r": 0.1481,
+      "gross_expectancy_r": 0.1669,
+      "ci95_r": [
+       -0.3511,
+       0.6473
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.25468,
+      "total_r": 4.59,
+      "profit_factor": 1.3,
+      "max_drawdown_r": 3.56,
+      "longest_losing_streak": 3,
+      "timeouts": 0,
+      "avg_cost_r": 0.0188,
+      "cost_share": 0.017,
+      "months": 5,
+      "months_positive_share": 0.6,
+      "best_two_months_share": 1.44,
+      "thirds_r": [
+       1.3,
+       3.92,
+       -0.63
+      ],
+      "thirds_positive": 2,
+      "best_trade_removed_r": 0.0424,
+      "regimes": {
+       "down": 22,
+       "up": 9
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.341,
+      "never_reached_half_r": 0.355
+     },
+     "frxNAS100 15m": {
+      "n": 124,
+      "wins": 64,
+      "win_rate": 0.5161,
+      "wilson_lower_win": 0.429,
+      "expectancy_r": 0.2072,
+      "gross_expectancy_r": 0.2338,
+      "ci95_r": [
+       -0.0518,
+       0.4662
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.13214,
+      "total_r": 25.7,
+      "profit_factor": 1.431,
+      "max_drawdown_r": 8.91,
+      "longest_losing_streak": 4,
+      "timeouts": 2,
+      "avg_cost_r": 0.0266,
+      "cost_share": 0.023,
+      "months": 6,
+      "months_positive_share": 0.833,
+      "best_two_months_share": 0.696,
+      "thirds_r": [
+       14.06,
+       10.51,
+       1.12
+      ],
+      "thirds_positive": 3,
+      "best_trade_removed_r": 0.1601,
+      "regimes": {
+       "up": 50,
+       "down": 74
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.431,
+      "never_reached_half_r": 0.331
+     },
+     "frxNAS100 1h": {
+      "n": 53,
+      "wins": 20,
+      "win_rate": 0.3774,
+      "wilson_lower_win": 0.2594,
+      "expectancy_r": -0.2478,
+      "gross_expectancy_r": -0.2353,
+      "ci95_r": [
+       -0.5481,
+       0.0526
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.15324,
+      "total_r": -13.13,
+      "profit_factor": 0.607,
+      "max_drawdown_r": 19.8,
+      "longest_losing_streak": 6,
+      "timeouts": 0,
+      "avg_cost_r": 0.0125,
+      "cost_share": 0.012,
+      "months": 6,
+      "months_positive_share": 0.167,
+      "best_two_months_share": null,
+      "thirds_r": [
+       -8.65,
+       -3.38,
+       -1.1
+      ],
+      "thirds_positive": 0,
+      "best_trade_removed_r": -0.3014,
+      "regimes": {
+       "up": 23,
+       "down": 30
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 0.983,
+      "never_reached_half_r": 0.453
+     },
+     "frxNAS100 4h": {
+      "n": 17,
+      "wins": 8,
+      "win_rate": 0.4706,
+      "wilson_lower_win": 0.2616,
+      "expectancy_r": -0.0376,
+      "gross_expectancy_r": -0.031,
+      "ci95_r": [
+       -0.5961,
+       0.5208
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.28494,
+      "total_r": -0.64,
+      "profit_factor": 0.929,
+      "max_drawdown_r": 4.88,
+      "longest_losing_streak": 4,
+      "timeouts": 0,
+      "avg_cost_r": 0.0067,
+      "cost_share": 0.006,
+      "months": 3,
+      "months_positive_share": 0.333,
+      "best_two_months_share": null,
+      "thirds_r": [
+       -1.88,
+       -0.55,
+       1.79
+      ],
+      "thirds_positive": 1,
+      "best_trade_removed_r": -0.1878,
+      "regimes": {
+       "up": 6,
+       "down": 11
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.205,
+      "never_reached_half_r": 0.353
+     },
+     "frxXAUUSD 15m": {
+      "n": 245,
+      "wins": 124,
+      "win_rate": 0.5061,
+      "wilson_lower_win": 0.4439,
+      "expectancy_r": 0.1323,
+      "gross_expectancy_r": 0.1629,
+      "ci95_r": [
+       -0.0641,
+       0.3288
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.10024,
+      "total_r": 32.42,
+      "profit_factor": 1.26,
+      "max_drawdown_r": 11.83,
+      "longest_losing_streak": 8,
+      "timeouts": 0,
+      "avg_cost_r": 0.0306,
+      "cost_share": 0.027,
+      "months": 7,
+      "months_positive_share": 0.714,
+      "best_two_months_share": 0.828,
+      "thirds_r": [
+       11.16,
+       23.21,
+       -1.95
+      ],
+      "thirds_positive": 2,
+      "best_trade_removed_r": 0.0988,
+      "regimes": {
+       "up": 152,
+       "down": 93
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.363,
+      "never_reached_half_r": 0.339
+     },
+     "frxXAUUSD 1h": {
+      "n": 86,
+      "wins": 47,
+      "win_rate": 0.5465,
+      "wilson_lower_win": 0.4416,
+      "expectancy_r": 0.2608,
+      "gross_expectancy_r": 0.2747,
+      "ci95_r": [
+       -0.0665,
+       0.5882
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.16701,
+      "total_r": 22.43,
+      "profit_factor": 1.568,
+      "max_drawdown_r": 6.96,
+      "longest_losing_streak": 3,
+      "timeouts": 0,
+      "avg_cost_r": 0.0139,
+      "cost_share": 0.012,
+      "months": 7,
+      "months_positive_share": 0.429,
+      "best_two_months_share": 0.97,
+      "thirds_r": [
+       -2.71,
+       19.16,
+       5.98
+      ],
+      "thirds_positive": 2,
+      "best_trade_removed_r": 0.2029,
+      "regimes": {
+       "down": 38,
+       "up": 48
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.469,
+      "never_reached_half_r": 0.314
+     },
+     "frxXAUUSD 4h": {
+      "n": 13,
+      "wins": 8,
+      "win_rate": 0.6154,
+      "wilson_lower_win": 0.3552,
+      "expectancy_r": 1.4243,
+      "gross_expectancy_r": 1.4297,
+      "ci95_r": [
+       -0.127,
+       2.9756
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.79149,
+      "total_r": 18.52,
+      "profit_factor": 4.687,
+      "max_drawdown_r": 4.01,
+      "longest_losing_streak": 4,
+      "timeouts": 0,
+      "avg_cost_r": 0.0054,
+      "cost_share": 0.002,
+      "months": 4,
+      "months_positive_share": 0.5,
+      "best_two_months_share": 1.095,
+      "thirds_r": [
+       2.17,
+       7.12,
+       9.23
+      ],
+      "thirds_positive": 3,
+      "best_trade_removed_r": 0.9972,
+      "regimes": {
+       "up": 9,
+       "down": 4
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 2.644,
+      "never_reached_half_r": 0.154
+     }
+    },
+    "shadows": {
+     "usd100": {
+      "label": "+$100 \u2192 breakeven, trail $100 (0.27R on $36.9k)",
+      "n": 1037,
+      "expectancy_r": 0.0976,
+      "live_expectancy_r": 0.0782,
+      "vs_live_r": 0.0194,
+      "vs_live_ci95": [
+       -0.0569,
+       0.0957
+      ],
+      "win_rate": 0.6914,
+      "full_loss_pct": 0.2295,
+      "protected_pct": 0.7705,
+      "reached_2_5r_pct": 0.0116
+     },
+     "structure": {
+      "label": "Swing-structure stop after +1R",
+      "n": 1037,
+      "expectancy_r": 0.1299,
+      "live_expectancy_r": 0.0782,
+      "vs_live_r": 0.0517,
+      "vs_live_ci95": [
+       -0.0462,
+       0.1495
+      ],
+      "win_rate": 0.3298,
+      "full_loss_pct": 0.6635,
+      "protected_pct": 0.3365,
+      "reached_2_5r_pct": 0.1196
+     },
+     "hybrid": {
+      "label": "Hybrid: swings after +1R, breakeven fallback",
+      "n": 1037,
+      "expectancy_r": 0.1514,
+      "live_expectancy_r": 0.0782,
+      "vs_live_r": 0.0731,
+      "vs_live_ci95": [
+       -0.0067,
+       0.153
+      ],
+      "win_rate": 0.2758,
+      "full_loss_pct": 0.5188,
+      "protected_pct": 0.4764,
+      "reached_2_5r_pct": 0.1051
+     },
+     "hold": {
+      "label": "Hold to stop or 2.5R",
+      "n": 1037,
+      "expectancy_r": 0.0091,
+      "live_expectancy_r": 0.0782,
+      "vs_live_r": -0.0692,
+      "vs_live_ci95": [
+       -0.1384,
+       0.0
+      ],
+      "win_rate": 0.3038,
+      "full_loss_pct": 0.6933,
+      "protected_pct": 0.0,
+      "reached_2_5r_pct": 0.297
+     },
+     "atr2": {
+      "label": "2xATR(14) ratchet trail from entry",
+      "n": 1037,
+      "expectancy_r": 0.0829,
+      "live_expectancy_r": 0.0782,
+      "vs_live_r": 0.0047,
+      "vs_live_ci95": [
+       -0.0461,
+       0.0554
+      ],
+      "win_rate": 0.3472,
+      "full_loss_pct": 0.2623,
+      "protected_pct": 0.3549,
+      "reached_2_5r_pct": 0.082
+     },
+     "chan10": {
+      "label": "Close beyond the 10-bar counter channel",
+      "n": 1037,
+      "expectancy_r": 0.0441,
+      "live_expectancy_r": 0.0782,
+      "vs_live_r": -0.0341,
+      "vs_live_ci95": [
+       -0.1408,
+       0.0725
+      ],
+      "win_rate": 0.2536,
+      "full_loss_pct": 0.5236,
+      "protected_pct": 0.0,
+      "reached_2_5r_pct": 0.0993
+     }
+    }
+   },
+   "val": {
+    "x1.0": {
+     "n": 505,
+     "wins": 268,
+     "win_rate": 0.5307,
+     "wilson_lower_win": 0.4871,
+     "expectancy_r": 0.089,
+     "gross_expectancy_r": 0.1445,
+     "ci95_r": [
+      -0.0301,
+      0.2081
+     ],
+     "ci95_block_r": [
+      -0.0545,
+      0.2431
+     ],
+     "se_r": 0.06076,
+     "total_r": 44.94,
+     "profit_factor": 1.179,
+     "max_drawdown_r": 32.44,
+     "longest_losing_streak": 10,
+     "timeouts": 0,
+     "avg_cost_r": 0.0555,
+     "cost_share": 0.051,
+     "months": 3,
+     "months_positive_share": 1.0,
+     "best_two_months_share": 0.956,
+     "thirds_r": [
+      25.36,
+      -22.77,
+      42.36
+     ],
+     "thirds_positive": 2,
+     "best_trade_removed_r": 0.0734,
+     "regimes": {
+      "up": 273,
+      "down": 232
+     },
+     "cost_mult": 1.0,
+     "mfe_avg_r": 1.348,
+     "never_reached_half_r": 0.321
+    },
+    "x1.5": {
+     "n": 505,
+     "wins": 268,
+     "win_rate": 0.5307,
+     "wilson_lower_win": 0.4871,
+     "expectancy_r": 0.0613,
+     "gross_expectancy_r": 0.1445,
+     "ci95_r": [
+      -0.058,
+      0.1805
+     ],
+     "ci95_block_r": [
+      -0.0827,
+      0.2148
+     ],
+     "se_r": 0.06085,
+     "total_r": 30.94,
+     "profit_factor": 1.12,
+     "max_drawdown_r": 36.25,
+     "longest_losing_streak": 10,
+     "timeouts": 0,
+     "avg_cost_r": 0.0832,
+     "cost_share": 0.077,
+     "months": 3,
+     "months_positive_share": 0.667,
+     "best_two_months_share": 1.174,
+     "thirds_r": [
+      21.24,
+      -28.26,
+      37.96
+     ],
+     "thirds_positive": 2,
+     "best_trade_removed_r": 0.0457,
+     "regimes": {
+      "up": 273,
+      "down": 232
+     },
+     "cost_mult": 1.5,
+     "mfe_avg_r": 1.348,
+     "never_reached_half_r": 0.321
+    },
+    "x2.0": {
+     "n": 505,
+     "wins": 268,
+     "win_rate": 0.5307,
+     "wilson_lower_win": 0.4871,
+     "expectancy_r": 0.0335,
+     "gross_expectancy_r": 0.1445,
+     "ci95_r": [
+      -0.086,
+      0.153
+     ],
+     "ci95_block_r": [
+      -0.1129,
+      0.1884
+     ],
+     "se_r": 0.06097,
+     "total_r": 16.93,
+     "profit_factor": 1.063,
+     "max_drawdown_r": 42.01,
+     "longest_losing_streak": 10,
+     "timeouts": 0,
+     "avg_cost_r": 0.1109,
+     "cost_share": 0.102,
+     "months": 3,
+     "months_positive_share": 0.667,
+     "best_two_months_share": 1.752,
+     "thirds_r": [
+      17.11,
+      -33.75,
+      33.57
+     ],
+     "thirds_positive": 2,
+     "best_trade_removed_r": 0.0179,
+     "regimes": {
+      "up": 273,
+      "down": 232
+     },
+     "cost_mult": 2.0,
+     "mfe_avg_r": 1.348,
+     "never_reached_half_r": 0.321
+    },
+    "by_slice": {
+     "cryBTCUSD 15m": {
+      "n": 169,
+      "wins": 88,
+      "win_rate": 0.5207,
+      "wilson_lower_win": 0.4458,
+      "expectancy_r": -0.0384,
+      "gross_expectancy_r": 0.0739,
+      "ci95_r": [
+       -0.2302,
+       0.1533
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.09784,
+      "total_r": -6.5,
+      "profit_factor": 0.928,
+      "max_drawdown_r": 27.75,
+      "longest_losing_streak": 12,
+      "timeouts": 0,
+      "avg_cost_r": 0.1123,
+      "cost_share": 0.109,
+      "months": 3,
+      "months_positive_share": 0.333,
+      "best_two_months_share": null,
+      "thirds_r": [
+       -1.02,
+       -19.27,
+       13.79
+      ],
+      "thirds_positive": 1,
+      "best_trade_removed_r": -0.0637,
+      "regimes": {
+       "down": 80,
+       "up": 89
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.274,
+      "never_reached_half_r": 0.331
+     },
+     "cryBTCUSD 1h": {
+      "n": 55,
+      "wins": 29,
+      "win_rate": 0.5273,
+      "wilson_lower_win": 0.3979,
+      "expectancy_r": -0.0045,
+      "gross_expectancy_r": 0.041,
+      "ci95_r": [
+       -0.3147,
+       0.3057
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.15827,
+      "total_r": -0.25,
+      "profit_factor": 0.991,
+      "max_drawdown_r": 12.32,
+      "longest_losing_streak": 6,
+      "timeouts": 0,
+      "avg_cost_r": 0.0455,
+      "cost_share": 0.046,
+      "months": 3,
+      "months_positive_share": 0.333,
+      "best_two_months_share": null,
+      "thirds_r": [
+       -0.68,
+       -6.46,
+       6.89
+      ],
+      "thirds_positive": 1,
+      "best_trade_removed_r": -0.0665,
+      "regimes": {
+       "up": 32,
+       "down": 23
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.271,
+      "never_reached_half_r": 0.291
+     },
+     "cryBTCUSD 4h": {
+      "n": 17,
+      "wins": 9,
+      "win_rate": 0.5294,
+      "wilson_lower_win": 0.3096,
+      "expectancy_r": 0.4262,
+      "gross_expectancy_r": 0.4513,
+      "ci95_r": [
+       -0.391,
+       1.2434
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.41693,
+      "total_r": 7.25,
+      "profit_factor": 1.883,
+      "max_drawdown_r": 4.12,
+      "longest_losing_streak": 4,
+      "timeouts": 0,
+      "avg_cost_r": 0.0251,
+      "cost_share": 0.018,
+      "months": 2,
+      "months_positive_share": 0.5,
+      "best_two_months_share": 1.0,
+      "thirds_r": [
+       1.99,
+       -0.26,
+       5.51
+      ],
+      "thirds_positive": 2,
+      "best_trade_removed_r": 0.164,
+      "regimes": {
+       "up": 13,
+       "down": 4
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.747,
+      "never_reached_half_r": 0.353
+     },
+     "frxNAS100 15m": {
+      "n": 70,
+      "wins": 42,
+      "win_rate": 0.6,
+      "wilson_lower_win": 0.4829,
+      "expectancy_r": 0.3645,
+      "gross_expectancy_r": 0.3898,
+      "ci95_r": [
+       0.0055,
+       0.7235
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.18317,
+      "total_r": 25.52,
+      "profit_factor": 1.889,
+      "max_drawdown_r": 4.6,
+      "longest_losing_streak": 4,
+      "timeouts": 0,
+      "avg_cost_r": 0.0252,
+      "cost_share": 0.021,
+      "months": 3,
+      "months_positive_share": 0.667,
+      "best_two_months_share": 1.14,
+      "thirds_r": [
+       13.97,
+       7.12,
+       4.43
+      ],
+      "thirds_positive": 3,
+      "best_trade_removed_r": 0.2645,
+      "regimes": {
+       "up": 67,
+       "down": 3
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.559,
+      "never_reached_half_r": 0.271
+     },
+     "frxNAS100 1h": {
+      "n": 21,
+      "wins": 13,
+      "win_rate": 0.619,
+      "wilson_lower_win": 0.4088,
+      "expectancy_r": 0.4948,
+      "gross_expectancy_r": 0.5064,
+      "ci95_r": [
+       -0.36,
+       1.3496
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.43612,
+      "total_r": 10.39,
+      "profit_factor": 2.282,
+      "max_drawdown_r": 3.04,
+      "longest_losing_streak": 3,
+      "timeouts": 0,
+      "avg_cost_r": 0.0116,
+      "cost_share": 0.009,
+      "months": 3,
+      "months_positive_share": 0.667,
+      "best_two_months_share": 1.293,
+      "thirds_r": [
+       7.64,
+       4.28,
+       -1.53
+      ],
+      "thirds_positive": 2,
+      "best_trade_removed_r": 0.1229,
+      "regimes": {
+       "up": 21
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.621,
+      "never_reached_half_r": 0.333
+     },
+     "frxNAS100 4h": {
+      "n": 6,
+      "wins": 5,
+      "win_rate": 0.8333,
+      "wilson_lower_win": 0.4365,
+      "expectancy_r": 0.9866,
+      "gross_expectancy_r": 0.9933,
+      "ci95_r": [
+       -0.1099,
+       2.083
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.55942,
+      "total_r": 5.92,
+      "profit_factor": 6.875,
+      "max_drawdown_r": 1.01,
+      "longest_losing_streak": 1,
+      "timeouts": 0,
+      "avg_cost_r": 0.0067,
+      "cost_share": 0.005,
+      "months": 2,
+      "months_positive_share": 0.5,
+      "best_two_months_share": 1.0,
+      "thirds_r": [
+       -0.83,
+       2.74,
+       4.0
+      ],
+      "thirds_positive": 2,
+      "best_trade_removed_r": 0.6725,
+      "regimes": {
+       "up": 6
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 2.04,
+      "never_reached_half_r": 0.167
+     },
+     "frxXAUUSD 15m": {
+      "n": 106,
+      "wins": 51,
+      "win_rate": 0.4811,
+      "wilson_lower_win": 0.3883,
+      "expectancy_r": 0.0216,
+      "gross_expectancy_r": 0.0522,
+      "ci95_r": [
+       -0.234,
+       0.2772
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.13041,
+      "total_r": 2.29,
+      "profit_factor": 1.04,
+      "max_drawdown_r": 14.94,
+      "longest_losing_streak": 9,
+      "timeouts": 0,
+      "avg_cost_r": 0.0306,
+      "cost_share": 0.028,
+      "months": 3,
+      "months_positive_share": 0.667,
+      "best_two_months_share": 3.889,
+      "thirds_r": [
+       -3.85,
+       2.75,
+       3.39
+      ],
+      "thirds_positive": 2,
+      "best_trade_removed_r": -0.018,
+      "regimes": {
+       "up": 29,
+       "down": 77
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.31,
+      "never_reached_half_r": 0.311
+     },
+     "frxXAUUSD 1h": {
+      "n": 49,
+      "wins": 24,
+      "win_rate": 0.4898,
+      "wilson_lower_win": 0.3557,
+      "expectancy_r": -0.0413,
+      "gross_expectancy_r": -0.0265,
+      "ci95_r": [
+       -0.36,
+       0.2774
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.16262,
+      "total_r": -2.02,
+      "profit_factor": 0.92,
+      "max_drawdown_r": 7.83,
+      "longest_losing_streak": 5,
+      "timeouts": 0,
+      "avg_cost_r": 0.0148,
+      "cost_share": 0.015,
+      "months": 3,
+      "months_positive_share": 0.333,
+      "best_two_months_share": null,
+      "thirds_r": [
+       1.13,
+       -1.41,
+       -1.74
+      ],
+      "thirds_positive": 1,
+      "best_trade_removed_r": -0.1029,
+      "regimes": {
+       "up": 13,
+       "down": 36
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.131,
+      "never_reached_half_r": 0.388
+     },
+     "frxXAUUSD 4h": {
+      "n": 12,
+      "wins": 7,
+      "win_rate": 0.5833,
+      "wilson_lower_win": 0.3195,
+      "expectancy_r": 0.1964,
+      "gross_expectancy_r": 0.2035,
+      "ci95_r": [
+       -0.6238,
+       1.0166
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.41849,
+      "total_r": 2.36,
+      "profit_factor": 1.469,
+      "max_drawdown_r": 2.01,
+      "longest_losing_streak": 2,
+      "timeouts": 0,
+      "avg_cost_r": 0.0071,
+      "cost_share": 0.007,
+      "months": 3,
+      "months_positive_share": 0.667,
+      "best_two_months_share": 1.371,
+      "thirds_r": [
+       0.14,
+       -1.55,
+       3.77
+      ],
+      "thirds_positive": 2,
+      "best_trade_removed_r": -0.1268,
+      "regimes": {
+       "up": 3,
+       "down": 9
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.329,
+      "never_reached_half_r": 0.417
+     }
+    },
+    "shadows": {
+     "usd100": {
+      "label": "+$100 \u2192 breakeven, trail $100 (0.27R on $36.9k)",
+      "n": 505,
+      "expectancy_r": 0.0582,
+      "live_expectancy_r": 0.089,
+      "vs_live_r": -0.0308,
+      "vs_live_ci95": [
+       -0.13,
+       0.0683
+      ],
+      "win_rate": 0.6792,
+      "full_loss_pct": 0.2356,
+      "protected_pct": 0.7644,
+      "reached_2_5r_pct": 0.0059
+     },
+     "structure": {
+      "label": "Swing-structure stop after +1R",
+      "n": 505,
+      "expectancy_r": 0.2324,
+      "live_expectancy_r": 0.089,
+      "vs_live_r": 0.1434,
+      "vs_live_ci95": [
+       -0.0112,
+       0.2979
+      ],
+      "win_rate": 0.3881,
+      "full_loss_pct": 0.5941,
+      "protected_pct": 0.4059,
+      "reached_2_5r_pct": 0.1188
+     },
+     "hybrid": {
+      "label": "Hybrid: swings after +1R, breakeven fallback",
+      "n": 505,
+      "expectancy_r": 0.1907,
+      "live_expectancy_r": 0.089,
+      "vs_live_r": 0.1017,
+      "vs_live_ci95": [
+       -0.0364,
+       0.2397
+      ],
+      "win_rate": 0.3149,
+      "full_loss_pct": 0.4851,
+      "protected_pct": 0.5129,
+      "reached_2_5r_pct": 0.0931
+     },
+     "hold": {
+      "label": "Hold to stop or 2.5R",
+      "n": 505,
+      "expectancy_r": 0.1596,
+      "live_expectancy_r": 0.089,
+      "vs_live_r": 0.0706,
+      "vs_live_ci95": [
+       -0.029,
+       0.1703
+      ],
+      "win_rate": 0.3505,
+      "full_loss_pct": 0.6475,
+      "protected_pct": 0.0,
+      "reached_2_5r_pct": 0.3446
+     },
+     "atr2": {
+      "label": "2xATR(14) ratchet trail from entry",
+      "n": 505,
+      "expectancy_r": 0.1185,
+      "live_expectancy_r": 0.089,
+      "vs_live_r": 0.0295,
+      "vs_live_ci95": [
+       -0.0526,
+       0.1117
+      ],
+      "win_rate": 0.398,
+      "full_loss_pct": 0.2594,
+      "protected_pct": 0.4139,
+      "reached_2_5r_pct": 0.0812
+     },
+     "chan10": {
+      "label": "Close beyond the 10-bar counter channel",
+      "n": 505,
+      "expectancy_r": 0.1983,
+      "live_expectancy_r": 0.089,
+      "vs_live_r": 0.1093,
+      "vs_live_ci95": [
+       -0.0587,
+       0.2774
+      ],
+      "win_rate": 0.299,
+      "full_loss_pct": 0.4931,
+      "protected_pct": 0.0,
+      "reached_2_5r_pct": 0.1168
+     }
+    }
+   },
+   "holdout": {
+    "x1.0": {
+     "n": 713,
+     "wins": 360,
+     "win_rate": 0.5049,
+     "wilson_lower_win": 0.4683,
+     "expectancy_r": 0.0449,
+     "gross_expectancy_r": 0.1135,
+     "ci95_r": [
+      -0.0743,
+      0.1641
+     ],
+     "ci95_block_r": [
+      -0.0956,
+      0.1771
+     ],
+     "se_r": 0.06081,
+     "total_r": 32.0,
+     "profit_factor": 1.085,
+     "max_drawdown_r": 30.33,
+     "longest_losing_streak": 11,
+     "timeouts": 2,
+     "avg_cost_r": 0.0686,
+     "cost_share": 0.062,
+     "months": 5,
+     "months_positive_share": 0.6,
+     "best_two_months_share": 2.004,
+     "thirds_r": [
+      22.82,
+      16.25,
+      -7.07
+     ],
+     "thirds_positive": 2,
+     "best_trade_removed_r": 0.012,
+     "regimes": {
+      "up": 350,
+      "down": 363
+     },
+     "cost_mult": 1.0,
+     "mfe_avg_r": 1.33,
+     "never_reached_half_r": 0.339
+    },
+    "x1.5": {
+     "n": 713,
+     "wins": 360,
+     "win_rate": 0.5049,
+     "wilson_lower_win": 0.4683,
+     "expectancy_r": 0.0106,
+     "gross_expectancy_r": 0.1135,
+     "ci95_r": [
+      -0.1087,
+      0.1299
+     ],
+     "ci95_block_r": [
+      -0.13,
+      0.1446
+     ],
+     "se_r": 0.06087,
+     "total_r": 7.54,
+     "profit_factor": 1.019,
+     "max_drawdown_r": 38.9,
+     "longest_losing_streak": 11,
+     "timeouts": 2,
+     "avg_cost_r": 0.1029,
+     "cost_share": 0.094,
+     "months": 5,
+     "months_positive_share": 0.4,
+     "best_two_months_share": 7.111,
+     "thirds_r": [
+      16.01,
+      6.53,
+      -15.0
+     ],
+     "thirds_positive": 2,
+     "best_trade_removed_r": -0.0223,
+     "regimes": {
+      "up": 350,
+      "down": 363
+     },
+     "cost_mult": 1.5,
+     "mfe_avg_r": 1.33,
+     "never_reached_half_r": 0.339
+    },
+    "x2.0": {
+     "n": 713,
+     "wins": 360,
+     "win_rate": 0.5049,
+     "wilson_lower_win": 0.4683,
+     "expectancy_r": -0.0237,
+     "gross_expectancy_r": 0.1135,
+     "ci95_r": [
+      -0.1433,
+      0.0958
+     ],
+     "ci95_block_r": [
+      -0.1645,
+      0.1142
+     ],
+     "se_r": 0.06098,
+     "total_r": -16.92,
+     "profit_factor": 0.958,
+     "max_drawdown_r": 55.7,
+     "longest_losing_streak": 11,
+     "timeouts": 2,
+     "avg_cost_r": 0.1372,
+     "cost_share": 0.125,
+     "months": 5,
+     "months_positive_share": 0.4,
+     "best_two_months_share": null,
+     "thirds_r": [
+      9.2,
+      -3.18,
+      -22.93
+     ],
+     "thirds_positive": 1,
+     "best_trade_removed_r": -0.0566,
+     "regimes": {
+      "up": 350,
+      "down": 363
+     },
+     "cost_mult": 2.0,
+     "mfe_avg_r": 1.33,
+     "never_reached_half_r": 0.339
+    },
+    "by_slice": {
+     "cryBTCUSD 15m": {
+      "n": 218,
+      "wins": 106,
+      "win_rate": 0.4862,
+      "wilson_lower_win": 0.4207,
+      "expectancy_r": -0.0966,
+      "gross_expectancy_r": 0.0629,
+      "ci95_r": [
+       -0.2796,
+       0.0863
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.09334,
+      "total_r": -21.06,
+      "profit_factor": 0.837,
+      "max_drawdown_r": 36.05,
+      "longest_losing_streak": 8,
+      "timeouts": 2,
+      "avg_cost_r": 0.1595,
+      "cost_share": 0.148,
+      "months": 5,
+      "months_positive_share": 0.4,
+      "best_two_months_share": null,
+      "thirds_r": [
+       -7.13,
+       -5.86,
+       -8.07
+      ],
+      "thirds_positive": 0,
+      "best_trade_removed_r": -0.1304,
+      "regimes": {
+       "up": 141,
+       "down": 77
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.275,
+      "never_reached_half_r": 0.353
+     },
+     "cryBTCUSD 1h": {
+      "n": 65,
+      "wins": 32,
+      "win_rate": 0.4923,
+      "wilson_lower_win": 0.3746,
+      "expectancy_r": 0.1892,
+      "gross_expectancy_r": 0.2488,
+      "ci95_r": [
+       -0.5637,
+       0.9421
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.38413,
+      "total_r": 12.3,
+      "profit_factor": 1.352,
+      "max_drawdown_r": 15.66,
+      "longest_losing_streak": 5,
+      "timeouts": 0,
+      "avg_cost_r": 0.0597,
+      "cost_share": 0.047,
+      "months": 5,
+      "months_positive_share": 0.6,
+      "best_two_months_share": 1.963,
+      "thirds_r": [
+       -9.62,
+       16.58,
+       5.34
+      ],
+      "thirds_positive": 2,
+      "best_trade_removed_r": -0.175,
+      "regimes": {
+       "down": 26,
+       "up": 39
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.512,
+      "never_reached_half_r": 0.323
+     },
+     "cryBTCUSD 4h": {
+      "n": 27,
+      "wins": 11,
+      "win_rate": 0.4074,
+      "wilson_lower_win": 0.2451,
+      "expectancy_r": -0.1506,
+      "gross_expectancy_r": -0.1218,
+      "ci95_r": [
+       -0.656,
+       0.3547
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.25783,
+      "total_r": -4.07,
+      "profit_factor": 0.753,
+      "max_drawdown_r": 10.54,
+      "longest_losing_streak": 4,
+      "timeouts": 0,
+      "avg_cost_r": 0.0288,
+      "cost_share": 0.027,
+      "months": 5,
+      "months_positive_share": 0.6,
+      "best_two_months_share": null,
+      "thirds_r": [
+       -1.64,
+       -5.56,
+       3.14
+      ],
+      "thirds_positive": 1,
+      "best_trade_removed_r": -0.3316,
+      "regimes": {
+       "down": 9,
+       "up": 18
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.122,
+      "never_reached_half_r": 0.37
+     },
+     "frxNAS100 15m": {
+      "n": 111,
+      "wins": 54,
+      "win_rate": 0.4865,
+      "wilson_lower_win": 0.3955,
+      "expectancy_r": 0.0545,
+      "gross_expectancy_r": 0.0781,
+      "ci95_r": [
+       -0.2398,
+       0.3488
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.15016,
+      "total_r": 6.05,
+      "profit_factor": 1.104,
+      "max_drawdown_r": 16.48,
+      "longest_losing_streak": 10,
+      "timeouts": 0,
+      "avg_cost_r": 0.0236,
+      "cost_share": 0.021,
+      "months": 5,
+      "months_positive_share": 0.4,
+      "best_two_months_share": 1.619,
+      "thirds_r": [
+       6.5,
+       -0.93,
+       0.47
+      ],
+      "thirds_positive": 2,
+      "best_trade_removed_r": -0.0243,
+      "regimes": {
+       "up": 46,
+       "down": 65
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.29,
+      "never_reached_half_r": 0.414
+     },
+     "frxNAS100 1h": {
+      "n": 38,
+      "wins": 18,
+      "win_rate": 0.4737,
+      "wilson_lower_win": 0.3248,
+      "expectancy_r": -0.1431,
+      "gross_expectancy_r": -0.1325,
+      "ci95_r": [
+       -0.4526,
+       0.1664
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.15792,
+      "total_r": -5.44,
+      "profit_factor": 0.731,
+      "max_drawdown_r": 9.99,
+      "longest_losing_streak": 6,
+      "timeouts": 0,
+      "avg_cost_r": 0.0106,
+      "cost_share": 0.012,
+      "months": 5,
+      "months_positive_share": 0.6,
+      "best_two_months_share": null,
+      "thirds_r": [
+       -1.64,
+       4.84,
+       -8.63
+      ],
+      "thirds_positive": 1,
+      "best_trade_removed_r": -0.2019,
+      "regimes": {
+       "up": 13,
+       "down": 25
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.057,
+      "never_reached_half_r": 0.395
+     },
+     "frxNAS100 4h": {
+      "n": 22,
+      "wins": 8,
+      "win_rate": 0.3636,
+      "wilson_lower_win": 0.1973,
+      "expectancy_r": -0.2583,
+      "gross_expectancy_r": -0.252,
+      "ci95_r": [
+       -0.7232,
+       0.2067
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.23722,
+      "total_r": -5.68,
+      "profit_factor": 0.597,
+      "max_drawdown_r": 7.39,
+      "longest_losing_streak": 4,
+      "timeouts": 0,
+      "avg_cost_r": 0.0063,
+      "cost_share": 0.006,
+      "months": 5,
+      "months_positive_share": 0.2,
+      "best_two_months_share": null,
+      "thirds_r": [
+       -1.4,
+       -0.52,
+       -3.76
+      ],
+      "thirds_positive": 0,
+      "best_trade_removed_r": -0.3847,
+      "regimes": {
+       "up": 7,
+       "down": 15
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 0.986,
+      "never_reached_half_r": 0.455
+     },
+     "frxXAUUSD 15m": {
+      "n": 160,
+      "wins": 91,
+      "win_rate": 0.5687,
+      "wilson_lower_win": 0.4913,
+      "expectancy_r": 0.2171,
+      "gross_expectancy_r": 0.2507,
+      "ci95_r": [
+       -0.006,
+       0.4402
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.11382,
+      "total_r": 34.74,
+      "profit_factor": 1.487,
+      "max_drawdown_r": 10.53,
+      "longest_losing_streak": 5,
+      "timeouts": 0,
+      "avg_cost_r": 0.0336,
+      "cost_share": 0.03,
+      "months": 5,
+      "months_positive_share": 0.6,
+      "best_two_months_share": 0.927,
+      "thirds_r": [
+       19.69,
+       12.69,
+       2.36
+      ],
+      "thirds_positive": 3,
+      "best_trade_removed_r": 0.1833,
+      "regimes": {
+       "up": 61,
+       "down": 99
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.446,
+      "never_reached_half_r": 0.281
+     },
+     "frxXAUUSD 1h": {
+      "n": 49,
+      "wins": 27,
+      "win_rate": 0.551,
+      "wilson_lower_win": 0.4131,
+      "expectancy_r": 0.2118,
+      "gross_expectancy_r": 0.2278,
+      "ci95_r": [
+       -0.1639,
+       0.5874
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.19166,
+      "total_r": 10.38,
+      "profit_factor": 1.464,
+      "max_drawdown_r": 4.74,
+      "longest_losing_streak": 4,
+      "timeouts": 0,
+      "avg_cost_r": 0.016,
+      "cost_share": 0.014,
+      "months": 4,
+      "months_positive_share": 0.75,
+      "best_two_months_share": 1.076,
+      "thirds_r": [
+       7.4,
+       1.22,
+       1.75
+      ],
+      "thirds_positive": 3,
+      "best_trade_removed_r": 0.1459,
+      "regimes": {
+       "up": 18,
+       "down": 31
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.496,
+      "never_reached_half_r": 0.204
+     },
+     "frxXAUUSD 4h": {
+      "n": 23,
+      "wins": 13,
+      "win_rate": 0.5652,
+      "wilson_lower_win": 0.3681,
+      "expectancy_r": 0.2086,
+      "gross_expectancy_r": 0.2164,
+      "ci95_r": [
+       -0.3113,
+       0.7285
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.26526,
+      "total_r": 4.8,
+      "profit_factor": 1.476,
+      "max_drawdown_r": 3.99,
+      "longest_losing_streak": 3,
+      "timeouts": 0,
+      "avg_cost_r": 0.0078,
+      "cost_share": 0.007,
+      "months": 4,
+      "months_positive_share": 0.5,
+      "best_two_months_share": 1.731,
+      "thirds_r": [
+       5.92,
+       2.87,
+       -3.99
+      ],
+      "thirds_positive": 2,
+      "best_trade_removed_r": 0.0982,
+      "regimes": {
+       "down": 16,
+       "up": 7
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.384,
+      "never_reached_half_r": 0.348
+     }
+    },
+    "shadows": {
+     "usd100": {
+      "label": "+$100 \u2192 breakeven, trail $100 (0.27R on $36.9k)",
+      "n": 713,
+      "expectancy_r": 0.0496,
+      "live_expectancy_r": 0.0449,
+      "vs_live_r": 0.0047,
+      "vs_live_ci95": [
+       -0.1011,
+       0.1105
+      ],
+      "win_rate": 0.6606,
+      "full_loss_pct": 0.2272,
+      "protected_pct": 0.7728,
+      "reached_2_5r_pct": 0.0084
+     },
+     "structure": {
+      "label": "Swing-structure stop after +1R",
+      "n": 709,
+      "expectancy_r": 0.1362,
+      "live_expectancy_r": 0.0421,
+      "vs_live_r": 0.0941,
+      "vs_live_ci95": [
+       -0.0579,
+       0.2462
+      ],
+      "win_rate": 0.3357,
+      "full_loss_pct": 0.6559,
+      "protected_pct": 0.3427,
+      "reached_2_5r_pct": 0.1086
+     },
+     "hybrid": {
+      "label": "Hybrid: swings after +1R, breakeven fallback",
+      "n": 711,
+      "expectancy_r": 0.129,
+      "live_expectancy_r": 0.0424,
+      "vs_live_r": 0.0866,
+      "vs_live_ci95": [
+       -0.0507,
+       0.224
+      ],
+      "win_rate": 0.2757,
+      "full_loss_pct": 0.5105,
+      "protected_pct": 0.4824,
+      "reached_2_5r_pct": 0.0858
+     },
+     "hold": {
+      "label": "Hold to stop or 2.5R",
+      "n": 709,
+      "expectancy_r": -0.1303,
+      "live_expectancy_r": 0.0411,
+      "vs_live_r": -0.1714,
+      "vs_live_ci95": [
+       -0.2708,
+       -0.072
+      ],
+      "win_rate": 0.2722,
+      "full_loss_pct": 0.725,
+      "protected_pct": 0.0,
+      "reached_2_5r_pct": 0.2638
+     },
+     "atr2": {
+      "label": "2xATR(14) ratchet trail from entry",
+      "n": 711,
+      "expectancy_r": 0.0396,
+      "live_expectancy_r": 0.044,
+      "vs_live_r": -0.0044,
+      "vs_live_ci95": [
+       -0.0731,
+       0.0643
+      ],
+      "win_rate": 0.346,
+      "full_loss_pct": 0.2602,
+      "protected_pct": 0.3586,
+      "reached_2_5r_pct": 0.0633
+     },
+     "chan10": {
+      "label": "Close beyond the 10-bar counter channel",
+      "n": 708,
+      "expectancy_r": 0.1109,
+      "live_expectancy_r": 0.0407,
+      "vs_live_r": 0.0702,
+      "vs_live_ci95": [
+       -0.0879,
+       0.2284
+      ],
+      "win_rate": 0.25,
+      "full_loss_pct": 0.4915,
+      "protected_pct": 0.0,
+      "reached_2_5r_pct": 0.096
+     }
+    }
+   },
+   "all": {
+    "x1.0": {
+     "n": 2255,
+     "wins": 1138,
+     "win_rate": 0.5047,
+     "wilson_lower_win": 0.484,
+     "expectancy_r": 0.0701,
+     "gross_expectancy_r": 0.1249,
+     "ci95_r": [
+      0.0073,
+      0.1329
+     ],
+     "ci95_block_r": [
+      -0.0025,
+      0.1604
+     ],
+     "se_r": 0.03203,
+     "total_r": 158.09,
+     "profit_factor": 1.134,
+     "max_drawdown_r": 43.76,
+     "longest_losing_streak": 13,
+     "timeouts": 4,
+     "avg_cost_r": 0.0548,
+     "cost_share": 0.049,
+     "months": 13,
+     "months_positive_share": 0.692,
+     "best_two_months_share": 0.801,
+     "thirds_r": [
+      55.96,
+      64.95,
+      37.18
+     ],
+     "thirds_positive": 3,
+     "best_trade_removed_r": 0.0597,
+     "regimes": {
+      "up": 1067,
+      "down": 1188
+     },
+     "cost_mult": 1.0,
+     "mfe_avg_r": 1.344,
+     "never_reached_half_r": 0.332
+    },
+    "x1.5": {
+     "n": 2255,
+     "wins": 1138,
+     "win_rate": 0.5047,
+     "wilson_lower_win": 0.484,
+     "expectancy_r": 0.0427,
+     "gross_expectancy_r": 0.1249,
+     "ci95_r": [
+      -0.0201,
+      0.1055
+     ],
+     "ci95_block_r": [
+      -0.0324,
+      0.1333
+     ],
+     "se_r": 0.03205,
+     "total_r": 96.28,
+     "profit_factor": 1.079,
+     "max_drawdown_r": 49.95,
+     "longest_losing_streak": 13,
+     "timeouts": 4,
+     "avg_cost_r": 0.0822,
+     "cost_share": 0.074,
+     "months": 13,
+     "months_positive_share": 0.538,
+     "best_two_months_share": 1.214,
+     "thirds_r": [
+      38.45,
+      46.04,
+      11.79
+     ],
+     "thirds_positive": 3,
+     "best_trade_removed_r": 0.0323,
+     "regimes": {
+      "up": 1067,
+      "down": 1188
+     },
+     "cost_mult": 1.5,
+     "mfe_avg_r": 1.344,
+     "never_reached_half_r": 0.332
+    },
+    "x2.0": {
+     "n": 2255,
+     "wins": 1138,
+     "win_rate": 0.5047,
+     "wilson_lower_win": 0.484,
+     "expectancy_r": 0.0153,
+     "gross_expectancy_r": 0.1249,
+     "ci95_r": [
+      -0.0476,
+      0.0782
+     ],
+     "ci95_block_r": [
+      -0.0624,
+      0.1075
+     ],
+     "se_r": 0.03209,
+     "total_r": 34.47,
+     "profit_factor": 1.028,
+     "max_drawdown_r": 56.14,
+     "longest_losing_streak": 19,
+     "timeouts": 4,
+     "avg_cost_r": 0.1096,
+     "cost_share": 0.099,
+     "months": 13,
+     "months_positive_share": 0.538,
+     "best_two_months_share": 3.109,
+     "thirds_r": [
+      20.94,
+      27.13,
+      -13.6
+     ],
+     "thirds_positive": 2,
+     "best_trade_removed_r": 0.0049,
+     "regimes": {
+      "up": 1067,
+      "down": 1188
+     },
+     "cost_mult": 2.0,
+     "mfe_avg_r": 1.344,
+     "never_reached_half_r": 0.332
+    },
+    "by_slice": {
+     "cryBTCUSD 15m": {
+      "n": 743,
+      "wins": 368,
+      "win_rate": 0.4953,
+      "wilson_lower_win": 0.4595,
+      "expectancy_r": -0.0473,
+      "gross_expectancy_r": 0.0647,
+      "ci95_r": [
+       -0.1488,
+       0.0541
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.05175,
+      "total_r": -35.17,
+      "profit_factor": 0.916,
+      "max_drawdown_r": 43.15,
+      "longest_losing_streak": 12,
+      "timeouts": 2,
+      "avg_cost_r": 0.112,
+      "cost_share": 0.105,
+      "months": 13,
+      "months_positive_share": 0.308,
+      "best_two_months_share": null,
+      "thirds_r": [
+       -12.29,
+       -4.2,
+       -18.69
+      ],
+      "thirds_positive": 0,
+      "best_trade_removed_r": -0.0582,
+      "regimes": {
+       "down": 400,
+       "up": 343
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.3,
+      "never_reached_half_r": 0.33
+     },
+     "cryBTCUSD 1h": {
+      "n": 232,
+      "wins": 110,
+      "win_rate": 0.4741,
+      "wilson_lower_win": 0.4108,
+      "expectancy_r": 0.0471,
+      "gross_expectancy_r": 0.0909,
+      "ci95_r": [
+       -0.2126,
+       0.3068
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.1325,
+      "total_r": 10.92,
+      "profit_factor": 1.086,
+      "max_drawdown_r": 21.1,
+      "longest_losing_streak": 8,
+      "timeouts": 0,
+      "avg_cost_r": 0.0439,
+      "cost_share": 0.038,
+      "months": 13,
+      "months_positive_share": 0.538,
+      "best_two_months_share": 2.775,
+      "thirds_r": [
+       0.53,
+       -5.75,
+       16.14
+      ],
+      "thirds_positive": 2,
+      "best_trade_removed_r": -0.0544,
+      "regimes": {
+       "down": 127,
+       "up": 105
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.342,
+      "never_reached_half_r": 0.328
+     },
+     "cryBTCUSD 4h": {
+      "n": 75,
+      "wins": 36,
+      "win_rate": 0.48,
+      "wilson_lower_win": 0.3707,
+      "expectancy_r": 0.1036,
+      "gross_expectancy_r": 0.1274,
+      "ci95_r": [
+       -0.2269,
+       0.4341
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.16864,
+      "total_r": 7.77,
+      "profit_factor": 1.194,
+      "max_drawdown_r": 10.54,
+      "longest_losing_streak": 4,
+      "timeouts": 0,
+      "avg_cost_r": 0.0238,
+      "cost_share": 0.02,
+      "months": 11,
+      "months_positive_share": 0.636,
+      "best_two_months_share": 1.652,
+      "thirds_r": [
+       5.87,
+       6.81,
+       -4.91
+      ],
+      "thirds_positive": 2,
+      "best_trade_removed_r": 0.0426,
+      "regimes": {
+       "down": 35,
+       "up": 40
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.354,
+      "never_reached_half_r": 0.36
+     },
+     "frxNAS100 15m": {
+      "n": 305,
+      "wins": 160,
+      "win_rate": 0.5246,
+      "wilson_lower_win": 0.4686,
+      "expectancy_r": 0.1877,
+      "gross_expectancy_r": 0.2129,
+      "ci95_r": [
+       0.0165,
+       0.359
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.08737,
+      "total_r": 57.26,
+      "profit_factor": 1.39,
+      "max_drawdown_r": 16.48,
+      "longest_losing_streak": 10,
+      "timeouts": 2,
+      "avg_cost_r": 0.0252,
+      "cost_share": 0.022,
+      "months": 13,
+      "months_positive_share": 0.692,
+      "best_two_months_share": 0.508,
+      "thirds_r": [
+       18.61,
+       35.31,
+       3.33
+      ],
+      "thirds_positive": 3,
+      "best_trade_removed_r": 0.1597,
+      "regimes": {
+       "up": 163,
+       "down": 142
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.409,
+      "never_reached_half_r": 0.348
+     },
+     "frxNAS100 1h": {
+      "n": 112,
+      "wins": 51,
+      "win_rate": 0.4554,
+      "wilson_lower_win": 0.3661,
+      "expectancy_r": -0.073,
+      "gross_expectancy_r": -0.0613,
+      "ci95_r": [
+       -0.3142,
+       0.1682
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.12305,
+      "total_r": -8.18,
+      "profit_factor": 0.868,
+      "max_drawdown_r": 19.8,
+      "longest_losing_streak": 6,
+      "timeouts": 0,
+      "avg_cost_r": 0.0117,
+      "cost_share": 0.011,
+      "months": 13,
+      "months_positive_share": 0.462,
+      "best_two_months_share": null,
+      "thirds_r": [
+       -12.79,
+       10.05,
+       -5.44
+      ],
+      "thirds_positive": 1,
+      "best_trade_removed_r": -0.1451,
+      "regimes": {
+       "up": 57,
+       "down": 55
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.128,
+      "never_reached_half_r": 0.411
+     },
+     "frxNAS100 4h": {
+      "n": 45,
+      "wins": 21,
+      "win_rate": 0.4667,
+      "wilson_lower_win": 0.3293,
+      "expectancy_r": -0.0089,
+      "gross_expectancy_r": -0.0025,
+      "ci95_r": [
+       -0.3635,
+       0.3456
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.1809,
+      "total_r": -0.4,
+      "profit_factor": 0.983,
+      "max_drawdown_r": 7.39,
+      "longest_losing_streak": 4,
+      "timeouts": 0,
+      "avg_cost_r": 0.0065,
+      "cost_share": 0.006,
+      "months": 10,
+      "months_positive_share": 0.3,
+      "best_two_months_share": null,
+      "thirds_r": [
+       -4.8,
+       8.67,
+       -4.28
+      ],
+      "thirds_positive": 1,
+      "best_trade_removed_r": -0.0673,
+      "regimes": {
+       "up": 19,
+       "down": 26
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.209,
+      "never_reached_half_r": 0.378
+     },
+     "frxXAUUSD 15m": {
+      "n": 511,
+      "wins": 266,
+      "win_rate": 0.5205,
+      "wilson_lower_win": 0.4772,
+      "expectancy_r": 0.1359,
+      "gross_expectancy_r": 0.1674,
+      "ci95_r": [
+       0.0073,
+       0.2645
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.06561,
+      "total_r": 69.44,
+      "profit_factor": 1.275,
+      "max_drawdown_r": 14.94,
+      "longest_losing_streak": 9,
+      "timeouts": 0,
+      "avg_cost_r": 0.0315,
+      "cost_share": 0.028,
+      "months": 13,
+      "months_positive_share": 0.692,
+      "best_two_months_share": 0.569,
+      "thirds_r": [
+       34.44,
+       -3.75,
+       38.75
+      ],
+      "thirds_positive": 2,
+      "best_trade_removed_r": 0.1199,
+      "regimes": {
+       "up": 242,
+       "down": 269
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.378,
+      "never_reached_half_r": 0.315
+     },
+     "frxXAUUSD 1h": {
+      "n": 184,
+      "wins": 98,
+      "win_rate": 0.5326,
+      "wilson_lower_win": 0.4606,
+      "expectancy_r": 0.1673,
+      "gross_expectancy_r": 0.182,
+      "ci95_r": [
+       -0.0341,
+       0.3687
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.10275,
+      "total_r": 30.79,
+      "profit_factor": 1.353,
+      "max_drawdown_r": 9.14,
+      "longest_losing_streak": 5,
+      "timeouts": 0,
+      "avg_cost_r": 0.0147,
+      "cost_share": 0.013,
+      "months": 12,
+      "months_positive_share": 0.583,
+      "best_two_months_share": 0.707,
+      "thirds_r": [
+       16.35,
+       1.74,
+       12.7
+      ],
+      "thirds_positive": 3,
+      "best_trade_removed_r": 0.1399,
+      "regimes": {
+       "down": 105,
+       "up": 79
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.386,
+      "never_reached_half_r": 0.304
+     },
+     "frxXAUUSD 4h": {
+      "n": 48,
+      "wins": 28,
+      "win_rate": 0.5833,
+      "wilson_lower_win": 0.4428,
+      "expectancy_r": 0.5348,
+      "gross_expectancy_r": 0.5417,
+      "ci95_r": [
+       -0.0041,
+       1.0737
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.27495,
+      "total_r": 25.67,
+      "profit_factor": 2.275,
+      "max_drawdown_r": 4.01,
+      "longest_losing_streak": 4,
+      "timeouts": 0,
+      "avg_cost_r": 0.007,
+      "cost_share": 0.005,
+      "months": 10,
+      "months_positive_share": 0.5,
+      "best_two_months_share": 0.79,
+      "thirds_r": [
+       16.76,
+       10.02,
+       -1.12
+      ],
+      "thirds_positive": 2,
+      "best_trade_removed_r": 0.4068,
+      "regimes": {
+       "up": 19,
+       "down": 29
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.711,
+      "never_reached_half_r": 0.312
+     }
+    },
+    "shadows": {
+     "usd100": {
+      "label": "+$100 \u2192 breakeven, trail $100 (0.27R on $36.9k)",
+      "n": 2255,
+      "expectancy_r": 0.0736,
+      "live_expectancy_r": 0.0701,
+      "vs_live_r": 0.0035,
+      "vs_live_ci95": [
+       -0.0498,
+       0.0568
+      ],
+      "win_rate": 0.6789,
+      "full_loss_pct": 0.2302,
+      "protected_pct": 0.7698,
+      "reached_2_5r_pct": 0.0093
+     },
+     "structure": {
+      "label": "Swing-structure stop after +1R",
+      "n": 2251,
+      "expectancy_r": 0.1549,
+      "live_expectancy_r": 0.0693,
+      "vs_live_r": 0.0856,
+      "vs_live_ci95": [
+       0.0113,
+       0.1599
+      ],
+      "win_rate": 0.3447,
+      "full_loss_pct": 0.6455,
+      "protected_pct": 0.3541,
+      "reached_2_5r_pct": 0.1159
+     },
+     "hybrid": {
+      "label": "Hybrid: swings after +1R, breakeven fallback",
+      "n": 2253,
+      "expectancy_r": 0.1531,
+      "live_expectancy_r": 0.0693,
+      "vs_live_r": 0.0838,
+      "vs_live_ci95": [
+       0.0191,
+       0.1485
+      ],
+      "win_rate": 0.2845,
+      "full_loss_pct": 0.5087,
+      "protected_pct": 0.4865,
+      "reached_2_5r_pct": 0.0963
+     },
+     "hold": {
+      "label": "Hold to stop or 2.5R",
+      "n": 2251,
+      "expectancy_r": -0.001,
+      "live_expectancy_r": 0.0689,
+      "vs_live_r": -0.07,
+      "vs_live_ci95": [
+       -0.1201,
+       -0.0199
+      ],
+      "win_rate": 0.3043,
+      "full_loss_pct": 0.693,
+      "protected_pct": 0.0,
+      "reached_2_5r_pct": 0.2972
+     },
+     "atr2": {
+      "label": "2xATR(14) ratchet trail from entry",
+      "n": 2253,
+      "expectancy_r": 0.0772,
+      "live_expectancy_r": 0.0698,
+      "vs_live_r": 0.0074,
+      "vs_live_ci95": [
+       -0.0294,
+       0.0442
+      ],
+      "win_rate": 0.3582,
+      "full_loss_pct": 0.261,
+      "protected_pct": 0.3693,
+      "reached_2_5r_pct": 0.0759
+     },
+     "chan10": {
+      "label": "Close beyond the 10-bar counter channel",
+      "n": 2250,
+      "expectancy_r": 0.0998,
+      "live_expectancy_r": 0.0688,
+      "vs_live_r": 0.0309,
+      "vs_live_ci95": [
+       -0.0486,
+       0.1104
+      ],
+      "win_rate": 0.2627,
+      "full_loss_pct": 0.5067,
+      "protected_pct": 0.0,
+      "reached_2_5r_pct": 0.1022
+     }
+    }
+   },
+   "rules": {
+    "entry": "aria",
+    "model": "7.2c",
+    "mtf": null,
+    "wave5_veto": null,
+    "gates": {},
+    "stop": {
+     "kind": "aria"
+    },
+    "exit": {
+     "kind": "model"
+    },
+    "donchian": {
+     "lookback": 20,
+     "trend": true,
+     "sides": "both"
+    },
+    "shadows": true
+   },
+   "version": "f1901b9713"
+  },
+  "cap0.05": {
+   "n": 1511,
+   "dev": {
+    "x1.0": {
+     "n": 732,
+     "wins": 360,
+     "win_rate": 0.4918,
+     "wilson_lower_win": 0.4557,
+     "expectancy_r": 0.105,
+     "gross_expectancy_r": 0.1297,
+     "ci95_r": [
+      -0.0035,
+      0.2134
+     ],
+     "ci95_block_r": [
+      -0.019,
+      0.2547
+     ],
+     "se_r": 0.05532,
+     "total_r": 76.84,
+     "profit_factor": 1.203,
+     "max_drawdown_r": 41.42,
+     "longest_losing_streak": 13,
+     "timeouts": 2,
+     "avg_cost_r": 0.0248,
+     "cost_share": 0.022,
+     "months": 7,
+     "months_positive_share": 0.571,
+     "best_two_months_share": 1.009,
+     "thirds_r": [
+      10.61,
+      60.95,
+      5.28
+     ],
+     "thirds_positive": 3,
+     "best_trade_removed_r": 0.0937,
+     "regimes": {
+      "up": 311,
+      "down": 421
+     },
+     "cost_mult": 1.0,
+     "mfe_avg_r": 1.348,
+     "never_reached_half_r": 0.332
+    },
+    "x1.5": {
+     "n": 732,
+     "wins": 360,
+     "win_rate": 0.4918,
+     "wilson_lower_win": 0.4557,
+     "expectancy_r": 0.0926,
+     "gross_expectancy_r": 0.1297,
+     "ci95_r": [
+      -0.0158,
+      0.201
+     ],
+     "ci95_block_r": [
+      -0.0319,
+      0.2419
+     ],
+     "se_r": 0.05532,
+     "total_r": 67.78,
+     "profit_factor": 1.177,
+     "max_drawdown_r": 42.98,
+     "longest_losing_streak": 13,
+     "timeouts": 2,
+     "avg_cost_r": 0.0371,
+     "cost_share": 0.033,
+     "months": 7,
+     "months_positive_share": 0.571,
+     "best_two_months_share": 1.097,
+     "thirds_r": [
+      7.23,
+      57.89,
+      2.66
+     ],
+     "thirds_positive": 3,
+     "best_trade_removed_r": 0.0814,
+     "regimes": {
+      "up": 311,
+      "down": 421
+     },
+     "cost_mult": 1.5,
+     "mfe_avg_r": 1.348,
+     "never_reached_half_r": 0.332
+    },
+    "x2.0": {
+     "n": 732,
+     "wins": 360,
+     "win_rate": 0.4918,
+     "wilson_lower_win": 0.4557,
+     "expectancy_r": 0.0802,
+     "gross_expectancy_r": 0.1297,
+     "ci95_r": [
+      -0.0282,
+      0.1887
+     ],
+     "ci95_block_r": [
+      -0.0451,
+      0.2291
+     ],
+     "se_r": 0.05533,
+     "total_r": 58.71,
+     "profit_factor": 1.151,
+     "max_drawdown_r": 44.54,
+     "longest_losing_streak": 13,
+     "timeouts": 2,
+     "avg_cost_r": 0.0495,
+     "cost_share": 0.043,
+     "months": 7,
+     "months_positive_share": 0.571,
+     "best_two_months_share": 1.212,
+     "thirds_r": [
+      3.84,
+      54.83,
+      0.04
+     ],
+     "thirds_positive": 3,
+     "best_trade_removed_r": 0.069,
+     "regimes": {
+      "up": 311,
+      "down": 421
+     },
+     "cost_mult": 2.0,
+     "mfe_avg_r": 1.348,
+     "never_reached_half_r": 0.332
+    },
+    "by_slice": {
+     "cryBTCUSD 15m": {
+      "n": 91,
+      "wins": 44,
+      "win_rate": 0.4835,
+      "wilson_lower_win": 0.3836,
+      "expectancy_r": -0.0445,
+      "gross_expectancy_r": -0.0073,
+      "ci95_r": [
+       -0.3174,
+       0.2283
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.13921,
+      "total_r": -4.05,
+      "profit_factor": 0.917,
+      "max_drawdown_r": 13.45,
+      "longest_losing_streak": 6,
+      "timeouts": 0,
+      "avg_cost_r": 0.0373,
+      "cost_share": 0.036,
+      "months": 6,
+      "months_positive_share": 0.5,
+      "best_two_months_share": null,
+      "thirds_r": [
+       -8.5,
+       1.56,
+       2.89
+      ],
+      "thirds_positive": 2,
+      "best_trade_removed_r": -0.1057,
+      "regimes": {
+       "down": 76,
+       "up": 15
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.267,
+      "never_reached_half_r": 0.275
+     },
+     "cryBTCUSD 1h": {
+      "n": 100,
+      "wins": 42,
+      "win_rate": 0.42,
+      "wilson_lower_win": 0.328,
+      "expectancy_r": -0.0748,
+      "gross_expectancy_r": -0.0446,
+      "ci95_r": [
+       -0.3444,
+       0.1949
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.13759,
+      "total_r": -7.48,
+      "profit_factor": 0.875,
+      "max_drawdown_r": 11.97,
+      "longest_losing_streak": 8,
+      "timeouts": 0,
+      "avg_cost_r": 0.0301,
+      "cost_share": 0.027,
+      "months": 7,
+      "months_positive_share": 0.286,
+      "best_two_months_share": null,
+      "thirds_r": [
+       -4.42,
+       4.88,
+       -7.94
+      ],
+      "thirds_positive": 1,
+      "best_trade_removed_r": -0.1242,
+      "regimes": {
+       "down": 73,
+       "up": 27
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.225,
+      "never_reached_half_r": 0.35
+     },
+     "cryBTCUSD 4h": {
+      "n": 31,
+      "wins": 16,
+      "win_rate": 0.5161,
+      "wilson_lower_win": 0.3484,
+      "expectancy_r": 0.1481,
+      "gross_expectancy_r": 0.1669,
+      "ci95_r": [
+       -0.3511,
+       0.6473
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.25468,
+      "total_r": 4.59,
+      "profit_factor": 1.3,
+      "max_drawdown_r": 3.56,
+      "longest_losing_streak": 3,
+      "timeouts": 0,
+      "avg_cost_r": 0.0188,
+      "cost_share": 0.017,
+      "months": 5,
+      "months_positive_share": 0.6,
+      "best_two_months_share": 1.44,
+      "thirds_r": [
+       1.3,
+       3.92,
+       -0.63
+      ],
+      "thirds_positive": 2,
+      "best_trade_removed_r": 0.0424,
+      "regimes": {
+       "down": 22,
+       "up": 9
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.341,
+      "never_reached_half_r": 0.355
+     },
+     "frxNAS100 15m": {
+      "n": 116,
+      "wins": 58,
+      "win_rate": 0.5,
+      "wilson_lower_win": 0.4105,
+      "expectancy_r": 0.1663,
+      "gross_expectancy_r": 0.1903,
+      "ci95_r": [
+       -0.1002,
+       0.4328
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.13597,
+      "total_r": 19.29,
+      "profit_factor": 1.336,
+      "max_drawdown_r": 9.45,
+      "longest_losing_streak": 4,
+      "timeouts": 2,
+      "avg_cost_r": 0.024,
+      "cost_share": 0.021,
+      "months": 6,
+      "months_positive_share": 0.667,
+      "best_two_months_share": 0.931,
+      "thirds_r": [
+       11.47,
+       5.18,
+       2.64
+      ],
+      "thirds_positive": 3,
+      "best_trade_removed_r": 0.1155,
+      "regimes": {
+       "up": 42,
+       "down": 74
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.387,
+      "never_reached_half_r": 0.345
+     },
+     "frxNAS100 1h": {
+      "n": 53,
+      "wins": 20,
+      "win_rate": 0.3774,
+      "wilson_lower_win": 0.2594,
+      "expectancy_r": -0.2478,
+      "gross_expectancy_r": -0.2353,
+      "ci95_r": [
+       -0.5481,
+       0.0526
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.15324,
+      "total_r": -13.13,
+      "profit_factor": 0.607,
+      "max_drawdown_r": 19.8,
+      "longest_losing_streak": 6,
+      "timeouts": 0,
+      "avg_cost_r": 0.0125,
+      "cost_share": 0.012,
+      "months": 6,
+      "months_positive_share": 0.167,
+      "best_two_months_share": null,
+      "thirds_r": [
+       -8.65,
+       -3.38,
+       -1.1
+      ],
+      "thirds_positive": 0,
+      "best_trade_removed_r": -0.3014,
+      "regimes": {
+       "up": 23,
+       "down": 30
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 0.983,
+      "never_reached_half_r": 0.453
+     },
+     "frxNAS100 4h": {
+      "n": 17,
+      "wins": 8,
+      "win_rate": 0.4706,
+      "wilson_lower_win": 0.2616,
+      "expectancy_r": -0.0376,
+      "gross_expectancy_r": -0.031,
+      "ci95_r": [
+       -0.5961,
+       0.5208
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.28494,
+      "total_r": -0.64,
+      "profit_factor": 0.929,
+      "max_drawdown_r": 4.88,
+      "longest_losing_streak": 4,
+      "timeouts": 0,
+      "avg_cost_r": 0.0067,
+      "cost_share": 0.006,
+      "months": 3,
+      "months_positive_share": 0.333,
+      "best_two_months_share": null,
+      "thirds_r": [
+       -1.88,
+       -0.55,
+       1.79
+      ],
+      "thirds_positive": 1,
+      "best_trade_removed_r": -0.1878,
+      "regimes": {
+       "up": 6,
+       "down": 11
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.205,
+      "never_reached_half_r": 0.353
+     },
+     "frxXAUUSD 15m": {
+      "n": 225,
+      "wins": 117,
+      "win_rate": 0.52,
+      "wilson_lower_win": 0.4549,
+      "expectancy_r": 0.1658,
+      "gross_expectancy_r": 0.1939,
+      "ci95_r": [
+       -0.0404,
+       0.372
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.10519,
+      "total_r": 37.31,
+      "profit_factor": 1.336,
+      "max_drawdown_r": 11.83,
+      "longest_losing_streak": 8,
+      "timeouts": 0,
+      "avg_cost_r": 0.0281,
+      "cost_share": 0.024,
+      "months": 7,
+      "months_positive_share": 0.714,
+      "best_two_months_share": 0.804,
+      "thirds_r": [
+       20.39,
+       18.94,
+       -2.02
+      ],
+      "thirds_positive": 2,
+      "best_trade_removed_r": 0.1294,
+      "regimes": {
+       "up": 132,
+       "down": 93
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.391,
+      "never_reached_half_r": 0.324
+     },
+     "frxXAUUSD 1h": {
+      "n": 86,
+      "wins": 47,
+      "win_rate": 0.5465,
+      "wilson_lower_win": 0.4416,
+      "expectancy_r": 0.2608,
+      "gross_expectancy_r": 0.2747,
+      "ci95_r": [
+       -0.0665,
+       0.5882
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.16701,
+      "total_r": 22.43,
+      "profit_factor": 1.568,
+      "max_drawdown_r": 6.96,
+      "longest_losing_streak": 3,
+      "timeouts": 0,
+      "avg_cost_r": 0.0139,
+      "cost_share": 0.012,
+      "months": 7,
+      "months_positive_share": 0.429,
+      "best_two_months_share": 0.97,
+      "thirds_r": [
+       -2.71,
+       19.16,
+       5.98
+      ],
+      "thirds_positive": 2,
+      "best_trade_removed_r": 0.2029,
+      "regimes": {
+       "down": 38,
+       "up": 48
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.469,
+      "never_reached_half_r": 0.314
+     },
+     "frxXAUUSD 4h": {
+      "n": 13,
+      "wins": 8,
+      "win_rate": 0.6154,
+      "wilson_lower_win": 0.3552,
+      "expectancy_r": 1.4243,
+      "gross_expectancy_r": 1.4297,
+      "ci95_r": [
+       -0.127,
+       2.9756
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.79149,
+      "total_r": 18.52,
+      "profit_factor": 4.687,
+      "max_drawdown_r": 4.01,
+      "longest_losing_streak": 4,
+      "timeouts": 0,
+      "avg_cost_r": 0.0054,
+      "cost_share": 0.002,
+      "months": 4,
+      "months_positive_share": 0.5,
+      "best_two_months_share": 1.095,
+      "thirds_r": [
+       2.17,
+       7.12,
+       9.23
+      ],
+      "thirds_positive": 3,
+      "best_trade_removed_r": 0.9972,
+      "regimes": {
+       "up": 9,
+       "down": 4
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 2.644,
+      "never_reached_half_r": 0.154
+     }
+    },
+    "shadows": {
+     "usd100": {
+      "label": "+$100 \u2192 breakeven, trail $100 (0.27R on $36.9k)",
+      "n": 732,
+      "expectancy_r": 0.0699,
+      "live_expectancy_r": 0.105,
+      "vs_live_r": -0.035,
+      "vs_live_ci95": [
+       -0.129,
+       0.059
+      ],
+      "win_rate": 0.7186,
+      "full_loss_pct": 0.235,
+      "protected_pct": 0.765,
+      "reached_2_5r_pct": 0.0055
+     },
+     "structure": {
+      "label": "Swing-structure stop after +1R",
+      "n": 732,
+      "expectancy_r": 0.1641,
+      "live_expectancy_r": 0.105,
+      "vs_live_r": 0.0591,
+      "vs_live_ci95": [
+       -0.0496,
+       0.1678
+      ],
+      "win_rate": 0.3484,
+      "full_loss_pct": 0.6475,
+      "protected_pct": 0.3525,
+      "reached_2_5r_pct": 0.127
+     },
+     "hybrid": {
+      "label": "Hybrid: swings after +1R, breakeven fallback",
+      "n": 732,
+      "expectancy_r": 0.2098,
+      "live_expectancy_r": 0.105,
+      "vs_live_r": 0.1048,
+      "vs_live_ci95": [
+       0.0099,
+       0.1998
+      ],
+      "win_rate": 0.3019,
+      "full_loss_pct": 0.515,
+      "protected_pct": 0.4822,
+      "reached_2_5r_pct": 0.1175
+     },
+     "hold": {
+      "label": "Hold to stop or 2.5R",
+      "n": 732,
+      "expectancy_r": 0.0305,
+      "live_expectancy_r": 0.105,
+      "vs_live_r": -0.0745,
+      "vs_live_ci95": [
+       -0.1531,
+       0.0042
+      ],
+      "win_rate": 0.3046,
+      "full_loss_pct": 0.6926,
+      "protected_pct": 0.0,
+      "reached_2_5r_pct": 0.2964
+     },
+     "atr2": {
+      "label": "2xATR(14) ratchet trail from entry",
+      "n": 732,
+      "expectancy_r": 0.1179,
+      "live_expectancy_r": 0.105,
+      "vs_live_r": 0.013,
+      "vs_live_ci95": [
+       -0.05,
+       0.0759
+      ],
+      "win_rate": 0.3511,
+      "full_loss_pct": 0.2541,
+      "protected_pct": 0.3566,
+      "reached_2_5r_pct": 0.0888
+     },
+     "chan10": {
+      "label": "Close beyond the 10-bar counter channel",
+      "n": 732,
+      "expectancy_r": 0.0523,
+      "live_expectancy_r": 0.105,
+      "vs_live_r": -0.0527,
+      "vs_live_ci95": [
+       -0.1686,
+       0.0632
+      ],
+      "win_rate": 0.2719,
+      "full_loss_pct": 0.4918,
+      "protected_pct": 0.0,
+      "reached_2_5r_pct": 0.0997
+     }
+    }
+   },
+   "val": {
+    "x1.0": {
+     "n": 327,
+     "wins": 176,
+     "win_rate": 0.5382,
+     "wilson_lower_win": 0.4841,
+     "expectancy_r": 0.168,
+     "gross_expectancy_r": 0.1933,
+     "ci95_r": [
+      0.0144,
+      0.3215
+     ],
+     "ci95_block_r": [
+      0.0117,
+      0.3447
+     ],
+     "se_r": 0.07833,
+     "total_r": 54.93,
+     "profit_factor": 1.354,
+     "max_drawdown_r": 16.78,
+     "longest_losing_streak": 5,
+     "timeouts": 0,
+     "avg_cost_r": 0.0253,
+     "cost_share": 0.023,
+     "months": 3,
+     "months_positive_share": 1.0,
+     "best_two_months_share": 0.887,
+     "thirds_r": [
+      19.82,
+      4.64,
+      30.47
+     ],
+     "thirds_positive": 3,
+     "best_trade_removed_r": 0.1442,
+     "regimes": {
+      "up": 177,
+      "down": 150
+     },
+     "cost_mult": 1.0,
+     "mfe_avg_r": 1.388,
+     "never_reached_half_r": 0.324
+    },
+    "x1.5": {
+     "n": 327,
+     "wins": 176,
+     "win_rate": 0.5382,
+     "wilson_lower_win": 0.4841,
+     "expectancy_r": 0.1553,
+     "gross_expectancy_r": 0.1933,
+     "ci95_r": [
+      0.0017,
+      0.3089
+     ],
+     "ci95_block_r": [
+      -0.0006,
+      0.3318
+     ],
+     "se_r": 0.07836,
+     "total_r": 50.79,
+     "profit_factor": 1.323,
+     "max_drawdown_r": 17.73,
+     "longest_losing_streak": 5,
+     "timeouts": 0,
+     "avg_cost_r": 0.0379,
+     "cost_share": 0.034,
+     "months": 3,
+     "months_positive_share": 1.0,
+     "best_two_months_share": 0.896,
+     "thirds_r": [
+      18.36,
+      3.33,
+      29.11
+     ],
+     "thirds_positive": 3,
+     "best_trade_removed_r": 0.1315,
+     "regimes": {
+      "up": 177,
+      "down": 150
+     },
+     "cost_mult": 1.5,
+     "mfe_avg_r": 1.388,
+     "never_reached_half_r": 0.324
+    },
+    "x2.0": {
+     "n": 327,
+     "wins": 176,
+     "win_rate": 0.5382,
+     "wilson_lower_win": 0.4841,
+     "expectancy_r": 0.1427,
+     "gross_expectancy_r": 0.1933,
+     "ci95_r": [
+      -0.011,
+      0.2963
+     ],
+     "ci95_block_r": [
+      -0.0136,
+      0.3191
+     ],
+     "se_r": 0.07839,
+     "total_r": 46.66,
+     "profit_factor": 1.293,
+     "max_drawdown_r": 18.68,
+     "longest_losing_streak": 5,
+     "timeouts": 0,
+     "avg_cost_r": 0.0506,
+     "cost_share": 0.045,
+     "months": 3,
+     "months_positive_share": 1.0,
+     "best_two_months_share": 0.906,
+     "thirds_r": [
+      16.89,
+      2.02,
+      27.75
+     ],
+     "thirds_positive": 3,
+     "best_trade_removed_r": 0.1188,
+     "regimes": {
+      "up": 177,
+      "down": 150
+     },
+     "cost_mult": 2.0,
+     "mfe_avg_r": 1.388,
+     "never_reached_half_r": 0.324
+    },
+    "by_slice": {
+     "cryBTCUSD 15m": {
+      "n": 10,
+      "wins": 6,
+      "win_rate": 0.6,
+      "wilson_lower_win": 0.3127,
+      "expectancy_r": 0.1775,
+      "gross_expectancy_r": 0.221,
+      "ci95_r": [
+       -0.5203,
+       0.8752
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.35602,
+      "total_r": 1.77,
+      "profit_factor": 1.424,
+      "max_drawdown_r": 1.05,
+      "longest_losing_streak": 1,
+      "timeouts": 0,
+      "avg_cost_r": 0.0435,
+      "cost_share": 0.043,
+      "months": 2,
+      "months_positive_share": 0.5,
+      "best_two_months_share": 1.0,
+      "thirds_r": [
+       0.45,
+       -0.97,
+       2.3
+      ],
+      "thirds_positive": 2,
+      "best_trade_removed_r": -0.0075,
+      "regimes": {
+       "up": 2,
+       "down": 8
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.301,
+      "never_reached_half_r": 0.4
+     },
+     "cryBTCUSD 1h": {
+      "n": 39,
+      "wins": 21,
+      "win_rate": 0.5385,
+      "wilson_lower_win": 0.3857,
+      "expectancy_r": 0.0714,
+      "gross_expectancy_r": 0.109,
+      "ci95_r": [
+       -0.3186,
+       0.4613
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.19897,
+      "total_r": 2.78,
+      "profit_factor": 1.149,
+      "max_drawdown_r": 10.5,
+      "longest_losing_streak": 5,
+      "timeouts": 0,
+      "avg_cost_r": 0.0377,
+      "cost_share": 0.037,
+      "months": 3,
+      "months_positive_share": 0.667,
+      "best_two_months_share": 2.438,
+      "thirds_r": [
+       1.83,
+       -7.03,
+       7.98
+      ],
+      "thirds_positive": 2,
+      "best_trade_removed_r": -0.0147,
+      "regimes": {
+       "up": 23,
+       "down": 16
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.301,
+      "never_reached_half_r": 0.333
+     },
+     "cryBTCUSD 4h": {
+      "n": 17,
+      "wins": 9,
+      "win_rate": 0.5294,
+      "wilson_lower_win": 0.3096,
+      "expectancy_r": 0.4262,
+      "gross_expectancy_r": 0.4513,
+      "ci95_r": [
+       -0.391,
+       1.2434
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.41693,
+      "total_r": 7.25,
+      "profit_factor": 1.883,
+      "max_drawdown_r": 4.12,
+      "longest_losing_streak": 4,
+      "timeouts": 0,
+      "avg_cost_r": 0.0251,
+      "cost_share": 0.018,
+      "months": 2,
+      "months_positive_share": 0.5,
+      "best_two_months_share": 1.0,
+      "thirds_r": [
+       1.99,
+       -0.26,
+       5.51
+      ],
+      "thirds_positive": 2,
+      "best_trade_removed_r": 0.164,
+      "regimes": {
+       "up": 13,
+       "down": 4
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.747,
+      "never_reached_half_r": 0.353
+     },
+     "frxNAS100 15m": {
+      "n": 70,
+      "wins": 42,
+      "win_rate": 0.6,
+      "wilson_lower_win": 0.4829,
+      "expectancy_r": 0.3645,
+      "gross_expectancy_r": 0.3898,
+      "ci95_r": [
+       0.0055,
+       0.7235
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.18317,
+      "total_r": 25.52,
+      "profit_factor": 1.889,
+      "max_drawdown_r": 4.6,
+      "longest_losing_streak": 4,
+      "timeouts": 0,
+      "avg_cost_r": 0.0252,
+      "cost_share": 0.021,
+      "months": 3,
+      "months_positive_share": 0.667,
+      "best_two_months_share": 1.14,
+      "thirds_r": [
+       13.97,
+       7.12,
+       4.43
+      ],
+      "thirds_positive": 3,
+      "best_trade_removed_r": 0.2645,
+      "regimes": {
+       "up": 67,
+       "down": 3
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.559,
+      "never_reached_half_r": 0.271
+     },
+     "frxNAS100 1h": {
+      "n": 21,
+      "wins": 13,
+      "win_rate": 0.619,
+      "wilson_lower_win": 0.4088,
+      "expectancy_r": 0.4948,
+      "gross_expectancy_r": 0.5064,
+      "ci95_r": [
+       -0.36,
+       1.3496
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.43612,
+      "total_r": 10.39,
+      "profit_factor": 2.282,
+      "max_drawdown_r": 3.04,
+      "longest_losing_streak": 3,
+      "timeouts": 0,
+      "avg_cost_r": 0.0116,
+      "cost_share": 0.009,
+      "months": 3,
+      "months_positive_share": 0.667,
+      "best_two_months_share": 1.293,
+      "thirds_r": [
+       7.64,
+       4.28,
+       -1.53
+      ],
+      "thirds_positive": 2,
+      "best_trade_removed_r": 0.1229,
+      "regimes": {
+       "up": 21
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.621,
+      "never_reached_half_r": 0.333
+     },
+     "frxNAS100 4h": {
+      "n": 6,
+      "wins": 5,
+      "win_rate": 0.8333,
+      "wilson_lower_win": 0.4365,
+      "expectancy_r": 0.9866,
+      "gross_expectancy_r": 0.9933,
+      "ci95_r": [
+       -0.1099,
+       2.083
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.55942,
+      "total_r": 5.92,
+      "profit_factor": 6.875,
+      "max_drawdown_r": 1.01,
+      "longest_losing_streak": 1,
+      "timeouts": 0,
+      "avg_cost_r": 0.0067,
+      "cost_share": 0.005,
+      "months": 2,
+      "months_positive_share": 0.5,
+      "best_two_months_share": 1.0,
+      "thirds_r": [
+       -0.83,
+       2.74,
+       4.0
+      ],
+      "thirds_positive": 2,
+      "best_trade_removed_r": 0.6725,
+      "regimes": {
+       "up": 6
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 2.04,
+      "never_reached_half_r": 0.167
+     },
+     "frxXAUUSD 15m": {
+      "n": 103,
+      "wins": 49,
+      "win_rate": 0.4757,
+      "wilson_lower_win": 0.3819,
+      "expectancy_r": 0.0094,
+      "gross_expectancy_r": 0.0393,
+      "ci95_r": [
+       -0.2506,
+       0.2694
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.13266,
+      "total_r": 0.97,
+      "profit_factor": 1.017,
+      "max_drawdown_r": 13.88,
+      "longest_losing_streak": 8,
+      "timeouts": 0,
+      "avg_cost_r": 0.0299,
+      "cost_share": 0.027,
+      "months": 3,
+      "months_positive_share": 0.667,
+      "best_two_months_share": 6.733,
+      "thirds_r": [
+       -4.17,
+       2.44,
+       2.7
+      ],
+      "thirds_positive": 2,
+      "best_trade_removed_r": -0.0314,
+      "regimes": {
+       "up": 29,
+       "down": 74
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.298,
+      "never_reached_half_r": 0.311
+     },
+     "frxXAUUSD 1h": {
+      "n": 49,
+      "wins": 24,
+      "win_rate": 0.4898,
+      "wilson_lower_win": 0.3557,
+      "expectancy_r": -0.0413,
+      "gross_expectancy_r": -0.0265,
+      "ci95_r": [
+       -0.36,
+       0.2774
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.16262,
+      "total_r": -2.02,
+      "profit_factor": 0.92,
+      "max_drawdown_r": 7.83,
+      "longest_losing_streak": 5,
+      "timeouts": 0,
+      "avg_cost_r": 0.0148,
+      "cost_share": 0.015,
+      "months": 3,
+      "months_positive_share": 0.333,
+      "best_two_months_share": null,
+      "thirds_r": [
+       1.13,
+       -1.41,
+       -1.74
+      ],
+      "thirds_positive": 1,
+      "best_trade_removed_r": -0.1029,
+      "regimes": {
+       "up": 13,
+       "down": 36
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.131,
+      "never_reached_half_r": 0.388
+     },
+     "frxXAUUSD 4h": {
+      "n": 12,
+      "wins": 7,
+      "win_rate": 0.5833,
+      "wilson_lower_win": 0.3195,
+      "expectancy_r": 0.1964,
+      "gross_expectancy_r": 0.2035,
+      "ci95_r": [
+       -0.6238,
+       1.0166
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.41849,
+      "total_r": 2.36,
+      "profit_factor": 1.469,
+      "max_drawdown_r": 2.01,
+      "longest_losing_streak": 2,
+      "timeouts": 0,
+      "avg_cost_r": 0.0071,
+      "cost_share": 0.007,
+      "months": 3,
+      "months_positive_share": 0.667,
+      "best_two_months_share": 1.371,
+      "thirds_r": [
+       0.14,
+       -1.55,
+       3.77
+      ],
+      "thirds_positive": 2,
+      "best_trade_removed_r": -0.1268,
+      "regimes": {
+       "up": 3,
+       "down": 9
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.329,
+      "never_reached_half_r": 0.417
+     }
+    },
+    "shadows": {
+     "usd100": {
+      "label": "+$100 \u2192 breakeven, trail $100 (0.27R on $36.9k)",
+      "n": 327,
+      "expectancy_r": 0.0794,
+      "live_expectancy_r": 0.168,
+      "vs_live_r": -0.0886,
+      "vs_live_ci95": [
+       -0.2148,
+       0.0377
+      ],
+      "win_rate": 0.7217,
+      "full_loss_pct": 0.2416,
+      "protected_pct": 0.7584,
+      "reached_2_5r_pct": 0.0031
+     },
+     "structure": {
+      "label": "Swing-structure stop after +1R",
+      "n": 327,
+      "expectancy_r": 0.2633,
+      "live_expectancy_r": 0.168,
+      "vs_live_r": 0.0953,
+      "vs_live_ci95": [
+       -0.0571,
+       0.2477
+      ],
+      "win_rate": 0.4281,
+      "full_loss_pct": 0.5688,
+      "protected_pct": 0.4312,
+      "reached_2_5r_pct": 0.1193
+     },
+     "hybrid": {
+      "label": "Hybrid: swings after +1R, breakeven fallback",
+      "n": 327,
+      "expectancy_r": 0.228,
+      "live_expectancy_r": 0.168,
+      "vs_live_r": 0.06,
+      "vs_live_ci95": [
+       -0.0771,
+       0.1971
+      ],
+      "win_rate": 0.3609,
+      "full_loss_pct": 0.4771,
+      "protected_pct": 0.5199,
+      "reached_2_5r_pct": 0.0948
+     },
+     "hold": {
+      "label": "Hold to stop or 2.5R",
+      "n": 327,
+      "expectancy_r": 0.2282,
+      "live_expectancy_r": 0.168,
+      "vs_live_r": 0.0602,
+      "vs_live_ci95": [
+       -0.0663,
+       0.1868
+      ],
+      "win_rate": 0.3578,
+      "full_loss_pct": 0.6391,
+      "protected_pct": 0.0,
+      "reached_2_5r_pct": 0.3578
+     },
+     "atr2": {
+      "label": "2xATR(14) ratchet trail from entry",
+      "n": 327,
+      "expectancy_r": 0.235,
+      "live_expectancy_r": 0.168,
+      "vs_live_r": 0.067,
+      "vs_live_ci95": [
+       -0.037,
+       0.171
+      ],
+      "win_rate": 0.4281,
+      "full_loss_pct": 0.2569,
+      "protected_pct": 0.4373,
+      "reached_2_5r_pct": 0.0887
+     },
+     "chan10": {
+      "label": "Close beyond the 10-bar counter channel",
+      "n": 327,
+      "expectancy_r": 0.3804,
+      "live_expectancy_r": 0.168,
+      "vs_live_r": 0.2124,
+      "vs_live_ci95": [
+       0.0042,
+       0.4206
+      ],
+      "win_rate": 0.3456,
+      "full_loss_pct": 0.4709,
+      "protected_pct": 0.0,
+      "reached_2_5r_pct": 0.1284
+     }
+    }
+   },
+   "holdout": {
+    "x1.0": {
+     "n": 452,
+     "wins": 235,
+     "win_rate": 0.5199,
+     "wilson_lower_win": 0.4739,
+     "expectancy_r": 0.0878,
+     "gross_expectancy_r": 0.1121,
+     "ci95_r": [
+      -0.0388,
+      0.2144
+     ],
+     "ci95_block_r": [
+      -0.0524,
+      0.2156
+     ],
+     "se_r": 0.06461,
+     "total_r": 39.68,
+     "profit_factor": 1.179,
+     "max_drawdown_r": 18.11,
+     "longest_losing_streak": 14,
+     "timeouts": 1,
+     "avg_cost_r": 0.0243,
+     "cost_share": 0.023,
+     "months": 5,
+     "months_positive_share": 0.6,
+     "best_two_months_share": 1.109,
+     "thirds_r": [
+      34.4,
+      10.95,
+      -5.67
+     ],
+     "thirds_positive": 2,
+     "best_trade_removed_r": 0.0687,
+     "regimes": {
+      "up": 185,
+      "down": 267
+     },
+     "cost_mult": 1.0,
+     "mfe_avg_r": 1.316,
+     "never_reached_half_r": 0.336
+    },
+    "x1.5": {
+     "n": 452,
+     "wins": 235,
+     "win_rate": 0.5199,
+     "wilson_lower_win": 0.4739,
+     "expectancy_r": 0.0756,
+     "gross_expectancy_r": 0.1121,
+     "ci95_r": [
+      -0.051,
+      0.2022
+     ],
+     "ci95_block_r": [
+      -0.0639,
+      0.2035
+     ],
+     "se_r": 0.06459,
+     "total_r": 34.19,
+     "profit_factor": 1.152,
+     "max_drawdown_r": 18.67,
+     "longest_losing_streak": 14,
+     "timeouts": 1,
+     "avg_cost_r": 0.0365,
+     "cost_share": 0.034,
+     "months": 5,
+     "months_positive_share": 0.4,
+     "best_two_months_share": 1.218,
+     "thirds_r": [
+      32.74,
+      9.04,
+      -7.6
+     ],
+     "thirds_positive": 2,
+     "best_trade_removed_r": 0.0565,
+     "regimes": {
+      "up": 185,
+      "down": 267
+     },
+     "cost_mult": 1.5,
+     "mfe_avg_r": 1.316,
+     "never_reached_half_r": 0.336
+    },
+    "x2.0": {
+     "n": 452,
+     "wins": 235,
+     "win_rate": 0.5199,
+     "wilson_lower_win": 0.4739,
+     "expectancy_r": 0.0635,
+     "gross_expectancy_r": 0.1121,
+     "ci95_r": [
+      -0.0631,
+      0.19
+     ],
+     "ci95_block_r": [
+      -0.0754,
+      0.1914
+     ],
+     "se_r": 0.06458,
+     "total_r": 28.69,
+     "profit_factor": 1.126,
+     "max_drawdown_r": 19.24,
+     "longest_losing_streak": 14,
+     "timeouts": 1,
+     "avg_cost_r": 0.0486,
+     "cost_share": 0.045,
+     "months": 5,
+     "months_positive_share": 0.4,
+     "best_two_months_share": 1.368,
+     "thirds_r": [
+      31.08,
+      7.13,
+      -9.53
+     ],
+     "thirds_positive": 2,
+     "best_trade_removed_r": 0.0444,
+     "regimes": {
+      "up": 185,
+      "down": 267
+     },
+     "cost_mult": 2.0,
+     "mfe_avg_r": 1.316,
+     "never_reached_half_r": 0.336
+    },
+    "by_slice": {
+     "cryBTCUSD 15m": {
+      "n": 6,
+      "wins": 3,
+      "win_rate": 0.5,
+      "wilson_lower_win": 0.1876,
+      "expectancy_r": 0.1046,
+      "gross_expectancy_r": 0.1456,
+      "ci95_r": [
+       -0.8721,
+       1.0814
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.49836,
+      "total_r": 0.63,
+      "profit_factor": 1.246,
+      "max_drawdown_r": 1.05,
+      "longest_losing_streak": 1,
+      "timeouts": 1,
+      "avg_cost_r": 0.0409,
+      "cost_share": 0.043,
+      "months": 3,
+      "months_positive_share": 0.667,
+      "best_two_months_share": 1.733,
+      "thirds_r": [
+       1.57,
+       -0.07,
+       -0.87
+      ],
+      "thirds_positive": 1,
+      "best_trade_removed_r": -0.2802,
+      "regimes": {
+       "down": 2,
+       "up": 4
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.19,
+      "never_reached_half_r": 0.5
+     },
+     "cryBTCUSD 1h": {
+      "n": 27,
+      "wins": 14,
+      "win_rate": 0.5185,
+      "wilson_lower_win": 0.3399,
+      "expectancy_r": -0.1257,
+      "gross_expectancy_r": -0.0852,
+      "ci95_r": [
+       -0.4999,
+       0.2485
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.19093,
+      "total_r": -3.39,
+      "profit_factor": 0.749,
+      "max_drawdown_r": 7.11,
+      "longest_losing_streak": 4,
+      "timeouts": 0,
+      "avg_cost_r": 0.0405,
+      "cost_share": 0.046,
+      "months": 5,
+      "months_positive_share": 0.6,
+      "best_two_months_share": null,
+      "thirds_r": [
+       -4.57,
+       -0.04,
+       1.21
+      ],
+      "thirds_positive": 1,
+      "best_trade_removed_r": -0.1994,
+      "regimes": {
+       "down": 10,
+       "up": 17
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.109,
+      "never_reached_half_r": 0.333
+     },
+     "cryBTCUSD 4h": {
+      "n": 27,
+      "wins": 11,
+      "win_rate": 0.4074,
+      "wilson_lower_win": 0.2451,
+      "expectancy_r": -0.1506,
+      "gross_expectancy_r": -0.1218,
+      "ci95_r": [
+       -0.656,
+       0.3547
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.25783,
+      "total_r": -4.07,
+      "profit_factor": 0.753,
+      "max_drawdown_r": 10.54,
+      "longest_losing_streak": 4,
+      "timeouts": 0,
+      "avg_cost_r": 0.0288,
+      "cost_share": 0.027,
+      "months": 5,
+      "months_positive_share": 0.6,
+      "best_two_months_share": null,
+      "thirds_r": [
+       -1.64,
+       -5.56,
+       3.14
+      ],
+      "thirds_positive": 1,
+      "best_trade_removed_r": -0.3316,
+      "regimes": {
+       "down": 9,
+       "up": 18
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.122,
+      "never_reached_half_r": 0.37
+     },
+     "frxNAS100 15m": {
+      "n": 109,
+      "wins": 54,
+      "win_rate": 0.4954,
+      "wilson_lower_win": 0.4033,
+      "expectancy_r": 0.0748,
+      "gross_expectancy_r": 0.0978,
+      "ci95_r": [
+       -0.2236,
+       0.3732
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.15223,
+      "total_r": 8.15,
+      "profit_factor": 1.145,
+      "max_drawdown_r": 15.43,
+      "longest_losing_streak": 9,
+      "timeouts": 0,
+      "avg_cost_r": 0.0231,
+      "cost_share": 0.021,
+      "months": 5,
+      "months_positive_share": 0.4,
+      "best_two_months_share": 1.459,
+      "thirds_r": [
+       7.52,
+       -1.12,
+       1.75
+      ],
+      "thirds_positive": 2,
+      "best_trade_removed_r": -0.0052,
+      "regimes": {
+       "up": 44,
+       "down": 65
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.31,
+      "never_reached_half_r": 0.404
+     },
+     "frxNAS100 1h": {
+      "n": 38,
+      "wins": 18,
+      "win_rate": 0.4737,
+      "wilson_lower_win": 0.3248,
+      "expectancy_r": -0.1431,
+      "gross_expectancy_r": -0.1325,
+      "ci95_r": [
+       -0.4526,
+       0.1664
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.15792,
+      "total_r": -5.44,
+      "profit_factor": 0.731,
+      "max_drawdown_r": 9.99,
+      "longest_losing_streak": 6,
+      "timeouts": 0,
+      "avg_cost_r": 0.0106,
+      "cost_share": 0.012,
+      "months": 5,
+      "months_positive_share": 0.6,
+      "best_two_months_share": null,
+      "thirds_r": [
+       -1.64,
+       4.84,
+       -8.63
+      ],
+      "thirds_positive": 1,
+      "best_trade_removed_r": -0.2019,
+      "regimes": {
+       "up": 13,
+       "down": 25
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.057,
+      "never_reached_half_r": 0.395
+     },
+     "frxNAS100 4h": {
+      "n": 22,
+      "wins": 8,
+      "win_rate": 0.3636,
+      "wilson_lower_win": 0.1973,
+      "expectancy_r": -0.2583,
+      "gross_expectancy_r": -0.252,
+      "ci95_r": [
+       -0.7232,
+       0.2067
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.23722,
+      "total_r": -5.68,
+      "profit_factor": 0.597,
+      "max_drawdown_r": 7.39,
+      "longest_losing_streak": 4,
+      "timeouts": 0,
+      "avg_cost_r": 0.0063,
+      "cost_share": 0.006,
+      "months": 5,
+      "months_positive_share": 0.2,
+      "best_two_months_share": null,
+      "thirds_r": [
+       -1.4,
+       -0.52,
+       -3.76
+      ],
+      "thirds_positive": 0,
+      "best_trade_removed_r": -0.3847,
+      "regimes": {
+       "up": 7,
+       "down": 15
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 0.986,
+      "never_reached_half_r": 0.455
+     },
+     "frxXAUUSD 15m": {
+      "n": 151,
+      "wins": 87,
+      "win_rate": 0.5762,
+      "wilson_lower_win": 0.4964,
+      "expectancy_r": 0.2272,
+      "gross_expectancy_r": 0.2593,
+      "ci95_r": [
+       0.0002,
+       0.4542
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.11583,
+      "total_r": 34.31,
+      "profit_factor": 1.52,
+      "max_drawdown_r": 11.45,
+      "longest_losing_streak": 5,
+      "timeouts": 0,
+      "avg_cost_r": 0.0321,
+      "cost_share": 0.029,
+      "months": 5,
+      "months_positive_share": 0.6,
+      "best_two_months_share": 0.919,
+      "thirds_r": [
+       21.45,
+       9.32,
+       3.54
+      ],
+      "thirds_positive": 3,
+      "best_trade_removed_r": 0.1964,
+      "regimes": {
+       "up": 57,
+       "down": 94
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.442,
+      "never_reached_half_r": 0.285
+     },
+     "frxXAUUSD 1h": {
+      "n": 49,
+      "wins": 27,
+      "win_rate": 0.551,
+      "wilson_lower_win": 0.4131,
+      "expectancy_r": 0.2118,
+      "gross_expectancy_r": 0.2278,
+      "ci95_r": [
+       -0.1639,
+       0.5874
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.19166,
+      "total_r": 10.38,
+      "profit_factor": 1.464,
+      "max_drawdown_r": 4.74,
+      "longest_losing_streak": 4,
+      "timeouts": 0,
+      "avg_cost_r": 0.016,
+      "cost_share": 0.014,
+      "months": 4,
+      "months_positive_share": 0.75,
+      "best_two_months_share": 1.076,
+      "thirds_r": [
+       7.4,
+       1.22,
+       1.75
+      ],
+      "thirds_positive": 3,
+      "best_trade_removed_r": 0.1459,
+      "regimes": {
+       "up": 18,
+       "down": 31
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.496,
+      "never_reached_half_r": 0.204
+     },
+     "frxXAUUSD 4h": {
+      "n": 23,
+      "wins": 13,
+      "win_rate": 0.5652,
+      "wilson_lower_win": 0.3681,
+      "expectancy_r": 0.2086,
+      "gross_expectancy_r": 0.2164,
+      "ci95_r": [
+       -0.3113,
+       0.7285
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.26526,
+      "total_r": 4.8,
+      "profit_factor": 1.476,
+      "max_drawdown_r": 3.99,
+      "longest_losing_streak": 3,
+      "timeouts": 0,
+      "avg_cost_r": 0.0078,
+      "cost_share": 0.007,
+      "months": 4,
+      "months_positive_share": 0.5,
+      "best_two_months_share": 1.731,
+      "thirds_r": [
+       5.92,
+       2.87,
+       -3.99
+      ],
+      "thirds_positive": 2,
+      "best_trade_removed_r": 0.0982,
+      "regimes": {
+       "down": 16,
+       "up": 7
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.384,
+      "never_reached_half_r": 0.348
+     }
+    },
+    "shadows": {
+     "usd100": {
+      "label": "+$100 \u2192 breakeven, trail $100 (0.27R on $36.9k)",
+      "n": 452,
+      "expectancy_r": 0.0817,
+      "live_expectancy_r": 0.0878,
+      "vs_live_r": -0.0061,
+      "vs_live_ci95": [
+       -0.1136,
+       0.1013
+      ],
+      "win_rate": 0.719,
+      "full_loss_pct": 0.2279,
+      "protected_pct": 0.7721,
+      "reached_2_5r_pct": 0.0044
+     },
+     "structure": {
+      "label": "Swing-structure stop after +1R",
+      "n": 448,
+      "expectancy_r": 0.039,
+      "live_expectancy_r": 0.0837,
+      "vs_live_r": -0.0447,
+      "vs_live_ci95": [
+       -0.169,
+       0.0795
+      ],
+      "win_rate": 0.3326,
+      "full_loss_pct": 0.6585,
+      "protected_pct": 0.3393,
+      "reached_2_5r_pct": 0.1027
+     },
+     "hybrid": {
+      "label": "Hybrid: swings after +1R, breakeven fallback",
+      "n": 450,
+      "expectancy_r": 0.0582,
+      "live_expectancy_r": 0.084,
+      "vs_live_r": -0.0258,
+      "vs_live_ci95": [
+       -0.1249,
+       0.0732
+      ],
+      "win_rate": 0.2822,
+      "full_loss_pct": 0.5,
+      "protected_pct": 0.4911,
+      "reached_2_5r_pct": 0.08
+     },
+     "hold": {
+      "label": "Hold to stop or 2.5R",
+      "n": 448,
+      "expectancy_r": -0.0781,
+      "live_expectancy_r": 0.0821,
+      "vs_live_r": -0.1602,
+      "vs_live_ci95": [
+       -0.2629,
+       -0.0575
+      ],
+      "win_rate": 0.2746,
+      "full_loss_pct": 0.721,
+      "protected_pct": 0.0,
+      "reached_2_5r_pct": 0.2656
+     },
+     "atr2": {
+      "label": "2xATR(14) ratchet trail from entry",
+      "n": 450,
+      "expectancy_r": 0.0484,
+      "live_expectancy_r": 0.0865,
+      "vs_live_r": -0.0381,
+      "vs_live_ci95": [
+       -0.1137,
+       0.0374
+      ],
+      "win_rate": 0.3622,
+      "full_loss_pct": 0.2533,
+      "protected_pct": 0.3689,
+      "reached_2_5r_pct": 0.0533
+     },
+     "chan10": {
+      "label": "Close beyond the 10-bar counter channel",
+      "n": 447,
+      "expectancy_r": 0.0324,
+      "live_expectancy_r": 0.0817,
+      "vs_live_r": -0.0493,
+      "vs_live_ci95": [
+       -0.1976,
+       0.0991
+      ],
+      "win_rate": 0.2528,
+      "full_loss_pct": 0.4765,
+      "protected_pct": 0.0,
+      "reached_2_5r_pct": 0.0872
+     }
+    }
+   },
+   "all": {
+    "x1.0": {
+     "n": 1511,
+     "wins": 771,
+     "win_rate": 0.5103,
+     "wilson_lower_win": 0.4851,
+     "expectancy_r": 0.1135,
+     "gross_expectancy_r": 0.1382,
+     "ci95_r": [
+      0.0407,
+      0.1862
+     ],
+     "ci95_block_r": [
+      0.0305,
+      0.201
+     ],
+     "se_r": 0.03712,
+     "total_r": 171.45,
+     "profit_factor": 1.227,
+     "max_drawdown_r": 41.42,
+     "longest_losing_streak": 14,
+     "timeouts": 3,
+     "avg_cost_r": 0.0247,
+     "cost_share": 0.022,
+     "months": 13,
+     "months_positive_share": 0.692,
+     "best_two_months_share": 0.508,
+     "thirds_r": [
+      71.15,
+      49.79,
+      50.5
+     ],
+     "thirds_positive": 3,
+     "best_trade_removed_r": 0.1078,
+     "regimes": {
+      "up": 673,
+      "down": 838
+     },
+     "cost_mult": 1.0,
+     "mfe_avg_r": 1.347,
+     "never_reached_half_r": 0.332
+    },
+    "x1.5": {
+     "n": 1511,
+     "wins": 771,
+     "win_rate": 0.5103,
+     "wilson_lower_win": 0.4851,
+     "expectancy_r": 0.1011,
+     "gross_expectancy_r": 0.1382,
+     "ci95_r": [
+      0.0283,
+      0.1739
+     ],
+     "ci95_block_r": [
+      0.018,
+      0.1889
+     ],
+     "se_r": 0.03712,
+     "total_r": 152.75,
+     "profit_factor": 1.2,
+     "max_drawdown_r": 42.98,
+     "longest_losing_streak": 14,
+     "timeouts": 3,
+     "avg_cost_r": 0.0371,
+     "cost_share": 0.033,
+     "months": 13,
+     "months_positive_share": 0.615,
+     "best_two_months_share": 0.549,
+     "thirds_r": [
+      64.54,
+      43.86,
+      44.36
+     ],
+     "thirds_positive": 3,
+     "best_trade_removed_r": 0.0954,
+     "regimes": {
+      "up": 673,
+      "down": 838
+     },
+     "cost_mult": 1.5,
+     "mfe_avg_r": 1.347,
+     "never_reached_half_r": 0.332
+    },
+    "x2.0": {
+     "n": 1511,
+     "wins": 771,
+     "win_rate": 0.5103,
+     "wilson_lower_win": 0.4851,
+     "expectancy_r": 0.0887,
+     "gross_expectancy_r": 0.1382,
+     "ci95_r": [
+      0.016,
+      0.1615
+     ],
+     "ci95_block_r": [
+      0.0056,
+      0.1768
+     ],
+     "se_r": 0.03713,
+     "total_r": 134.06,
+     "profit_factor": 1.173,
+     "max_drawdown_r": 44.54,
+     "longest_losing_streak": 14,
+     "timeouts": 3,
+     "avg_cost_r": 0.0495,
+     "cost_share": 0.044,
+     "months": 13,
+     "months_positive_share": 0.615,
+     "best_two_months_share": 0.601,
+     "thirds_r": [
+      57.92,
+      37.92,
+      38.22
+     ],
+     "thirds_positive": 3,
+     "best_trade_removed_r": 0.083,
+     "regimes": {
+      "up": 673,
+      "down": 838
+     },
+     "cost_mult": 2.0,
+     "mfe_avg_r": 1.347,
+     "never_reached_half_r": 0.332
+    },
+    "by_slice": {
+     "cryBTCUSD 15m": {
+      "n": 107,
+      "wins": 53,
+      "win_rate": 0.4953,
+      "wilson_lower_win": 0.4024,
+      "expectancy_r": -0.0154,
+      "gross_expectancy_r": 0.0226,
+      "ci95_r": [
+       -0.261,
+       0.2302
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.12531,
+      "total_r": -1.65,
+      "profit_factor": 0.97,
+      "max_drawdown_r": 13.45,
+      "longest_losing_streak": 6,
+      "timeouts": 1,
+      "avg_cost_r": 0.0381,
+      "cost_share": 0.037,
+      "months": 10,
+      "months_positive_share": 0.6,
+      "best_two_months_share": null,
+      "thirds_r": [
+       -6.46,
+       -3.83,
+       8.64
+      ],
+      "thirds_positive": 1,
+      "best_trade_removed_r": -0.0671,
+      "regimes": {
+       "down": 86,
+       "up": 21
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.266,
+      "never_reached_half_r": 0.299
+     },
+     "cryBTCUSD 1h": {
+      "n": 166,
+      "wins": 77,
+      "win_rate": 0.4639,
+      "wilson_lower_win": 0.3897,
+      "expectancy_r": -0.0487,
+      "gross_expectancy_r": -0.0151,
+      "ci95_r": [
+       -0.2442,
+       0.1468
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.09974,
+      "total_r": -8.09,
+      "profit_factor": 0.912,
+      "max_drawdown_r": 16.54,
+      "longest_losing_streak": 8,
+      "timeouts": 0,
+      "avg_cost_r": 0.0336,
+      "cost_share": 0.032,
+      "months": 13,
+      "months_positive_share": 0.462,
+      "best_two_months_share": null,
+      "thirds_r": [
+       -1.73,
+       -0.78,
+       -5.57
+      ],
+      "thirds_positive": 0,
+      "best_trade_removed_r": -0.0782,
+      "regimes": {
+       "down": 99,
+       "up": 67
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.224,
+      "never_reached_half_r": 0.343
+     },
+     "cryBTCUSD 4h": {
+      "n": 75,
+      "wins": 36,
+      "win_rate": 0.48,
+      "wilson_lower_win": 0.3707,
+      "expectancy_r": 0.1036,
+      "gross_expectancy_r": 0.1274,
+      "ci95_r": [
+       -0.2269,
+       0.4341
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.16864,
+      "total_r": 7.77,
+      "profit_factor": 1.194,
+      "max_drawdown_r": 10.54,
+      "longest_losing_streak": 4,
+      "timeouts": 0,
+      "avg_cost_r": 0.0238,
+      "cost_share": 0.02,
+      "months": 11,
+      "months_positive_share": 0.636,
+      "best_two_months_share": 1.652,
+      "thirds_r": [
+       5.87,
+       6.81,
+       -4.91
+      ],
+      "thirds_positive": 2,
+      "best_trade_removed_r": 0.0426,
+      "regimes": {
+       "down": 35,
+       "up": 40
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.354,
+      "never_reached_half_r": 0.36
+     },
+     "frxNAS100 15m": {
+      "n": 295,
+      "wins": 154,
+      "win_rate": 0.522,
+      "wilson_lower_win": 0.4651,
+      "expectancy_r": 0.1795,
+      "gross_expectancy_r": 0.2035,
+      "ci95_r": [
+       0.0053,
+       0.3537
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.08888,
+      "total_r": 52.96,
+      "profit_factor": 1.372,
+      "max_drawdown_r": 15.43,
+      "longest_losing_streak": 9,
+      "timeouts": 2,
+      "avg_cost_r": 0.0239,
+      "cost_share": 0.021,
+      "months": 13,
+      "months_positive_share": 0.615,
+      "best_two_months_share": 0.549,
+      "thirds_r": [
+       16.58,
+       31.98,
+       4.4
+      ],
+      "thirds_positive": 3,
+      "best_trade_removed_r": 0.1505,
+      "regimes": {
+       "up": 153,
+       "down": 142
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.399,
+      "never_reached_half_r": 0.349
+     },
+     "frxNAS100 1h": {
+      "n": 112,
+      "wins": 51,
+      "win_rate": 0.4554,
+      "wilson_lower_win": 0.3661,
+      "expectancy_r": -0.073,
+      "gross_expectancy_r": -0.0613,
+      "ci95_r": [
+       -0.3142,
+       0.1682
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.12305,
+      "total_r": -8.18,
+      "profit_factor": 0.868,
+      "max_drawdown_r": 19.8,
+      "longest_losing_streak": 6,
+      "timeouts": 0,
+      "avg_cost_r": 0.0117,
+      "cost_share": 0.011,
+      "months": 13,
+      "months_positive_share": 0.462,
+      "best_two_months_share": null,
+      "thirds_r": [
+       -12.79,
+       10.05,
+       -5.44
+      ],
+      "thirds_positive": 1,
+      "best_trade_removed_r": -0.1451,
+      "regimes": {
+       "up": 57,
+       "down": 55
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.128,
+      "never_reached_half_r": 0.411
+     },
+     "frxNAS100 4h": {
+      "n": 45,
+      "wins": 21,
+      "win_rate": 0.4667,
+      "wilson_lower_win": 0.3293,
+      "expectancy_r": -0.0089,
+      "gross_expectancy_r": -0.0025,
+      "ci95_r": [
+       -0.3635,
+       0.3456
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.1809,
+      "total_r": -0.4,
+      "profit_factor": 0.983,
+      "max_drawdown_r": 7.39,
+      "longest_losing_streak": 4,
+      "timeouts": 0,
+      "avg_cost_r": 0.0065,
+      "cost_share": 0.006,
+      "months": 10,
+      "months_positive_share": 0.3,
+      "best_two_months_share": null,
+      "thirds_r": [
+       -4.8,
+       8.67,
+       -4.28
+      ],
+      "thirds_positive": 1,
+      "best_trade_removed_r": -0.0673,
+      "regimes": {
+       "up": 19,
+       "down": 26
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.209,
+      "never_reached_half_r": 0.378
+     },
+     "frxXAUUSD 15m": {
+      "n": 479,
+      "wins": 253,
+      "win_rate": 0.5282,
+      "wilson_lower_win": 0.4834,
+      "expectancy_r": 0.1515,
+      "gross_expectancy_r": 0.1813,
+      "ci95_r": [
+       0.0188,
+       0.2842
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.0677,
+      "total_r": 72.58,
+      "profit_factor": 1.312,
+      "max_drawdown_r": 14.49,
+      "longest_losing_streak": 8,
+      "timeouts": 0,
+      "avg_cost_r": 0.0298,
+      "cost_share": 0.026,
+      "months": 13,
+      "months_positive_share": 0.692,
+      "best_two_months_share": 0.579,
+      "thirds_r": [
+       36.2,
+       -2.21,
+       38.59
+      ],
+      "thirds_positive": 2,
+      "best_trade_removed_r": 0.1345,
+      "regimes": {
+       "up": 218,
+       "down": 261
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.387,
+      "never_reached_half_r": 0.309
+     },
+     "frxXAUUSD 1h": {
+      "n": 184,
+      "wins": 98,
+      "win_rate": 0.5326,
+      "wilson_lower_win": 0.4606,
+      "expectancy_r": 0.1673,
+      "gross_expectancy_r": 0.182,
+      "ci95_r": [
+       -0.0341,
+       0.3687
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.10275,
+      "total_r": 30.79,
+      "profit_factor": 1.353,
+      "max_drawdown_r": 9.14,
+      "longest_losing_streak": 5,
+      "timeouts": 0,
+      "avg_cost_r": 0.0147,
+      "cost_share": 0.013,
+      "months": 12,
+      "months_positive_share": 0.583,
+      "best_two_months_share": 0.707,
+      "thirds_r": [
+       16.35,
+       1.74,
+       12.7
+      ],
+      "thirds_positive": 3,
+      "best_trade_removed_r": 0.1399,
+      "regimes": {
+       "down": 105,
+       "up": 79
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.386,
+      "never_reached_half_r": 0.304
+     },
+     "frxXAUUSD 4h": {
+      "n": 48,
+      "wins": 28,
+      "win_rate": 0.5833,
+      "wilson_lower_win": 0.4428,
+      "expectancy_r": 0.5348,
+      "gross_expectancy_r": 0.5417,
+      "ci95_r": [
+       -0.0041,
+       1.0737
+      ],
+      "ci95_block_r": null,
+      "se_r": 0.27495,
+      "total_r": 25.67,
+      "profit_factor": 2.275,
+      "max_drawdown_r": 4.01,
+      "longest_losing_streak": 4,
+      "timeouts": 0,
+      "avg_cost_r": 0.007,
+      "cost_share": 0.005,
+      "months": 10,
+      "months_positive_share": 0.5,
+      "best_two_months_share": 0.79,
+      "thirds_r": [
+       16.76,
+       10.02,
+       -1.12
+      ],
+      "thirds_positive": 2,
+      "best_trade_removed_r": 0.4068,
+      "regimes": {
+       "up": 19,
+       "down": 29
+      },
+      "cost_mult": 1.0,
+      "mfe_avg_r": 1.711,
+      "never_reached_half_r": 0.312
+     }
+    },
+    "shadows": {
+     "usd100": {
+      "label": "+$100 \u2192 breakeven, trail $100 (0.27R on $36.9k)",
+      "n": 1511,
+      "expectancy_r": 0.0755,
+      "live_expectancy_r": 0.1135,
+      "vs_live_r": -0.038,
+      "vs_live_ci95": [
+       -0.1,
+       0.0241
+      ],
+      "win_rate": 0.7194,
+      "full_loss_pct": 0.2343,
+      "protected_pct": 0.7657,
+      "reached_2_5r_pct": 0.0046
+     },
+     "structure": {
+      "label": "Swing-structure stop after +1R",
+      "n": 1507,
+      "expectancy_r": 0.1484,
+      "live_expectancy_r": 0.1123,
+      "vs_live_r": 0.0361,
+      "vs_live_ci95": [
+       -0.0363,
+       0.1085
+      ],
+      "win_rate": 0.361,
+      "full_loss_pct": 0.6337,
+      "protected_pct": 0.3656,
+      "reached_2_5r_pct": 0.1181
+     },
+     "hybrid": {
+      "label": "Hybrid: swings after +1R, breakeven fallback",
+      "n": 1509,
+      "expectancy_r": 0.1685,
+      "live_expectancy_r": 0.1124,
+      "vs_live_r": 0.0562,
+      "vs_live_ci95": [
+       -0.0061,
+       0.1185
+      ],
+      "win_rate": 0.3088,
+      "full_loss_pct": 0.5023,
+      "protected_pct": 0.493,
+      "reached_2_5r_pct": 0.1014
+     },
+     "hold": {
+      "label": "Hold to stop or 2.5R",
+      "n": 1507,
+      "expectancy_r": 0.0411,
+      "live_expectancy_r": 0.1118,
+      "vs_live_r": -0.0707,
+      "vs_live_ci95": [
+       -0.1269,
+       -0.0145
+      ],
+      "win_rate": 0.3072,
+      "full_loss_pct": 0.6894,
+      "protected_pct": 0.0,
+      "reached_2_5r_pct": 0.3006
+     },
+     "atr2": {
+      "label": "2xATR(14) ratchet trail from entry",
+      "n": 1509,
+      "expectancy_r": 0.1226,
+      "live_expectancy_r": 0.1131,
+      "vs_live_r": 0.0094,
+      "vs_live_ci95": [
+       -0.0347,
+       0.0536
+      ],
+      "win_rate": 0.3711,
+      "full_loss_pct": 0.2545,
+      "protected_pct": 0.3777,
+      "reached_2_5r_pct": 0.0782
+     },
+     "chan10": {
+      "label": "Close beyond the 10-bar counter channel",
+      "n": 1506,
+      "expectancy_r": 0.1176,
+      "live_expectancy_r": 0.1117,
+      "vs_live_r": 0.0059,
+      "vs_live_ci95": [
+       -0.0788,
+       0.0906
+      ],
+      "win_rate": 0.2822,
+      "full_loss_pct": 0.4827,
+      "protected_pct": 0.0,
+      "reached_2_5r_pct": 0.1023
+     }
+    }
+   },
+   "rules": {
+    "entry": "aria",
+    "model": "7.2c",
+    "mtf": null,
+    "wave5_veto": null,
+    "gates": {
+     "cost_cap": 0.05
+    },
+    "stop": {
+     "kind": "aria"
+    },
+    "exit": {
+     "kind": "model"
+    },
+    "donchian": {
+     "lookback": 20,
+     "trend": true,
+     "sides": "both"
+    },
+    "shadows": true
+   },
+   "version": "92e7383d49"
+  }
+ },
+ "filter_tests": {
+  "cap0.05": {
+   "gate": "cost_cap",
+   "cfg": 0.05,
+   "dev": {
+    "n_base": 1037,
+    "n_accepted": 723,
+    "accepted_net_r": 0.1075,
+    "base_net_r": 0.0782,
+    "accepted_gross_r": 0.132,
+    "base_gross_r": 0.1233,
+    "p_net": 0.176,
+    "p_gross": 0.388,
+    "permutations": 1000
+   },
+   "val": {
+    "n_base": 505,
+    "n_accepted": 324,
+    "accepted_net_r": 0.1792,
+    "base_net_r": 0.089,
+    "accepted_gross_r": 0.2043,
+    "base_gross_r": 0.1445,
+    "p_net": 0.026,
+    "p_gross": 0.104,
+    "permutations": 1000
+   },
+   "holdout": {
+    "n_base": 713,
+    "n_accepted": 448,
+    "accepted_net_r": 0.0747,
+    "base_net_r": 0.0449,
+    "accepted_gross_r": 0.0988,
+    "base_gross_r": 0.1135,
+    "p_net": 0.28,
+    "p_gross": 0.63,
+    "permutations": 1000
+   }
+  }
+ },
+ "neighbourhood": [
+  {
+   "label": "cap 0.04",
+   "cfg": 0.04,
+   "dev": {
+    "n": 631,
+    "expectancy_r": 0.0971,
+    "gross": 0.1186
+   },
+   "val": {
+    "n": 284,
+    "expectancy_r": 0.2241,
+    "gross": 0.2464
+   },
+   "holdout": {
+    "n": 384,
+    "expectancy_r": 0.0375,
+    "gross": 0.0582
+   }
+  },
+  {
+   "label": "cap 0.05",
+   "cfg": 0.05,
+   "dev": {
+    "n": 723,
+    "expectancy_r": 0.1075,
+    "gross": 0.132
+   },
+   "val": {
+    "n": 324,
+    "expectancy_r": 0.1792,
+    "gross": 0.2043
+   },
+   "holdout": {
+    "n": 448,
+    "expectancy_r": 0.0747,
+    "gross": 0.0988
+   }
+  },
+  {
+   "label": "cap 0.06",
+   "cfg": 0.06,
+   "dev": {
+    "n": 791,
+    "expectancy_r": 0.0821,
+    "gross": 0.1092
+   },
+   "val": {
+    "n": 350,
+    "expectancy_r": 0.1745,
+    "gross": 0.2018
+   },
+   "holdout": {
+    "n": 481,
+    "expectancy_r": 0.0709,
+    "gross": 0.0971
+   }
+  },
+  {
+   "label": "cap 0.08",
+   "cfg": 0.08,
+   "dev": {
+    "n": 881,
+    "expectancy_r": 0.0554,
+    "gross": 0.0868
+   },
+   "val": {
+    "n": 381,
+    "expectancy_r": 0.15,
+    "gross": 0.1806
+   },
+   "holdout": {
+    "n": 525,
+    "expectancy_r": 0.0441,
+    "gross": 0.0739
+   }
+  },
+  {
+   "label": "cap 0.12",
+   "cfg": 0.12,
+   "dev": {
+    "n": 973,
+    "expectancy_r": 0.062,
+    "gross": 0.0996
+   },
+   "val": {
+    "n": 449,
+    "expectancy_r": 0.0937,
+    "gross": 0.1347
+   },
+   "holdout": {
+    "n": 597,
+    "expectancy_r": 0.0248,
+    "gross": 0.0629
+   }
+  }
+ ],
+ "configurations_tried": 6,
+ "seconds": 58
+}

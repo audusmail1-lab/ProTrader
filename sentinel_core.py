@@ -67,10 +67,34 @@ SENTINEL_MODEL = "7.2c"
 #              Settings fixed before testing; minute-level research on a year
 #              of data: +0.045R/trade vs 7.2c (95% +0.014 to +0.078).
 #   hold       no management: the original stop or a 2.5R target.
+#   atr2       2 x ATR(14) ratchet trail from entry, the ATR fixed at entry
+#              (research_lab H4 'atr2', 5 Oct 2026). The one-year replay as a
+#              main exit was inconclusive; as a shadow it is paired with the
+#              model exit on every forward trade, which is the honest test.
+#   chan10     exit on the first close beyond the 10-bar counter channel
+#              (lowest low of the last 10 bars for a buy), original stop kept
+#              (research_lab H4 'chan10'). Same reason.
 import os as _os
 SHADOW_USD = float(_os.environ.get("SENTINEL_SHADOW_USD", "100"))
 SHADOW_BALANCE = float(_os.environ.get("SENTINEL_SHADOW_BALANCE", "36900"))
 SHADOW_TIMEOUT = 96
+SHADOW_ATR_PERIOD = 14      # the lab's atr_trail default
+SHADOW_CHANNEL = 10         # the lab's chan10
+
+
+def wilder_atr_last(bars: list[dict], p: int) -> Optional[float]:
+    """Wilder ATR(p) of the last bar, exactly as research_lab.wilder_atr computes
+    it (true range seeded by a simple mean, then smoothed). None when short."""
+    if len(bars) < p:
+        return None
+    trs = []
+    for i, b in enumerate(bars):
+        trs.append(b["high"] - b["low"] if i == 0 else
+                   max(b["high"] - b["low"], abs(b["high"] - bars[i - 1]["close"]), abs(b["low"] - bars[i - 1]["close"])))
+    prev = sum(trs[:p]) / p
+    for tr in trs[p:]:
+        prev = (prev * (p - 1) + tr) / p
+    return prev
 
 
 # Setup grades (28 Sep 2026, research_selectivity.py). "A" is the standard
@@ -99,15 +123,25 @@ def shadow_rules() -> dict:
         "hybrid": {"label": "Hybrid: swings after +1R, breakeven fallback", "tp": None, "trig": None, "mode": "hybrid",
                    "dist": None, "arm": 1.0, "fb_bars": 4, "retrace": 0.3},
         "hold": {"label": "Hold to stop or 2.5R", "tp": 2.5, "trig": None, "mode": None, "dist": None, "arm": None},
+        "atr2": {"label": f"2xATR({SHADOW_ATR_PERIOD}) ratchet trail from entry", "tp": None, "trig": None,
+                 "mode": "atr", "dist": None, "arm": None, "mult": 2.0},
+        "chan10": {"label": f"Close beyond the {SHADOW_CHANNEL}-bar counter channel", "tp": None, "trig": None,
+                   "mode": "channel", "dist": None, "arm": None, "n": SHADOW_CHANNEL},
     }
 
 
 def shadow_init(entry: float, sl: float, window: list[dict]) -> dict:
-    """Fresh shadow state for a new trade; the last two bars seed swing detection."""
+    """Fresh shadow state for a new trade; the last two bars seed swing detection,
+    the ATR trail takes ATR(14) at entry (fixed for the trade, as in the lab) and
+    the channel exit starts from the last 10 bars including the entry bar."""
     seed = [[b["high"], b["low"]] for b in window[-2:]]
-    return {k: {"stop": sl, "best": 0.0, "state": "open", "gross": None, "closed_at": None,
-                "protected_at": None, "bars": 0, "last": window[-1]["time"], "hl": list(seed)}
-            for k in shadow_rules()}
+    out = {k: {"stop": sl, "best": 0.0, "state": "open", "gross": None, "closed_at": None,
+               "protected_at": None, "bars": 0, "last": window[-1]["time"], "hl": list(seed)}
+           for k in shadow_rules()}
+    atr = wilder_atr_last(window[-(SHADOW_ATR_PERIOD * 3):], SHADOW_ATR_PERIOD)
+    out["atr2"]["atr"] = atr if atr and atr > 0 else abs(entry - sl) / 2.0
+    out["chan10"]["ch"] = [[b["high"], b["low"]] for b in window[-SHADOW_CHANNEL:]]
+    return out
 
 
 def shadow_step(t: "Trade", tf: str, bars: list[dict]) -> bool:
@@ -147,6 +181,21 @@ def shadow_step(t: "Trade", tf: str, bars: list[dict]) -> bool:
                     cand = t.entry + s * (sh["best"] - cfg["dist"]) * t.sl_dist
                     if s * (cand - new) > 0:
                         new = cand
+            if cfg["mode"] == "atr":                                    # research_lab atr_trail, no breakeven step
+                cand = t.entry + s * sh["best"] * t.sl_dist - s * cfg["mult"] * (sh.get("atr") or t.sl_dist / 2.0)
+                if s * (cand - new) > 0:
+                    new = cand
+            if cfg["mode"] == "channel":                                # research_lab channel exit, stop untouched
+                ch = sh.get("ch") or []
+                n = int(cfg["n"])
+                if len(ch) >= n:
+                    prior = ch[-n:]
+                    lvl = min(x[1] for x in prior) if s > 0 else max(x[0] for x in prior)
+                    if (s > 0 and b["close"] < lvl) or (s < 0 and b["close"] > lvl):
+                        sh.update(state="closed", gross=round(s * (b["close"] - t.entry) / t.sl_dist, 4),
+                                  closed_at=close_at, how="channel")
+                        break
+                sh["ch"] = (ch + [[b["high"], b["low"]]])[-n:]
             armed_before = sh.get("armed")
             if cfg["mode"] == "hybrid" and cfg["arm"] is not None and sh["best"] >= cfg["arm"] and not armed_before:
                 sh["armed"] = sh["bars"]                    # bar count when +1R was first reached

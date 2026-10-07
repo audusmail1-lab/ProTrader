@@ -129,7 +129,13 @@ def test_shadow_rules_run_beside_the_model_and_outlive_it():
     assert h["state"] == "open" and t.id in b.shadowing  # hold still running after the model closed
     more = seq + [bar(8100, 100.6, 105.2, 100.5, 105.0)]
     b.update_shadows("frxXAUUSD", "15m", more)
-    assert h["state"] == "closed" and h["gross"] == 2.5 and t.id not in b.shadowing
+    assert h["state"] == "closed" and h["gross"] == 2.5
+    assert t.shadow["atr2"]["state"] == "closed"         # the 2xATR trail was stopped on the 7200 drop
+    # the channel exit is the last one running; the trade leaves `shadowing` only when it closes
+    assert t.shadow["chan10"]["state"] == "open" and t.id in b.shadowing
+    more += [bar(9000, 105.0, 105.1, 99.0, 99.5)]                  # close below the 10-bar low
+    b.update_shadows("frxXAUUSD", "15m", more)
+    assert t.shadow["chan10"]["state"] == "closed" and t.id not in b.shadowing
     st_ = core.shadow_stats([t.to_dict()])
     assert st_["hold"]["n"] == 1 and st_["usd100"]["n"] == 1 and st_["hold"]["reached_2_5r_pct"] == 1.0
 
