@@ -2,7 +2,8 @@
 Joel Twin — Joel's own trade management, applied the same way every time.
 
 For every MT5 position the server tracks on the owner's bridge account (the
-`managed` journal in sentinel.py), the twin takes the same entry, the same side
+`managed` journal in sentinel.py), and every closed position of the owner's
+paper account (paper_monitor.py), the twin takes the same entry, the same side
 and the same size, and manages it by fixed rules taken from Joel's framework
 and his own stated habit. It never sends an order; it replays the position on
 Deriv's public candles after Joel has closed it and records what the twin would
@@ -73,6 +74,8 @@ def feed_market(symbol: Optional[str]) -> Optional[core.Market]:
     Inverse of the terminal's LIVE.guessSymbol()."""
     if not symbol:
         return None
+    if str(symbol) in core.MARKET_BY_ID:                 # the app's own ids (paper positions)
+        return core.MARKET_BY_ID[str(symbol)]
     s = re.sub(r"\s+", " ", str(symbol).strip().lower())
     s = re.sub(r"[._-](?:[a-z]{1,3}|\d)$", "", s)          # broker suffixes: '.0', '.m', '-ecn'
     s = re.sub(r" index$", "", s)
@@ -278,10 +281,10 @@ def _save(key: str, data: dict, final: bool) -> None:
 
 
 def pending(records: list[dict], done: dict[str, dict], now_s: int) -> list[dict]:
-    """Closed MT5 positions of the last year whose twin is not final yet, newest first."""
+    """Closed MT5 and paper-account positions of the last year whose twin is not final yet."""
     out = []
     for r in records:
-        if not str(r.get("key", "")).startswith("mt5:") or not r.get("closed"):
+        if not str(r.get("key", "")).startswith(("mt5:", "paperacct:")) or not r.get("closed"):
             continue
         if now_s - int(r.get("opened") or 0) // 1000 > HISTORY_S:
             continue
@@ -299,7 +302,14 @@ async def run_once(now_s: Optional[int] = None, fetch=None, limit: int = MAX_PER
     now_s = int(now_s or time.time())
     fetch = fetch or fetch_bars
     done = load_all()
-    todo = pending(_S._managed_rows(), done, now_s)[:limit]
+    records = _S._managed_rows()
+    paper = getattr(_S, "_paper", None)
+    if paper is not None:
+        try:
+            records = records + paper.twin_records()
+        except Exception as e:
+            log.warning("twin paper records: %s", e)
+    todo = pending(records, done, now_s)[:limit]
     eq_fb = _S._mt5_state.get("equity") if hasattr(_S, "_mt5_state") else None
     n = 0
     for rec in todo:

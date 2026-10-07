@@ -8389,6 +8389,39 @@ const SENT = (() => {
     } catch (e) { showToast(e.message, 4000); }
   }
 
+  // The trader's own paper account, read by the server from the saved workspace.
+  function paperBlock() {
+    const a = last?.paper;
+    if (!a) return '';
+    if (!a.found) return `<div class="sn-h">Your paper account</div><div class="sn-empty">Sign in with your Academy account on your phone and trade on paper: Sentinel reads that account here.</div>`;
+    const R = a.r || {}, sgn = v => (v >= 0 ? '+' : '') + v.toFixed(2);
+    const verdictCls = /positive beyond/.test(R.verdict || '') ? 'ev-proven' : /negative beyond/.test(R.verdict || '') ? 'ev-negative' : 'ev-unproven';
+    const rows = (obj, max) => Object.entries(obj || {}).slice(0, max).map(([k, g]) => `<tr><td>${esc(k)}</td><td>${g.n}</td><td style="text-align:right">${nb(money(g.pnl))}</td><td style="text-align:right">${Number.isFinite(g.avg_r) ? sgn(g.avg_r) + 'R' : '—'}</td></tr>`).join('');
+    const tw = a.twin;
+    return `<div class="sn-h">Your paper account</div>
+      <div class="sn-card">
+        <div class="sn-lv">
+          <div><span>Balance</span><b>${nb(otMoney(a.balance, 0))}</b></div>
+          <div><span>${a.start_balance != null ? `Since ${otMoney(a.start_balance, 0)}` : 'Closed trades'}</span><b>${nb(money(a.pnl_total ?? 0))}</b></div>
+          <div><span>Positions</span><b>${a.n || 0}</b></div>
+        </div>
+        ${a.n ? `<div class="sn-meta" style="margin-top:6px">${pctTxt(a.win_pct)} in profit · average win ${nb(money(a.avg_win))}, loss ${nb(money(a.avg_loss))} · worst ${nb(money(a.worst))} · deepest dip ${nb(money(a.max_drawdown))}${Number.isFinite(a.top5_share) ? ` · biggest 5 trades = ${pctTxt(a.top5_share)} of the profit` : ''}</div>
+        <div class="twin-sum"><b>Per trade, in R</b> (risk at your first stop) · ${R.n} positions<br>
+          Average <b>${Number.isFinite(R.mean) ? sgn(R.mean) + 'R' : '—'}</b>${R.ci95 ? ` (95% ${sgn(R.ci95[0])} to ${sgn(R.ci95[1])})` : ''} · median ${Number.isFinite(R.median) ? sgn(R.median) + 'R' : '—'} · full stop-outs ${pctTxt(R.full_stop_pct)}<br>
+          <span class="sn-chip ${verdictCls}">${esc(R.verdict || '')}</span>
+          ${verdictCls === 'ev-proven' && a.synthetic_share >= 0.5 ? `<div style="margin-top:4px">${pctTxt(a.synthetic_share)} of these trades are on Deriv's synthetic indices, where the maths says no style averages above zero. Before trusting this, see it hold on MT5: paper fills can be kinder than a broker's.</div>` : ''}</div>
+        <table class="sn-tbl"><thead><tr><th>Market</th><th>n</th><th style="text-align:right">$</th><th style="text-align:right">avg</th></tr></thead><tbody>${rows(a.by_instrument, 6)}</tbody></table>
+        <table class="sn-tbl"><thead><tr><th>Ended by</th><th>n</th><th style="text-align:right">$</th><th style="text-align:right">avg</th></tr></thead><tbody>${rows(a.by_exit, 3)}</tbody></table>
+        ${Object.keys(a.by_setup || {}).length ? `<table class="sn-tbl"><thead><tr><th>Setup</th><th>n</th><th style="text-align:right">$</th><th style="text-align:right">avg</th></tr></thead><tbody>${rows(a.by_setup, 4)}</tbody></table>` : ''}
+        ${a.untagged ? `<div class="sn-meta">${a.untagged} position${a.untagged === 1 ? '' : 's'} without a setup tag — tap TCL, SMOG, G2 or Other on an open trade below.</div>` : ''}
+        ${tw && tw.n ? `<div class="twin-sum"><b>Joel Twin on paper</b> · ${tw.n} replayed<br>You ${nb(money(tw.you_total))} · Twin ${nb(money(tw.twin_total))} · twin vs you ${nb(money(tw.diff_per_trade))} a trade${tw.diff_ci95 ? ` (95% ${nb(money(tw.diff_ci95[0]))} to ${nb(money(tw.diff_ci95[1]))})` : ''}</div>`
+          : tw && tw.eligible ? `<div class="sn-meta">Joel Twin is replaying ${tw.eligible} paper position${tw.eligible === 1 ? '' : 's'} (a few each scan).</div>` : ''}` : ''}
+        ${a.open && a.open.n ? `<div class="sn-meta">${a.open.n} open now (${esc(a.open.symbols.join(', '))}) · ${nb(money(a.open.risk_at_stops))} at their stops</div>` : ''}
+        ${a.history_complete === false ? `<div class="sn-meta">The saved account keeps the last 500 fills; Sentinel keeps every position from now on.</div>` : ''}
+        <div class="sn-meta" style="margin-top:4px">${esc(a.caveat || '')}</div>
+      </div>`;
+  }
+
   // Setup tags: one tap on an open trade (TCL / SMOG / G2 / Other), before the result is known.
   const SETUPS = ['TCL', 'SMOG', 'G2', 'Other'];
   const setupPending = {};
@@ -8594,6 +8627,8 @@ const SENT = (() => {
         <td>${evChip(b.evidence)}</td></tr>`).join('') || '<tr><td colspan="5" class="sn-empty">Waiting for the first scan…</td></tr>'}
       </tbody></table>
 
+      ${paperBlock()}
+
       ${managedBlock()}
 
       <div class="sn-h">Paper results · current model · all focus markets</div>
@@ -8625,13 +8660,13 @@ const SENT = (() => {
     busy = true;
     try {
       const [status, board, feed, stats, costs] = await Promise.all([get('status'), get('board'), get('feed?limit=30'), get('stats'), get('costs').catch(() => null)]);
-      let managed = null, liveTest = null;
+      let managed = null, liveTest = null, paperAcct = null;
       if (ownerKey()) {
         const own = p => fetch(`${BOT_BASE}/api/sentinel/${p}`, { cache: 'no-store', signal: AbortSignal.timeout(15000), headers: { 'X-Sentinel-Key': ownerKey() } }).then(r => r.ok ? r.json() : null).catch(() => null);
-        [managed, liveTest] = await Promise.all([own('managed'), own('live')]);
+        [managed, liveTest, paperAcct] = await Promise.all([own('managed'), own('live'), own('paper')]);
       }
       if (!cat) get('markets').then(c => { c.byId = {}; c.groups.forEach(g => g.markets.forEach(m => { c.byId[m.id] = m; })); cat = cat || c; render(); }).catch(() => {});
-      last = { status, board, feed, stats, costs, managed, live: liveTest };
+      last = { status, board, feed, stats, costs, managed, live: liveTest, paper: paperAcct };
       render();
     } catch (e) {
       const el = document.getElementById('sentinel-panel');

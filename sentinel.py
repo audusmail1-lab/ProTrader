@@ -413,8 +413,10 @@ async def _loop() -> None:
         _state["cycles"] += 1
         if _research is not None:
             _research.on_cycle()             # integrity first, then any review that is due; idempotent
+        if _paper is not None:
+            _paper.cycle()                   # read the owner's saved paper account, keep its positions
         if _twin is not None:
-            await _twin.cycle()              # Joel Twin: replay closed MT5 positions under Joel's rules (no orders)
+            await _twin.cycle()              # Joel Twin: replay closed MT5 and paper positions under Joel's rules (no orders)
         # Wake shortly after the next 15-minute close, or at once when the
         # focus list changes so new markets appear on the board.
         nxt = (int(cycle_start // 900) + 1) * 900 + 8
@@ -1159,6 +1161,43 @@ try:
 except Exception as e:                  # the scanner runs without it
     log.warning("sentinel live test unavailable: %s", e)
     _live = None
+
+# ── The owner's paper account, read from the saved workspace (paper_monitor.py)
+try:
+    import paper_monitor as _paper
+    import sys as _sys4
+    _paper.attach(_sys4.modules[__name__])
+except Exception as e:                  # the scanner runs without it
+    log.warning("paper monitor unavailable: %s", e)
+    _paper = None
+
+
+@router.get("/paper")
+def paper(request: Request) -> dict:
+    """Owner-only: the trader's own paper account — dollars, real R, skill check,
+    breakdowns, setup tags and Joel Twin on paper positions."""
+    _check_key(request)
+    if _paper is None:
+        raise HTTPException(503, "The paper monitor is not available on this server")
+    doc = _paper.owner_doc()
+    positions = _paper.stored()
+    if doc:                                  # merge today's saved fills, so the newest trades show before the next cycle
+        seen = {p["key"] for p in positions}
+        positions += [p for p in _paper.positions_from_fills(doc.get("trades") or []) if p.get("closed") and p["key"] not in seen]
+        positions.sort(key=lambda p: p.get("close") or 0)
+    out = _paper.analyze(doc, positions, _paper.setups_from_journal(_managed_rows()))
+    out["found"] = bool(doc)
+    out["state"] = _paper._state
+    if _twin is not None and doc:
+        try:
+            tw = _twin.load_all()
+            recs = _paper.twin_records(positions, float(doc.get("balance") or 0) or None)
+            out["twin"] = _twin.stats([(r, _twin.summary(tw.get(r["key"]))) for r in recs if tw.get(r["key"])])
+            out["twin"]["eligible"] = len(recs)
+        except Exception as e:
+            log.warning("paper twin: %s", e)
+    return out
+
 
 # ── Joel Twin: Joel's management rules replayed on every closed MT5 position (joel_twin.py)
 try:
