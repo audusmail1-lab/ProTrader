@@ -216,6 +216,7 @@ export function createVideoPlayer(videos) {
           ${v.transcript.map(s => `<p><button type="button" data-seek="${s.at}" aria-label="Play from ${esc(s.time)}">${esc(s.time)}</button> ${esc(s.text)}</p>`).join('')}
         </details>
         ${v.credit ? `<p class="music-credit">Music: <a href="${esc(v.credit.source)}" target="_blank" rel="noopener">${esc(v.credit.text)}</a>, released under <a href="${esc(v.credit.license)}" target="_blank" rel="noopener">CC BY 4.0</a>. Excerpt edited and mixed beneath narration.</p>` : ''}
+        <p class="academy-risk-note">Trading involves risk of loss. Nothing here is financial advice.</p>
       </div>`;
     const video = content.querySelector('video');
     const status = content.querySelector('.playback-status');

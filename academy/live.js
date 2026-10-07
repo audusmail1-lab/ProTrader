@@ -1,15 +1,15 @@
-import {initAlexSupport} from './cinematic/alex-support.js?v=20261002-controls';
-import {enhanceWorkspace} from './cinematic/workspace-ui.js?v=20261002-controls';
-import {teacherPage,bindTeacher} from './teacher.js?v=20261002-controls';
-import {initSupport,supportInbox,bindSupportInbox,academyRequest} from './support-chat.js?v=20261002-controls';
-import { academyHome, academyClasses, academyVideoCard } from './homepage.js?v=20261002-controls';
-import { createVideoPlayer } from './video-player.js?v=20261002-controls';
-import { videoLibrary, bindVideoLibrary } from './video-library.js?v=20261002-controls';
-import { videos, lessons } from './public-content.js?v=20261002-controls';
-import { journeyVideos } from './journey-videos.js?v=20261002-controls';
-import { introVideo } from './intro-video.js?v=20261002-controls';
-import { intro, bindPractice } from './public-intro.js?v=20261002-controls';
-import { contact, privacy, terms, risk, telegramLinks } from './public-pages.js?v=20261002-controls';
+import {initAlexSupport} from './cinematic/alex-support.js?v=20261007-gate1';
+import {enhanceWorkspace} from './cinematic/workspace-ui.js?v=20261007-gate1';
+import {teacherPage,bindTeacher} from './teacher.js?v=20261007-gate1';
+import {initSupport,supportInbox,bindSupportInbox,academyRequest} from './support-chat.js?v=20261007-gate1';
+import { academyHome, academyClasses, academyVideoCard } from './homepage.js?v=20261007-gate1';
+import { createVideoPlayer } from './video-player.js?v=20261007-gate1';
+import { videoLibrary, bindVideoLibrary } from './video-library.js?v=20261007-gate1';
+import { videos, lessons } from './public-content.js?v=20261007-gate1';
+import { journeyVideos } from './journey-videos.js?v=20261007-gate1';
+import { introVideo } from './intro-video.js?v=20261007-gate1';
+import { intro, bindPractice } from './public-intro.js?v=20261007-gate1';
+import { contact, privacy, terms, risk, telegramLinks } from './public-pages.js?v=20261007-gate1';
 const main=document.querySelector('main');
 const state={user:null,appUrl:"",setupRequired:false,enrollmentOpen:false,policy:{},telegram:{},progress:[],schedule:[],materials:null,fullLessons:null,filter:'All'};
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -26,7 +26,7 @@ async function introduction(){if(allowed())Object.assign(state,await api('classr
 function header(){
   document.querySelector('header nav').innerHTML=`<a href="/">Introduction</a><a href="#library">Learning library</a><a href="#classes">Live classes</a><a href="#classroom">My classroom</a>${state.appUrl?`<a href="${esc(state.appUrl)}" title="Open PROTrader — use your Academy account">Open app</a>`:''}${state.user?.role==='teacher'?'<a href="#teaching">Teaching</a><a href="#support-inbox">Support</a>':''}`;
   const action=document.querySelector('header>.button');action.href=state.user?'#account':'#login';action.textContent=state.user?'My account':'Sign in';
-  document.querySelector('footer').innerHTML=`<div class="footer-heading"><a class="brand" href="#home">PRO TRADER ACADEMY</a><p>Learn the tools. Build your process.</p></div><nav aria-label="Footer navigation">${state.appUrl?`<a href="${esc(state.appUrl)}">Open Trading App</a>`:''}<a href="#enroll">Join the Academy</a><a href="#contact">Contact</a>${telegramLinks(state.telegram)}<a href="#privacy">Privacy Policy</a><a href="#terms">Terms of Use</a><a href="#risk">Risk Disclaimer</a><a href="#${state.setupRequired?'setup':'teaching'}">Instructor ${state.setupRequired?'setup':'dashboard'}</a></nav><p class="footer-disclaimer">Educational content only; no personalized investment advice or guaranteed returns. Live trading can lose money. Read our <a href="#risk">Trading Risk Disclaimer</a>. Academy use is subject to our <a href="#terms">Terms of Use</a> and <a href="#privacy">Privacy Policy</a>.</p>`;
+  document.querySelector('footer').innerHTML=`<div class="footer-heading"><a class="brand" href="#home">PRO TRADER ACADEMY</a><p>Learn the tools. Build your process.</p></div><nav aria-label="Footer navigation">${state.appUrl?`<a href="${esc(state.appUrl)}">Open Trading App</a>`:''}<a href="#enroll">Join the Academy</a><a href="#contact">Contact</a>${telegramLinks(state.telegram)}<a href="#privacy">Privacy Policy</a><a href="#terms">Terms of Use</a><a href="#risk">Risk Disclaimer</a><a href="#${state.setupRequired?'setup':'teaching'}">Instructor ${state.setupRequired?'setup':'dashboard'}</a></nav><p class="footer-disclaimer">Trading involves risk of loss. Nothing here is financial advice. No guaranteed outcomes. Read our <a href="#risk">Trading Risk Disclaimer</a>. Academy use is subject to our <a href="#terms">Terms of Use</a> and <a href="#privacy">Privacy Policy</a>.</p>`;
 }
 function field(label,name,type='text',extra=''){if(type==='password'&&name==='password')return `<div class="password-field"><label for="account-password">${label}</label><div class="password-control"><input id="account-password" name="${name}" type="password" required ${extra}><button type="button" class="password-toggle" aria-controls="account-password" aria-label="Show password">Show</button></div></div>`;return `<label>${label}<input name="${name}" type="${type}" required ${extra}></label>`}
 function formStatus(form,text,isError=false){form.querySelector('.form-status').innerHTML=isError?error(text):`<div class="notice" role="status">${esc(text)}</div>`}

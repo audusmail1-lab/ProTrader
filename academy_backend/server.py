@@ -462,6 +462,7 @@ class Handler(BaseHTTPRequestHandler):
                     if not row: raise APIError(400,'This reset link is invalid or expired.')
                     db.execute('UPDATE users SET password=? WHERE id=?',(app.password(password),row['user_id']))
                     db.execute('DELETE FROM tokens WHERE user_id=?',(row['user_id'],));db.execute('DELETE FROM sessions WHERE user_id=?',(row['user_id'],))
+                    db.execute('DELETE FROM app_codes WHERE user_id=?',(row['user_id'],))
                 return self.output({'ok':True})
             raise APIError(404,'Not found.')
         except APIError as e: self.output({'error':e.message},e.status)

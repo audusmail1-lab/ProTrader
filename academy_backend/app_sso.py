@@ -119,6 +119,8 @@ def exchange_post(handler) -> None:
         data = json.loads(handler.rfile.read(size))
     except (ValueError, UnicodeDecodeError):
         raise err(400, 'Invalid request.')
+    if not isinstance(data, dict):
+        raise err(400, 'Invalid request.')
     code, verifier = str(data.get('code', '')), str(data.get('verifier', ''))
     if not TOKEN.fullmatch(code) or not TOKEN.fullmatch(verifier):
         raise err(400, 'Invalid sign-in code.')

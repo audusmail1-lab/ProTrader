@@ -1,4 +1,4 @@
-import { videos, lessons } from './public-content.js?v=20261002-controls';
+import { videos, lessons } from './public-content.js?v=20261007-gate1';
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const button=(label,href,secondary=false)=>`<a class="button ${secondary?'secondary':''}" href="${href}">${label}</a>`;
 export const academyVideoCard=v=>`<article class="video-card"><button class="video-image" data-video="${v.id}" aria-label="Play ${esc(v.title)}"><img src="${v.poster}" alt="" loading="lazy"><b aria-hidden="true"><svg class="academy-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="/ui-icons.svg#play"></use></svg></b><span>${v.duration}</span></button><small>${esc(v.topic)}</small><h3>${esc(v.title)}</h3><p>${esc(v.summary)}</p></article>`;

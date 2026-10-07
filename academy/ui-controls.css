@@ -37,3 +37,8 @@ details[open] > summary .disclosure-icon{transform:rotate(45deg)}
  #alex.academy-alex-launch{font-size:12px}
 }
 @media(prefers-reduced-motion:reduce){.disclosure-icon,.classroom-board .path-row{transition:none}}
+
+/* Keep the full educational risk statement readable within guide overlays. */
+.academy-risk-note{margin:24px 0 0;padding-top:16px;border-top:1px solid #6f857b55;color:#b8c6bf;font-size:12px;line-height:1.65}
+
+footer .academy-risk-footer{max-width:390px;font-size:12px;line-height:1.65;color:#b8c6bf}

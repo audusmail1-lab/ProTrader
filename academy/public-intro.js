@@ -9,7 +9,7 @@ export const terms = [
 ['Stop loss / take profit','Instructions intended to close a position at a loss limit or a profit target. Real execution may differ from the requested level.'],
 ['Margin','Funds required to support a leveraged position. Margin is different from the possible loss.'],
 ['Journal','A record you use to review a closed trade and the process behind it.'],
-['Scanner / ARIA / Oracle','Pro Trader analysis tools. Scanner detects patterns; ARIA checks conditions; Oracle summarizes how many of nine checks pass. None guarantees an outcome.'],
+['Scanner / ARIA / Oracle','Pro Trader analysis tools. Scanner detects patterns; ARIA checks conditions; Oracle summarizes how many defined checks pass. None guarantees an outcome.'],
 ['H-Line / Trend / Fib','Drawing tools: a horizontal price line, a line connecting points, and Fibonacci reference levels measured across a selected price swing.']
 ];
 export function glossary(){return `<div class="glossary">${terms.map(([name,text])=>`<details><summary>${name}</summary><p>${text}</p></details>`).join('')}</div>`}

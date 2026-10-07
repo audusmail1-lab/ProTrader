@@ -74,6 +74,40 @@ class AppSignInTests(AcademyTests):
             db.execute('UPDATE app_codes SET expires=?', (time.time() - 1,))
         self.assertEqual(self.exchange(code, verifier)[0], 400)
 
+    def test_password_reset_revokes_only_that_accounts_pending_codes(self):
+        self.teacher()
+        _, teacher_location, _, _, teacher_verifier = self.start(cookie=self.teacher_cookie)
+        teacher_code = parse_qs(urlsplit(teacher_location).query)['code'][0]
+        uid = self.student(); self.approve(uid)
+        _, location, _, _, verifier = self.start(cookie=self.student_cookie)
+        code = parse_qs(urlsplit(location).query)['code'][0]
+        self.request('/api/reset-request', {'email': 'student@example.com'})
+        with self.server.app.db() as db:
+            body = db.execute("SELECT body FROM mail WHERE subject='Reset your academy password' AND recipient=?", ('student@example.com',)).fetchone()[0]
+        token = body.split('#reset/')[1].split('\n')[0]
+        new_password = 'A-changed-test-only-password!'
+        self.request('/api/reset', {'token': token, 'password': new_password})
+        self.request('/api/classroom', expected=401, cookie=self.student_cookie)
+        self.assertEqual(self.exchange(code, verifier)[0], 400)
+        self.assertEqual(self.exchange(teacher_code, teacher_verifier)[0], 200)
+        self.request('/api/login', {'email': 'student@example.com', 'password': new_password})
+        _, fresh_location, _, _, fresh_verifier = self.start(cookie=self.cookie)
+        fresh_code = parse_qs(urlsplit(fresh_location).query)['code'][0]
+        self.assertEqual(self.exchange(fresh_code, fresh_verifier)[0], 200)
+
+    def test_exchange_rejects_non_object_json(self):
+        for payload in ([], [{}], 'invalid', 42, True, None):
+            with self.subTest(payload=payload):
+                conn = http.client.HTTPConnection('127.0.0.1', self.port, timeout=5)
+                try:
+                    conn.request('POST', '/api/app-exchange', json.dumps(payload), {'Content-Type': 'application/json'})
+                    response = conn.getresponse()
+                    body = json.loads(response.read())
+                    self.assertEqual(response.status, 400, body)
+                    self.assertEqual(body, {'error': 'Invalid request.'})
+                finally:
+                    conn.close()
+
     def test_pending_applicant_is_reported_as_pending(self):
         self.teacher(); self.student('pending@example.com')
         _, location, _, _, verifier = self.start(cookie=self.student_cookie)

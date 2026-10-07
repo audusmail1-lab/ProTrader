@@ -402,11 +402,12 @@
 }
 @media(max-width:600px){
  .planner-studio{border-radius:9px}
- .planner-studio .pro-window-bar{padding:0 13px;min-height:54px}
+ .planner-studio .pro-window-bar{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 12px;padding:12px 13px;min-height:54px}
  .planner-studio .pro-window-bar>b{font-size:12px;gap:8px}
  .planner-mark{width:18px;height:18px}
- .planner-window-actions{gap:10px}
- .planner-window-actions>span{display:none}
+ .planner-window-actions{display:contents}
+ .planner-window-actions>span{display:block;grid-column:1;grid-row:2;font-size:10px;letter-spacing:.8px;line-height:1.5}
+ .planner-window-actions>.reset-plan{grid-column:2;grid-row:1 / 3}
  .planner-studio .reset-plan{padding-left:12px;font-size:11px}
  .planner-studio #plan-form{padding:15px;grid-template-columns:minmax(0,1fr) 93px;gap:12px 12px}
  .planner-studio .plan-direction{max-width:none;min-width:0}
