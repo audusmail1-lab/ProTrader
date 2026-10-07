@@ -110,6 +110,35 @@ test('reduced-motion desktop and mobile chapter selection updates once with corr
  });
 });
 
+test('hero depth keeps the chassis behind the screen and raised panels in front across the camera journey',async()=>{
+ for(const mobile of [false,true])await sceneHarness({mobile,staticView:true},({surface,elements,draw,journey})=>{
+  // CSS depth increases toward the viewer, unlike OpenGL projected depth.
+  // Check the emitted camera transform rather than a particular matrix value:
+  // a reversed depth axis can let the opaque chassis cover the entire screen.
+  for(let step=0;step<=20;step++){
+   const progress=step/20;
+   journey({progress,paused:false,static:true,active:true});draw(100+step*100);
+   const matrix=surface.style.transform.slice('matrix3d('.length,-1).split(',').map(Number);
+   assert.equal(matrix.length,16);
+   assert.ok(matrix.every(Number.isFinite),'camera matrix must be finite');
+   const raised=Number(elements['.terminal-analysis'].style.transform.match(/^translateZ\(([-\d.]+)px\)$/)?.[1]);
+   assert.ok(raised>0,'analysis panel should lift from the screen');
+   for(const [u,v] of [[0,0],[1,0],[.5,.5],[0,1],[1,1]]){
+    const x=u*surface.offsetWidth,y=v*surface.offsetHeight;
+    const depth=z=>{
+     const w=matrix[3]*x+matrix[7]*y+matrix[11]*z+matrix[15];
+     assert.ok(w>0,'visible terminal must stay in front of the camera');
+     return (matrix[2]*x+matrix[6]*y+matrix[10]*z+matrix[14])/w;
+    };
+    const rear=depth(-10),screen=depth(0),front=depth(raised);
+    const context=`${mobile?'mobile':'desktop'} progress ${progress}, point ${u},${v}`;
+    assert.ok(rear<screen,`chassis must stay behind screen: ${context}`);
+    assert.ok(screen<front,`raised panel must stay in front of screen: ${context}`);
+   }
+  }
+ });
+});
+
 test('pausing the arrival stops the idle animation frame loop',async()=>{
  await sceneHarness({},({frames,draw,journey})=>{
   draw();assert.equal(frames.size,1);

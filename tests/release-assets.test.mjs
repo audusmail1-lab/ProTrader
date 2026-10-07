@@ -4,7 +4,7 @@ import {readFileSync} from 'node:fs';
 import {gunzipSync} from 'node:zlib';
 
 const root=new URL('../academy/',import.meta.url);
-const revision='20261007-gate1';
+const revision='20261007-safari1';
 const pages=['academy-landing.html','live.html'];
 const read=name=>readFileSync(new URL(name,root),'utf8');
 const local=url=>!url.startsWith('http:')&&!url.startsWith('https:')&&!url.startsWith('//');
@@ -41,7 +41,7 @@ test('the reachable authored module graph also uses new URLs, while API and pinn
  assert.ok(visited.size>=25,'Both homepage and classroom module chains must be checked');
  assert.match(read('live.js'),/import\('\/api\/materials\.js'\)/);
  assert.match(read('cinematic/alex-support.js'),/WIDGET_URL='\/cinematic\/elevenlabs-widget-0\.18\.3\.js'/);
- assert.match(read('cinematic/alex-support.js'),/styles\.href='\/cinematic\/alex-support\.css\?v=20261007-gate1'/);
+ assert.match(read('cinematic/alex-support.js'),/styles\.href='\/cinematic\/alex-support\.css\?v=20261007-safari1'/);
 });
 
 test('changed compressed modules deliver the same versioned source as their plain counterparts',()=>{

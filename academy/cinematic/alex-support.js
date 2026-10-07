@@ -1,4 +1,4 @@
-import {ALEX_PRODUCT_CONTEXT} from './alex-context.js?v=20261007-gate1';
+import {ALEX_PRODUCT_CONTEXT} from './alex-context.js?v=20261007-safari1';
 
 const AGENT_ID='agent_4801m3by5dhceh5rwx83ynt33ra3';
 // Pin the embed because our compact layout adapter targets this tested release.
@@ -73,7 +73,7 @@ export function refineAlexAgentStagePrefixes(root){
 // Adapt its dedicated errors and the narrow agent-only text prefix above.
 function refineWidget(widget,{mode,onError,onReady,onIdle}){
   const root=widget.shadowRoot;if(!root)return ()=>{};
-  const styles=document.createElement('link');styles.rel='stylesheet';styles.href='/cinematic/alex-support.css?v=20261007-gate1';root.append(styles);
+  const styles=document.createElement('link');styles.rel='stylesheet';styles.href='/cinematic/alex-support.css?v=20261007-safari1';root.append(styles);
   let ready=false;const errors=new WeakMap();
   const inspect=()=>{
     refineAlexAgentStagePrefixes(root);

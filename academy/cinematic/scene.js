@@ -1,5 +1,5 @@
 import { CatmullRomCurve3, Matrix4, PerspectiveCamera, Vector3 } from './vendor/three.core.js';
-import { terminalHTML, heroChartHTML, heroChartState } from './terminal-preview.js?v=20261007-gate1';
+import { terminalHTML, heroChartHTML, heroChartState } from './terminal-preview.js?v=20261007-safari1';
 
 // Original hero choreography. Project the current HTML terminal onto the same
 // 9.1 × 5.6 world-space console instead of loading the earlier GLB artwork.
@@ -111,9 +111,11 @@ export async function mountScene(surface, ready, { staticView = false } = {}) {
       0, 0, 9.1 / screenWidth, .168,
       0, 5.6 / screenHeight, 0, -2.8,
       0, 0, 0, 1);
+    // OpenGL depth increases away from the camera; CSS Z points toward the
+    // viewer. Reverse projected Z so the rear chassis cannot cover the UI.
     viewport.set(width / 2, 0, 0, width / 2,
       0, -height / 2, 0, height / 2,
-      0, 0, 1, 0,
+      0, 0, -1, 0,
       0, 0, 0, 1);
     camera.aspect = width / height;
     camera.updateProjectionMatrix();

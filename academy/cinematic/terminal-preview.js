@@ -1,4 +1,4 @@
-import {chartSVG,bars,price} from './market-example.js?v=20261007-gate1';
+import {chartSVG,bars,price} from './market-example.js?v=20261007-safari1';
 
 // Zoom out only as the paper plan enters; all labels share the chart's price scale.
 export function heroChartState(expansion=0){

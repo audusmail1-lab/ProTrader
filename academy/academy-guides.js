@@ -2,7 +2,7 @@
 (()=>{
 const videos=window.academyVideos;
 let playback=null,playerVersion=0,playbackReady;
-const getPlayback=()=>playbackReady||(playbackReady=import('./video-player.js?v=20261007-gate1').catch(error=>{playbackReady=null;throw error}));
+const getPlayback=()=>playbackReady||(playbackReady=import('./video-player.js?v=20261007-safari1').catch(error=>{playbackReady=null;throw error}));
 getPlayback().catch(()=>{});
 const portraitMedia=v=>v.width&&v.height?v.height>v.width:v.id<7;
 const lessons={
