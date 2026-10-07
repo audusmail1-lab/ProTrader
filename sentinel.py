@@ -413,6 +413,8 @@ async def _loop() -> None:
         _state["cycles"] += 1
         if _research is not None:
             _research.on_cycle()             # integrity first, then any review that is due; idempotent
+        if _twin is not None:
+            await _twin.cycle()              # Joel Twin: replay closed MT5 positions under Joel's rules (no orders)
         # Wake shortly after the next 15-minute close, or at once when the
         # focus list changes so new markets appear on the board.
         nxt = (int(cycle_start // 900) + 1) * 900 + 8
@@ -862,6 +864,10 @@ def _mt5_track(cid: str, snap: dict, deals) -> None:
     if not _mt5_state["loaded"]:
         _load_open_mt5()
     t_ms = int(now * 1000)
+    acct0 = (snap or {}).get("account") or {}
+    eq_now = _num_or_none(acct0.get("equity")) or _num_or_none(acct0.get("balance"))
+    if eq_now:
+        _mt5_state["equity"] = eq_now           # Joel Twin falls back to this for old records
     seen = set()
     for p in (snap or {}).get("positions") or []:
         try:
@@ -888,6 +894,7 @@ def _mt5_track(cid: str, snap: dict, deals) -> None:
                 "sl": sl, "tp": tp, "volume": vol, "max_volume": vol,
                 "be_at": None, "lock_at": None, "locked_r": None, "locked_pnl": None,
                 "mfe_price": price, "peak_pnl": pnl, "pnl_now": pnl, "closed": None,
+                "eq_open": None if late else eq_now,
             }
             if r["initial_sl"] is not None:
                 r["r_dist"] = abs(entry - r["initial_sl"])
@@ -907,6 +914,9 @@ def _mt5_track(cid: str, snap: dict, deals) -> None:
             r["events"].append({"t": t_ms, "type": "partial", "closed": round(r["volume"] - vol, 6), "price": price, "pnl": pnl})
             dirty = True
         r["volume"] = vol
+        if not r.get("per_unit") and abs(price - entry) > 1e-12 and pnl and vol >= (r.get("max_volume") or vol) - 1e-9:
+            r["per_unit"] = round(abs(pnl / (price - entry)), 8)   # money per 1.0 of price at full size (Joel Twin)
+            dirty = True
         if r.get("mfe_price") is None or s * (price - r["mfe_price"]) > 0:
             r["mfe_price"] = price
         r["pnl_now"] = pnl
@@ -1021,7 +1031,20 @@ def managed(request: Request) -> dict:
     _check_key(request)
     recs = _managed_rows()
     _attach_sentinel(recs)
-    return {"records": recs[:100], "stats": _managed_stats(recs),
+    st = _managed_stats(recs)
+    if _twin is not None:
+        try:
+            tw = _twin.load_all()
+            pairs = []
+            for r in recs:
+                t = _twin.summary(tw.get(r["key"]))
+                if t:
+                    r["twin"] = t
+                    pairs.append((r, t))
+            st["twin"] = _twin.stats(pairs)             # rule-break trades included: the twin is about exactly those
+        except Exception as e:
+            log.warning("twin merge: %s", e)
+    return {"records": recs[:100], "stats": st,
             "server_tracking": bool(_mt5_owner_channel()),
             "mt5_open_tracked": len(_mt5_open)}
 
@@ -1072,6 +1095,36 @@ try:
 except Exception as e:                  # the scanner runs without it
     log.warning("sentinel live test unavailable: %s", e)
     _live = None
+
+# ── Joel Twin: Joel's management rules replayed on every closed MT5 position (joel_twin.py)
+try:
+    import joel_twin as _twin
+    import sys as _sys3
+    _twin.attach(_sys3.modules[__name__])
+except Exception as e:                  # the scanner runs without it
+    log.warning("joel twin unavailable: %s", e)
+    _twin = None
+
+
+@router.get("/twin")
+def twin(request: Request) -> dict:
+    """Owner-only: the twin's rules, every replayed position (you vs twin) and the paired totals."""
+    _check_key(request)
+    if _twin is None:
+        raise HTTPException(503, "Joel Twin is not available on this server")
+    recs = _managed_rows()
+    tw = _twin.load_all()
+    rows, pairs = [], []
+    for r in recs:
+        t = _twin.summary(tw.get(r["key"]))
+        if not t:
+            continue
+        pairs.append((r, t))
+        rows.append({"key": r["key"], "symbol": r.get("symbol"), "side": r.get("side"), "opened": r.get("opened"),
+                     "you": r.get("pnl"), "you_exit": r.get("exit_reason"), "rule_break": r.get("rule_break"), "twin": t})
+    return {"version": _twin.TWIN_VERSION, "rules": _twin.rules_text(), "stats": _twin.stats(pairs),
+            "state": _twin._state, "records": rows[:200]}
+
 
 # ── Research loop: versions, cohorts, 100/150-trade reviews (sentinel_research.py)
 try:

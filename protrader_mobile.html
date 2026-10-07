@@ -1497,6 +1497,9 @@ svg.ico{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.7;st
 .sn-lv span{display:block;font-size:10px;color:var(--tx-3)}
 .sn-lv b{font-variant-numeric:tabular-nums;color:var(--tx-1);font-size:12px}
 .sn-meta{color:var(--tx-3);font-size:11px;line-height:1.4}
+.twin-sum{background:var(--bg-2);border-radius:6px;padding:6px 8px;margin:6px 0;line-height:1.55}
+.twin-sum b,.twin-cell b{color:var(--tx-1);font-variant-numeric:tabular-nums}
+.twin-cell b{white-space:nowrap}.twin-cell b.green{color:var(--green-lt)}.twin-cell b.red{color:var(--red-lt)}
 .sn-warn{color:var(--amber);font-size:11px}
 .sn-btn{appearance:none;border:1px solid var(--blue);background:rgba(79,140,255,.12);color:var(--blue-lt);font-weight:800;border-radius:8px;padding:8px 10px;font-size:12px;cursor:pointer;min-height:36px}
 .sn-btn[disabled]{opacity:.45;cursor:not-allowed}
@@ -8382,6 +8385,27 @@ const SENT = (() => {
     } catch (e) { showToast(e.message, 4000); }
   }
 
+  // Joel Twin: the same MT5 trade replayed under the trader's own rules, applied every time.
+  const TWIN_STOP = { yours: 'your stop', capped: 'stop capped at 1%', added: 'stop added at 1%', unknown: '1% stop' };
+  const nb = t => `<span style="white-space:nowrap">${t}</span>`;
+  function twinCell(t) {
+    if (!t) return '';
+    if (t.skip) return `<div class="sn-meta" title="${esc(t.skip)}">Twin: not replayed</div>`;
+    if (!Number.isFinite(t.pnl)) return `<div class="sn-meta">Twin: still running</div>`;
+    return `<div class="sn-meta twin-cell">Twin <b class="${t.pnl >= 0 ? 'green' : 'red'}">${money(t.pnl)}</b><br>${TWIN_STOP[t.stop_source] || ''}${t.locked ? ' · locked profit' : ''}</div>`;
+  }
+  function twinSummary(tw) {
+    if (!tw || !tw.n) return `<div class="sn-meta twin-sum"><b>Joel Twin</b> replays every closed MT5 trade under your own rules — a stop on every trade (1% at most), breakeven then a trail at +$100 per $36.9k — and shows you vs the twin here. It never places orders.${tw && tw.skipped ? ` ${tw.skipped} trade${tw.skipped === 1 ? '' : 's'} could not be replayed (no public price feed).` : ''}</div>`;
+    const d = tw.diff_per_trade, ci = tw.diff_ci95;
+    const fixed = Object.entries(tw.by_stop_source || {}).filter(([k]) => k !== 'yours').reduce((a, [, g]) => ({ n: a.n + g.n, you: a.you + g.you, twin: a.twin + g.twin }), { n: 0, you: 0, twin: 0 });
+    return `<div class="sn-meta twin-sum"><b>Joel Twin</b> · same entries, your rules every time · ${tw.n} trade${tw.n === 1 ? '' : 's'}<br>
+      You <b>${nb(money(tw.you_total))}</b> · Twin <b>${nb(money(tw.twin_total))}</b><br>
+      Twin vs you: ${nb(money(d))} a trade${ci ? ` (95% ${nb(money(ci[0]))} to ${nb(money(ci[1]))})` : ''}<br>
+      Twin better on ${tw.twin_better}, you on ${tw.you_better} · worst trade: you ${nb(money(tw.you_worst))}, twin ${nb(money(tw.twin_worst))}
+      ${fixed.n ? `<br>Where the twin added or capped your stop (${fixed.n}): you ${nb(money(fixed.you))} vs twin ${nb(money(fixed.twin))}` : ''}
+      ${tw.n < 30 ? `<br><span style="color:var(--tx-3)">${30 - tw.n} more trades before this comparison means much.</span>` : ''}</div>`;
+  }
+
   // The trader's own positions: how they were managed.
   function managedBlock() {
     const m = last?.managed, st = m?.stats || {};
@@ -8407,8 +8431,9 @@ const SENT = (() => {
     const closedRows = recs.length ? `<table class="sn-tbl"><tbody>${recs.map(r => `<tr>
         <td>${esc(r.label)} <span style="color:var(--tx-3)">${r.side === 'buy' ? 'L' : 'S'}</span></td>
         <td><span class="sn-chip ${STAGE_CLS[r.stage] || ''}">${esc(r.stage || '—')}</span>${r.rule_break ? `<div class="sn-meta" style="color:var(--red-lt)">Rule break · ${esc(r.rule_break)}</div>` : ''}</td>
-        <td style="text-align:right">${money(r.pnl)}${Number.isFinite(r.exit_r) ? `<div class="sn-meta">${r.exit_r >= 0 ? '+' : ''}${r.exit_r.toFixed(2)}R · peak ${Number.isFinite(r.mfe_r) ? r.mfe_r.toFixed(2) + 'R' : '—'}</div>` : ''}${Number.isFinite(r.sentinel_r) ? `<div class="sn-meta">Sentinel ${r.sentinel_r >= 0 ? '+' : ''}${r.sentinel_r.toFixed(2)}R</div>` : ''}</td></tr>`).join('')}</tbody></table>` : '';
+        <td style="text-align:right">${money(r.pnl)}${Number.isFinite(r.exit_r) ? `<div class="sn-meta">${r.exit_r >= 0 ? '+' : ''}${r.exit_r.toFixed(2)}R · peak ${Number.isFinite(r.mfe_r) ? r.mfe_r.toFixed(2) + 'R' : '—'}</div>` : ''}${Number.isFinite(r.sentinel_r) ? `<div class="sn-meta">Sentinel ${r.sentinel_r >= 0 ? '+' : ''}${r.sentinel_r.toFixed(2)}R</div>` : ''}${twinCell(r.twin)}</td></tr>`).join('')}</tbody></table>` : '';
     const vs = st.vs_sentinel;
+    const tw = st.twin;
     const trackNote = m?.server_tracking ? '' : `<div class="sn-meta">MT5 trades are tracked only while this page is open. Open PROTrader once on the device where your MT5 bridge is set up to switch on 24/7 tracking.</div>`;
     return `<div class="sn-h">Your trade management</div>${trackNote}
       ${openRows}
@@ -8417,7 +8442,7 @@ const SENT = (() => {
         Became risk free: <b>${pctTxt(st.risk_free_pct)}</b> · of those, closed in profit: <b>${pctTxt(st.risk_free_positive_pct)}</b>${Number.isFinite(st.capture_pct) ? ` · kept ${pctTxt(st.capture_pct)} of the peak on winners` : ''}
         ${st.rule_breaks ? `<br><span style="color:var(--red-lt)">${st.rule_breaks.n} rule-break trade${st.rule_breaks.n === 1 ? '' : 's'} (${money(st.rule_breaks.pnl)}) kept out of these numbers</span>` : ''}
         ${vs ? `<br>On ${vs.n} Sentinel setups: you ${vs.trader_avg_r >= 0 ? '+' : ''}${vs.trader_avg_r.toFixed(2)}R vs Sentinel's paper ${vs.sentinel_avg_r >= 0 ? '+' : ''}${vs.sentinel_avg_r.toFixed(2)}R per trade` : ''}
-        </div>${closedRows}</div>`
+        </div>${twinSummary(tw)}${closedRows}</div>`
         : `<div class="sn-empty">${ownerKey() ? 'Closed trades appear here with how they were managed: stop moves, when they became risk free, peak profit and the exit.' : 'Set your owner key (Choose markets) to keep this journal on the server.'}</div>`}`;
   }
 
