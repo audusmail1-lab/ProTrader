@@ -1182,14 +1182,18 @@ def paper(request: Request) -> dict:
     if _paper is None:
         raise HTTPException(503, "The paper monitor is not available on this server")
     doc = _paper.owner_doc()
+    doc_ps = _paper.positions_from_fills(doc.get("trades") or []) if doc else []
+    if doc_ps:
+        _paper.resolve_book(doc_ps, doc.get("balance") if isinstance(doc.get("balance"), (int, float)) else None)   # another device's account gets its own book
     positions = _paper.stored()
     if doc:                                  # merge today's saved fills, so the newest trades show before the next cycle
         seen = {p["key"] for p in positions}
-        positions += [p for p in _paper.positions_from_fills(doc.get("trades") or []) if p.get("closed") and p["key"] not in seen]
+        positions += [p for p in doc_ps if p.get("closed") and p["key"] not in seen]
         positions.sort(key=lambda p: p.get("close") or 0)
     out = _paper.analyze(doc, positions, _paper.setups_from_journal(_managed_rows()))
     out["found"] = bool(doc)
     out["state"] = _paper._state
+    out["earlier_accounts"] = sum(_paper.other_books().values())
     if _twin is not None and doc:
         try:
             tw = _twin.load_all()

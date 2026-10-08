@@ -109,26 +109,94 @@ def positions_from_fills(fills: list[dict]) -> list[dict]:
 
 def _table(con) -> None:
     con.execute("CREATE TABLE IF NOT EXISTS paper_positions (key TEXT PRIMARY KEY, close INTEGER, data TEXT)")
+    con.execute("CREATE TABLE IF NOT EXISTS paper_meta (k TEXT PRIMARY KEY, v TEXT)")
 
 
-def persist(positions: list[dict]) -> int:
+FIRST_BOOK = "book-1"                  # positions stored before books existed belong here
+
+
+def _meta_get(con, k: str) -> Optional[str]:
+    row = con.execute("SELECT v FROM paper_meta WHERE k=?", (k,)).fetchone()
+    return row[0] if row else None
+
+
+def current_book() -> str:
+    with _S._lock, _S._db() as con:
+        _table(con)
+        return _meta_get(con, "book") or FIRST_BOOK
+
+
+def resolve_book(positions: list[dict], balance: Optional[float] = None) -> str:
+    """Which paper account the saved document is. The same account shares a
+    closed position with a stored one, or (when the 500-fill window has moved
+    past every stored one) its balance follows on from the last one read plus
+    the new results. Anything else is a different paper account (another
+    device's) and gets its own book, so two accounts' results never mix."""
+    keys = [p["key"] for p in positions if p.get("closed")]
+    with _S._lock, _S._db() as con:
+        _table(con)
+        cur = _meta_get(con, "book") or FIRST_BOOK
+        if not keys:
+            return cur
+        found = None
+        for i in range(0, len(keys), 400):
+            chunk = keys[i:i + 400]
+            row = con.execute(f"SELECT data FROM paper_positions WHERE key IN ({','.join('?' * len(chunk))}) LIMIT 1", chunk).fetchone()
+            if row:
+                found = json.loads(row[0]).get("book") or FIRST_BOOK
+                break
+        if found is None:
+            used = sum(1 for (d,) in con.execute("SELECT data FROM paper_positions")      # positions already in the current book
+                       if (json.loads(d).get("book") or FIRST_BOOK) == cur)
+            last = _meta_get(con, "balance:" + cur)
+            follows = (balance is not None and last is not None
+                       and abs(float(last) + sum(p["pnl"] for p in positions if p.get("closed")) - float(balance)) < 0.02)
+            found = cur if (not used or follows) else f"book-{int(time.time())}"
+        if balance is not None:
+            con.execute("INSERT OR REPLACE INTO paper_meta VALUES (?, ?)", ("balance:" + found, repr(float(balance))))
+        if found != cur:
+            con.execute("INSERT OR REPLACE INTO paper_meta VALUES ('book', ?)", (found,))
+            log.info("paper monitor: the saved paper account changed (%s -> %s)", cur, found)
+        return found
+
+
+def persist(positions: list[dict], book: Optional[str] = None) -> int:
+    book = book or current_book()
     n = 0
     with _S._lock, _S._db() as con:
         _table(con)
         for p in positions:
             if not p.get("closed"):
                 continue
+            p = dict(p, book=book)
             con.execute("INSERT OR REPLACE INTO paper_positions VALUES (?,?,?)",
                         (p["key"], int(p.get("close") or 0), json.dumps(p)))
             n += 1
     return n
 
 
-def stored() -> list[dict]:
+def stored(book: Optional[str] = None) -> list[dict]:
+    """Stored closed positions of one paper account (the current one by default)."""
+    book = book or current_book()
     with _S._lock, _S._db() as con:
         _table(con)
         rows = con.execute("SELECT data FROM paper_positions ORDER BY close").fetchall()
-    return [json.loads(r[0]) for r in rows]
+    out = [json.loads(r[0]) for r in rows]
+    return [p for p in out if (p.get("book") or FIRST_BOOK) == book]
+
+
+def other_books() -> dict[str, int]:
+    """Earlier paper accounts kept apart: book -> closed positions."""
+    cur = current_book()
+    with _S._lock, _S._db() as con:
+        _table(con)
+        rows = con.execute("SELECT data FROM paper_positions").fetchall()
+    out: dict[str, int] = {}
+    for (d,) in rows:
+        b = json.loads(d).get("book") or FIRST_BOOK
+        if b != cur:
+            out[b] = out.get(b, 0) + 1
+    return out
 
 
 def cycle() -> None:
@@ -139,7 +207,11 @@ def cycle() -> None:
         if not doc:
             return
         _state["doc_updated"] = doc.get("_updated")
-        _state["positions"] = persist(positions_from_fills(doc.get("trades") or []))
+        ps = positions_from_fills(doc.get("trades") or [])
+        bal = doc.get("balance") if isinstance(doc.get("balance"), (int, float)) else None
+        book = resolve_book(ps, bal)
+        _state["book"] = book
+        _state["positions"] = persist(ps, book)
     except Exception as e:
         _state["last_error"] = f"{time.strftime('%H:%M:%S', time.gmtime())} {e}"
         log.warning("paper monitor: %s", e)

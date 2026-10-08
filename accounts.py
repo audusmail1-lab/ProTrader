@@ -68,6 +68,7 @@ MORE_COOKIE = "pt_more"          # other accounts signed in on this browser (swi
 MAX_ACCOUNTS = 5                 # per browser, including the active one
 SESSION_DAYS = 30
 WORKSPACE_KEYS = {"trade", "mgmt", "autoprotect", "favorites", "drawings", "mt5bridge"}
+HISTORY_KEEP = 20                    # replaced copies kept per document
 DOC_MAX = 1_500_000
 TOKEN = re.compile(r"^[A-Za-z0-9_-]{16,128}$")
 
@@ -129,6 +130,12 @@ def init() -> None:
         CREATE TABLE IF NOT EXISTS workspace(
             user_id INTEGER NOT NULL, key TEXT NOT NULL, data TEXT NOT NULL,
             version INTEGER NOT NULL, updated REAL NOT NULL, PRIMARY KEY(user_id, key));
+        -- every copy a save replaced, newest HISTORY_KEEP per document: nothing one
+        -- device writes can erase what another device had saved
+        CREATE TABLE IF NOT EXISTS workspace_history(
+            id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER NOT NULL, key TEXT NOT NULL,
+            data TEXT NOT NULL, version INTEGER NOT NULL, saved REAL NOT NULL, replaced REAL NOT NULL);
+        CREATE INDEX IF NOT EXISTS workspace_history_doc ON workspace_history(user_id, key, id);
         """)
         if "mode" not in {r[1] for r in db.execute("PRAGMA table_info(pending)")}:
             db.execute("ALTER TABLE pending ADD COLUMN mode TEXT NOT NULL DEFAULT ''")
@@ -417,9 +424,92 @@ def _workspace_put(request: Request, key: str, body: dict):
         if body["version"] != have:              # someone saved in between (another device)
             return JSONResponse({"error": "stale", "current": {"data": json.loads(cur["data"]) if cur else None,
                                  "version": have, "updated": cur["updated"] if cur else None}}, 409)
+        if cur and cur["data"] != blob:
+            _keep_replaced(db, u["id"], key, cur, now)
         db.execute("INSERT INTO workspace VALUES(?,?,?,?,?) ON CONFLICT(user_id,key) DO UPDATE SET "
                    "data=excluded.data, version=excluded.version, updated=excluded.updated",
                    (u["id"], key, blob, have + 1, now))
+    return {"ok": True, "version": have + 1, "updated": now}
+
+
+def _keep_replaced(db, user_id: int, key: str, cur, now: float) -> None:
+    """Keep the copy a save is about to replace. A different paper account is
+    kept at once; edits to the same one at most every 10 minutes, so an active
+    session does not push the earlier accounts out of the HISTORY_KEEP window."""
+    last = db.execute("SELECT data, replaced FROM workspace_history WHERE user_id=? AND key=? ORDER BY id DESC LIMIT 1",
+                      (user_id, key)).fetchone()
+    if last and now - last["replaced"] < 600 and _same_lineage(key, last["data"], cur["data"]):
+        db.execute("UPDATE workspace_history SET data=?, version=?, saved=?, replaced=? WHERE id=(SELECT MAX(id) FROM "
+                   "workspace_history WHERE user_id=? AND key=?)", (cur["data"], cur["version"], cur["updated"], now, user_id, key))
+    else:
+        db.execute("INSERT INTO workspace_history(user_id, key, data, version, saved, replaced) VALUES(?,?,?,?,?,?)",
+                   (user_id, key, cur["data"], cur["version"], cur["updated"], now))
+    db.execute("DELETE FROM workspace_history WHERE user_id=? AND key=? AND id NOT IN (SELECT id FROM workspace_history "
+               "WHERE user_id=? AND key=? ORDER BY id DESC LIMIT ?)", (user_id, key, user_id, key, HISTORY_KEEP))
+
+
+def _fills(raw: str) -> set:
+    try:
+        d = json.loads(raw)
+    except ValueError:
+        return set()
+    return {f"{t.get('id')}@{t.get('openTime')}" for t in (d.get("trades") or []) if isinstance(t, dict)} if isinstance(d, dict) else set()
+
+
+def _same_lineage(key: str, a: str, b: str) -> bool:
+    """Two copies of the paper account are the same account when they share a fill
+    (or neither has any yet). Other documents: always treated as the same lineage."""
+    if key != "trade":
+        return True
+    fa, fb = _fills(a), _fills(b)
+    return (not fa and not fb) or bool(fa & fb)
+
+
+def _summary(key: str, raw: str) -> dict:
+    try:
+        d = json.loads(raw)
+    except ValueError:
+        return {}
+    if key == "trade" and isinstance(d, dict):
+        trades = d.get("trades") or []
+        return {"balance": d.get("balance"), "fills": len(trades), "open": len(d.get("positions") or []),
+                "pending": len(d.get("orders") or []), "last_fill": max((t.get("closeTime") or 0 for t in trades if isinstance(t, dict)), default=None)}
+    return {"size": len(raw)}
+
+
+@router.get("/api/account/workspace/{key}/history")
+def workspace_history(key: str, request: Request) -> dict:
+    """Earlier copies of one document, newest first (the paper account with its balance)."""
+    u = _need_user(request)
+    if key not in WORKSPACE_KEYS:
+        raise HTTPException(404, "Unknown workspace document")
+    with _db() as db:
+        rows = db.execute("SELECT id, data, version, saved, replaced FROM workspace_history WHERE user_id=? AND key=? ORDER BY id DESC",
+                          (u["id"], key)).fetchall()
+    return {"copies": [{"id": r["id"], "version": r["version"], "saved": r["saved"], "replaced": r["replaced"],
+                        "summary": _summary(key, r["data"])} for r in rows]}
+
+
+@router.post("/api/account/workspace/{key}/restore/{copy_id}")
+def workspace_restore(key: str, copy_id: int, request: Request) -> dict:
+    """Make an earlier copy the current one; the current one is kept in the history first."""
+    _same_origin(request)
+    u = _need_user(request)
+    if key not in WORKSPACE_KEYS:
+        raise HTTPException(404, "Unknown workspace document")
+    now = time.time()
+    with _lock, _db() as db:
+        old = db.execute("SELECT data FROM workspace_history WHERE id=? AND user_id=? AND key=?", (copy_id, u["id"], key)).fetchone()
+        if not old:
+            raise HTTPException(404, "That copy is not kept any more")
+        cur = db.execute("SELECT data, version, updated FROM workspace WHERE user_id=? AND key=?", (u["id"], key)).fetchone()
+        have = cur["version"] if cur else 0
+        if cur and cur["data"] != old["data"]:
+            db.execute("INSERT INTO workspace_history(user_id, key, data, version, saved, replaced) VALUES(?,?,?,?,?,?)",
+                       (u["id"], key, cur["data"], cur["version"], cur["updated"], now))
+        db.execute("INSERT INTO workspace VALUES(?,?,?,?,?) ON CONFLICT(user_id,key) DO UPDATE SET "
+                   "data=excluded.data, version=excluded.version, updated=excluded.updated",
+                   (u["id"], key, old["data"], have + 1, now))
     return {"ok": True, "version": have + 1, "updated": now}
 
 

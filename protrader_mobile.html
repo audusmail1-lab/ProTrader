@@ -1396,7 +1396,7 @@ svg.ico{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.7;st
 .ac-who{display:grid;gap:2px;padding:12px;border:1px solid var(--bd-2);border-radius:10px;margin-bottom:12px}.ac-who strong{font-size:var(--fs-2)}.ac-who small{color:var(--tx-3)}
 .ac-tag{display:inline-block;justify-self:start;margin-top:6px;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:700;background:rgba(245,158,11,.15);color:var(--amber,#f59e0b)}.ac-tag.ok{background:rgba(16,185,129,.15);color:var(--green-lt,#34d399)}
 .ac-body{padding:0 18px 18px}.ac-h{font-size:12px;font-weight:600;color:var(--tx-3);text-transform:uppercase;letter-spacing:.06em;margin:16px 0 8px}
-.ac-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 12px;border:1px solid var(--bd-2);border-radius:10px;margin-bottom:8px}.ac-row>div{display:grid;gap:2px;min-width:0}.ac-row small{color:var(--tx-3);font-size:12px;line-height:1.4}.ac-row .ws-button{min-height:40px;flex:none;border:1px solid var(--bd-2);border-radius:8px;padding:0 14px}.ac-row .ws-primary{border-color:transparent}.ac-current{border-color:var(--blue,#3b82f6)}.ac-actions{display:grid;gap:8px}.ac-actions .ws-button{min-height:44px;width:100%;border:1px solid var(--bd-2);border-radius:8px}.ac-actions .ws-primary{border-color:transparent}
+.ac-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 12px;border:1px solid var(--bd-2);border-radius:10px;margin-bottom:8px}.ac-row>div{display:grid;gap:2px;min-width:0}.ac-row small{color:var(--tx-3);font-size:12px;line-height:1.4}.ac-row .ws-button{min-height:40px;flex:none;border:1px solid var(--bd-2);border-radius:8px;padding:0 14px}.ac-row .ws-primary{border-color:transparent}.ac-current{border-color:var(--blue,#3b82f6)}.ac-actions{display:grid;gap:8px}.ac-actions .ws-button{min-height:44px;width:100%;border:1px solid var(--bd-2);border-radius:8px;white-space:normal;line-height:1.3;padding:8px 12px}.ac-actions .ws-primary{border-color:transparent}
 .ws-tabs{display:flex;padding:0 18px;gap:18px;border-bottom:1px solid var(--bd-1)}.ws-tabs button{border:0;border-bottom:2px solid transparent;background:none;color:var(--tx-3);padding:10px 0;font:500 var(--fs-1) inherit;cursor:pointer}.ws-tabs button[aria-selected=true]{border-color:var(--blue);color:var(--tx-1)}
 .ws-fields{padding:16px 18px;display:grid;gap:12px}.ws-fields label{font-size:var(--fs-1);color:var(--tx-2);display:grid;grid-template-columns:1fr 160px;align-items:center;gap:12px}
 .ws-fields input,.ws-fields select{background:var(--bg-3);border:1px solid var(--bd-2);color:var(--tx-1);border-radius:6px;min-height:36px;padding:7px 10px;font:var(--fs-1) var(--font-mono);width:100%}
@@ -8524,6 +8524,7 @@ const SENT = (() => {
           : tw && tw.eligible ? `<div class="sn-meta">Joel Twin is replaying ${tw.eligible} paper position${tw.eligible === 1 ? '' : 's'} (a few each scan).</div>` : ''}` : ''}
         ${a.open && a.open.n ? `<div class="sn-meta">${a.open.n} open now (${esc(a.open.symbols.join(', '))}) · ${nb(money(a.open.risk_at_stops))} at their stops</div>` : ''}
         ${a.history_complete === false ? `<div class="sn-meta">The saved account keeps the last 500 fills; Sentinel keeps every position from now on.</div>` : ''}
+        ${a.earlier_accounts ? `<div class="sn-meta">${a.earlier_accounts} position${a.earlier_accounts === 1 ? '' : 's'} from an earlier paper account (another device's) are kept apart and not counted here.</div>` : ''}
         <div class="sn-meta" style="margin-top:4px">${esc(a.caveat || '')}</div>
       </div>`;
   }
@@ -10210,6 +10211,14 @@ const ACCOUNT = (() => {
     return { res, body };
   }
 
+  function sameAccount(key, mineStr, theirs) {
+    if (key !== 'trade') return true;
+    const ids = d => { try { const o = typeof d === 'string' ? JSON.parse(d) : d; return new Set(((o && o.trades) || []).map(t => t.id + '@' + t.openTime)); } catch (_) { return new Set(); } };
+    const a = ids(mineStr), b = ids(theirs);
+    if (!a.size || !b.size) return true;
+    for (const k of a) if (b.has(k)) return true;
+    return false;
+  }
   async function put(key, force) {
     const str = norm(local(key));
     if (str == null) return true;
@@ -10225,7 +10234,9 @@ const ACCOUNT = (() => {
       const cur = body.current || {};
       // Someone else (another of your devices) saved since. If you are using
       // this one right now, your copy wins; otherwise take the newer one.
-      if (Date.now() - lastInput < 120000 && document.visibilityState === 'visible') { meta.v[key] = cur.version || 0; return put(key, true); }
+      // A different paper account (no fill in common) chosen on another device
+      // is never overwritten by this one: it was picked on purpose.
+      if (Date.now() - lastInput < 120000 && document.visibilityState === 'visible' && sameAccount(key, str, cur.data)) { meta.v[key] = cur.version || 0; return put(key, true); }
       backup(key, str); write(key, cur.data); meta.v[key] = cur.version || 0; reload(); return true;
     }
     if (res.status === 413) { showToast('Your ' + key + ' data is too large to save to your account.', 5000); meta.h[key] = h; return true; }
@@ -10272,31 +10283,42 @@ const ACCOUNT = (() => {
     const mine = Object.keys(DOCS).filter(k => !empty(norm(local(k))));
     let choice = 'account';
     if (!has.length) choice = 'device';
-    else if (mine.length && mine.some(k => !docs[k] || JSON.stringify(docs[k].data) !== norm(local(k)))) choice = await ask();
+    else if (mine.length && mine.some(k => !docs[k] || JSON.stringify(docs[k].data) !== norm(local(k)))) choice = await ask(docs);
     meta = { uid: user.id, owner: !!user.owner, v: {}, h: {} };
+    // 'paper': this browser's paper account, everything else (journal, drawings, MT5 bridge…) from the account
+    const fromDevice = key => choice === 'device' || (choice === 'paper' && key === 'trade');
     for (const key of Object.keys(DOCS)) {
       const doc = docs[key];
       meta.v[key] = doc ? doc.version : 0;
-      if (choice === 'account') { backup(key, norm(local(key))); if (doc) write(key, doc.data); else if (!empty(norm(local(key)))) { write(key, null); } }
-      else { meta.h[key] = ''; if (!empty(norm(local(key)))) pending.add(key); }
+      if (!fromDevice(key)) { backup(key, norm(local(key))); if (doc) write(key, doc.data); else if (!empty(norm(local(key)))) { write(key, null); } }
+      else {
+        if (doc) backup(key, JSON.stringify(doc.data));        // the account's copy, kept here too (the server keeps it as well)
+        meta.h[key] = ''; if (!empty(norm(local(key)))) pending.add(key);
+      }
     }
     saveMeta();
-    if (choice === 'account') return reload();
     await flush();
+    if (choice !== 'device') return reload();
     showToast('This browser’s workspace is now saved to your account.', 4200);
   }
-  function ask() {
+  function ask(docs) {
+    const bal = raw => { try { const d = typeof raw === 'string' ? JSON.parse(raw) : raw; return d && Number.isFinite(+d.balance) ? otMoney(+d.balance) : null; } catch (_) { return null; } };
+    const fills = raw => { try { const d = typeof raw === 'string' ? JSON.parse(raw) : raw; return (d && d.trades || []).length; } catch (_) { return 0; } };
+    const acctBal = docs.trade ? bal(docs.trade.data) : null, hereBal = bal(local('trade'));
     return new Promise(done => {
       document.querySelectorAll('dialog.ws-dialog').forEach(d => d.remove());
       const d = document.createElement('dialog'); d.className = 'ws-dialog'; d.id = 'acctAdopt';
       d.innerHTML = `<header><h2>Which workspace should this account use?</h2></header>
         <div class="ac-body">
-          <p>Your account already has a saved workspace, and this browser has its own (paper trades, journal, drawings). One account keeps one workspace.</p>
+          <p>Your account already has a saved workspace, and this device has its own. One account keeps one paper account.</p>
+          ${acctBal || hereBal ? `<p><b>Paper account saved to your account:</b> ${acctBal ? esc(acctBal) + ` · ${fills(docs.trade.data)} fill${fills(docs.trade.data) === 1 ? '' : 's'}` : 'none'}<br>
+             <b>Paper account on this device:</b> ${hereBal ? esc(hereBal) + ` · ${fills(local('trade'))} fill${fills(local('trade')) === 1 ? '' : 's'}` : 'none'}</p>` : ''}
           <div class="ac-actions">
             <button type="button" class="ws-button ws-primary" data-a="account">Use my account’s workspace</button>
-            <button type="button" class="ws-button" data-a="device">Replace my account with this browser’s</button>
+            ${hereBal ? `<button type="button" class="ws-button" data-a="paper">Use this device’s paper account (${esc(hereBal)}), keep the rest of my account</button>` : ''}
+            <button type="button" class="ws-button" data-a="device">Replace my whole account with this device’s</button>
           </div>
-          <p style="margin-top:12px">Either way, the copy that is replaced is backed up in this browser.</p>
+          <p style="margin-top:12px">Nothing is lost: the copy that is replaced is kept on the server (Account → Paper account backups) and on this device.</p>
         </div>`;
       let picked = 'account';
       d.querySelectorAll('[data-a]').forEach(b => b.onclick = () => { picked = b.dataset.a; d.close(); });
@@ -10445,7 +10467,10 @@ const ACCOUNT = (() => {
         <button type="button" class="ws-button" data-open>${isIOS() ? 'Open in Safari, signed in' : 'Open in another browser, signed in'}</button>
         <button type="button" class="ws-button" data-out>Sign out ${esc(String(user.name || user.email).split(' ')[0])}</button>
       </div>
-      <p style="margin-top:12px">Each account keeps its own workspace. Switching saves this one first. Signing out removes it from this browser only; it stays in the account.</p>`;
+      <p style="margin-top:12px">Each account keeps its own workspace. Switching saves this one first. Signing out removes it from this browser only; it stays in the account.</p>
+      <h3 class="ac-h">Paper account backups</h3>
+      <div id="acctBackups"><p style="color:var(--tx-3)">Loading…</p></div>`;
+    loadBackups();
     body.querySelector('[data-open]').onclick = handoff;
     body.querySelector('[data-out]').onclick = signOut;
     body.querySelector('[data-add]').onclick = addAccount;
@@ -10453,6 +10478,41 @@ const ACCOUNT = (() => {
     const on = body.querySelector('[data-tgon]'), off = body.querySelector('[data-tgoff]');
     if (on) on.onclick = linkTelegram;
     if (off) off.onclick = unlinkTelegram;
+  }
+
+  // Every paper account a save replaced (another device's, or before a restore) is kept on the server.
+  async function loadBackups() {
+    const box = document.getElementById('acctBackups'); if (!box || !user) return;
+    let copies = [];
+    try { const { res, body } = await api('/api/account/workspace/trade/history'); if (res.ok) copies = body.copies || []; } catch (_) {}
+    const when = t => new Date(t * 1000).toLocaleString(undefined, { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+    box.innerHTML = copies.length ? copies.slice(0, 8).map(c => {
+      const m = c.summary || {};
+      return `<div class="ac-row"><div><strong>${Number.isFinite(+m.balance) ? esc(otMoney(+m.balance)) : 'Paper account'}</strong>
+        <small>${m.fills || 0} fill${m.fills === 1 ? '' : 's'}${m.open ? ` · ${m.open} open` : ''}${m.pending ? ` · ${m.pending} pending` : ''} · replaced ${esc(when(c.replaced))}</small></div>
+        <button type="button" class="ws-button" data-restore="${c.id}" data-bal="${esc(Number.isFinite(+m.balance) ? otMoney(+m.balance) : '')}">Restore</button></div>`;
+    }).join('') : '<p style="color:var(--tx-3)">None yet. When another device or a restore replaces your paper account, the earlier one is kept here.</p>';
+    box.querySelectorAll('[data-restore]').forEach(b => b.onclick = () => restore(+b.dataset.restore, b.dataset.bal));
+  }
+  async function restore(id, bal) {
+    const cur = (() => { try { const d = JSON.parse(local('trade') || 'null'); return d && Number.isFinite(+d.balance) ? otMoney(+d.balance) : null; } catch (_) { return null; } })();
+    const ok = await new Promise(done => {
+      document.querySelectorAll('dialog.ws-dialog').forEach(d => d.remove());
+      const d = document.createElement('dialog'); d.className = 'ws-dialog'; d.id = 'acctRestore';
+      d.innerHTML = `<header><h2>Restore this paper account?</h2></header>
+        <div class="ac-body"><p>${bal ? 'The account with <b>' + esc(bal) + '</b> becomes the one you trade on, on every device.' : 'This copy becomes the one you trade on, on every device.'}${cur ? ` The one in use now (${esc(cur)}) is kept as a backup.` : ''}</p>
+        <div class="ac-actions"><button type="button" class="ws-button ws-primary" data-a="yes">Restore</button><button type="button" class="ws-button" data-a="no">Cancel</button></div></div>`;
+      let picked = false;
+      d.querySelectorAll('[data-a]').forEach(b => b.onclick = () => { picked = b.dataset.a === 'yes'; d.close(); });
+      d.addEventListener('close', () => { d.remove(); done(picked); });
+      document.body.appendChild(d); d.showModal();
+    });
+    if (!ok) return;
+    await flush();                                        // save anything unsaved here first, so it is the copy that gets kept
+    const { res, body } = await api(`/api/account/workspace/trade/restore/${id}`, { method: 'POST' });
+    if (!res.ok) return showToast(body.detail || 'Could not restore it. Try again.', 4000);
+    try { sessionStorage.setItem('pt.acct.msg', `Paper account restored${bal ? ' (' + bal + ')' : ''}.`); sessionStorage.removeItem('pt.acct.reload'); } catch (_) {}
+    await pull();                                         // a restore the trader asked for always reloads (not a sync loop)
   }
 
   async function boot() {

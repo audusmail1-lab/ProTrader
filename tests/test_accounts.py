@@ -226,3 +226,36 @@ if __name__ == "__main__":
         if name.startswith("test_"):
             fn(); n += 1; print("ok", name)
     print(n, "passed")
+
+
+def test_a_paper_account_replaced_by_another_device_is_kept_and_can_be_restored():
+    desk, phone = browser(), browser()
+    sign_in(desk, TEACHER); sign_in(phone, TEACHER)
+    v = desk.get("/api/account/workspace").json()["docs"].get("trade", {}).get("version", 0)
+    fill = lambda i, t: {"id": i, "openTime": t, "closeTime": t + 60_000, "pnl": 5.0}
+    desk_acct = {"balance": 9782.69, "trades": [fill(1, 1_000), fill(2, 2_000)], "positions": [], "orders": [{"id": 9}]}
+    r = put(desk, "trade", desk_acct, v); assert r.status_code == 200; v = r.json()["version"]
+    for i in range(3):                                   # the desk keeps trading: same account, one kept copy at most
+        desk_acct = dict(desk_acct, balance=9782.69 + i, trades=desk_acct["trades"] + [fill(10 + i, 10_000 + i)])
+        v = put(desk, "trade", desk_acct, v).json()["version"]
+    hist = desk.get("/api/account/workspace/trade/history").json()["copies"]
+    assert len(hist) <= 1
+    phone_acct = {"balance": 40124.0, "trades": [fill(500, 900_000), fill(501, 901_000)], "positions": [], "orders": []}
+    v = put(phone, "trade", phone_acct, v).json()["version"]          # the phone's account replaces the desk's
+    hist = phone.get("/api/account/workspace/trade/history").json()["copies"]
+    assert hist[0]["summary"]["balance"] == 9782.69 + 2 and hist[0]["summary"]["fills"] == 5 and hist[0]["summary"]["pending"] == 1
+    v = put(phone, "trade", dict(phone_acct, balance=40130.0), v).json()["version"]   # more phone trading keeps the desk copy
+    hist = phone.get("/api/account/workspace/trade/history").json()["copies"]
+    assert any(h["summary"]["balance"] == 9782.69 + 2 for h in hist)
+    desk_copy = next(h for h in hist if h["summary"]["balance"] == 9782.69 + 2)
+    # another site cannot trigger a restore; the app's own origin can, and the current copy is kept first
+    assert phone.post(f"/api/account/workspace/trade/restore/{desk_copy['id']}", headers={"Origin": "https://evil.example"}).status_code == 403
+    r = phone.post(f"/api/account/workspace/trade/restore/{desk_copy['id']}", headers={"Origin": HOST})
+    assert r.status_code == 200 and r.json()["version"] == v + 1
+    assert desk.get("/api/account/workspace").json()["docs"]["trade"]["data"]["balance"] == 9782.69 + 2
+    hist = desk.get("/api/account/workspace/trade/history").json()["copies"]
+    assert hist[0]["summary"]["balance"] == 40130.0
+    # another person's copies are not reachable
+    other = browser(); sign_in(other, STUDENT)
+    assert other.post(f"/api/account/workspace/trade/restore/{desk_copy['id']}", headers={"Origin": HOST}).status_code == 404
+    assert all(h["summary"].get("balance") not in (40130.0,) for h in other.get("/api/account/workspace/trade/history").json()["copies"])

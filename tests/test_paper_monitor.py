@@ -118,3 +118,35 @@ def test_endpoint_and_twin_cover_paper_positions(monkeypatch):
     assert out["found"] and out["n"] == 2 and out["balance"] == 10_005.0 and out["start_balance"] == 10_000.0
     assert out["by_setup"] == {"G2": {"n": 1, "pnl": 15.0, "wins": 1, "win_pct": 1.0, "avg_r": 1.5}}
     assert out["twin"]["n"] == 2 and out["twin"]["eligible"] == 2
+
+
+def test_a_different_paper_account_gets_its_own_book(monkeypatch):
+    """The desk's account was saved first; then the phone's replaced it. Results never mix,
+    and going back to the desk's account finds its book again."""
+    monkeypatch.setenv("SENTINEL_ADMIN_KEY", "k")
+    accounts.init()
+    with s._lock, s._db() as con:
+        con.execute("DROP TABLE IF EXISTS paper_positions"); con.execute("DROP TABLE IF EXISTS paper_meta")
+    def save(doc):
+        with accounts._db() as db:
+            db.execute("DELETE FROM workspace"); db.execute("DELETE FROM users")
+            db.execute("INSERT INTO users(id, name, email, role, status, verified, created) VALUES (1,'Joel','j@x','teacher','accepted',1,0)")
+            db.execute("INSERT INTO workspace VALUES (1,'trade',?,1,?)", (json.dumps(doc), time.time()))
+    desk = [fill(1, -10.0, reason="Stop loss"), fill(2, 5.0)]
+    save({"balance": 9_995.0, "trades": desk})
+    pm.cycle()
+    assert pm.current_book() == pm.FIRST_BOOK and len(pm.stored()) == 2
+    phone = [fill(100 + i, 40.0, open_=T0 + 9_000_000 + i * 60_000) for i in range(5)]
+    save({"balance": 10_200.0, "trades": phone})
+    class Req:
+        headers = {"x-sentinel-key": "k"}
+    s.paper(Req())                                 # the app asks before the next scan: same book after the scan
+    first = pm.current_book()
+    pm.cycle(); pm.cycle()
+    assert pm.current_book() == first != pm.FIRST_BOOK
+    assert [p["id"] for p in pm.stored()] == [100, 101, 102, 103, 104]
+    out = s.paper(Req())
+    assert out["n"] == 5 and out["pnl_total"] == 200.0 and out["start_balance"] == 10_000.0 and out["earlier_accounts"] == 2
+    save({"balance": 9_995.0, "trades": desk + [fill(3, 7.0)]})       # back on the desk's account
+    pm.cycle()
+    assert pm.current_book() == pm.FIRST_BOOK and [p["id"] for p in pm.stored()] == [1, 2, 3]
