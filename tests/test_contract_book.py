@@ -57,9 +57,9 @@ def test_takes_quotes_records_entry_and_never_buys():
     out = asyncio.run(cb.run_once(now_s=MON_1500, call=f))
     assert out["opened"] == len(cb.SPECS) and out["entries"] == len(cb.SPECS)
     recs = cb.load_all()
-    r = next(x for x in recs if x["spec"] == "ndx-rise-91")
+    r = next(x for x in recs if x["spec"] == "ndx-rise-182")
     assert r["payout"] == 18.5 and r["priced_p"] == round(10 / 18.5, 4) and r["entry"] == 100.0 and r["status"] == "open"
-    assert r["date_expiry"] == MON_1500 + 91 * 86400
+    assert r["date_expiry"] == MON_1500 + 182 * 86400
     assert all("proposal" in q or "ticks_history" in q for q in f.reqs)
     assert asyncio.run(cb.run_once(now_s=MON_1500 + 3600, call=f))["opened"] == 0          # same week: nothing new
 
@@ -73,23 +73,40 @@ def test_closed_market_records_nothing():
 
 def test_settles_at_expiry_from_deriv_prices_and_scores():
     _clear()
-    asyncio.run(cb.run_once(now_s=MON_1500, call=FakeDeriv(payout=19.0, entry=100.0)))
-    later = MON_1500 + 31 * 86400 + 3600
-    t = dt.datetime.fromtimestamp(later, dt.timezone.utc)
-    assert t.weekday() == 3                                               # a Thursday: the 30-day ones settle, new ones open too
-    out = asyncio.run(cb.run_once(now_s=later, call=FakeDeriv(payout=19.0, entry=100.0, exit_=101.0)))
-    assert out["settled"] == 2                                            # both 30-day contracts
+    asyncio.run(cb.run_once(now_s=MON_1500, call=FakeDeriv(payout=16.0, entry=100.0)))
+    later = MON_1500 + 183 * 86400 + 3600
+    assert dt.datetime.fromtimestamp(later, dt.timezone.utc).weekday() < 5    # a weekday: the 6-month ones settle, new ones open too
+    out = asyncio.run(cb.run_once(now_s=later, call=FakeDeriv(payout=16.0, entry=100.0, exit_=101.0)))
+    assert out["settled"] == 2                                            # both 6-month contracts
     recs = {r["key"]: r for r in cb.load_all()}
-    r = recs[cb.week_key("ndx-rise-30", MON_1500)]
-    assert r["status"] == "won" and r["returned"] == 19.0 and r["net"] == 9.0
-    assert recs[cb.week_key("ndx-rise-91", MON_1500)]["status"] == "open"
+    r = recs[cb.week_key("ndx-rise-182", MON_1500)]
+    assert r["status"] == "won" and r["returned"] == 16.0 and r["net"] == 6.0
+    assert recs[cb.week_key("ndx-rise-365", MON_1500)]["status"] == "open"
     st = cb.stats(list(recs.values()))
-    sp = st["specs"]["ndx-rise-30"]
-    assert sp["settled"] == 1 and sp["wins"] == 1 and sp["roi"] == 0.9 and sp["verdict"].startswith("too few")
-    assert sp["edge_on_history"] == round(0.631 / (10 / 19.0) - 1, 3)
+    sp = st["specs"]["ndx-rise-182"]
+    assert sp["settled"] == 1 and sp["wins"] == 1 and sp["roi"] == 0.6 and sp["verdict"].startswith("too few")
+    assert sp["edge_on_history"] == round(0.748 / (10 / 16.0) - 1, 3)
     # a fall loses the stake
     lost = cb.settle(dict(r, status="open"), later, 99.0)
     assert lost["status"] == "lost" and lost["returned"] == 0.0 and lost["net"] == -10.0
+
+
+def test_weekend_expiry_moves_to_the_next_trading_day():
+    _clear()
+
+    class WeekendDeriv(FakeDeriv):
+        async def __call__(self, req):
+            if "proposal" in req and req["duration"] in (182, 365):
+                self.reqs.append(req)
+                return {"error": {"message": "The contract must expire on a trading day."}}
+            m = await super().__call__(req)
+            if "proposal" in req:
+                m["echo_req"] = {"duration": req["duration"]}
+            return m
+    f = WeekendDeriv()
+    out = asyncio.run(cb.run_once(now_s=MON_1500, call=f))
+    assert out["opened"] == len(cb.SPECS)
+    assert sorted({r["days"] for r in cb.load_all()}) == [183, 366]
 
 
 def test_verdict_needs_twenty_and_two_standard_errors():

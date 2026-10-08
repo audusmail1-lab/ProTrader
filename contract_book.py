@@ -8,10 +8,13 @@ first tick after the quote as the entry and settles the contract at its expiry
 from Deriv's own prices. The question it answers, with Deriv's real prices
 rather than a model: do these contracts win more often than Deriv charges for?
 
-The lead it tests (research/docs/09-pricing-audit.md): Deriv prices long index
-"Rise" contracts close to the risk-neutral price, which leaves out the equity
-premium. Over 2001-2026 the Nasdaq-100 rose over 30 days 63% of the time and
-over 91 days 70%; over 2016-2026 the S&P 500 did 70% and 77%.
+What it tests (research/docs/09-pricing-audit.md): Deriv's live quotes on 8 Oct
+2026 build an upward drift into index "Rise" contracts (about 62% odds for the
+Nasdaq-100 at every length), so short ones have no edge left. Only 6- and
+12-month Rise beat that price on 2001-2026 history, the 12-month one even in the
+flat 2001-2012 decade. Few independent years stand behind that, so the book's
+first job is to watch Deriv's price; a verdict on outcomes needs 20 settled
+contracts of a kind (about a year and a half for the 12-month one).
 
 The specs are frozen as BOOK_VERSION. Changing one is a new version; results of
 different versions are never mixed.
@@ -32,14 +35,14 @@ import sentinel_core as core
 log = logging.getLogger("sentinel.book")
 
 SPECS: list[dict] = [
-    {"id": "ndx-rise-30", "symbol": "OTC_NDX", "label": "US Tech 100 · Rise · 30 days", "contract_type": "CALL", "days": 30,
-     "history": {"won": 0.631, "source": "Nasdaq-100 2001–2026, every 30-day window"}},
-    {"id": "ndx-rise-91", "symbol": "OTC_NDX", "label": "US Tech 100 · Rise · 91 days", "contract_type": "CALL", "days": 91,
-     "history": {"won": 0.698, "source": "Nasdaq-100 2001–2026, every 91-day window"}},
-    {"id": "spx-rise-30", "symbol": "OTC_SPC", "label": "US 500 · Rise · 30 days", "contract_type": "CALL", "days": 30,
-     "history": {"won": 0.697, "source": "S&P 500 2016–2026, every 30-day window"}},
-    {"id": "spx-rise-91", "symbol": "OTC_SPC", "label": "US 500 · Rise · 91 days", "contract_type": "CALL", "days": 91,
-     "history": {"won": 0.772, "source": "S&P 500 2016–2026, every 91-day window"}},
+    {"id": "ndx-rise-182", "symbol": "OTC_NDX", "label": "US Tech 100 · Rise · 6 months", "contract_type": "CALL", "days": 182,
+     "history": {"won": 0.748, "source": "Nasdaq-100 2001–2026, every 182-day window (0.657 in 2001–2012)"}},
+    {"id": "ndx-rise-365", "symbol": "OTC_NDX", "label": "US Tech 100 · Rise · 12 months", "contract_type": "CALL", "days": 365,
+     "history": {"won": 0.819, "source": "Nasdaq-100 2001–2026, every 365-day window (0.756 in 2001–2012)"}},
+    {"id": "spx-rise-182", "symbol": "OTC_SPC", "label": "US 500 · Rise · 6 months", "contract_type": "CALL", "days": 182,
+     "history": {"won": 0.788, "source": "S&P 500 2016–2026 only, a rising decade"}},
+    {"id": "spx-rise-365", "symbol": "OTC_SPC", "label": "US 500 · Rise · 12 months", "contract_type": "CALL", "days": 365,
+     "history": {"won": 0.846, "source": "S&P 500 2016–2026 only, a rising decade"}},
 ]
 STAKE = 10.0                           # paper dollars per contract
 ENTRY_HOURS_GMT = (14, 19)             # US cash session, well before Deriv's 20:00 close
@@ -127,13 +130,17 @@ async def take(call: Call, spec: dict, now_s: int) -> Optional[dict]:
     req = {"proposal": 1, "amount": STAKE, "basis": "stake", "currency": "USD", "underlying_symbol": spec["symbol"],
            "contract_type": spec["contract_type"], "duration": spec["days"], "duration_unit": "d"}
     m = await call(req)
+    for extra in (1, 2, 3):              # Deriv refuses an expiry on a weekend or holiday: take the next trading day
+        if not (m.get("error") and "trading day" in (m["error"].get("message") or "")):
+            break
+        m = await call(dict(req, duration=spec["days"] + extra))
     if m.get("error"):
         _state["last_error"] = f"{spec['id']}: {m['error'].get('message')}"
         return None
     p = m["proposal"]
     payout = float(p["payout"])
     rec = {"key": week_key(spec["id"], now_s), "spec": spec["id"], "symbol": spec["symbol"], "contract_type": spec["contract_type"],
-           "days": spec["days"], "stake": STAKE, "payout": payout, "priced_p": round(STAKE / payout, 4),
+           "days": int(m["echo_req"]["duration"]) if (m.get("echo_req") or {}).get("duration") else spec["days"], "stake": STAKE, "payout": payout, "priced_p": round(STAKE / payout, 4),
            "quoted_at": int(now_s), "quote_spot": float(p.get("spot") or 0), "quote_spot_time": int(p.get("spot_time") or now_s),
            "date_start": int(p.get("date_start") or now_s), "date_expiry": int(p["date_expiry"]),
            "longcode": p.get("longcode", ""), "status": "open", "version": BOOK_VERSION}

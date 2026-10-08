@@ -21,7 +21,7 @@ Every price is exact odds minus a margin. On a game where the house sets both th
 
 Large margins: 1-day contracts −11% to −58%, 7-day −7% to −38%, 30-day calm-side contracts about break-even after the margin. One year of history is too short to call the 30-day ones either way. Not an edge at these prices; re-quote during London hours before closing it.
 
-## 3. The lead: real-index "Rise" contracts are priced risk-neutrally
+## 3. The lead (7 Oct): were real-index "Rise" contracts priced risk-neutrally?
 
 Gold quotes show how Deriv prices long contracts: Rise and Fall prices sum to 1.05–1.10 (2.5–5% margin per side) around a risk-neutral centre. If the Nasdaq-100 is priced the same way, buying "Rise" collects the equity risk premium plus the volatility premium: the market goes up over a quarter far more often than the risk-neutral price assumes.
 
@@ -38,8 +38,23 @@ Weekly ladder (stake a fixed share of equity every Monday, 2001–2026): Rise 91
 
 What it is: the equity risk premium, the most documented premium in finance, bought through defined-risk contracts. What it isn't: a prediction system or a guaranteed income.
 
-Deciding check (scheduled 06:20 GMT 8 Oct, when indices open): Deriv's actual payouts for Nasdaq-100 / US 500 Rise 30/91/182/365d. The edge holds if the priced probability (stake ÷ payout) is clearly below the historical win rate (0.63 / 0.70 / 0.75 / 0.82).
+## 4. The deciding check (8 Oct 2026, live index quotes): the strong claim fails, a narrow one survives
 
-Built ahead of the check (preview, not launched): the Sentinel contract book (`contract_book.py`, `/api/sentinel/contracts`, a card in the Sentinel tab). Once a week during the US session it takes one paper contract each of US Tech 100 and US 500 "Rise" 30 and 91 days at Deriv's live payout (read-only `proposal`), uses the first tick after the quote as the entry, and settles at expiry from Deriv's own prices. Verdict after 20 settled contracts per kind: wins counted against the odds Deriv charged, at 2 standard errors. Probed live on gold (quote, entry tick, settlement price); 6 tests.
+Deriv does not price index "Rise" contracts risk-neutrally. It builds in an upward drift: about 62% odds for US Tech 100 at every length (pays about 1.61×), and 67–70% for US 500. Rise and Fall prices sum to 1.00–1.04.
+
+US Tech 100 Rise at Deriv's real price against Nasdaq-100 history:
+
+| Length | Deriv odds | Rose 2001–2026 | EV | Flat decade 2001–12 | Bull decade 2013–26 |
+|---|---|---|---|---|---|
+| 32 days | 0.614 | 0.633 | +3% | −6% | +11% |
+| 91 days | 0.620 | 0.698 | +13% | −2% | +25% |
+| 182 days | 0.630 | 0.748 | +19% | +4% | +32% |
+| 365 days | 0.617 | 0.819 | +33% | +23% | +42% |
+
+"Ends between" ranges (the volatility premium) are all priced above their historical win rate: −0.3% to −21%. Closed.
+
+What survives: 6- and 12-month Rise beat Deriv's price on 25 years of history, the 12-month one in both decades. It rests on few independent years (one 12-month outcome a year) and is a bet that the index rises over a year: the same bet as holding the index, with the loss capped at the stake. Not proven; plausible.
+
+The contract book was re-specified to US Tech 100 and US 500 Rise, 6 and 12 months (30- and 91-day dropped). Weekend or holiday expiries move to the next trading day, as Deriv requires. Probed live on 8 Oct: quotes, entry ticks, expiries Thu 8 Apr and Fri 8 Oct 2027; only `proposal` and `ticks_history` were called. A verdict on outcomes needs 20 settled contracts of a kind, about 1.5 years for the 12-month one; until then the book's job is to show whether Deriv's price stays where it is.
 
 Scripts and raw results: `research/experiments/H16-pricing/`. Long histories from FRED (NASDAQ100, VXNCLS, VIXCLS, DTB3).
