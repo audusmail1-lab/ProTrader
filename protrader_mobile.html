@@ -179,6 +179,82 @@ html,body{height:100%;overflow:hidden;background:var(--bg-1);color:var(--tx-1);f
 }
 .voice-btn{position:relative}
 @keyframes listening{0%,100%{box-shadow:0 0 8px rgba(239,68,68,.4)}50%{box-shadow:0 0 22px rgba(239,68,68,.9)}}
+/* ── PROTRADER VOICE ── */
+.voice-btn.on{border-color:var(--blue);box-shadow:0 0 0 3px rgba(79,140,255,.18)}
+.vx-wrap{position:fixed;inset:0;z-index:4000;display:none}
+.vx-wrap.open{display:block}
+.vx-settings[hidden],.vx-card[hidden]{display:none!important}
+.vx-backdrop{position:absolute;inset:0;background:rgba(3,6,12,.42);backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px);animation:vxFade .2s ease}
+.vx-sheet{position:absolute;right:18px;bottom:18px;width:min(420px,calc(100vw - 32px));max-height:min(720px,calc(100vh - 36px));
+  display:flex;flex-direction:column;gap:10px;padding:14px 14px 12px;border-radius:22px;
+  background:linear-gradient(180deg,rgba(17,24,39,.97),rgba(8,12,22,.98));border:1px solid rgba(148,163,184,.18);
+  box-shadow:0 30px 80px rgba(0,0,0,.55),0 0 0 1px rgba(79,140,255,.08) inset;color:var(--tx-1);animation:vxRise .26s cubic-bezier(.2,.9,.3,1.15)}
+[data-theme="light"] .vx-sheet{background:linear-gradient(180deg,#fff,#f6f8fc);border-color:rgba(148,163,184,.3);box-shadow:0 24px 60px rgba(15,23,42,.22)}
+@keyframes vxRise{from{transform:translateY(24px) scale(.98);opacity:0}to{transform:none;opacity:1}}
+@keyframes vxFade{from{opacity:0}to{opacity:1}}
+.vx-head{display:flex;align-items:center;gap:8px}
+.vx-title{font-weight:900;font-size:14px;letter-spacing:.3px;background:linear-gradient(90deg,#7aa7ff,#22d3ee 55%,#a78bfa);-webkit-background-clip:text;background-clip:text;color:transparent}
+.vx-pill{font-size:11px;font-weight:800;padding:3px 8px;border-radius:999px;background:rgba(79,140,255,.12);color:var(--blue-lt,#8fb3ff);border:1px solid rgba(79,140,255,.25)}
+.vx-icon{margin-left:auto;width:32px;height:32px;border-radius:10px;border:1px solid var(--bd-2,rgba(148,163,184,.2));background:transparent;color:var(--tx-2);font-size:18px;display:grid;place-items:center;cursor:pointer}
+.vx-icon+.vx-icon{margin-left:0}
+.vx-icon svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.8}
+.vx-settings{display:flex;flex-direction:column;gap:8px;padding:10px;border-radius:14px;background:rgba(148,163,184,.07);border:1px solid rgba(148,163,184,.14);font-size:13px}
+.vx-set{display:flex;align-items:center;gap:8px;color:var(--tx-2)}
+.vx-set.col{flex-direction:column;align-items:stretch;gap:4px}
+.vx-set select{min-height:36px;border-radius:10px;border:1px solid var(--bd-2,rgba(148,163,184,.25));background:var(--bg-3,#0f1626);color:var(--tx-1);padding:0 8px;font-size:13px}
+.vx-note{font-size:12px;color:var(--tx-3);line-height:1.45}
+.vx-log{display:flex;flex-direction:column;gap:6px;overflow-y:auto;max-height:30vh;min-height:0;scrollbar-width:thin}
+.vx-log:empty{display:none}
+.vx-msg{max-width:88%;padding:8px 11px;border-radius:14px;font-size:13.5px;line-height:1.45;white-space:pre-wrap;overflow-wrap:anywhere}
+.vx-msg.you{align-self:flex-end;background:rgba(79,140,255,.16);border:1px solid rgba(79,140,255,.28);border-bottom-right-radius:4px}
+.vx-msg.vx{align-self:flex-start;background:rgba(148,163,184,.09);border:1px solid rgba(148,163,184,.16);border-bottom-left-radius:4px}
+.vx-stage{display:flex;flex-direction:column;align-items:center;gap:8px;padding:4px 0}
+.vx-orb{--lvl:0;position:relative;width:96px;height:96px;border-radius:50%;border:0;padding:0;background:none;cursor:pointer;display:grid;place-items:center;-webkit-tap-highlight-color:transparent}
+.vx-orb .vx-core{position:relative;z-index:2;width:72px;height:72px;border-radius:50%;display:grid;place-items:center;
+  background:radial-gradient(circle at 32% 28%,#bfe0ff 0,#5b8cff 32%,#3b2fd1 68%,#140f3a 100%);
+  box-shadow:0 0 calc(18px + var(--lvl) * 40px) rgba(91,140,255,calc(.35 + var(--lvl) * .45)),inset 0 -6px 18px rgba(0,0,0,.35);
+  transform:scale(calc(1 + var(--lvl) * .12));transition:transform .12s ease,box-shadow .12s ease}
+.vx-orb .vx-core svg{width:28px;height:28px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round;filter:drop-shadow(0 1px 2px rgba(0,0,0,.4))}
+.vx-orb i{position:absolute;inset:12px;border-radius:50%;border:2px solid rgba(91,140,255,.35);opacity:0}
+.vx-orb[data-state="idle"] .vx-core{animation:vxBreath 3.2s ease-in-out infinite}
+.vx-orb[data-state="listening"] .vx-core{background:radial-gradient(circle at 32% 28%,#d5fff6 0,#22d3ee 30%,#2563eb 66%,#0b1a4a 100%)}
+.vx-orb[data-state="listening"] i{animation:vxRing 1.8s ease-out infinite}
+.vx-orb[data-state="listening"] i:nth-child(2){animation-delay:.6s}
+.vx-orb[data-state="listening"] i:nth-child(3){animation-delay:1.2s}
+.vx-orb[data-state="thinking"] .vx-core{background:conic-gradient(from 0deg,#22d3ee,#5b8cff,#a78bfa,#22d3ee);animation:vxSpin 1.1s linear infinite}
+.vx-orb[data-state="thinking"] .vx-core svg{animation:vxSpin 1.1s linear infinite reverse}
+.vx-orb[data-state="speaking"] .vx-core{background:radial-gradient(circle at 32% 28%,#f1e8ff 0,#a78bfa 30%,#5b3fd6 66%,#1b0f45 100%)}
+.vx-orb[data-state="speaking"] i:nth-child(1){animation:vxRing 1.2s ease-out infinite;border-color:rgba(167,139,250,.45)}
+@keyframes vxRing{0%{transform:scale(.85);opacity:.9}100%{transform:scale(1.55);opacity:0}}
+@keyframes vxBreath{0%,100%{transform:scale(1)}50%{transform:scale(1.04)}}
+@keyframes vxSpin{to{transform:rotate(360deg)}}
+.vx-heard{min-height:20px;max-width:100%;text-align:center;font-size:14px;font-weight:600;color:var(--tx-2);overflow-wrap:anywhere}
+.vx-heard.interim{color:var(--tx-3);font-style:italic}
+.vx-card{border-radius:16px;padding:12px;background:rgba(148,163,184,.07);border:1px solid rgba(148,163,184,.18);display:flex;flex-direction:column;gap:6px;animation:vxRise .2s ease}
+.vx-card-t{font-weight:900;font-size:14px}
+.vx-card-x{font-size:13px;color:var(--tx-2);line-height:1.45}
+.vx-row{display:flex;justify-content:space-between;gap:12px;font-size:13px;color:var(--tx-2)}
+.vx-row b{color:var(--tx-1);text-align:right;font-variant-numeric:tabular-nums}
+.vx-acts{display:flex;gap:8px;margin-top:4px}
+.vx-acts button{flex:1;min-height:42px;border-radius:12px;font-weight:800;font-size:14px;cursor:pointer;border:1px solid transparent}
+.vx-acts .vx-ok{background:var(--blue,#4f8cff);color:#fff!important}
+.vx-acts .vx-ok.buy{background:linear-gradient(180deg,#22c55e,#15803d)}
+.vx-acts .vx-ok.sell{background:linear-gradient(180deg,#ef4444,#b91c1c)}
+.vx-no{background:transparent;color:var(--tx-1);border-color:var(--bd-2,rgba(148,163,184,.3))!important}
+.vx-exp{height:3px;border-radius:2px;background:rgba(148,163,184,.15);overflow:hidden}
+.vx-exp i{display:block;height:100%;background:linear-gradient(90deg,#22d3ee,#5b8cff);transform-origin:left;animation:vxExp linear forwards}
+@keyframes vxExp{from{transform:scaleX(1)}to{transform:scaleX(0)}}
+.vx-chips{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}
+.vx-chips::-webkit-scrollbar{display:none}
+.vx-chip{flex:0 0 auto;min-height:34px;padding:0 12px;border-radius:999px;border:1px solid rgba(79,140,255,.3);background:rgba(79,140,255,.08);color:var(--tx-1);font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap}
+.vx-type{display:flex;gap:6px}
+.vx-type input{flex:1;min-width:0;min-height:42px;border-radius:12px;border:1px solid var(--bd-2,rgba(148,163,184,.25));background:var(--bg-3,#0f1626);color:var(--tx-1);padding:0 12px;font-size:16px}
+.vx-type button{width:44px;border-radius:12px;border:0;background:var(--blue,#4f8cff);color:#fff;font-size:16px;cursor:pointer}
+@media (max-width:820px){
+  .vx-sheet{left:0;right:0;bottom:0;width:auto;max-height:calc(100dvh - 40px);border-radius:22px 22px 0 0;padding:12px 14px calc(12px + env(safe-area-inset-bottom,0px))}
+  .vx-log{max-height:26vh}
+}
+@media (prefers-reduced-motion:reduce){.vx-orb *{animation:none!important}.vx-sheet,.vx-card{animation:none}}
 
 .icon-btn{
   width:30px;height:30px;border-radius:var(--r-sm);
@@ -826,7 +902,7 @@ kbd{
   .live-chg{grid-column:2;grid-row:2;justify-self:start;font-size:12px}
   .feed-badge{display:none}
   .topbar-right{grid-column:3;grid-row:1 / span 2;gap:5px;margin-left:0;justify-self:end}
-  .topbar-divider,.topbar-stat,#updateTs,.voice-btn,.topbar-right .icon-btn[title^="Keyboard"],#feedHealth{display:none!important}
+  .topbar-divider,.topbar-stat,#updateTs,.topbar-right .icon-btn[title^="Keyboard"],#feedHealth{display:none!important}
   .mkt-dot{width:8px;height:8px}
   .ws-badge{font-size:12px;padding:3px 6px}
   .bal-badge{
@@ -1253,7 +1329,7 @@ svg.ico{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.7;st
   .topbar-stat{display:none}
   .topbar-divider{display:none}
 }
-@media(max-width:980px) and (min-width:821px){.voice-btn{display:none}}
+
 .topbar{min-width:0}.topbar-right{min-width:0}
 .chart-toolbar>*{flex:0 0 auto}
 .live-price{white-space:nowrap}
@@ -1607,7 +1683,7 @@ svg.ico{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.7;st
       <span class="acct-dot"></span><span class="acct-lbl" id="acctLbl">Paper</span><span class="acct-bal" id="balDisplay">$10,000.00</span>
     </button>
 
-    <button class="voice-btn" id="voiceBtn" onclick="handleVoiceClick(event)" title="Click: listen for voice commands. Shift+click: toggle spoken responses (default off)." aria-label="Voice commands"><svg class="ico" viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0014 0M12 18v3"/></svg></button>
+    <button class="voice-btn" id="voiceBtn" onclick="VOICE.toggle()" title="Voice assistant: talk to your terminal (V)" aria-label="Voice assistant"><svg class="ico" viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0014 0M12 18v3"/></svg></button>
     <button class="icon-btn acct-me" onclick="ACCOUNT.open()" id="acctBtn" title="Account: guest (this browser only)" aria-label="Account"><svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0116 0"/></svg><span class="acct-initials" hidden></span></button>
     <button class="icon-btn" onclick="NOTIFY.open()" id="notifyBtn" title="Notifications" aria-label="Notifications"><svg class="ico" viewBox="0 0 24 24"><path d="M18 16v-5a6 6 0 10-12 0v5l-2 2h16zM10 20a2 2 0 004 0"/></svg></button>
     <button class="icon-btn" onclick="toggleTheme()" id="themeBtn" title="Toggle light/dark mode" aria-label="Toggle light and dark mode"><svg class="ico" viewBox="0 0 24 24"><path d="M20 14.5A8 8 0 019.5 4a8 8 0 1010.5 10.5z"/></svg></button>
@@ -5865,114 +5941,926 @@ function renderMTF() {
 }
 
 /* ════════════════════════════════════════════════════════════
-   VOICE COMMANDS
+   PROTRADER VOICE — talk to the terminal
+   Tap the mic and speak (or type): the assistant understands plain trading
+   language, does the thing in the app and answers out loud.
+     "Brief me" · "How are my trades?" · "What's my risk?" · "Price of gold"
+     "What does ARIA say?" · "Trend across timeframes" · "What's Sentinel seeing?"
+     "Buy gold, 1% risk, stop 2640, target two to one" → plan read back → "confirm"
+     "Move my gold stop to breakeven" · "Close half of NAS" · "Close all"
+     "Show me Vol 75 one second on the 4 hour"
+   Rules that never bend:
+     - Orders go through the same ticket and the same risk rules (stop on every
+       trade, 1% per trade, 2% open, daily limits). Voice cannot override them.
+     - Nothing that opens or closes a trade happens without a confirmation:
+       on paper, saying "confirm" (or tapping Confirm); on MT5, the MT5
+       confirmation card always needs a tap.
+     - The assistant only reports what the app actually did. If a stop could
+       not move, it says so and why.
+   Speech to text is the browser's own (Chrome sends the audio to Google's
+   service to transcribe it); PROTrader never records or stores audio.
 ════════════════════════════════════════════════════════════ */
-let voiceActive = false;
-let speechEnabled = false; // opt-in: Shift+click the mic button to enable spoken responses
-const synth = window.speechSynthesis;
-
-function speak(text) {
-  if (!speechEnabled || !synth) return; // silent unless explicitly enabled
-  const u = new SpeechSynthesisUtterance(text);
-  u.rate = 1.05; u.pitch = 1; u.volume = 1;
-  synth.cancel(); synth.speak(u);
-}
-
 function showToast(text, duration = 3200) {
   const toast = document.getElementById('voiceToast');
   document.getElementById('voiceText').textContent = text;
   toast.classList.add('show');
-  if (duration > 0) setTimeout(() => toast.classList.remove('show'), duration);
+  clearTimeout(showToast._t);
+  if (duration > 0) showToast._t = setTimeout(() => toast.classList.remove('show'), duration);
 }
 
-// Shift+click toggles spoken responses without affecting listening state.
-// Plain click toggles listening (legacy behavior).
-function handleVoiceClick(e) {
-  if (e.shiftKey) {
-    speechEnabled = !speechEnabled;
-    const btn = document.getElementById('voiceBtn');
-    btn.classList.toggle('speak-on', speechEnabled);
-    btn.title = speechEnabled
-      ? 'Voice: listening + speaking. Shift+click to mute responses. Click to stop listening.'
-      : 'Voice: listening only (silent). Shift+click to enable spoken responses. Click to listen.';
-    showToast(speechEnabled ? '🔊 Spoken responses ON' : '🔇 Spoken responses OFF', 1800);
-    if (speechEnabled) {
-      // Brief audible confirmation so user knows it worked
-      const u = new SpeechSynthesisUtterance('Voice on.');
-      u.rate = 1.1; u.volume = 0.8;
-      synth?.speak(u);
-    } else {
-      synth?.cancel();
+// Fills and ARIA signals call speak(): spoken only when "Announce fills and signals" is on.
+function speak(text) {
+  if (typeof VOICE === 'undefined' || !VOICE.cfg || !VOICE.cfg.announce || VOICE.quietGlobal) return;
+  VOICE.say(text, { announce: true });
+}
+
+const VX_SMALL = { zero: 0, one: 1, two: 2, three: 3, four: 4, five: 5, six: 6, seven: 7, eight: 8, nine: 9, ten: 10,
+  eleven: 11, twelve: 12, thirteen: 13, fourteen: 14, fifteen: 15, sixteen: 16, seventeen: 17, eighteen: 18, nineteen: 19,
+  twenty: 20, thirty: 30, forty: 40, fifty: 50, sixty: 60, seventy: 70, eighty: 80, ninety: 90 };
+const VX_MULT = { hundred: 100, thousand: 1000, million: 1e6 };
+
+// "two thousand six hundred and forty" → 2640 · "one point five" → 1.5 · "a hundred" → 100
+function vxWords2Num(t) {
+  const toks = t.split(' '), out = [];
+  for (let i = 0; i < toks.length;) {
+    const w = toks[i];
+    const starts = w in VX_SMALL || (w === 'a' && toks[i + 1] in VX_MULT) || (w === 'point' && toks[i + 1] in VX_SMALL);
+    if (!starts) { out.push(w); i++; continue; }
+    let total = 0, cur = 0, any = false, dec = '', j = i;
+    while (j < toks.length) {
+      const x = toks[j];
+      if (x in VX_SMALL) { const v = VX_SMALL[x], r = cur % 100; if (any && !(r === 0 || (r >= 20 && r % 10 === 0 && v < 10))) break; cur += v; any = true; j++; }
+      else if (x in VX_MULT && (any || toks[j - 1] === 'a')) { if (x === 'hundred') cur = (cur || 1) * 100; else { total += (cur || 1) * VX_MULT[x]; cur = 0; } any = true; j++; }
+      else if (x === 'a' && !any && toks[j + 1] in VX_MULT) j++;
+      else if (x === 'and' && any && toks[j + 1] in VX_SMALL && cur >= 100) j++;
+      else if (x === 'point' && (toks[j + 1] in VX_SMALL || /^\d+$/.test(toks[j + 1] || ''))) {
+        j++;
+        while (j < toks.length && ((toks[j] in VX_SMALL && VX_SMALL[toks[j]] < 10) || /^\d$/.test(toks[j]))) { dec += toks[j] in VX_SMALL ? VX_SMALL[toks[j]] : toks[j]; j++; }
+        any = true; break;
+      } else break;
     }
-    return;
+    if (!any) { out.push(w); i++; continue; }
+    out.push(String(total + cur) + (dec ? '.' + dec : ''));
+    i = j;
   }
-  toggleVoice();
+  return out.join(' ');
 }
 
-function toggleVoice() {
-  if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
-    showToast('Voice commands not supported. Use Chrome or Edge.');
-    return;
-  }
-  if (voiceActive) { stopVoice(); return; }
-  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-  const rec = new SpeechRecognition();
-  rec.continuous = false; rec.lang = 'en-US'; rec.interimResults = false;
-  rec.onstart = () => { voiceActive = true; document.getElementById('voiceBtn').classList.add('listening'); showToast('🎙 Listening…', 0); };
-  rec.onend = () => { voiceActive = false; document.getElementById('voiceBtn').classList.remove('listening'); document.getElementById('voiceToast').classList.remove('show'); };
-  rec.onresult = e => { processVoice(e.results[0][0].transcript.toLowerCase().trim()); };
-  rec.onerror = () => { voiceActive = false; document.getElementById('voiceBtn').classList.remove('listening'); };
-  rec.start();
+function vxNorm(raw) {
+  let t = ' ' + String(raw || '').toLowerCase() + ' ';
+  t = t.replace(/p\s*&\s*l|\bp\s+and\s+l\b|\bp n l\b|\bp&l\b/g, ' pnl ');
+  t = t.replace(/s\s*&\s*p/g, ' s and p ');
+  t = t.replace(/(\d),(?=\d{3}\b)/g, '$1').replace(/(\d),(?=\d{3}\b)/g, '$1');
+  t = t.replace(/\$\s*(\d+(?:\.\d+)?)/g, ' $1 dollars ');
+  t = t.replace(/(\d)\s*%/g, '$1 percent ');
+  t = t.replace(/\b(\d+)\s*:\s*1\b/g, ' $1 to 1 ');
+  t = t.replace(/[’'`´"“”]/g, '');
+  t = t.replace(/(\d)\.(\d)/g, '$1§$2').replace(/[,.;!?]/g, ' | ').replace(/[\/\\\-–—()\[\]]/g, ' ').replace(/§/g, '.');
+  t = t.replace(/\b1s\b/g, ' 1 second ').replace(/\b(\d+)s\b(?= index| 1 second)/g, '$1');
+  t = vxWords2Num(t.replace(/\s+/g, ' ').trim()).replace(/ ?\| ?/g, ' ');   // punctuation ends a spoken number
+  t = t.replace(/\b(\d+) point (\d+)\b/g, '$1.$2');
+  t = t.replace(/\b(\d+) and a half\b/g, (m, a) => String(+a + 0.5));
+  t = t.replace(/\bhalf (?:a |an )?(lot|lots|percent)\b/g, '0.5 $1').replace(/\ba quarter (?:of a )?percent\b/g, '0.25 percent');
+  return ' ' + t.replace(/\s+/g, ' ').trim() + ' ';
 }
 
-function stopVoice() {
-  voiceActive = false;
-  document.getElementById('voiceBtn').classList.remove('listening');
-  document.getElementById('voiceToast').classList.remove('show');
+// Spoken market names → instrument ids (longest phrase wins).
+const VX_ALIASES = (() => {
+  const a = {
+    'gold': 'frxXAUUSD', 'xau': 'frxXAUUSD', 'xauusd': 'frxXAUUSD', 'xau usd': 'frxXAUUSD', 'silver': 'frxXAGUSD', 'xag': 'frxXAGUSD',
+    'platinum': 'frxXPTUSD', 'palladium': 'frxXPDUSD',
+    'bitcoin': 'cryBTCUSD', 'btc': 'cryBTCUSD', 'btcusd': 'cryBTCUSD', 'ethereum': 'cryETHUSD', 'ether': 'cryETHUSD', 'eth': 'cryETHUSD',
+    'nasdaq': 'frxNAS100', 'nasdaq 100': 'frxNAS100', 'nas': 'frxNAS100', 'nas 100': 'frxNAS100', 'nas100': 'frxNAS100', 'naz': 'frxNAS100',
+    'us tech': 'frxNAS100', 'us tech 100': 'frxNAS100', 'tech 100': 'frxNAS100', 'us100': 'frxNAS100', 'us 100': 'frxNAS100',
+    's and p': 'frxSPX500', 's and p 500': 'frxSPX500', 'sp 500': 'frxSPX500', 'sp500': 'frxSPX500', 'spx': 'frxSPX500', 'us 500': 'frxSPX500', 'us500': 'frxSPX500',
+    'dow': 'frxUS30', 'dow jones': 'frxUS30', 'us 30': 'frxUS30', 'us30': 'frxUS30', 'wall street': 'frxUS30',
+    'ftse': 'OTC_FTSE', 'footsie': 'OTC_FTSE', 'dax': 'OTC_GDAXI', 'germany': 'OTC_GDAXI', 'cac': 'OTC_FCHI', 'nikkei': 'OTC_N225',
+    'hang seng': 'OTC_HSI', 'asx': 'OTC_AS51', 'euro stoxx': 'OTC_SX5E', 'aex': 'OTC_AEX', 'smi': 'OTC_SSMI',
+    'euro dollar': 'frxEURUSD', 'euro': 'frxEURUSD', 'fiber': 'frxEURUSD', 'eurusd': 'frxEURUSD',
+    'cable': 'frxGBPUSD', 'pound dollar': 'frxGBPUSD', 'pound': 'frxGBPUSD', 'gbpusd': 'frxGBPUSD',
+    'dollar yen': 'frxUSDJPY', 'yen': 'frxUSDJPY', 'usdjpy': 'frxUSDJPY', 'aussie': 'frxAUDUSD', 'aussie dollar': 'frxAUDUSD',
+    'loonie': 'frxUSDCAD', 'dollar cad': 'frxUSDCAD', 'swissy': 'frxUSDCHF', 'dollar swiss': 'frxUSDCHF', 'kiwi': 'frxNZDUSD',
+    'euro pound': 'frxEURGBP', 'euro yen': 'frxEURJPY', 'pound yen': 'frxGBPJPY', 'guppy': 'frxGBPJPY', 'gopher': 'frxGBPJPY',
+    'aussie yen': 'frxAUDJPY', 'dollar peso': 'frxUSDMXN',
+    'bull market': 'RDBULL', 'bear market': 'RDBEAR', 'step index': 'stpRNG',
+    'usd basket': 'WLDUSD', 'dollar basket': 'WLDUSD', 'euro basket': 'WLDEUR', 'eur basket': 'WLDEUR', 'pound basket': 'WLDGBP',
+    'gbp basket': 'WLDGBP', 'aud basket': 'WLDAUD', 'aussie basket': 'WLDAUD', 'gold basket': 'WLDXAU',
+  };
+  (typeof PAIRS !== 'undefined' ? PAIRS : []).forEach(g => g.items.forEach(p => {
+    [p.label, p.sym, p.id.replace(/^(frx|cry|OTC_)/, '')].forEach(n => { const k = vxNorm(n).trim(); if (k && !(k in a)) a[k] = p.id; });
+  }));
+  return Object.entries(a).sort((x, y) => y[0].length - x[0].length);
+})();
+
+function vxSymbol(t) {
+  let m;
+  if ((m = t.match(/\b(?:vol(?:atility)?|v) ?(10|15|25|30|50|75|90|100)(?: index)? (?:1 second|1 sec)\b/))) return '1HZ' + m[1] + 'V';
+  if ((m = t.match(/\b(?:vol(?:atility)?|v) ?(10|25|50|75|100)\b/))) return 'R_' + m[1];
+  if ((m = t.match(/\b(boom|crash)(?: index)? (50|150|300|500|600|900|1000)\b/))) return m[1].toUpperCase() + m[2] + (m[2] === '150' || m[2] === '300' ? 'N' : '');
+  if ((m = t.match(/\bjump(?: index)? (10|25|50|75|100)\b/))) return 'JD' + m[1];
+  if ((m = t.match(/\bstep(?: index)? (100|200|300|400|500)\b/))) return { 100: 'stpRNG', 200: 'stpRNG2', 300: 'stpRNG3', 400: 'stpRNG4', 500: 'stpRNG5' }[m[1]];
+  if ((m = t.match(/\brange break (100|200)\b/))) return 'RB' + m[1];
+  for (const [k, id] of VX_ALIASES) if (t.includes(' ' + k + ' ')) return id;
+  return null;
 }
 
-function processVoice(cmd) {
-  showToast(`"${cmd}"`);
-  const n = S.candles.length ? S.candles[S.candles.length-1].close : 0;
-  const dp = S.dp;
-  if (cmd.includes('buy') || cmd.includes('long')) { OT.setSide('buy'); setRTab('trade',null); speak(`Placing buy on ${S.symLabel} at ${n.toFixed(dp)}.`); return; }
-  if (cmd.includes('sell') || cmd.includes('short')) { OT.setSide('sell'); setRTab('trade',null); speak(`Placing sell on ${S.symLabel} at ${n.toFixed(dp)}.`); return; }
-  if (cmd.includes('balance') || cmd.includes('portfolio')) { speak(`Demo balance: ${S.balance.toFixed(2)} dollars. P&L today: ${S.pnlToday>=0?'positive':'negative'} ${Math.abs(S.pnlToday).toFixed(2)}.`); return; }
-  if (cmd.includes('oracle') || cmd.includes('aria') || cmd.includes('signal')) {
-    setRTab('aria', null);
-    const closes = S.candles.map(c => c.close);
-    if (closes.length < 30) { speak('Not enough data.'); return; }
-    const e20 = calcEMA(closes,20), e50 = calcEMA(closes,50);
-    const dir = (closes[closes.length-1]>e20[e20.length-1]&&e20[e20.length-1]>e50[e50.length-1])?'buy':'sell';
-    const pa = getPatternAlignment(dir);
-    const gates = ariaGates(S.candles,closes,e20,e50,calcEMA(closes,200),calcRSI(closes),calcMACD(closes),calcStoch(S.candles),calcATR(S.candles,14),pa);
-    speak(`ARIA: ${gates.score} of ${ARIA_GATE_COUNT} gates confirmed. Direction: ${gates.dir}. ${gates.score>=ARIA_EXEC_MIN?'Execution ready.':gates.score>=ARIA_QUAL_MIN?'Qualified setup — wait for trigger.':gates.score>=ARIA_WAIT_MIN?'Waiting — need more confluence.':'Observer — avoid entry.'}`);
-    return;
-  }
-  if (cmd.includes('breakeven') || cmd.includes('break even')) {
-    showToast('🔒 Breakeven locked'); speak('Breakeven stop locked at entry.'); return;
-  }
-  if (cmd.includes('close all') || cmd.includes('close trade')) {
-    OT.closeAll();
-    speak('All positions closed.'); return;
-  }
-  if (cmd.includes('bitcoin') || cmd.includes('btc')) { selectPair('cryBTCUSD'); speak('Switched to Bitcoin.'); return; }
-  if (cmd.includes('gold') || cmd.includes('xau')) { selectPair('frxXAUUSD'); speak('Switched to Gold.'); return; }
-  if (cmd.includes('euro') || cmd.includes('eurusd')) { selectPair('frxEURUSD'); speak('Switched to Euro Dollar.'); return; }
-  if (cmd.includes('nas') || cmd.includes('nasdaq')) { selectPair('frxNAS100'); speak('Switched to NAS100.'); return; }
-  // Volatility family — supports "vol 50 1s" / "vol 100 one second" / "vol 75"
-  const isOneSec = /\b1\s*s\b|one second|1\s*second|\(1s\)/.test(cmd);
-  const volMatch = cmd.match(/vol(?:atility)?\s*(10|25|50|75|100)/);
-  if (volMatch) {
-    const n = volMatch[1];
-    const sym = isOneSec && ['25','50','75','100'].includes(n) ? `1HZ${n}V` : `R_${n}`;
-    if (PAIR_MAP[sym]) { selectPair(sym); speak(`Switched to Volatility ${n}${isOneSec?' 1 second':''}.`); return; }
-  }
-  if (cmd.includes('boom 1000')) { selectPair('BOOM1000'); speak('Switched to Boom 1000.'); return; }
-  if (cmd.includes('crash 1000')) { selectPair('CRASH1000'); speak('Switched to Crash 1000.'); return; }
-  if (cmd.includes('news week')) { S.newsWeek = !S.newsWeek; renderARIA(); speak(`News week ${S.newsWeek?'on':'off'}.`); return; }
-  speak(`I heard: ${cmd}. Try: buy, sell, balance, oracle, gold, bitcoin, vol 50, news week.`);
+function vxTimeframe(t) {
+  let m;
+  if ((m = t.match(/\b(1|5|15) ?(?:minutes?|mins?|m)\b/)) || (m = t.match(/\bm(1|5|15)\b/))) return m[1] + 'm';
+  if ((m = t.match(/\b(1|4) ?(?:hours?|hrs?|h)\b/)) || (m = t.match(/\bh(1|4)\b/))) return m[1] + 'h';
+  if (/\b(?:an hour|hourly)\b/.test(t)) return '1h';
+  if (/\b(?:daily|1 day|d1|day chart)\b/.test(t)) return '1d';
+  if (/\b(?:weekly|1 week|w1|week chart)\b/.test(t)) return '1w';
+  return null;
 }
+
+const VX_N = '(\\d+(?:\\.\\d+)?)';
+// Parse a stop description: a price, a distance ("50 points", "20 pips", "10 dollars"), or ARIA's stop.
+function vxStop(t) {
+  let m;
+  if (/\baria(?:s)? (?:stop|level)|\buse (?:it|that|the suggestion|arias)\b|\bsuggested stop\b/.test(t)) return { aria: true };
+  if ((m = t.match(new RegExp(`\\b(?:stop(?: loss)?|sl|stop out)(?: (?:at|@|of|on|to|is|below|above|under|over))? ${VX_N} ?(points?|pips?|dollars?|ticks?)?\\b`)))) return m[2] ? { dist: +m[1], unit: m[2] } : { price: +m[1] };
+  if ((m = t.match(new RegExp(`\\b${VX_N} ?(points?|pips?|dollars?) (?:stop|sl)\\b`)))) return { dist: +m[1], unit: m[2] };
+  return null;
+}
+function vxTarget(t) {
+  let m;
+  if ((m = t.match(new RegExp(`\\b${VX_N} to 1\\b`))) || (m = t.match(new RegExp(`\\b${VX_N} ?(?:r|times risk|times the risk)\\b`))) || (m = t.match(new RegExp(`\\brisk reward(?: of)? ${VX_N}\\b`)))) return { rr: +m[1] };
+  if ((m = t.match(new RegExp(`\\b(?:target|take profit|tp|profit target)(?: (?:at|@|of|to|is))? ${VX_N} ?(points?|pips?|dollars?)?\\b`)))) return m[2] ? { dist: +m[1], unit: m[2] } : { price: +m[1] };
+  return null;
+}
+
+const VOICE = {
+  KEY: 'protrader.voice.v1',
+  cfg: null, state: 'idle', rec: null, pending: null, awaiting: null, log: [], lastReply: '', quietGlobal: false, _ariaNoteSaid: false,
+  isIOS: /iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1),
+
+  init() {
+    try { this.cfg = Object.assign({ talk: true, announce: false, lang: 'auto', voice: '', handsFree: true, rate: 1.0 }, JSON.parse(localStorage.getItem(this.KEY) || '{}')); }
+    catch (_) { this.cfg = { talk: true, announce: false, lang: 'auto', voice: '', handsFree: true, rate: 1.0 }; }
+    if (window.speechSynthesis) { speechSynthesis.getVoices(); speechSynthesis.onvoiceschanged = () => { if (this.open_) this.renderSettings(); }; }
+  },
+  save() { try { localStorage.setItem(this.KEY, JSON.stringify(this.cfg)); } catch (_) {} },
+  supported() { return !!(window.SpeechRecognition || window.webkitSpeechRecognition); },
+  lang() {
+    if (this.cfg.lang && this.cfg.lang !== 'auto') return this.cfg.lang;
+    const n = (navigator.language || 'en-US');
+    return /^en/i.test(n) ? n : 'en-US';
+  },
+
+  /* ── the sheet ── */
+  open(listen) {
+    if (!this.cfg) this.init();
+    let el = document.getElementById('vxSheet');
+    if (!el) {
+      el = document.createElement('div');
+      el.id = 'vxSheet'; el.className = 'vx-wrap';
+      el.innerHTML = `<div class="vx-backdrop" onclick="VOICE.close()"></div>
+        <section class="vx-sheet" role="dialog" aria-modal="true" aria-label="PROTrader Voice">
+          <header class="vx-head"><span class="vx-title">PROTrader Voice</span><span class="vx-pill" id="vxPill">Ready</span>
+            <button type="button" class="vx-icon" onclick="VOICE.toggleSettings()" aria-label="Voice settings" title="Voice settings"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.6 1.6 0 00.3 1.8l.1.1a2 2 0 11-2.8 2.8l-.1-.1a1.6 1.6 0 00-2.7 1.1V21a2 2 0 11-4 0v-.1a1.6 1.6 0 00-2.7-1.1l-.1.1a2 2 0 11-2.8-2.8l.1-.1a1.6 1.6 0 00-1.1-2.7H3a2 2 0 110-4h.1a1.6 1.6 0 001.1-2.7l-.1-.1a2 2 0 112.8-2.8l.1.1a1.6 1.6 0 002.7-1.1V3a2 2 0 114 0v.1a1.6 1.6 0 002.7 1.1l.1-.1a2 2 0 112.8 2.8l-.1.1a1.6 1.6 0 001.1 2.7H21a2 2 0 110 4h-.1a1.6 1.6 0 00-1.5 1z"/></svg></button>
+            <button type="button" class="vx-icon" onclick="VOICE.close()" aria-label="Close voice">×</button></header>
+          <div class="vx-settings" id="vxSettings" hidden></div>
+          <div class="vx-log" id="vxLog" aria-live="polite"></div>
+          <div class="vx-stage">
+            <button type="button" class="vx-orb" id="vxOrb" data-state="idle" onclick="VOICE.listen()" aria-label="Tap to talk">
+              <i></i><i></i><i></i><span class="vx-core"><svg viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0014 0M12 18v3"/></svg></span></button>
+            <div class="vx-heard" id="vxHeard">Tap the orb and talk to your terminal</div>
+          </div>
+          <div class="vx-card" id="vxCard" hidden></div>
+          <div class="vx-chips" id="vxChips"></div>
+          <form class="vx-type" onsubmit="event.preventDefault(); VOICE.typed()">
+            <input id="vxInput" type="text" autocomplete="off" enterkeyhint="send" placeholder="Or type: buy gold 1% risk, stop 2640" aria-label="Type a command">
+            <button type="submit" aria-label="Send">➤</button></form>
+        </section>`;
+      document.body.appendChild(el);
+      this.renderLog();
+    }
+    el.classList.add('open'); this.open_ = true;
+    document.getElementById('voiceBtn')?.classList.add('on');
+    this.renderChips(); this.renderCard();
+    if (!this.supported()) this.heard(this.isIOS && navigator.standalone
+      ? 'Voice input is not available in the iPhone home-screen app. Type below, or open PROTrader in Safari to talk.'
+      : 'This browser has no speech input. Type your command below.');
+    if (listen && this.supported()) this.listen();
+    else if (!this.supported()) setTimeout(() => document.getElementById('vxInput')?.focus(), 60);
+  },
+  close() {
+    this.stopListening(true);
+    if (window.speechSynthesis) speechSynthesis.cancel();
+    document.getElementById('vxSheet')?.classList.remove('open');
+    document.getElementById('voiceBtn')?.classList.remove('on', 'listening');
+    this.open_ = false; this.setState('idle');
+  },
+  toggle() { this.open_ ? this.close() : this.open(true); },
+  setState(s) {
+    this.state = s;
+    const orb = document.getElementById('vxOrb'); if (orb) orb.dataset.state = s;
+    const pill = document.getElementById('vxPill'); if (pill) pill.textContent = { idle: 'Ready', listening: 'Listening', thinking: 'Working', speaking: 'Speaking' }[s] || 'Ready';
+    document.getElementById('voiceBtn')?.classList.toggle('listening', s === 'listening');
+  },
+  heard(text, interim) {
+    const h = document.getElementById('vxHeard'); if (!h) return;
+    h.textContent = text; h.classList.toggle('interim', !!interim);
+  },
+  pulse(v) {
+    const orb = document.getElementById('vxOrb'); if (!orb) return;
+    orb.style.setProperty('--lvl', String(Math.max(0, Math.min(1, v))));
+    clearTimeout(this._pt); this._pt = setTimeout(() => orb.style.setProperty('--lvl', '0'), 180);
+  },
+  addLog(who, text) {
+    this.log.push({ who, text }); if (this.log.length > 30) this.log.shift();
+    this.renderLog();
+  },
+  renderLog() {
+    const box = document.getElementById('vxLog'); if (!box) return;
+    const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+    box.innerHTML = this.log.slice(-8).map(m => `<div class="vx-msg ${m.who}">${esc(m.text)}</div>`).join('');
+    box.scrollTop = box.scrollHeight;
+  },
+
+  /* ── chips: what you can say right now ── */
+  renderChips() {
+    const box = document.getElementById('vxChips'); if (!box) return;
+    const lbl = (S.symLabel || '').replace(/\s*\(1s\)/, ' 1s');
+    const pos = this.positions();
+    const list = this.pending ? []
+      : this.awaiting && this.awaiting.slot === 'stop' ? ["Use ARIA's stop", 'Cancel']
+      : pos.length ? ['How are my trades?', `Breakeven on ${pos[0].label}`, "What's my risk?", 'Brief me']
+      : ['Brief me', 'What does ARIA say?', `Buy ${lbl} at 1% risk`, "What's my risk?", 'Trend across timeframes', "What's Sentinel seeing?"];
+    box.innerHTML = list.map(c => `<button type="button" class="vx-chip" onclick="VOICE.handle(this.textContent)">${c.replace(/[&<>]/g, '')}</button>`).join('');
+  },
+  typed() {
+    const i = document.getElementById('vxInput'); if (!i) return;
+    const v = i.value.trim(); i.value = '';
+    if (v) this.handle(v);
+  },
+
+  /* ── settings ── */
+  toggleSettings() {
+    const s = document.getElementById('vxSettings'); if (!s) return;
+    s.hidden = !s.hidden; if (!s.hidden) this.renderSettings();
+  },
+  voices() {
+    const all = window.speechSynthesis ? speechSynthesis.getVoices() : [];
+    return all.filter(v => /^en/i.test(v.lang));
+  },
+  pickVoice() {
+    const vs = this.voices(); if (!vs.length) return null;
+    if (this.cfg.voice) { const v = vs.find(x => x.voiceURI === this.cfg.voice); if (v) return v; }
+    const pref = [/en-NG/i, /Google UK English Female/i, /Samantha/i, /Natural/i, /Google US English/i, /Karen|Daniel|Serena|Moira/i];
+    for (const p of pref) { const v = vs.find(x => p.test(x.name) || p.test(x.lang)); if (v) return v; }
+    return vs.find(v => v.default) || vs[0];
+  },
+  renderSettings() {
+    const s = document.getElementById('vxSettings'); if (!s || s.hidden) return;
+    const v = this.pickVoice();
+    const opts = this.voices().map(x => `<option value="${x.voiceURI.replace(/"/g, '')}" ${v && x.voiceURI === v.voiceURI ? 'selected' : ''}>${x.name.replace(/[<>]/g, '')} · ${x.lang}</option>`).join('');
+    const langs = [['auto', `Automatic (${this.lang()})`], ['en-NG', 'English (Nigeria)'], ['en-GB', 'English (UK)'], ['en-US', 'English (US)'], ['en-ZA', 'English (South Africa)'], ['en-KE', 'English (Kenya)'], ['en-GH', 'English (Ghana)']];
+    s.innerHTML = `
+      <label class="vx-set"><input type="checkbox" ${this.cfg.talk ? 'checked' : ''} onchange="VOICE.cfg.talk=this.checked;VOICE.save()"> Talk back</label>
+      <label class="vx-set"><input type="checkbox" ${this.cfg.handsFree ? 'checked' : ''} onchange="VOICE.cfg.handsFree=this.checked;VOICE.save()"> Listen again when I ask you a question</label>
+      <label class="vx-set"><input type="checkbox" ${this.cfg.announce ? 'checked' : ''} onchange="VOICE.cfg.announce=this.checked;VOICE.save()"> Announce fills and ARIA signals</label>
+      <label class="vx-set col">Voice<select onchange="VOICE.cfg.voice=this.value;VOICE.save();VOICE.say('This is how I sound.')">${opts || '<option>System voice</option>'}</select></label>
+      <label class="vx-set col">I listen for<select onchange="VOICE.cfg.lang=this.value;VOICE.save()">${langs.map(([k, l]) => `<option value="${k}" ${this.cfg.lang === k ? 'selected' : ''}>${l}</option>`).join('')}</select></label>
+      <div class="vx-note">Your browser turns speech into text (Chrome uses Google's speech service for this). PROTrader never records or stores audio. Orders always need a confirmation, and MT5 orders always need a tap.</div>`;
+  },
+
+  /* ── listening ── */
+  listen() {
+    if (!this.cfg) this.init();
+    if (!this.open_) { this.open(true); return; }
+    if (!this.supported()) { this.heard('No speech input in this browser — type below.'); document.getElementById('vxInput')?.focus(); return; }
+    if (this.state === 'listening') { this.stopListening(); return; }
+    if (window.speechSynthesis) speechSynthesis.cancel();
+    const R = window.SpeechRecognition || window.webkitSpeechRecognition;
+    let rec;
+    try { rec = new R(); } catch (e) { this.heard('Speech input could not start here — type below.'); return; }
+    this.rec = rec;
+    rec.lang = this.lang(); rec.interimResults = true; rec.continuous = false; rec.maxAlternatives = 3;
+    let final = null, alts = [], err = null, ended = false;
+    const finish = () => {
+      if (ended) return; ended = true;
+      clearTimeout(this._recT); if (this.rec === rec) this.rec = null;
+      if (final) { this.heard(final); this.handle(final, { spoken: true, alts }); return; }
+      this.setState('idle');
+      const msg = {
+        'not-allowed': 'Microphone access is blocked. Allow the microphone for this site in your browser settings, or type below.',
+        'service-not-allowed': this.isIOS ? 'Voice input is not available in the iPhone home-screen app. Type below, or open PROTrader in Safari to talk.' : 'Speech input is turned off in this browser. Type below.',
+        'audio-capture': 'No microphone found. Type below.',
+        'network': 'The speech service is unreachable right now. Type below.',
+        'no-speech': "I didn't hear anything. Tap the orb and try again.",
+        'aborted': 'Stopped listening.',
+        'timeout': 'Listening timed out. Tap the orb to try again, or type below.',
+      }[err] || (err ? `Speech input stopped (${err}). Type below.` : "I didn't catch that. Tap the orb and try again.");
+      this.heard(msg);
+    };
+    rec.onstart = () => { this.setState('listening'); this.heard('Listening…', true); };
+    rec.onaudiostart = () => this.pulse(0.3);
+    rec.onspeechstart = () => this.pulse(0.8);
+    rec.onresult = e => {
+      let interim = '';
+      for (let i = e.resultIndex; i < e.results.length; i++) {
+        const r = e.results[i];
+        if (r.isFinal) { final = r[0].transcript; alts = Array.from(r).map(a => a.transcript); }
+        else interim += r[0].transcript;
+      }
+      if (!final) this.heard(interim, true);
+      this.pulse(0.6 + Math.random() * 0.4);
+    };
+    rec.onerror = e => { err = e.error || 'error'; };
+    rec.onend = finish;
+    this._recT = setTimeout(() => { err = err || 'timeout'; try { rec.abort(); } catch (_) {} setTimeout(finish, 400); }, 12000);
+    try { rec.start(); } catch (e) { err = 'error'; finish(); }
+  },
+  stopListening(silent) {
+    const r = this.rec; this.rec = null; clearTimeout(this._recT);
+    if (r) { try { r.abort(); } catch (_) {} }
+    if (!silent) { this.setState('idle'); this.heard('Stopped listening.'); }
+  },
+
+  /* ── talking ── */
+  say(text, o = {}) {
+    if (!this.cfg) this.init();
+    if (!o.announce) { this.lastReply = text; this.addLog('vx', text); }
+    if (!this.cfg.talk || !window.speechSynthesis || typeof SpeechSynthesisUtterance === 'undefined') { if (!o.announce) this.setState('idle'); return Promise.resolve(); }
+    const synth = window.speechSynthesis, voice = this.pickVoice();
+    const parts = String(text).split(/(?<=[.!?])\s+(?=[A-Z0-9"'(])/).map(s => s.trim()).filter(Boolean);
+    synth.cancel();
+    if (!o.announce) this.setState('speaking');
+    return new Promise(res => {
+      let done = false;
+      const end = () => { if (done) return; done = true; clearTimeout(safety); if (!o.announce && this.state === 'speaking') this.setState('idle'); res(); };
+      const safety = setTimeout(end, 2500 + String(text).length * 85);
+      parts.forEach((p, i) => {
+        const u = new SpeechSynthesisUtterance(p);
+        if (voice) { u.voice = voice; u.lang = voice.lang; } else u.lang = this.lang();
+        u.rate = this.cfg.rate || 1; u.pitch = 1;
+        u.onboundary = () => this.pulse(0.5 + Math.random() * 0.5);
+        if (i === parts.length - 1) { u.onend = end; u.onerror = end; }
+        synth.speak(u);
+      });
+    });
+  },
+  async reply(text, o = {}) {
+    this.renderChips(); this.renderCard();
+    this.heard(this.pending ? 'Say confirm or cancel, or tap below' : this.awaiting ? 'Tap the orb to answer' : 'Tap the orb to talk', true);
+    await this.say(text);
+    // a question waiting for an answer: listen again by itself (not on iPhone, where it hangs)
+    if (o.ask && o.spoken && this.cfg.handsFree && this.open_ && this.supported() && !this.isIOS && this.state !== 'listening') setTimeout(() => this.listen(), 250);
+  },
+
+  /* ── understanding ── */
+  parse(raw) {
+    const t = vxNorm(raw);
+    const has = re => re.test(t);
+    const words = t.trim().split(' ').filter(Boolean);
+    const sym = vxSymbol(t);
+    const side = /\b(?:sell|short|go short)\b/.test(t) ? 'sell' : /\b(?:buy|long|go long)\b/.test(t) ? 'buy' : null;
+    const out = { t, sym };
+
+    // answers to a question the assistant asked
+    if (this.pending && words.length <= 5 && has(/^ (?:yes|yeah|yep|yup|sure|confirm(?:ed)?|do it|go ahead|go|place it|send it|execute|ok(?:ay)?|correct|fix it|confirm it|yes please|lets go) $/)) return { intent: 'confirm' };
+    if (has(/^ (?:no|nope|cancel|cancel it|cancel that|stop|stop it|never ?mind|abort|forget it|dont|do not|leave it|no thanks|no thank you) $/) || (words.length <= 4 && has(/^ cancel /))) return { intent: 'cancel' };
+    if (this.awaiting && this.awaiting.slot === 'stop' && !side) {
+      const st = vxStop(t) || (has(/^ (?:yes|yeah|yep|ok(?:ay)?|sure|use it|do it|fine) $/) ? { aria: true } : null)
+        || ((/^ \d+(?:\.\d+)? (points?|pips?|dollars?) $/.test(t)) ? { dist: +t.trim().split(' ')[0], unit: t.trim().split(' ')[1] } : null)
+        || (/^ \d+(?:\.\d+)? $/.test(t) ? { price: +t.trim() } : null);
+      if (st) return { intent: 'slot', stop: st };
+    }
+    if (this.awaiting && this.awaiting.slot === 'which' && (sym || has(/\b(?:all|both|everything|every)\b/) || has(/\b(?:long|short|buy|sell)\b/)) && words.length <= 6)
+      return { intent: 'slot', sym, all: has(/\b(?:all|both|everything|every)\b/), side };
+
+    if (has(/\b(?:help|what can you do|what do you do|commands|how do i use you)\b/)) return { intent: 'help' };
+    if (has(/\b(?:repeat|say (?:that|it) again|come again|pardon)\b/)) return { intent: 'repeat' };
+    if (has(/\b(?:goodbye|bye|thats all|thank you|thanks|close voice|dismiss)\b/) && words.length <= 5) return { intent: 'bye' };
+    if (has(/\b(?:mute|be quiet|silence|stop talking|dont talk|no voice)\b/)) return { intent: 'mute' };
+    if (has(/\b(?:talk (?:to me|back)|unmute|voice on|speak to me|read (?:it )?out)\b/)) return { intent: 'unmute' };
+
+    // managing open trades comes before new orders: "close the long" is a close, not a buy
+    const all = has(/\b(?:all|everything|every|both)\b/);
+    if (has(/\b(?:break ?even|risk free|protect (?:it|my))\b/)) return Object.assign(out, { intent: 'breakeven', all, side });
+    if (has(/\b(?:close|exit|get (?:me )?out|flatten|square off|bank (?:it|the profit))\b/) && !has(/\bclose to\b/)) {
+      const half = has(/\b(?:half|50 percent|0\.5 of)\b/);
+      return Object.assign(out, { intent: 'close', all, half, side });
+    }
+    if (has(/\btrail(?:ing)?\b/)) return Object.assign(out, { intent: 'trail', side });
+    if (has(/\b(?:move|set|put|change|tighten|raise|lower|adjust|update|bring)\b.*\b(?:stop|sl|stop loss)\b|\bstop (?:loss )?to \d/) && !has(/\b(?:buy|sell) (?:limit|stop)\b/) && !(side && has(/\b(?:buy|sell|go long|go short)\b/))) {
+      const m = t.match(new RegExp(`\\bto ${VX_N}\\b`));
+      return Object.assign(out, { intent: 'move_stop', price: m ? +m[1] : null, side });
+    }
+    if (has(/\b(?:move|set|put|change|raise|lower|adjust|update)\b.*\b(?:target|take profit|tp)\b/) && !side) {
+      const m = t.match(new RegExp(`\\bto ${VX_N}\\b`));
+      return Object.assign(out, { intent: 'move_target', price: m ? +m[1] : null });
+    }
+
+    // "should I buy gold?" is a question for ARIA, not an order
+    if (side && has(/\b(?:should|would|could) i\b|\bis it (?:a )?(?:good|time)\b/)) return Object.assign(out, { intent: 'aria' });
+    // a new order
+    if (side && has(/\b(?:buy|sell|long|short)\b/) && !has(/\b(?:how|what|why|should|is it)\b/)) {
+      const o = Object.assign(out, { intent: 'order', side, type: 'market' });
+      let rest = t, m;
+      if ((m = t.match(new RegExp(`\\b(?:buy|sell) (limit|stop)(?: order)?(?: (?:at|@))? ${VX_N}\\b`)))) { o.type = m[1]; o.price = +m[2]; rest = t.replace(m[0], ' '); }
+      else if ((m = t.match(/\b(?:buy|sell) (limit|stop)\b/))) { o.type = m[1]; rest = t.replace(m[0], ' '); }
+      if ((m = rest.match(new RegExp(`\\b${VX_N} ?(?:a )?(?:lots?|lot size|contracts?|units?)\\b`)))) o.lots = +m[1];
+      if ((m = rest.match(new RegExp(`\\b${VX_N} percent\\b`)))) o.riskPct = +m[1];
+      if ((m = rest.match(new RegExp(`\\brisk(?:ing)? ${VX_N}(?! ?percent)(?: ?(?:dollars?|usd|bucks))?\\b`)))) o.riskUsd = +m[1];
+      if ((m = rest.match(new RegExp(`\\b${VX_N} dollars? (?:of )?risk\\b`)))) o.riskUsd = +m[1];
+      o.stop = vxStop(rest); o.target = vxTarget(rest);
+      if (o.type === 'market' && (m = rest.match(new RegExp(`\\b(?:limit|entry|enter)(?: (?:at|@))? ${VX_N}\\b`)))) { o.type = 'limit'; o.price = +m[1]; }
+      return o;
+    }
+
+    // questions
+    if (has(/\b(?:brief|briefing|good (?:morning|afternoon|evening)|catch me up|whats going on|update me|overview|rundown|summary|summari[sz]e)\b/)) return { intent: 'brief' };
+    if (has(/\b(?:aria|signal|setup|gates?|analy[sz]e|analysis)\b/)) return Object.assign(out, { intent: 'aria' });
+    if (has(/\b(?:sentinel|scanner|scanning)\b/)) return { intent: 'sentinel' };
+    if (has(/\bdrift\b/)) return { intent: 'drift' };
+    if (has(/\b(?:trend|timeframes|time frames|confluence|bias|mtf|direction)\b/)) return Object.assign(out, { intent: 'trend' });
+    if (has(/\b(?:risk|risking|exposure|room|limits?|rules)\b/)) return { intent: 'risk' };
+    if (has(/\b(?:positions?|trades?|holding|exposed)\b/) || (has(/\bhow (?:is|are|s) my\b/) && sym)) return Object.assign(out, { intent: 'positions' });
+    if (has(/\b(?:balance|equity|account|money|cash|funds|pnl|profit|losses|how am i doing|made today|lost today|today)\b/)) return { intent: 'balance' };
+    if (sym && has(/\b(?:price|quote|trading at|at now|where is|wheres|whats|what is|how much is|level)\b/)) return Object.assign(out, { intent: 'price' });
+    if (has(/\bnews ?week\b/)) return { intent: 'news', on: has(/\b(?:off|disable|stop|end)\b/) ? false : has(/\b(?:on|enable|start)\b/) ? true : null };
+    if (has(/\b(?:dark|night) (?:mode|theme)\b/)) return { intent: 'theme', mode: 'dark' };
+    if (has(/\b(?:light|day) (?:mode|theme)\b/)) return { intent: 'theme', mode: 'light' };
+    const tf = vxTimeframe(t);
+    if (sym || (tf && (words.length <= 4 || has(/\b(?:chart|timeframe|time frame|switch|show|go|change)\b/)))) return Object.assign(out, { intent: 'switch', tf });
+    if (has(/\b(?:open|show|go to|take me to)\b/) && has(/\b(?:ticket|trade tab|positions tab|portfolio|sentinel tab|markets|laws|oracle)\b/)) return Object.assign(out, { intent: 'nav' });
+    return Object.assign(out, { intent: 'unknown' });
+  },
+
+  async handle(raw, o = {}) {
+    if (!this.cfg) this.init();
+    const text = String(raw || '').trim(); if (!text) return;
+    if (!this.open_) this.open(false);
+    this.addLog('you', text); this.heard(text);
+    this.setState('thinking');
+    let c = this.parse(text);
+    if (c.intent === 'unknown' && o.alts) for (const a of o.alts.slice(1)) { const c2 = this.parse(a); if (c2.intent !== 'unknown') { c = c2; break; } }
+    if (this.awaiting && !['slot', 'confirm', 'cancel', 'repeat', 'help'].includes(c.intent)) this.awaiting = null;
+    try { await this.run(c, o); }
+    catch (e) { await this.reply(`That didn't work: ${e.message || e}.`, o); }
+  },
+
+  async run(c, o) {
+    const r = (text, x = {}) => this.reply(text, Object.assign({ spoken: o.spoken }, x));
+    switch (c.intent) {
+      case 'confirm': return this.confirmPending(o);
+      case 'cancel': {
+        const had = this.pending || this.awaiting; this.pending = null; this.awaiting = null; this.renderCard();
+        return r(had ? 'Cancelled. Nothing was changed.' : 'Okay.');
+      }
+      case 'slot': return this.fillSlot(c, o);
+      case 'help': return r("Ask me for a briefing, your risk, your trades, a price, what ARIA says, the trend across timeframes, or what Sentinel is seeing. "
+        + "To trade, say something like: buy gold, one percent risk, stop 2640, target two to one. I'll read the plan back and wait for you to confirm. "
+        + "I can also move a stop to breakeven, trail it, close half, or close a trade.");
+      case 'repeat': return r(this.lastReply || 'Nothing to repeat yet.');
+      case 'bye': await this.say('Anytime.'); this.close(); return;
+      case 'mute': this.cfg.talk = false; this.save(); return r('Okay, I will answer in text only.');
+      case 'unmute': this.cfg.talk = true; this.save(); return r("I'm talking again.");
+      case 'brief': return r(await this.briefing());
+      case 'balance': return r(this.balanceText());
+      case 'risk': return r(this.riskText());
+      case 'positions': return r(this.positionsText(c.sym));
+      case 'price': return r(await this.priceText(c.sym));
+      case 'aria': if (c.sym && c.sym !== S.sym) await this.switchTo(c.sym); return r(await this.ariaText());
+      case 'trend': if (c.sym && c.sym !== S.sym) await this.switchTo(c.sym); return r(await this.trendText());
+      case 'sentinel': return r(await this.sentinelText());
+      case 'drift': return r(await this.driftText());
+      case 'news': {
+        S.newsWeek = c.on == null ? !S.newsWeek : c.on; renderARIA();
+        return r(`News Week is ${S.newsWeek ? 'on: NAS100 shorts are blocked' : 'off'}.`);
+      }
+      case 'theme': {
+        const cur = document.documentElement.getAttribute('data-theme') || 'dark';
+        if (cur !== c.mode && typeof toggleTheme === 'function') toggleTheme();
+        return r(`${c.mode === 'dark' ? 'Dark' : 'Light'} mode.`);
+      }
+      case 'switch': {
+        if (c.sym && c.sym !== S.sym) await this.switchTo(c.sym);
+        if (c.tf && c.tf !== S.tf) this.setTf(c.tf);
+        const p = otQuote(S.sym);
+        return r(`${this.name(S.sym)}${c.tf ? ' on the ' + this.tfName(S.tf) : ''}${p.ok ? ', ' + this.px(S.sym, p.last) : ''}.`);
+      }
+      case 'nav': {
+        const t = c.t, tab = /ticket|trade/.test(t) ? 'trade' : /portfolio/.test(t) ? 'portfolio' : /sentinel/.test(t) ? 'sentinel' : /laws/.test(t) ? 'laws' : /oracle/.test(t) ? 'oracle' : 'check';
+        if (typeof isMobile === 'function' && isMobile() && typeof openMobilePanel === 'function') openMobilePanel(tab === 'sentinel' || tab === 'laws' || tab === 'oracle' ? 'check' : tab);
+        setRTab(tab, null);
+        return r('Opened.');
+      }
+      case 'order': return this.order(c, o);
+      case 'breakeven': return this.breakeven(c, o);
+      case 'close': return this.closeCmd(c, o);
+      case 'trail': return this.trail(c, o);
+      case 'move_stop': return this.moveStop(c, o);
+      case 'move_target': return this.moveTarget(c, o);
+      default: return r(`I heard "${String(c.t || '').trim()}" but I'm not sure what to do with it. Try: brief me, what's my risk, price of gold, or buy gold one percent risk with a stop.`);
+    }
+  },
+
+  /* ── helpers ── */
+  name(id) { return ((PAIR_MAP[id] || {}).label || id).replace(/^XAU\/USD$/, 'Gold').replace(/^XAG\/USD$/, 'Silver').replace(/^BTC\/USD$/, 'Bitcoin').replace(/^ETH\/USD$/, 'Ethereum').replace(/\s*\(1s\)/, ' one second'); },
+  px(id, v) { if (!Number.isFinite(v)) return '—'; const x = String(otFmtPx(id, v)); return x.includes('.') ? x.replace(/\.?0+$/, '') : x; },
+  trim(v, dp = 2) { return (+v).toFixed(dp).replace(/\.?0+$/, ''); },
+  usd(v) { const a = Math.abs(v), dp = a >= 100 || a < 0.005 || Math.abs(a - Math.round(a)) < 0.005 ? 0 : 2; return '$' + a.toLocaleString('en-US', { minimumFractionDigits: dp, maximumFractionDigits: dp }); },
+  money(v) { return Number.isFinite(v) ? (v <= -0.005 ? 'minus ' : '') + this.usd(v) : 'unknown'; },
+  signed(v) { return !Number.isFinite(v) ? 'unpriced' : Math.abs(v) < 0.005 ? 'flat' : (v >= 0 ? 'up ' : 'down ') + this.usd(v); },
+  tfName(tf) { return { '1m': '1 minute', '5m': '5 minute', '15m': '15 minute', '1h': '1 hour', '4h': '4 hour', '1d': 'daily', '1w': 'weekly' }[tf] || tf; },
+  setTf(tf) {
+    const btn = document.querySelector(`.tf-btn[onclick*="setTF('${tf}'"]`);
+    if (btn) btn.click(); else if (typeof setTF === 'function') setTF(tf, null);
+  },
+  async switchTo(id) {
+    if (!PAIR_MAP[id]) return;
+    selectPair(id);
+    for (let i = 0; i < 25 && !(otQuote(id).ok && S.candles.length >= 30 && !otQuote(id).stale); i++) await new Promise(res => setTimeout(res, 200));
+  },
+  mt5() { return !!(typeof LIVE !== 'undefined' && LIVE && LIVE.routing && LIVE.routing()); },
+  positions() {
+    if (typeof TR === 'undefined') return [];
+    if (this.mt5()) {
+      return (((LIVE.snap() || {}).positions) || []).map(p => {
+        const id = Object.keys(PAIR_MAP).find(k => LIVE.mt5Symbol(k) === p.symbol) || null;
+        return { mt5: true, ticket: p.ticket, id: p.ticket, symbol: id, label: id ? this.name(id) : p.symbol, side: p.side, volume: p.volume, entry: +p.entry, sl: +p.sl || null, tp: +p.tp || null, pnl: +p.profit };
+      });
+    }
+    return TR.positions.map(p => {
+      const q = otQuote(p.symbol), cur = q.ok ? (p.side === 'buy' ? q.bid : q.ask) : NaN;
+      const pnl = q.ok ? otPnl(p.side, p.entry, cur, p.volume, p.symbol) : null;
+      return { mt5: false, id: p.id, symbol: p.symbol, label: this.name(p.symbol), side: p.side, volume: p.volume, entry: p.entry, sl: p.sl, tp: p.tp, cur, pnl,
+               r: pnl != null && p.risk0 ? pnl / p.risk0 : null, trail: p.trail, raw: p };
+    });
+  },
+  // which open trades a command means: by market, by side, all, or the only one
+  pick(c) {
+    let ps = this.positions();
+    if (c.sym) ps = ps.filter(p => p.symbol === c.sym);
+    if (c.side && !c.all) ps = ps.filter(p => p.side === c.side);
+    return ps;
+  },
+
+  /* ── answers ── */
+  balanceText() {
+    if (this.mt5()) {
+      const a = LIVE.acct() || {};
+      return `Your MT5 ${a.mode || ''} account: balance ${this.money(+a.balance)}, equity ${this.money(+a.equity)}${Number.isFinite(+a.dayPnl) ? ', today ' + this.signed(+a.dayPnl) : ''}.`;
+    }
+    const acct = otAccount(), n = TR.positions.length;
+    return `Paper balance ${this.money(S.balance)}. ${n ? `Equity ${this.money(acct.equity)} with ${n} trade${n === 1 ? '' : 's'} open, ${this.signed(acct.upl)} floating. ` : ''}Today you are ${this.signed(S.pnlToday)}.`;
+  },
+  riskText() {
+    if (this.mt5()) {
+      const l = LIVE.limits() || {};
+      return `On MT5, ${this.money(+l.openRisk)} is at risk at your stops, of a ${this.money(+l.openRiskCap)} cap. You can risk ${this.money(+l.riskBudget)} on a new trade${l.lossesToday ? `. ${l.lossesToday} losing trade${l.lossesToday === 1 ? '' : 's'} today` : ''}.`;
+    }
+    const L = paperLimits(), held = openRiskHolders(), B = sizeBudget();
+    if (L.locked) return `${L.locked}`;
+    const parts = [`${this.money(L.openRisk)} is at risk at your stops, of your 2 percent cap of ${this.money(L.openCap)}.`];
+    if (held.length) parts.push(held.slice(0, 3).map(h => `${h.what.replace(/^your /, '')} holds ${this.money(h.risk)}`).join(', ') + '.');
+    if (L.unprotected) parts.push(`${L.unprotected} trade${L.unprotected === 1 ? ' has' : 's have'} no stop. Add one.`);
+    parts.push(B.budget > 0.5 ? `A new trade can risk ${this.money(B.budget)}.` : 'There is no room for a new trade right now.');
+    if (L.dayLoss > 0) parts.push(`Today's loss is ${this.money(L.dayLoss)} of the ${this.money(L.dayCap)} daily limit.`);
+    return parts.join(' ');
+  },
+  positionsText(sym) {
+    let ps = this.positions(); if (sym) ps = ps.filter(p => p.symbol === sym);
+    if (!ps.length) return sym ? `No open trade on ${this.name(sym)}.` : `No open trades${this.mt5() ? ' on MT5' : ''}.`;
+    const line = p => {
+      const be = p.sl != null && Math.abs(p.sl - p.entry) < 1e-9;
+      const stop = p.sl == null ? 'no stop' : be ? 'stop at breakeven' : `stop ${this.px(p.symbol || S.sym, p.sl)}`;
+      return `${p.label} ${p.side === 'buy' ? 'long' : 'short'} ${p.volume} lots, ${this.signed(p.pnl)}${p.r != null && Math.abs(p.r) >= 0.05 ? `, that's ${p.r >= 0 ? '' : 'minus '}${this.trim(Math.abs(p.r), 1)} R` : ''}, ${stop}${p.trail > 0 ? ', trailing' : ''}`;
+    };
+    const tot = ps.reduce((a, p) => a + (p.pnl || 0), 0);
+    return `${ps.length} open trade${ps.length === 1 ? '' : 's'}${this.mt5() ? ' on MT5' : ''}. ` + ps.slice(0, 5).map(line).join('. ') + (ps.length > 1 ? `. Together ${this.signed(tot)}.` : '.');
+  },
+  async priceText(id) {
+    id = id || S.sym;
+    let q = otQuote(id);
+    if (!q.ok && id !== S.sym) { await this.switchTo(id); q = otQuote(id); }
+    if (!q.ok) return `I don't have a live price for ${this.name(id)} yet.`;
+    const chg = pairPrices[id] && Number.isFinite(pairPrices[id].chg) ? pairPrices[id].chg : null;
+    const closed = otMarketOpen(id) === false;
+    return `${this.name(id)} is ${this.px(id, q.last)}${chg != null ? `, ${chg >= 0 ? 'up' : 'down'} ${Math.abs(chg).toFixed(2)} percent today` : ''}${q.hasSpread ? `. Spread ${this.px(id, q.spread)}` : ''}${closed ? '. The market is closed right now' : ''}.`;
+  },
+  aria() {
+    const cd = S.candles; if (cd.length < 30) return null;
+    const closes = cd.map(x => x.close), n = closes.length;
+    const e20 = calcEMA(closes, 20), e50 = calcEMA(closes, 50), e200 = calcEMA(closes, 200);
+    const atr = calcATR(cd, 14);
+    const mcc = ariaMCC(cd, closes, e20, e50, atr);
+    const dir = (closes[n - 1] > e20[n - 1] && e20[n - 1] > e50[n - 1]) ? 'buy' : 'sell';
+    const gates = ariaGates(cd, closes, e20, e50, e200, calcRSI(closes), calcMACD(closes), calcStoch(cd), atr, getPatternAlignment(dir));
+    const verdict = ariaVerdict(gates.score, mcc, S.sym, gates.dir);
+    const entry = ariaEntry(cd, closes, atr, gates.dir, mcc);
+    return { gates, verdict, mcc, entry };
+  },
+  async ariaText() {
+    for (let i = 0; i < 15 && S.candles.length < 30; i++) await new Promise(res => setTimeout(res, 200));
+    const a = this.aria(); if (!a) return `ARIA needs at least 30 candles on ${this.name(S.sym)} and they haven't loaded yet.`;
+    const say = { EXEC_READY: 'execution ready', QUALIFIED: 'a qualified setup, wait for the trigger', WAITING: 'waiting, not enough confluence yet', OBSERVER: 'observer mode, stay out', BLOCKED: 'blocked by the News Week rule' }[a.verdict.v] || a.verdict.v;
+    let t = `ARIA on ${this.name(S.sym)}, ${this.tfName(S.tf)}: ${a.gates.score} of ${ARIA_GATE_COUNT} gates, leaning ${a.gates.dir === 'buy' ? 'buy' : 'sell'}. Verdict: ${say}. Market condition: ${a.mcc.label.replace(/[↑↓]/g, '').trim()}.`;
+    if (a.verdict.v === 'EXEC_READY' || a.verdict.v === 'QUALIFIED') t += ` Its stop would be ${this.px(S.sym, a.entry.slLevel)}, one point ${a.mcc.code === 'VOLATILE' ? 'two' : 'five'} times the average range.`;
+    if (!this._ariaNoteSaid) { t += ' Remember, no market has a proven edge in the forward test yet, so treat this as a read, not a trade.'; this._ariaNoteSaid = true; }
+    return t;
+  },
+  async trendText() {
+    if (typeof MTF === 'undefined') return 'The timeframe reader is not available.';
+    MTF.refresh(true);
+    for (let i = 0; i < 25 && !MTF.data[S.sym]; i++) await new Promise(res => setTimeout(res, 200));
+    const data = MTF.data[S.sym] || {}, rows = [];
+    MTF.TFS.forEach(tf => {
+      const r = MTF.read(tf === S.tf && S.candles.length >= 60 ? S.candles : data[tf]); if (!r) return;
+      const v = ['ema', 'rsi', 'macd', 'stoch'].map(k => r[k]), up = v.filter(x => x === 'bull').length, dn = v.filter(x => x === 'bear').length;
+      rows.push({ tf, bias: up >= 3 ? 'bullish' : dn >= 3 ? 'bearish' : 'mixed' });
+    });
+    if (!rows.length) return `The other timeframes for ${this.name(S.sym)} haven't loaded yet. Ask me again in a moment.`;
+    const bull = rows.filter(x => x.bias === 'bullish').length, bear = rows.filter(x => x.bias === 'bearish').length;
+    const overall = bull >= rows.length - 1 && bull >= 3 ? 'bullish' : bear >= rows.length - 1 && bear >= 3 ? 'bearish' : 'mixed';
+    return `${this.name(S.sym)} across ${rows.length} timeframes is ${overall}: ${rows.map(x => `${this.tfName(x.tf)} ${x.bias}`).join(', ')}.`;
+  },
+  async sentinelText() {
+    try {
+      const get = p => fetch(`${BOT_BASE}/api/sentinel/${p}`, { cache: 'no-store', signal: AbortSignal.timeout(10000) }).then(x => x.ok ? x.json() : null);
+      const [st, feed] = await Promise.all([get('status'), get('feed?limit=30')]);
+      if (!st) return "I can't reach Sentinel right now.";
+      const open = (feed && feed.open) || [];
+      const top = open.slice().sort((a, b) => (b.score || 0) - (a.score || 0)).slice(0, 3);
+      return `Sentinel is ${st.running ? `reading ${(st.markets || []).length} markets` : 'not running on this server'}. `
+        + (open.length ? `${open.length} paper setup${open.length === 1 ? ' is' : 's are'} open: ` + top.map(t => `${this.name(t.market)} ${t.tf} ${t.dir === 'buy' ? 'long' : 'short'}${t.grade ? ', grade ' + t.grade : ''}`).join('; ') + '.'
+          : 'No setups are open right now.')
+        + ' These are paper candidates, not proven trades.';
+    } catch (e) { return "I can't reach Sentinel right now."; }
+  },
+  async driftText() {
+    const key = (() => { try { return localStorage.getItem('protrader.sentinelKey') || (typeof ACCOUNT !== 'undefined' && ACCOUNT.isOwner() ? 'session' : ''); } catch (_) { return ''; } })();
+    if (!key) return 'Drift is on the owner panel in the Sentinel tab.';
+    try {
+      const d = await fetch(`${BOT_BASE}/api/sentinel/drift`, { cache: 'no-store', headers: { 'X-Sentinel-Key': key }, signal: AbortSignal.timeout(10000) }).then(x => x.ok ? x.json() : null);
+      if (!d) return "I can't read Drift right now.";
+      const s = Object.entries(d.signals || {}).filter(([, v]) => v).map(([k, v]) => `${this.name(k)} ${v.hold ? 'hold' : 'aside'}, ${v.dist_pct >= 0 ? '' : 'minus '}${Math.abs(v.dist_pct).toFixed(1)} percent from its 200 day line`);
+      return `Drift: ${s.join('; ') || 'no signal yet'}. On the demo it is ${d.demo && d.demo.on ? 'on' : 'off'}.`;
+    } catch (e) { return "I can't read Drift right now."; }
+  },
+  async briefing() {
+    const h = new Date().getHours(), hi = h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening';
+    const parts = [`${hi}.`, this.balanceText()];
+    const ps = this.positions();
+    if (ps.length) parts.push(this.positionsText());
+    if (!this.mt5()) {
+      const L = paperLimits();
+      parts.push(L.locked ? L.locked : `Risk in use: ${this.money(L.openRisk)} of ${this.money(L.openCap)}.`);
+    }
+    const a = this.aria(), q = otQuote(S.sym);
+    if (q.ok) parts.push(`${this.name(S.sym)} is ${this.px(S.sym, q.last)}${a ? `, ARIA ${a.gates.score} of ${ARIA_GATE_COUNT}, ${({ EXEC_READY: 'execution ready', QUALIFIED: 'qualified', WAITING: 'waiting', OBSERVER: 'observer', BLOCKED: 'blocked' })[a.verdict.v] || ''}` : ''}.`);
+    if (S.newsWeek) parts.push('News Week is on.');
+    try {
+      const feed = await fetch(`${BOT_BASE}/api/sentinel/feed?limit=30`, { cache: 'no-store', signal: AbortSignal.timeout(6000) }).then(x => x.ok ? x.json() : null);
+      if (feed) parts.push((feed.open || []).length ? `Sentinel has ${feed.open.length} paper setup${feed.open.length === 1 ? '' : 's'} open.` : 'Sentinel has no setups open.');
+    } catch (_) {}
+    return parts.join(' ');
+  },
+
+  /* ── orders ── */
+  distToPrice(id, d) {
+    const sp = otSpec(id), forex = (PAIR_MAP[id] || {}).market === 'forex';
+    if (/pip/.test(d.unit) || (forex && /point/.test(d.unit))) return d.dist * (sp.pip || sp.tick * 10);
+    return d.dist;            // points or dollars of price on indices, metals, crypto and synthetics
+  },
+  stopFrom(id, side, st, entry) {
+    if (!st) return null;
+    if (st.price != null) return st.price;
+    if (st.dist != null) return side === 'buy' ? entry - this.distToPrice(id, st) : entry + this.distToPrice(id, st);
+    if (st.aria) { const a = this.aria(); return a ? +a.entry.slLevel.toFixed(otSpec(id).dp) : null; }
+    return null;
+  },
+  async order(c, o) {
+    if (c.sym && c.sym !== S.sym) await this.switchTo(c.sym);
+    const id = S.sym;
+    if (typeof isMobile === 'function' && isMobile() && typeof openMobilePanel === 'function') { /* keep the voice sheet on top; the ticket fills underneath */ }
+    setRTab('trade', null);
+    OT.setSide(c.side);
+    OT.setType(c.type || 'market');
+    if (c.type !== 'market' && Number.isFinite(c.price)) { TK.price = c.price; const el = document.getElementById('otPrice'); if (el) el.value = otFmtPx(id, c.price); }
+    const entry = OT.entryRef();
+    if (!Number.isFinite(entry)) return this.reply(`I don't have a live price for ${this.name(id)}, so I can't build the order yet.`, o);
+    const stop = this.stopFrom(id, c.side, c.stop, entry);
+    if (stop == null) {
+      const a = this.aria(), sug = a ? +a.entry.slLevel.toFixed(otSpec(id).dp) : null;
+      const ok = sug != null && (c.side === 'buy' ? sug < entry : sug > entry);
+      this.awaiting = { slot: 'stop', order: c };
+      return this.reply(`Your rules need a stop on every trade. Where is it? Say a price, or a distance like 50 points.${ok ? ` ARIA's stop for this chart is ${this.px(id, sug)}: say "use ARIA's stop" to take it.` : ''}`, Object.assign({ ask: true }, o));
+    }
+    c.stopPrice = stop;
+    return this.buildOrder(c, o);
+  },
+  async fillSlot(c, o) {
+    const w = this.awaiting; this.awaiting = null;
+    if (!w) return this.reply('Okay.', o);
+    if (w.slot === 'stop') {
+      const ord = w.order, entry = OT.entryRef();
+      const stop = this.stopFrom(S.sym, ord.side, c.stop, entry);
+      if (stop == null) { this.awaiting = w; return this.reply("I couldn't work out that stop. Say a price, or a distance like 50 points.", Object.assign({ ask: true }, o)); }
+      ord.stopPrice = stop;
+      return this.buildOrder(ord, o);
+    }
+    if (w.slot === 'which') return this[w.then](Object.assign({}, w.cmd, { sym: c.sym || w.cmd.sym, all: c.all, side: c.side || w.cmd.side, _picked: true }), o);
+    return this.reply('Okay.', o);
+  },
+  async buildOrder(c, o) {
+    const id = S.sym, sp = otSpec(id);
+    const entry = OT.entryRef();
+    TK.sl = +(+c.stopPrice).toFixed(sp.dp); OT.toggleSl(true);
+    const slEl = document.getElementById('otSl'); if (slEl) slEl.value = otFmtPx(id, TK.sl);
+    // target
+    if (c.target) {
+      const risk = Math.abs(entry - TK.sl);
+      const tp = c.target.rr != null ? (c.side === 'buy' ? entry + c.target.rr * risk : entry - c.target.rr * risk)
+        : c.target.price != null ? c.target.price
+        : (c.side === 'buy' ? entry + this.distToPrice(id, c.target) : entry - this.distToPrice(id, c.target));
+      TK.tp = +tp.toFixed(sp.dp); OT.toggleTp(true);
+      const tpEl = document.getElementById('otTp'); if (tpEl) tpEl.value = otFmtPx(id, TK.tp);
+    } else if (TK.tpOn) { OT.toggleTp(false); TK.tp = null; }
+    // size: lots asked for, a % or $ of risk (never above the plan), or the plan itself
+    let note = '';
+    if (Number.isFinite(c.lots)) { TK.auto = false; OT.setLots(OT.snapVolume(c.lots)); }
+    else if (Number.isFinite(c.riskPct) || Number.isFinite(c.riskUsd)) {
+      let want = Number.isFinite(c.riskPct) ? S.balance * c.riskPct / 100 : c.riskUsd;
+      const plan = S.balance * S.riskPct / 100;
+      if (want > plan * 1.0001) { note = `Your plan caps a trade at ${S.riskPct} percent, so I sized it at ${S.riskPct} percent. `; want = plan; }
+      if (this.mt5()) OT.sizeToRisk(true);
+      else {
+        const B = sizeBudget(), r = riskLots(id, entry, TK.sl, S.balance, Math.min(want, B.budget));
+        if (r && r.lots >= r.min) { TK.auto = false; OT.setLots(r.lots); } else OT.sizeToRisk(true);
+      }
+    } else OT.sizeToRisk(true);
+    OT.render();
+    const e = OT.validate(); OT.render();
+    if (Object.keys(e).length) return this.explain(e, note, o);
+    return this.proposeOrder(note, o);
+  },
+  explain(e, note, o) {
+    const ch = e.coach;
+    if (ch) {
+      const act = (ch.acts || [])[0];
+      if (act) {
+        this.pending = { kind: 'fix', title: ch.title, text: ch.text, okText: act.label, expires: Date.now() + 60000,
+          run: async () => { Function(act.run)(); await new Promise(res => setTimeout(res, 50)); const e2 = OT.validate(); OT.render(); if (Object.keys(e2).length) return this.explain(e2, '', o); return this.proposeOrder('', o); } };
+        return this.reply(`${note}${ch.title}. ${ch.text} Say "fix it" to ${act.label.charAt(0).toLowerCase() + act.label.slice(1)}, or cancel.`, Object.assign({ ask: true }, o));
+      }
+      return this.reply(`${note}${ch.title}. ${ch.text}${ch.hint ? ' ' + ch.hint : ''}`, o);
+    }
+    const msg = e.general || e.sl || e.tp || e.price || e.volume || 'The ticket has a problem.';
+    return this.reply(`${note}I can't place that: ${msg}`, o);
+  },
+  proposeOrder(note, o) {
+    const id = S.sym, entry = OT.entryRef(), mt5 = this.mt5();
+    const loss = TK.slOn ? -(otPnl(TK.side, entry, TK.sl, TK.volume, id) || 0) : null;
+    const gain = TK.tpOn ? otPnl(TK.side, entry, TK.tp, TK.volume, id) : null;
+    const bal = mt5 ? +((LIVE.acct() || {}).equity || 0) : S.balance;
+    const rr = TK.tpOn && TK.slOn ? Math.abs(TK.tp - entry) / Math.abs(entry - TK.sl) : null;
+    const how = TK.type === 'market' ? `at market, about ${this.px(id, entry)}` : `${TK.type} order at ${this.px(id, TK.price)}`;
+    const rows = [['Market', this.name(id)], ['Order', `${TK.side === 'buy' ? 'Buy' : 'Sell'} ${TK.type}`], ['Lots', String(TK.volume)],
+      ['Entry', TK.type === 'market' ? `≈ ${this.px(id, entry)}` : this.px(id, TK.price)],
+      ['Stop', `${this.px(id, TK.sl)} · risks ${otMoney(loss)}${bal ? ` (${this.trim(loss / bal * 100)}%)` : ''}`],
+      ['Target', TK.tpOn ? `${this.px(id, TK.tp)} · ${otMoney(gain)}${rr ? ` · ${this.trim(rr, 1)} : 1` : ''}` : 'none'],
+      ['Account', mt5 ? 'MT5 — tap to send' : 'Paper']];
+    this.pending = { kind: 'order', title: `${TK.side === 'buy' ? 'Buy' : 'Sell'} ${TK.volume} ${this.name(id)}`, rows, side: TK.side, mt5, expires: Date.now() + 60000,
+      okText: mt5 ? 'Open MT5 confirmation' : (TK.side === 'buy' ? 'Buy' : 'Sell') + ' on paper', run: () => this.placeOrder(o) };
+    const text = `${note}${TK.side === 'buy' ? 'Buy' : 'Sell'} ${TK.volume} lots of ${this.name(id)} ${how}. Stop ${this.px(id, TK.sl)}, that risks ${this.money(loss)}${bal ? `, ${this.trim(loss / bal * 100)} percent of your ${mt5 ? 'equity' : 'balance'}` : ''}. `
+      + (TK.tpOn ? `Target ${this.px(id, TK.tp)}${rr ? `, ${this.trim(rr, 1)} to 1` : ''}. ` : 'No target. ')
+      + (mt5 ? 'This goes to MT5: say confirm to open the MT5 confirmation, then tap to send it.' : 'Say confirm to place it.');
+    return this.reply(text, Object.assign({ ask: true }, o));
+  },
+  async placeOrder(o) {
+    const before = TR.positions.length, beforeO = TR.orders.length, mt5 = this.mt5();
+    this.quietGlobal = true;
+    try { await OT.submit(); } finally { this.quietGlobal = false; }
+    if (mt5) return this.reply('The MT5 confirmation is open. Tap it to send the order.', o);
+    const p = TR.positions.length > before ? TR.positions[TR.positions.length - 1] : null;
+    const w = TR.orders.length > beforeO ? TR.orders[TR.orders.length - 1] : null;
+    if (p) return this.reply(`Done. ${p.side === 'buy' ? 'Bought' : 'Sold'} ${p.volume} lots of ${this.name(p.symbol)} at ${this.px(p.symbol, p.entry)}. Stop ${this.px(p.symbol, p.sl)}, worst case ${this.money(p.risk0)}.`, o);
+    if (w) return this.reply(`Done. Your ${w.orderType} order is working at ${this.px(w.symbol, w.price)}.`, o);
+    const st = document.getElementById('otStatus')?.textContent || 'the order was not accepted';
+    return this.reply(`It didn't go through: ${st.trim()}.`, o);
+  },
+  async confirmPending(o) {
+    const p = this.pending;
+    if (!p) return this.reply('There is nothing waiting for a confirmation.', o);
+    this.pending = null; this.renderCard();
+    if (Date.now() > p.expires) return this.reply('That plan expired after a minute, so I did nothing. Ask again and I will rebuild it with the current price.', o);
+    return p.run();
+  },
+  renderCard() {
+    const box = document.getElementById('vxCard'); if (!box) return;
+    const p = this.pending;
+    if (!p) { box.hidden = true; box.innerHTML = ''; return; }
+    const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+    box.hidden = false;
+    box.innerHTML = `<div class="vx-card-t">${esc(p.title)}</div>${p.text ? `<div class="vx-card-x">${esc(p.text)}</div>` : ''}
+      ${(p.rows || []).map(([k, v]) => `<div class="vx-row"><span>${esc(k)}</span><b>${esc(v)}</b></div>`).join('')}
+      <div class="vx-acts"><button type="button" class="vx-ok ${p.side || ''}" onclick="VOICE.handle('confirm')">${esc(p.okText || 'Confirm')}</button>
+      <button type="button" class="vx-no" onclick="VOICE.handle('cancel')">Cancel</button></div>
+      <div class="vx-exp"><i style="animation-duration:${Math.max(1, Math.round((p.expires - Date.now()) / 1000))}s"></i></div>`;
+  },
+
+  /* ── managing open trades ── */
+  async which(c, o, then, verb) {
+    const ps = this.pick(c);
+    if (ps.length === 1 || (c.all && ps.length)) return ps;
+    if (!ps.length) { await this.reply(c.sym ? `You have no open trade on ${this.name(c.sym)}.` : `You have no open trades${this.mt5() ? ' on MT5' : ''}.`, o); return null; }
+    this.awaiting = { slot: 'which', then, cmd: c };
+    await this.reply(`Which one do you want to ${verb}: ${ps.slice(0, 4).map(p => `${p.label} ${p.side === 'buy' ? 'long' : 'short'}`).join(', or ')}${ps.length > 1 ? ', or all of them' : ''}?`, Object.assign({ ask: true }, o));
+    return null;
+  },
+  async breakeven(c, o) {
+    const ps = await this.which(c, o, 'breakeven', 'protect'); if (!ps) return;
+    if (ps[0].mt5) { await LIVE.breakeven(ps[0].ticket); return this.reply(`Tap the MT5 card to move the ${ps[0].label} stop to entry.`, o); }
+    const done = [], not = [];
+    for (const p of ps) {
+      const raw = p.raw;
+      if (raw.sl != null && Math.abs(raw.sl - raw.entry) < 1e-9) { done.push(`${p.label} was already at breakeven`); continue; }
+      if (!OT.canBreakeven(raw)) {
+        const q = otQuote(raw.symbol), cur = q.ok ? (raw.side === 'buy' ? q.bid : q.ask) : NaN;
+        not.push(`${p.label} is ${Number.isFinite(cur) ? (raw.side === 'buy' ? (cur >= raw.entry ? 'only just above' : 'below') : (cur <= raw.entry ? 'only just below' : 'above')) + ' its entry' : 'not priced'}, so a stop at entry would be hit by the spread. The stop stays at ${raw.sl != null ? this.px(raw.symbol, raw.sl) : 'none'}`);
+        continue;
+      }
+      await OT.breakeven(raw.id);
+      if (raw.sl != null && Math.abs(raw.sl - raw.entry) < 1e-9) done.push(`${p.label} stop moved to entry, ${this.px(raw.symbol, raw.entry)}. It can no longer lose`);
+      else not.push(`${p.label}: the stop did not move`);
+    }
+    return this.reply([...done, ...not].join('. ') + '.', o);
+  },
+  async trail(c, o) {
+    const ps = await this.which(c, o, 'trail', 'trail'); if (!ps) return;
+    const p = ps[0];
+    if (p.mt5) { await LIVE.trailStop(p.ticket); return this.reply(`The MT5 trailing card for ${p.label} is open: choose the distance and tap to confirm.`, o); }
+    OT.trailStop(p.id);
+    const now = TR.positions.find(x => x.id === p.id);
+    return this.reply(now && now.trail > 0 ? `${p.label}: the stop now trails ${this.px(p.symbol, now.trail)} behind the price.` : `${p.label}: trailing is off.`, o);
+  },
+  async closeCmd(c, o) {
+    const ps = await this.which(c, o, 'closeCmd', 'close'); if (!ps) return;
+    if (ps[0].mt5) {
+      if (ps.length > 1) { await LIVE.closeAll(); return this.reply('The MT5 card to close everything is open. Tap it to confirm.', o); }
+      await LIVE.closePosition(ps[0].ticket); return this.reply(`Tap the MT5 card to close ${ps[0].label}.`, o);
+    }
+    const tot = ps.reduce((a, p) => a + (p.pnl || 0), 0);
+    const what = ps.length === 1 ? `${c.half ? 'half of ' : ''}your ${ps[0].label} ${ps[0].side === 'buy' ? 'long' : 'short'}` : `all ${ps.length} trades`;
+    this.pending = { kind: 'close', title: `Close ${what}`, side: 'sell', expires: Date.now() + 60000, okText: c.half ? 'Close half' : 'Close',
+      rows: ps.map(p => [`${p.label} ${p.side === 'buy' ? 'long' : 'short'} ${p.volume}`, p.pnl == null ? 'unpriced' : otMoney(p.pnl)]),
+      run: async () => {
+        const out = [];
+        for (const p of ps) {
+          const raw = TR.positions.find(x => x.id === p.id); if (!raw) continue;
+          const pnlNow = this.positions().find(x => x.id === p.id)?.pnl;
+          if (c.half) OT.closeHalf(raw.id); else await OT.closePosition(raw.id, null, 'Voice');
+          await new Promise(res => setTimeout(res, 60));
+          const left = TR.positions.find(x => x.id === p.id);
+          out.push(!left ? `${p.label} closed, ${this.signed(pnlNow)}` : c.half && left.volume < p.volume ? `Half of ${p.label} closed, ${left.volume} lots still open` : `${p.label} did not close`);
+        }
+        return this.reply(out.join('. ') + '.', o);
+      } };
+    return this.reply(`Close ${what}${ps.length > 1 || !c.half ? `, ${this.signed(tot)} right now` : ''}? Say confirm.`, Object.assign({ ask: true }, o));
+  },
+  async moveStop(c, o) {
+    const ps = await this.which(c, o, 'moveStop', 'move the stop on'); if (!ps) return;
+    const p = ps[0];
+    if (p.mt5) { await LIVE.editStops(p.ticket); return this.reply(`The MT5 stop editor for ${p.label} is open. Set the stop and tap to confirm.`, o); }
+    if (!Number.isFinite(c.price)) return this.reply(`To what price? Say, for example: move my ${p.label} stop to a price.`, o);
+    const raw = p.raw, id = raw.symbol, q = otQuote(id), md = otMinDist(id);
+    if (!q.ok) return this.reply(`No live price for ${p.label}, so I can't check the new stop.`, o);
+    const cur = raw.side === 'buy' ? q.bid : q.ask;
+    if (raw.side === 'buy' ? c.price > cur - md : c.price < cur + md) return this.reply(`A stop at ${this.px(id, c.price)} is on the wrong side of the price, ${this.px(id, cur)}. It would close the trade at once. Nothing changed.`, o);
+    const riskNew = Math.max(0, -(otPnl(raw.side, raw.entry, c.price, raw.volume, id) || 0)), riskOld = raw.sl != null ? Math.max(0, -(otPnl(raw.side, raw.entry, raw.sl, raw.volume, id) || 0)) : Infinity;
+    const L = paperLimits();
+    if (riskNew > riskOld + 0.005) {
+      if (riskNew > L.maxRisk * 1.005 + 0.01) return this.reply(`That widens the stop to a ${this.money(riskNew)} risk, over your ${S.riskPct} percent plan of ${this.money(L.maxRisk)}. Nothing changed.`, o);
+      if (L.openRisk - (Number.isFinite(riskOld) ? riskOld : 0) + riskNew > L.openCap * 1.005 + 0.01) return this.reply(`That would take open risk past your 2 percent cap. Nothing changed.`, o);
+    }
+    const res = await Broker.modify(raw.id, c.price, raw.tp);
+    if (res.status !== 'modified' || !TR.positions.includes(raw)) return this.reply('The stop could not be moved.', o);
+    raw.sl = c.price; raw.trail = 0; OT.save(); OT.renderBook(); if (typeof CH !== 'undefined' && CH.ready) CH.refreshLevels();
+    if (typeof NOTIFY !== 'undefined') NOTIFY.syncPaper(true);
+    return this.reply(`${p.label} stop moved to ${this.px(id, c.price)}. Worst case is now ${riskNew > 0.005 ? this.money(-riskNew) : 'a gain of ' + this.money(otPnl(raw.side, raw.entry, c.price, raw.volume, id))}.`, o);
+  },
+  async moveTarget(c, o) {
+    const ps = await this.which(c, o, 'moveTarget', 'move the target on'); if (!ps) return;
+    const p = ps[0];
+    if (p.mt5) { await LIVE.editStops(p.ticket); return this.reply(`The MT5 editor for ${p.label} is open. Set the target and tap to confirm.`, o); }
+    if (!Number.isFinite(c.price)) return this.reply('To what price?', o);
+    const raw = p.raw, id = raw.symbol, q = otQuote(id), md = otMinDist(id);
+    if (!q.ok) return this.reply(`No live price for ${p.label}.`, o);
+    const cur = raw.side === 'buy' ? q.bid : q.ask;
+    if (raw.side === 'buy' ? c.price < cur + md : c.price > cur - md) return this.reply(`A target at ${this.px(id, c.price)} is on the wrong side of the price, ${this.px(id, cur)}. Nothing changed.`, o);
+    const res = await Broker.modify(raw.id, raw.sl, c.price);
+    if (res.status !== 'modified' || !TR.positions.includes(raw)) return this.reply('The target could not be moved.', o);
+    raw.tp = c.price; OT.save(); OT.renderBook(); if (typeof CH !== 'undefined' && CH.ready) CH.refreshLevels();
+    if (typeof NOTIFY !== 'undefined') NOTIFY.syncPaper(true);
+    return this.reply(`${p.label} target set at ${this.px(id, c.price)}, worth ${this.money(otPnl(raw.side, raw.entry, c.price, raw.volume, id))}.`, o);
+  },
+};
+VOICE.init();
 
 /* ════════════════════════════════════════════════════════════
    CFD TRADE ENGINE
@@ -9988,8 +10876,9 @@ function init() {
     else if (k === 'l') { setRTab('laws', null); }
     else if (k === 'm') { setRTab('mtf', null); }
     else if (k === 't') { toggleTheme(); }
+    else if (k === 'v') { VOICE.toggle(); }
     else if (k === '?' || (e.shiftKey && k === '/')) { toggleShortcutsHelp(); }
-    else if (k === 'escape') { closeAllModals(); }
+    else if (k === 'escape') { closeAllModals(); if (VOICE.open_) VOICE.close(); }
   });
 
   // Redraw chart on window resize (responsive hi-DPI)
@@ -10020,6 +10909,7 @@ function toggleShortcutsHelp() {
       <div class="kbd-row"><span>Oracle</span><kbd>O</kbd></div>
       <div class="kbd-row"><span>MTF / Portfolio / Laws</span><kbd>M</kbd><kbd>P</kbd><kbd>L</kbd></div>
       <div class="kbd-row"><span>Theme toggle</span><kbd>T</kbd></div>
+      <div class="kbd-row"><span>Voice assistant</span><kbd>V</kbd></div>
       <div class="kbd-row"><span>Show this help</span><kbd>?</kbd></div>
       <div class="kbd-row"><span>Close modal</span><kbd>Esc</kbd></div>
     </div>
