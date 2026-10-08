@@ -419,8 +419,11 @@ def _status(d: dict) -> dict:
 
 @router.get("/status")
 def status(device: str) -> dict:
+    # Read-only: must not create state, or an unauthenticated GET with a made-up
+    # device id becomes a way to fill the table and evict real devices (see
+    # the eviction in _device()).
     with _lock:
-        return _status(_device(device))
+        return _status(_device(device, create=False))
 
 
 @router.post("/telegram/code")
