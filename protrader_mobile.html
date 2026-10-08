@@ -8536,7 +8536,7 @@ const SENT = (() => {
     const rows = Object.values(S.specs || {}).map(g => {
       const cls = /wins more/.test(g.verdict) ? 'ev-proven' : /winning/.test(g.verdict) ? 'ev-negative' : 'ev-unproven';
       return `<div class="twin-sum"><b>${esc(g.label)}</b><br>
-        ${g.taken ? `Deriv charges ${pc(g.priced_p)} odds (pays ${nb(otMoney(g.last_payout, 2))} on $${c.stake}) · it rose ${pc(g.history.won)} of the time${Number.isFinite(g.edge_on_history) ? ` → ${sg(g.edge_on_history)} a contract on history` : ''}<br>
+        ${g.taken ? `Deriv charges ${pc(g.priced_p)} odds (pays ${nb(otMoney(g.last_payout, 2))} on $${c.stake}) · it rose ${pc(g.history.won)} of the time${Number.isFinite(g.edge_on_history) ? ` → ${sg(g.edge_on_history)} a contract on history` : ''}<br><span style="color:var(--tx-3)">${esc(g.history.source)}</span><br>
         ${g.taken} taken · ${g.open} open · ${g.settled} settled${g.settled ? ` · won ${g.wins} · ${nb(money(g.net))}` : ''}`
         : `Not taken yet · it rose ${pc(g.history.won)} of the time (${esc(g.history.source)})`}
         ${g.settled ? `<br><span class="sn-chip ${cls}">${esc(g.verdict)}</span>` : ''}</div>`;
