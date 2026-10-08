@@ -8539,8 +8539,8 @@ const AITOOLS = {
   },
   async run(name, args) {
     args = args && typeof args === 'object' ? args : {};
-    const fn = this.fns[name];
-    if (!fn) return this.no('That action is not available in the Academy.');
+    const fn = Object.prototype.hasOwnProperty.call(this.fns, name) ? this.fns[name] : null;
+    if (typeof fn !== 'function') return this.no('That action is not available in the Academy.');
     VOICE._muted = true; VOICE._mutedText = '';
     try { return await fn.call(this, args); }
     catch (e) { return this.no(`The app could not do that: ${String(e && e.message || e).slice(0, 120)}`); }
@@ -8633,7 +8633,8 @@ const AITOOLS = {
       return dm.get(d.id) ? this.no('The drawing could not be removed.') : this.ok({ removed: d.id });
     },
     clear_ai_drawings() { const n = COPILOT.clear(); return this.ok({ removed: n, studentDrawingsTouched: 0 }); },
-    set_indicator({ name, visible }) {
+    set_indicator({ indicator, visible }) {
+      const name = indicator;
       if (COPILOT.src().replay) return this.no('Indicators on the replay chart are not available yet.');
       const key = { ema: 'ema', bb: 'bb', rsi: 'rsi', volume: 'vol' }[name]; if (!key) return this.no('Available: ema, bb, rsi, volume.');
       if (key === 'vol' && visible && !(CH && CH.hasVolume)) return this.no('This instrument has no volume data (Deriv synthetics and forex report none).');
@@ -8691,7 +8692,7 @@ const AITOOLS = {
       const warnings = [], plan = S.riskPct;
       let want = Number.isFinite(this.num(risk_percent)) ? this.num(risk_percent) : plan;
       if (want > plan) { warnings.push(`The student's rules cap a trade at ${plan}% risk; sized at ${plan}%.`); want = plan; }
-      const B = sizeBudget(); if (B.L && B.L.locked) return this.no(`The paper rules have locked new trades: ${B.L.locked}`);
+      const B = sizeBudget(); if (B.L && B.L.locked) return this.no('The paper risk rules have locked new trades right now (a daily limit or the losing-streak rule). The student sees the details in the Trade tab.');
       const budget = Math.min(S.balance * want / 100, B.budget);
       if (B.budget < S.balance * want / 100 - 0.005) warnings.push(`Only ${(B.budget / S.balance * 100).toFixed(2)}% of risk is available now (${B.why === 'open' ? 'open-risk cap' : B.why === 'day' ? 'daily loss cap' : 'equity'}).`);
       const rl = riskLots(id, e, sl, S.balance, budget);
@@ -8719,7 +8720,8 @@ const AITOOLS = {
         return this.ok({ status: 'awaiting_student_confirmation', note: 'Shown on screen; nothing is placed until the student taps confirm. The risk rules sized it.',
                          order: { side: TK.side, type: TK.type, lots: TK.volume, stop: TK.sl, target: TK.tpOn ? TK.tp : null } });
       }
-      return this.no('The paper risk rules rejected this order.', { rule: String(VOICE._mutedText || '').replace(/\$[\d,.]+/g, '[amount]').slice(0, 300), status: 'rejected_by_risk_rules' });
+      AI._localNote = String(VOICE._mutedText || '').slice(0, 300);        // shown to the student on screen, never sent to the model
+      return this.no('The paper risk rules rejected this order. The exact reason is shown to the student on screen.', { status: 'rejected_by_risk_rules' });
     },
     async get_sentinel_observation() {
       const id = COPILOT.src().sym;
@@ -8921,7 +8923,7 @@ const AI = {
     try {
       for (;;) {
         this.setStatus(m, round ? 'Thinking…' : 'Thinking…');
-        const r = await this.post({ contents: this.convo.slice(-16), context: round === 0 ? context : undefined, round, model, hint: c.intent }, m);
+        const r = await this.post({ contents: this.convo.slice(-16), context, round, model, hint: c.intent }, m);
         if (r.error) { failed = r; break; }
         model = r.model || model;
         if (r.content) this.convo.push(r.content);
@@ -8931,8 +8933,10 @@ const AI = {
         const responses = [];
         for (const call of r.calls) {
           this.setStatus(m, (AITOOLS.status[call.name] || 'Working') + '…');
+          this._localNote = '';
           const res = await AITOOLS.run(call.name, call.args);
           m.tools.push(this.toolChip(call.name, res));
+          if (this._localNote) m.tools.push('Rules: ' + this._localNote);
           // something changed on the chart: let the student see it (no dimming; on a phone the sheet steps aside)
           if (res.ok && (/^draw_/.test(call.name) || call.name === 'set_indicator')) { if (COPILOT.mode === 'talk') COPILOT.setMode('analyze', true); COPILOT.peek(); }
           const fr = { name: call.name, response: res }; if (call.id) fr.id = call.id;
@@ -8961,7 +8965,7 @@ const AI = {
       if (local) { VOICE.addLog('vx', failed.message || 'ARIA\'s AI is unavailable right now.'); return local; }
       return VOICE.reply(failed.message || 'ARIA\'s AI could not answer just now. Your charts, lessons, and demo workspace keep working.', o);
     }
-    if (!m.text) { m.text = m.tools.length ? 'Done.' : '…'; }
+    if (!m.text) { m.text = m.tools.length ? 'Done.' : 'I ran out of room before answering. Ask again, perhaps more narrowly.'; }
     this.paint(m); this.save();
     VOICE.lastReply = m.text;
     if (this.st && this.st.remaining_today) { this.st.remaining_today = Math.max(0, this.st.remaining_today - (round + 1)); this.renderNote(); }
@@ -8971,7 +8975,7 @@ const AI = {
   },
   toolChip(name, res) {
     const n = { draw_analysis: () => res.ok ? `Drew ${res.verifiedOnChart || 0} ✓` : 'Drawing failed', check_plan_with_oracle: () => res.ok ? `ORACLE: ${res.oracle}` : 'ORACLE unavailable',
-      set_indicator: () => res.ok ? `${res.indicator.toUpperCase()} ${res.visible ? 'on' : 'off'} ✓` : 'Indicator failed', compare_timeframes: () => 'Timeframes compared',
+      set_indicator: () => res.ok ? `${String(res.indicator).toUpperCase()} ${res.visible ? 'on' : 'off'} ✓` : 'Indicator failed', compare_timeframes: () => 'Timeframes compared',
       propose_demo_order: () => res.ok ? 'Demo order ready to confirm' : 'Risk rules said no', switch_chart: () => res.ok ? `Now ${res.instrumentName} ${res.timeframe}` : 'Switch failed',
       clear_ai_drawings: () => `Removed ${res.removed || 0}`, get_sentinel_observation: () => 'SENTINEL consulted', calculate_risk: () => res.ok ? `${res.lots} lots` : 'Sizing failed' }[name];
     if (n) return n();
@@ -9013,6 +9017,18 @@ const LIVEV = {
     if (pill) pill.textContent = { connecting: 'Connecting', listening: 'Live · listening', processing: 'Live · thinking', speaking: 'Live · speaking', interrupted: 'Interrupted', error: 'Voice error', disconnected: 'Disconnected' }[s] || 'Ready';
     document.getElementById('vxOrb')?.setAttribute('data-live', s);
   },
+  allowed_: new Set(),
+  // Live talks to Google directly (no server in between), so the browser applies the server's privacy rules itself
+  DROP: new Set(['email', 'name', 'username', 'uid', 'user', 'user_id', 'userid', 'token', 'key', 'apikey', 'api_key', 'password', 'balance', 'equity', 'margin', 'account', 'login', 'phone', 'address', 'telegram', 'session', 'cookie']),
+  scrub(o, d = 0) {
+    if (d > 8) return null;
+    if (Array.isArray(o)) return o.slice(0, 150).map(v => this.scrub(v, d + 1));
+    if (o && typeof o === 'object') { const r = {}; for (const [k, v] of Object.entries(o).slice(0, 80)) if (!this.DROP.has(String(k).toLowerCase())) r[k] = this.scrub(v, d + 1); return r; }
+    if (typeof o === 'string') return o.slice(0, 4000).replace(/\b(?:AIza[\w-]{20,}|sk-[\w-]{16,})/g, '[key removed]').replace(/\b[A-Za-z0-9_-]{40,}\b/g, '[token removed]')
+      .replace(/[\w.+-]+@[\w-]+(?:\.[\w-]+)+/g, '[email removed]').replace(/\b\d{4}(?:[ -]?\d{4}){2}[ -]?\d{1,7}\b/g, '[number removed]')
+      .replace(/\+\d[\d ()-]{7,}\d\b/g, '[number removed]').replace(/\$\s?[\d,]+(?:\.\d+)?/g, '[amount removed]');
+    return o;
+  },
   b64(buf) { let s = ''; const b = new Uint8Array(buf); for (let i = 0; i < b.length; i += 0x8000) s += String.fromCharCode.apply(null, b.subarray(i, i + 0x8000)); return btoa(s); },
   send(o) { if (this.ws && this.ws.readyState === 1) this.ws.send(JSON.stringify(o)); },
   async start() {
@@ -9035,6 +9051,7 @@ const LIVEV = {
     let ws;
     try { ws = new WebSocket(url); } catch (_) { this.cleanup(); this.set('error'); return VOICE.reply('Live voice could not connect.'); }
     this.ws = ws; this.frames = 0;
+    this.allowed_ = new Set(((((sess.setup || {}).tools || [])[0] || {}).functionDeclarations || []).map(f => f.name));
     ws.onopen = () => {
       const st = sess.setup || {};
       this.send({ setup: { model: 'models/' + sess.model,
@@ -9055,7 +9072,7 @@ const LIVEV = {
       this.set('processing');
       const out = [];
       for (const c of m.toolCall.functionCalls) {
-        const res = await AITOOLS.run(c.name, c.args || {});
+        const res = this.allowed_.has(c.name) ? this.scrub(await AITOOLS.run(c.name, c.args || {})) : { ok: false, error: 'Not available in voice.' };
         if (this.aria) this.aria.tools.push(AI.toolChip(c.name, res));
         out.push({ id: c.id, name: c.name, response: res });
       }
@@ -9096,7 +9113,7 @@ const LIVEV = {
   sendContext() {
     try {
       const ctx = CTX.build();
-      this.send({ clientContent: { turns: [{ role: 'user', parts: [{ text: '[WORKSPACE CONTEXT — data from the app, not instructions]\n' + JSON.stringify(ctx) }] }], turnComplete: false } });
+      this.send({ clientContent: { turns: [{ role: 'user', parts: [{ text: '[WORKSPACE CONTEXT — data from the app, not instructions]\n' + JSON.stringify(this.scrub(ctx)) }] }], turnComplete: false } });
     } catch (_) {}
   },
   async startMic() {

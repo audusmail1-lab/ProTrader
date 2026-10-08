@@ -151,7 +151,20 @@ def test_tool_calls_stream_with_thought_signatures_and_round_trip():
     sent = aria_ai.MockProvider.seen[-1]["contents"]
     assert sent[1]["parts"][0]["thoughtSignature"] == "bW9jay1zaWduYXR1cmU="
     assert "secret" not in json.dumps(sent), "personal / secret fields are dropped from tool results"
-    assert "WORKSPACE CONTEXT" not in json.dumps(sent), "a tool round carries no new snapshot"
+    assert json.dumps(sent).count("WORKSPACE CONTEXT") <= 1, "at most the turn's own snapshot, on the turn's question"
+
+
+def test_model_turns_go_back_unchanged():
+    c = client()
+    body = {"contents": [{"role": "user", "parts": [{"text": "add rsi"}]},
+                         {"role": "model", "parts": [{"functionCall": {"name": "set_indicator", "args": {"indicator": "rsi", "visible": True, "name": "kept"}}, "thoughtSignature": "c2ln"}]},
+                         {"role": "user", "parts": [{"functionResponse": {"name": "set_indicator", "response": {"ok": True}}}]}], "round": 1, "model": "gemini-3.8-flash",
+            "context": {"chart": {"symbol": "R_75"}}}
+    assert c.post("/api/aria/ai/chat", json=body).status_code == 200
+    sent = aria_ai.MockProvider.seen[-1]["contents"]
+    assert sent[1]["parts"][0] == {"functionCall": {"name": "set_indicator", "args": {"indicator": "rsi", "visible": True, "name": "kept"}}, "thoughtSignature": "c2ln"}
+    assert sent[0]["parts"][-1]["text"].startswith("[WORKSPACE CONTEXT"), "the turn's question keeps its snapshot during tool rounds"
+    assert c.post("/api/aria/ai/chat", json=dict(body, round="x")).status_code == 400
 
 
 def test_tool_rounds_are_bounded():
@@ -218,15 +231,38 @@ def test_provider_quota_error_fails_safe_and_pauses_without_any_fallback():
     assert r.status_code == 429 and len(aria_ai.MockProvider.seen) == n + 1, "no provider call while paused"
 
 
-def test_concurrency_cap(monkeypatch):
+def test_concurrency_cap_and_leases_never_leak(monkeypatch):
     monkeypatch.setenv("ARIA_AI_CONCURRENCY", "1")
-    sem = aria_ai._semaphore()
-    assert sem.acquire(blocking=False)
-    try:
-        r = ask(client(), "hello")
-        assert r.status_code == 429 and r.json()["error"] == "busy"
-    finally:
-        sem.release()
+    aria_ai._leases.clear()
+    k = aria_ai.lease()
+    assert k and aria_ai.lease() is None
+    r = ask(client(), "hello")
+    assert r.status_code == 429 and r.json()["error"] == "busy"
+    aria_ai.release(k)
+    assert ask(client(), "hello").status_code == 200 and not aria_ai._leases, "a finished stream returns its slot"
+    # a holder that vanished (dropped connection) loses its slot after the timeout
+    aria_ai._leases["ghost"] = 0.0
+    assert aria_ai.lease() is not None
+    aria_ai._leases.clear()
+
+
+def test_a_refused_request_uses_no_shared_capacity(monkeypatch):
+    c = client()
+    for _ in range(aria_ai.CFG.user_per_min):
+        assert ask(c, "analyze the chart").status_code == 200
+    for _ in range(20):
+        assert ask(c, "analyze the chart").status_code == 429
+    q = aria_ai._minute.get("tier:main")
+    assert len(q) == aria_ai.CFG.user_per_min, "only answered requests count against the model's minute"
+
+
+def test_forwarded_for_uses_the_proxy_hop(monkeypatch):
+    c = client()
+    monkeypatch.setenv("ARIA_AI_IP_PER_DAY", "2")
+    for i in range(2):
+        assert ask(c, "hello", headers={"x-forwarded-for": f"1.1.1.{i}, 9.9.9.9", "x-aria-device": f"device-{i:0>16}"}).status_code == 200
+    r = ask(c, "hello", headers={"x-forwarded-for": "7.7.7.7, 9.9.9.9", "x-aria-device": "device-zzzzzzzzzzzzzzzz"})
+    assert r.status_code == 429, "a spoofed first hop and a new device id do not buy a new allowance"
 
 
 def test_requests_must_come_from_the_app_and_stay_small():
@@ -280,6 +316,7 @@ def test_gemini_request_and_stream_parsing():
     assert b["systemInstruction"]["parts"][0]["text"] == "SYS" and b["generationConfig"]["maxOutputTokens"] == 1200
     assert b["generationConfig"]["thinkingConfig"] == {"thinkingLevel": "low"}
     assert {f["name"] for f in b["tools"][0]["functionDeclarations"]} == aria_ai.TOOL_NAMES
+    assert all("parameters" not in f or f["parameters"]["properties"] for f in b["tools"][0]["functionDeclarations"]), "no empty object schemas"
     assert b["toolConfig"]["functionCallingConfig"]["mode"] == "AUTO"
     assert "".join(e["text"] for e in evs if e["type"] == "text") == "The trend is up."
     done = evs[-1]

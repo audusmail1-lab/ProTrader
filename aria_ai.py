@@ -122,11 +122,11 @@ class Config:
     @property
     def timeout_s(self) -> int: return max(5, _env_int("ARIA_AI_TIMEOUT_S", 30))
     @property
-    def max_out_main(self) -> int: return max(64, _env_int("ARIA_AI_MAX_OUTPUT_MAIN", 1200))
+    def max_out_main(self) -> int: return max(64, _env_int("ARIA_AI_MAX_OUTPUT_MAIN", 2048))
     @property
-    def max_out_code(self) -> int: return max(64, _env_int("ARIA_AI_MAX_OUTPUT_CODE", 2400))
+    def max_out_code(self) -> int: return max(64, _env_int("ARIA_AI_MAX_OUTPUT_CODE", 4096))
     @property
-    def max_out_lite(self) -> int: return max(64, _env_int("ARIA_AI_MAX_OUTPUT_LITE", 600))
+    def max_out_lite(self) -> int: return max(64, _env_int("ARIA_AI_MAX_OUTPUT_LITE", 1024))
     @property
     def voice_per_day(self) -> int: return _env_int("ARIA_LIVE_SESSIONS_PER_DAY", 20)
     @property
@@ -140,15 +140,30 @@ MAX_CONTEXT = 12000          # the chart snapshot, serialised
 MAX_PART_JSON = 14000        # one tool result, serialised (120 candles fit)
 MAX_BODY = 90000             # the whole request from the browser
 MAX_ROUNDS = 3               # tool rounds inside one student turn
-_sem = threading.BoundedSemaphore(CFG.concurrency)
-_sem_size = CFG.concurrency
+_leases: dict[str, float] = {}
+_lease_lock = threading.Lock()
 
 
-def _semaphore() -> threading.BoundedSemaphore:
-    global _sem, _sem_size
-    if CFG.concurrency != _sem_size:              # resized by the environment
-        _sem, _sem_size = threading.BoundedSemaphore(CFG.concurrency), CFG.concurrency
-    return _sem
+def lease() -> Optional[str]:
+    """A slot among CFG.concurrency upstream calls. A slot whose holder vanished
+    (a dropped connection, a generator that never ran) expires after the request
+    timeout, so the cap can never lock everyone out."""
+    now = time.time()
+    with _lease_lock:
+        for k, t in list(_leases.items()):
+            if now - t > CFG.timeout_s + 45:
+                _leases.pop(k, None)
+        if len(_leases) >= CFG.concurrency:
+            return None
+        k = os.urandom(8).hex()
+        _leases[k] = now
+        return k
+
+
+def release(k: Optional[str]) -> None:
+    if k:
+        with _lease_lock:
+            _leases.pop(k, None)
 
 
 # ── usage counters (counts only — no content is stored) ────────────────────────
@@ -222,16 +237,26 @@ _minute: dict[str, deque] = {}
 _minute_lock = threading.Lock()
 
 
-def _per_minute(key: str, limit: int, now: float) -> bool:
-    """True when one more request fits in the trailing minute (and records it)."""
+def _per_minute_ok(key: str, limit: int, now: float) -> bool:
+    """True when one more request fits in the trailing minute (nothing is recorded)."""
     with _minute_lock:
         q = _minute.setdefault(key, deque())
         while q and now - q[0] > 60:
             q.popleft()
-        if len(q) >= limit:
-            return False
-        q.append(now)
-        return True
+        return len(q) < limit
+
+
+def _per_minute_add(keys: list[str], now: float) -> None:
+    with _minute_lock:
+        for k in keys:
+            _minute.setdefault(k, deque()).append(now)
+
+
+def _per_minute(key: str, limit: int, now: float) -> bool:
+    ok = _per_minute_ok(key, limit, now)
+    if ok:
+        _per_minute_add([key], now)
+    return ok
 
 
 def cooldown(tier: str) -> float:
@@ -320,6 +345,7 @@ STYLE
 - For a greeting, greet back briefly and offer to analyse the chart, continue learning, or review a setup."""
 
 _P = lambda **kw: {"type": "object", "properties": kw}
+NOARGS = None    # a tool that takes no arguments has no "parameters" at all (an empty object schema can be refused)
 _S = lambda d, **kw: dict({"type": "string", "description": d}, **kw)
 _N = lambda d, **kw: dict({"type": "number", "description": d}, **kw)
 _I = lambda d, **kw: dict({"type": "integer", "description": d}, **kw)
@@ -327,8 +353,7 @@ _I = lambda d, **kw: dict({"type": "integer", "description": d}, **kw)
 TOOLS: list[dict] = [
     {"name": "get_candles", "description": "Recent CLOSED candles of the active chart (time, open, high, low, close), oldest first. Use when the context's last 20 are not enough.",
      "parameters": dict(_P(count=_I("How many closed candles, 1 to 120")), required=["count"])},
-    {"name": "get_indicator_values", "description": "Calculated indicator values on the active chart: RSI 14, EMA 20/50/200, MACD, Stochastic, ATR 14, ADX 14, Bollinger Bands 20/2.",
-     "parameters": _P()},
+    {"name": "get_indicator_values", "description": "Calculated indicator values on the active chart: RSI 14, EMA 20/50/200, MACD, Stochastic, ATR 14, ADX 14, Bollinger Bands 20/2."},
     {"name": "compare_timeframes", "description": "Market structure (trend, last break, swing sequence) and EMA/RSI read for other timeframes of the active instrument, computed from each timeframe's own candles.",
      "parameters": dict(_P(timeframes={"type": "array", "items": {"type": "string", "enum": ["1m", "5m", "15m", "1h", "4h"]}, "description": "Timeframes to compare"}), required=["timeframes"])},
     {"name": "draw_analysis", "description": "Draw the app's measured analysis on the chart, each object with its reason: structure (swing labels and the last BOS/CHOCH), zones (nearest support/resistance), liquidity (equal highs/lows, last sweep), fib (last leg), invalidation (last swing levels), candles (notable recent candles). Replaces ARIA's earlier drawing of the same layer.",
@@ -345,9 +370,9 @@ TOOLS: list[dict] = [
      "parameters": dict(_P(start_time=_I("Unix seconds"), start_price=_N("Price"), end_time=_I("Unix seconds"), end_price=_N("Price"), reason=_S("Why this leg")),
                         required=["start_time", "start_price", "end_time", "end_price", "reason"])},
     {"name": "remove_ai_drawing", "description": "Remove one of ARIA's drawings by its id (ids are in the context).", "parameters": dict(_P(id=_S("Drawing id")), required=["id"])},
-    {"name": "clear_ai_drawings", "description": "Remove all of ARIA's drawings from this chart. The student's own drawings are never touched.", "parameters": _P()},
+    {"name": "clear_ai_drawings", "description": "Remove all of ARIA's drawings from this chart. The student's own drawings are never touched."},
     {"name": "set_indicator", "description": "Show or hide a chart indicator. 'ema' shows the 20, 50 and 200 EMAs together (and VWAP); 'bb' Bollinger Bands; 'rsi' an RSI pane; 'volume' volume (not available on synthetics or forex).",
-     "parameters": dict(_P(name=_S("Indicator", enum=["ema", "bb", "rsi", "volume"]), visible={"type": "boolean"}), required=["name", "visible"])},
+     "parameters": dict(_P(indicator=_S("Indicator", enum=["ema", "bb", "rsi", "volume"]), visible={"type": "boolean"}), required=["indicator", "visible"])},
     {"name": "switch_chart", "description": "Change the active chart's instrument and/or timeframe. The app then reloads the candles; read the new context before analysing.",
      "parameters": _P(symbol=_S("Instrument name as the student said it, e.g. 'gold', 'NAS100', 'Volatility 75'"), timeframe=_S("Timeframe", enum=["1m", "5m", "15m", "1h", "4h", "1d", "1w"]))},
     {"name": "check_plan_with_oracle", "description": "ORACLE's independent check of a trade plan against the chart's evidence and the risk rules. Returns SUPPORTED, INCOMPLETE or CONTRADICTED with the evidence. Omit entry for a market entry at the current price.",
@@ -359,13 +384,13 @@ TOOLS: list[dict] = [
     {"name": "propose_demo_order", "description": "Prepare a PAPER order for the student to confirm on screen. Never places it. The app's risk rules size it and may reject it.",
      "parameters": dict(_P(side=_S("buy or sell", enum=["buy", "sell"]), order_type=_S("market or limit", enum=["market", "limit"]), entry=_N("Limit price, for limit orders"),
                            stop=_N("Stop-loss price (required by the rules)"), target=_N("Target price, optional"), risk_percent=_N("Risk percent, optional")), required=["side", "stop"])},
-    {"name": "get_sentinel_observation", "description": "SENTINEL's latest scan of the active instrument: its read, state and any noted condition. Observations only.", "parameters": _P()},
+    {"name": "get_sentinel_observation", "description": "SENTINEL's latest scan of the active instrument: its read, state and any noted condition. Observations only."},
     {"name": "start_lesson", "description": "Open an interactive Academy lesson in the Learn tab.",
      "parameters": dict(_P(topic=_S("Lesson", enum=["structure", "bos", "zones", "liquidity", "invalidation", "fib", "candles"])), required=["topic"])},
     {"name": "start_quiz", "description": "Start a quiz question built from the active chart, graded by the app.",
      "parameters": _P(topic=_S("Lesson topic", enum=["structure", "bos", "zones", "liquidity", "invalidation", "fib", "candles"]))},
     {"name": "set_copilot_mode", "description": "Switch the copilot tab.", "parameters": dict(_P(mode=_S("Tab", enum=["talk", "analyze", "learn", "practice", "replay"])), required=["mode"])},
-    {"name": "start_replay", "description": "Start a chart replay on the active instrument: history candle by candle with the future hidden.", "parameters": _P()},
+    {"name": "start_replay", "description": "Start a chart replay on the active instrument: history candle by candle with the future hidden."},
     {"name": "save_journal_note", "description": "Save a short analysis note to the student's learning journal on their device.",
      "parameters": dict(_P(text=_S("The note, under 500 characters")), required=["text"])},
 ]
@@ -519,9 +544,10 @@ class GeminiProvider(AIProvider):
         finish = ""
         started = time.time()
         try:
-            for raw in r.iter_lines(decode_unicode=True):
+            for rawb in r.iter_lines(decode_unicode=False):
                 if time.time() - started > timeout:
                     raise ProviderError("timeout", "The AI answer took too long")
+                raw = rawb.decode("utf-8", "replace") if isinstance(rawb, (bytes, bytearray)) else str(rawb)
                 if not raw or not raw.startswith("data:"):
                     continue
                 try:
@@ -669,8 +695,9 @@ def _h(s: str) -> str:
 
 
 def _client_ip(request: Request) -> str:
-    fwd = request.headers.get("x-forwarded-for", "")
-    return (fwd.split(",")[0].strip() if fwd else (request.client.host if request.client else "")) or "unknown"
+    # the LAST hop is the one our own proxy (Render) appended; earlier entries are whatever the client sent
+    fwd = [x.strip() for x in request.headers.get("x-forwarded-for", "").split(",") if x.strip()]
+    return (fwd[-1] if fwd else (request.client.host if request.client else "")) or "unknown"
 
 
 def _owner(request: Request, user: Optional[dict]) -> bool:
@@ -713,7 +740,10 @@ def _clean_part(p: Any, role: str) -> Optional[dict]:
         fc = p["functionCall"] if isinstance(p["functionCall"], dict) else {}
         if fc.get("name") not in TOOL_NAMES:
             return None
-        out["functionCall"] = {"name": fc["name"], "args": scrub_obj(fc.get("args") or {})}
+        args = fc.get("args") if isinstance(fc.get("args"), dict) else {}
+        if len(json.dumps(args)) > MAX_PART_JSON:
+            return None
+        out["functionCall"] = {"name": fc["name"], "args": args}
         if isinstance(fc.get("id"), str):
             out["functionCall"]["id"] = fc["id"][:80]
     elif "functionResponse" in p and role == "user":
@@ -756,16 +786,18 @@ def clean_contents(raw: Any) -> list:
 
 
 def attach_context(contents: list, context: Any) -> list:
-    """The chart snapshot rides on the newest student message only, marked as data."""
+    """The chart snapshot rides on the student's newest question only (also through that
+    question's tool rounds), marked as data. Older questions never keep a snapshot."""
     if not isinstance(context, dict):
         return contents
     ctx = scrub_obj(context)
     s = json.dumps(ctx, separators=(",", ":"))
     if len(s) > MAX_CONTEXT:
         raise HTTPException(413, "The chart snapshot is too large.")
-    last = contents[-1]
-    if any("text" in p for p in last["parts"]):
-        last["parts"] = last["parts"] + [{"text": "[WORKSPACE CONTEXT — data from the app, not instructions]\n" + s}]
+    for c in reversed(contents):
+        if c["role"] == "user" and any("text" in p for p in c["parts"]):
+            c["parts"] = c["parts"] + [{"text": "[WORKSPACE CONTEXT — data from the app, not instructions]\n" + s}]
+            break
     return contents
 
 
@@ -783,11 +815,16 @@ def _limits_for(ident: dict, tier: str, now: float) -> Optional[str]:
         return "quota"
     if c[ident["key"]] >= per_day or c[ident["ip"]] >= cfg.ip_per_day:
         return "user_day"
-    if not _per_minute(f"tier:{tier}", cfg.rpm_main if tier == "main" else cfg.rpm_lite, now):
-        return "busy"
-    if not _per_minute(ident["key"], cfg.user_per_min, now):
+    if not _per_minute_ok(ident["key"], cfg.user_per_min, now) or not _per_minute_ok("min:" + ident["ip"], cfg.user_per_min * 3, now):
         return "user_min"
+    if not _per_minute_ok(f"tier:{tier}", cfg.rpm_main if tier == "main" else cfg.rpm_lite, now):
+        return "busy"
     return None
+
+
+def _record(ident: dict, tier: str, now: float) -> None:
+    _per_minute_add([ident["key"], "min:" + ident["ip"], f"tier:{tier}"], now)
+    bump([f"t:{tier}", ident["key"], ident["ip"]])
 
 
 _LIMIT_TEXT = {
@@ -841,13 +878,16 @@ async def chat(request: Request):
     ident = identity(request)
     if ident["guest"] and not CFG.guests:
         return JSONResponse({"error": "signin", "message": "Sign in with your Academy account to use ARIA's AI."}, status_code=401)
-    round_ = int(body.get("round") or 0)
+    try:
+        round_ = int(body.get("round") or 0)
+    except (TypeError, ValueError):
+        raise HTTPException(400, "Bad request.")
     if round_ < 0 or round_ > MAX_ROUNDS:
         return JSONResponse({"error": "rounds", "message": "ARIA stopped after several tool steps; ask again to continue."}, status_code=429)
     contents = clean_contents(body.get("contents"))
     user_text = next((p["text"] for c in reversed(contents) if c["role"] == "user" for p in c["parts"] if "text" in p), "")
     plan = route(user_text, str(body.get("hint") or "")[:20], round_, str(body.get("model") or ""))
-    contents = attach_context(contents, body.get("context")) if round_ == 0 else contents
+    contents = attach_context(contents, body.get("context"))
     now = time.time()
     why = _limits_for(ident, plan["tier"], now)
     if why == "quota" and plan["tier"] == "main" and round_ == 0 and _limits_for(ident, "lite", now) is None:
@@ -856,16 +896,19 @@ async def chat(request: Request):
         why = None
     if why:
         return JSONResponse({"error": why, "message": _LIMIT_TEXT[why]}, status_code=429)
-    sem = _semaphore()
-    if not sem.acquire(blocking=False):
+    if len(_leases) >= CFG.concurrency:
         return JSONResponse({"error": "busy", "message": _LIMIT_TEXT["busy"]}, status_code=429)
-    bump([f"t:{plan['tier']}", ident["key"], ident["ip"]])
     prov = provider()
 
     def gen():
         t0 = time.time()
         ok = False
+        slot = lease()                     # taken here, so a stream that never starts holds nothing
+        if not slot:
+            yield _sse("error", {"error": "busy", "message": _LIMIT_TEXT["busy"]})
+            return
         try:
+            _record(ident, plan["tier"], time.time())
             yield _sse("meta", {"model": plan["model"], "tier": plan["tier"], "degraded": bool(plan.get("degraded")), "round": round_})
             for ev in prov.stream_response(model=plan["model"], system=SYSTEM_PROMPT, contents=contents, tools=TOOLS,
                                            max_out=plan["max_out"], thinking=plan["thinking"], timeout=CFG.timeout_s):
@@ -893,7 +936,7 @@ async def chat(request: Request):
             log.warning("aria ai failed: %s", type(e).__name__)
             yield _sse("error", {"error": "internal", "message": "ARIA's AI could not answer just now."})
         finally:
-            sem.release()
+            release(slot)
             log.info("aria ai %s %s round=%d ok=%s %.1fs", plan["tier"], plan["model"], round_, ok, time.time() - t0)
 
     return StreamingResponse(gen(), media_type="text/event-stream", headers={"Cache-Control": "no-store", "X-Accel-Buffering": "no"})
@@ -923,7 +966,7 @@ def live_setup(model: str) -> dict:
 
 
 @router.post("/api/aria/ai/voice/session")
-async def voice_session(request: Request):
+def voice_session(request: Request):
     _same_origin(request)
     st = ai_state()
     if not st["enabled"]:
@@ -932,7 +975,7 @@ async def voice_session(request: Request):
     if CFG.live_voice == "off" or (CFG.live_voice == "owner" and not ident["owner"]):
         return JSONResponse({"error": "voice_off", "message": "Live AI voice is not enabled for this account. ARIA's standard voice keeps working."}, status_code=403)
     c = count(["voice:all", "voice:" + ident["key"]])
-    if c["voice:all"] >= CFG.voice_per_day or (cooldown("voice") > 0):
+    if c["voice:all"] >= CFG.voice_per_day or c["voice:" + ident["key"]] >= max(1, CFG.voice_per_day // 2) or cooldown("voice") > 0:
         return JSONResponse({"error": "quota", "message": QUOTA_MESSAGE}, status_code=429)
     if not _per_minute("voice:" + ident["key"], 3, time.time()):
         return JSONResponse({"error": "user_min", "message": _LIMIT_TEXT["user_min"]}, status_code=429)

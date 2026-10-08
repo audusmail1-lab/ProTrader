@@ -159,8 +159,8 @@ def check_tools(page):
     fr = reqs[1]["contents"][-1]["parts"][0]["functionResponse"]["response"]
     assert fr["ok"] is False and "outside" in fr["error"] and page.evaluate("COPILOT.ours().length") == n
     # indicators: two calls in one turn
-    M.script.append({"parts": [{"functionCall": {"name": "set_indicator", "args": {"name": "rsi", "visible": True}}},
-                               {"functionCall": {"name": "set_indicator", "args": {"name": "ema", "visible": True}}}]})
+    M.script.append({"parts": [{"functionCall": {"name": "set_indicator", "args": {"indicator": "rsi", "visible": True}}},
+                               {"functionCall": {"name": "set_indicator", "args": {"indicator": "ema", "visible": True}}}]})
     reqs = say(page, "Add RSI and the 200 EMA")
     frs = [p["functionResponse"]["response"] for p in reqs[1]["contents"][-1]["parts"]]
     assert page.evaluate("S.ind.rsi && S.ind.ema") and frs[0]["values"]["rsi14"] is not None and "ema200" in frs[1]["values"], frs
