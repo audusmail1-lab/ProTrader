@@ -8507,6 +8507,74 @@ const SENT = (() => {
     } catch (e) { showToast(e.message, 4000); }
   }
 
+  // Drift: own the indices' long rise while each is above its 200-day line. Two paper books + the MT5 demo (via Sentinel Live).
+  function driftBlock() {
+    const D = last?.drift; if (!D) return '';
+    const sg = v => (v >= 0 ? '+' : '−') + Math.abs(v).toFixed(1) + '%';
+    const num = v => Number.isFinite(v) ? v.toLocaleString(undefined, { maximumFractionDigits: 2 }) : '—';
+    const day = t => t ? new Date(t * 1000).toLocaleDateString(undefined, { day: 'numeric', month: 'short' }) : '—';
+    const mk = Object.fromEntries((D.markets || []).map(m => [m.id, m]));
+    const sigs = Object.entries(D.signals || {}).map(([id, s]) => !s ? `<div class="sn-meta">${esc(mk[id]?.label || id)}: waiting for 200 days of Deriv candles</div>` :
+      `<div class="twin-sum"><b>${esc(mk[id]?.label || id)}</b> <span class="sn-chip ${s.hold ? 'ev-proven' : ''}">${s.hold ? 'Hold' : 'Aside'}</span><br>
+        Closed ${num(s.close)} on ${day(s.epoch)} · ${sg(s.dist_pct)} from its 200-day line (${num(s.line)}) · ${s.hold ? `demo stop ${num(s.stop)}, 3% under the line` : 'back in after a close above the line'}</div>`).join('');
+    const book = b => !b ? '' : `<div class="twin-sum"><b>${esc(b.label)}</b><br>
+        ${nb(otMoney(b.equity, 0))} from ${otMoney(b.start_equity, 0)} (${b.return_pct >= 0 ? '+' : ''}${b.return_pct}%) · deepest dip ${b.max_dd_pct}% · ${b.exposure_pct}% of the account invested now
+        ${Object.entries(b.positions || {}).map(([id, p]) => `<br><span style="color:var(--tx-3)">${esc(mk[id]?.label || id)}: in since ${day(p.opened)} at ${num(p.entry)} · ${nb(money(p.pnl))}${p.stop ? ` · stop ${num(p.stop)}` : ''}</span>`).join('')}
+        ${b.trades?.length ? `<br><span style="color:var(--tx-3)">${b.trades.length} closed · ${b.trades.slice(0, 3).map(t => `${esc(mk[t.market]?.label || t.market)} ${nb(money(t.pnl))} (${esc(t.why)})`).join(' · ')}</span>` : ''}</div>`;
+    const books = D.books || {};
+    const x = D.demo || {}, b = x.bridge || {};
+    const needs = Object.entries(x.needs || {}).map(([id, n]) => `${esc(mk[id]?.label || id)}: one minimum lot (${n.min_lot}) risks ${otMoney(n.risk_min_lot, 2)} at today's distance, so ½% needs ${otMoney(n.equity_needed, 0)} equity`).join('<br>');
+    const syms = (D.markets || []).map(m => `${esc(m.label)} → <b>${esc(m.symbol || '?')}</b>${m.spec ? ' ✓' : m.spec_error ? ` <span style="color:var(--amber)">(${esc(m.spec_error)})</span>` : ''}`).join(' · ');
+    const rows = (x.rows || []).slice(0, 8).map(t => `<tr><td>${esc(mk[t.market]?.label || t.market)}</td>
+      <td>${t.lots ? 'Long ' + t.lots : ''}</td>
+      <td>${t.state === 'skipped' || t.state === 'rejected' ? `<span class="sn-meta">${esc(t.state)}: ${esc(t.reason || '')}</span>` : esc(t.state) + (t.exit_why ? ' · ' + esc(t.exit_why) : t.exit_reason ? ' · ' + esc(t.exit_reason) : '')}</td>
+      <td style="text-align:right">${t.pnl != null ? nb(money(t.pnl)) : t.state === 'open' && t.risk_now != null ? otMoney(t.risk_now, 2) + ' at risk' : ''}</td></tr>`).join('');
+    const H = D.history || {};
+    const hist = (H.rows || []).map(h => `<tr><td>${esc(h.what)}<div class="sn-meta">${esc(h.span)}${h.note ? ' · ' + esc(h.note) : ''}</div></td><td style="text-align:right">${sg(h.per_year)}</td><td style="text-align:right">${h.worst}%</td></tr>`).join('');
+    return `<div class="sn-h">Drift · own the rise, step aside under the line</div>
+      <div class="sn-card">
+        <div class="sn-meta">US Tech 100 and US 500, long while each closes above its 200-day average, out when it closes below (orders at the next open). No prediction: the indices' long-run rise is the one return that survived every test. Read from Deriv's own daily candles.</div>
+        ${sigs}
+        ${D.start ? `<div class="sn-meta" style="margin-top:6px"><b>Paper books since ${day(D.start)}</b> · $${num(D.rules.paper_equity)} each · financing ${D.rules.financing_pa_pct}%/yr and ${D.rules.spread_pct}% spread a side charged</div>${book(books.pick)}${book(books.rules)}` : ''}
+        <div class="sn-meta" style="margin-top:6px"><b>On the MT5 demo</b> · ${x.on ? `<span class="sn-chip ev-proven">On</span> since ${day(x.started)}` : x.stopped ? '<span class="sn-chip">Stopped</span>' : '<span class="sn-chip">Not started</span>'}
+          · trades the demo version: ${D.rules.risk_pct_each}% risk per index at a stop ${D.rules.stop_under_line_pct}% under the line (raised daily, never lowered), at most ${D.rules.cap_each}× the account in each. Uses Sentinel Live's executor and limits; the EA refuses real accounts.</div>
+        <div class="sn-meta">${!b.bound ? 'MT5 bridge not connected (Trade → Trade live).' : !b.online ? 'MT5 bridge offline — open MT5 with the EA running.' : b.mode !== 'demo' ? `<b style="color:var(--red-lt)">Connected account is ${esc(b.mode || '?')} — Drift only runs on demo.</b>` : `Demo account online · equity ${otMoney(b.equity, 2)}`}</div>
+        <div class="sn-meta">${syms}</div>
+        ${needs ? `<div class="sn-meta">${needs}</div>` : ''}
+        ${x.taken ? `<div class="sn-meta">${x.taken} taken · ${x.open} open · ${x.closed} closed · net ${nb(money(x.net))} · ${otMoney(x.open_risk, 2)} at risk now</div>` : ''}
+        ${rows ? `<table class="sn-tbl"><tbody>${rows}</tbody></table>` : ''}
+        <div class="sn-actions">
+          ${x.on ? `<button type="button" class="sn-btn" onclick="SENT.driftAct('stop')">Stop Drift</button>`
+            : `<button type="button" class="sn-btn sn-btn-p" onclick="SENT.driftAct('start')" ${b.online && b.mode === 'demo' ? '' : 'disabled'}>Start Drift on the demo</button>`}
+          <button type="button" class="sn-btn" onclick="SENT.driftAct('symbols')">MT5 names</button>
+        </div>
+        ${hist ? `<details class="sn-costs"><summary>What history says</summary>
+          <table class="sn-tbl"><thead><tr><th>Version</th><th style="text-align:right">a year</th><th style="text-align:right">worst</th></tr></thead><tbody>${hist}</tbody></table>
+          <div class="sn-meta">${esc(H.reading || '')} Source: ${esc(H.source || '')}.</div></details>` : ''}
+      </div>`;
+  }
+  async function driftAct(action) {
+    let body = { action };
+    if (action === 'start' && !confirm('Start Drift on your MT5 DEMO account?\n\nIt buys US Tech 100 and US 500 while each is above its 200-day line, ½% risk each at a stop under the line, and closes when the day ends under the line. The EA refuses real accounts. You can stop it at any time.')) return;
+    if (action === 'stop' && !confirm('Stop Drift? No new entries; open positions keep their stops and still close under the line.')) return;
+    if (action === 'symbols') {
+      const next = {};
+      for (const m of last?.drift?.markets || []) {
+        const n = prompt(`MT5 symbol name for ${m.label}`, m.symbol || '');
+        if (n === null) return;
+        next[m.id] = n.trim();
+      }
+      body.symbols = next;
+    }
+    try {
+      const res = await fetch(`${BOT_BASE}/api/sentinel/drift`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Sentinel-Key': ownerKey() }, body: JSON.stringify(body) });
+      const out = await res.json().catch(() => ({}));
+      if (!res.ok) return showToast(out.detail || 'That did not work.', 6000);
+      showToast(action === 'start' ? 'Drift started on your demo account. It acts at the next scan inside US market hours.' : action === 'stop' ? 'Drift stopped.' : 'Saved — asking MT5 for the contract specs.', 4500);
+      setTimeout(refresh, action === 'symbols' ? 5000 : 300);
+    } catch (e) { showToast(e.message, 4000); }
+  }
+
   // The trader's own paper account, read by the server from the saved workspace.
   function paperBlock() {
     const a = last?.paper;
@@ -8755,6 +8823,8 @@ const SENT = (() => {
 
       ${liveBlock()}
 
+      ${driftBlock()}
+
       <div class="sn-h">Open setups · ${open.length}</div>
       ${open.length ? open.map(t => tradeCard(t, ev[`${t.market} ${t.tf}`])).join('') : '<div class="sn-empty">No open setups. Sentinel checks every market at each 15-minute close.</div>'}
 
@@ -8803,13 +8873,13 @@ const SENT = (() => {
     busy = true;
     try {
       const [status, board, feed, stats, costs] = await Promise.all([get('status'), get('board'), get('feed?limit=30'), get('stats'), get('costs').catch(() => null)]);
-      let managed = null, liveTest = null, paperAcct = null, cbook = null;
+      let managed = null, liveTest = null, paperAcct = null, cbook = null, driftSt = null;
       if (ownerKey()) {
         const own = p => fetch(`${BOT_BASE}/api/sentinel/${p}`, { cache: 'no-store', signal: AbortSignal.timeout(15000), headers: { 'X-Sentinel-Key': ownerKey() } }).then(r => r.ok ? r.json() : null).catch(() => null);
-        [managed, liveTest, paperAcct, cbook] = await Promise.all([own('managed'), own('live'), own('paper'), own('contracts')]);
+        [managed, liveTest, paperAcct, cbook, driftSt] = await Promise.all([own('managed'), own('live'), own('paper'), own('contracts'), own('drift')]);
       }
       if (!cat) get('markets').then(c => { c.byId = {}; c.groups.forEach(g => g.markets.forEach(m => { c.byId[m.id] = m; })); cat = cat || c; render(); }).catch(() => {});
-      last = { status, board, feed, stats, costs, managed, live: liveTest, paper: paperAcct, contracts: cbook };
+      last = { status, board, feed, stats, costs, managed, live: liveTest, paper: paperAcct, contracts: cbook, drift: driftSt };
       render();
     } catch (e) {
       const el = document.getElementById('sentinel-panel');
@@ -8852,7 +8922,7 @@ const SENT = (() => {
     }
   }
 
-  return { open, refresh, load, chart, editFocus, toggle, toggleTf, saveFocus, cancelFocus, measureCosts, live, tagSetup };
+  return { open, refresh, load, chart, editFocus, toggle, toggleTf, saveFocus, cancelFocus, measureCosts, live, driftAct, tagSetup };
 })();
 
 /* ════════════════════════════════════════════════════════════

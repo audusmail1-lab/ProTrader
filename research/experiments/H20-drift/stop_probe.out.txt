@@ -1,0 +1,12 @@
+                                            per year  worst drop  avg exposure   87-99   00-12   13-26  $10k became
+A  1x, 200-day exit (exposure rule)            +6.3%        -54%           64%  +11.9%   -3.4%  +10.6%      113,378
+B  your 1% rule, 8% stop, up to 3 units        +2.2%        -18%           21%   +3.6%   -0.4%   +3.4%       24,184
+C  your 1% rule, 15% stop, up to 3 units       +1.0%        -10%           10%   +1.8%   -0.4%   +1.5%       14,790
+(3-month T-bill over the same years averaged 3.0%/yr; Deriv pays nothing on idle cash)
+A worst drop -65% from 2000-03-27 to 2009-05-22; index over the same span -71%
+2000 A -31%  index -38%
+2001 A -14%  index -33%
+2002 A -11%  index -39%
+2008 A -17%  index -41%
+2022 A -19%  index -34%
+A daily-rebalanced 1x: +6.8%/yr; buy-and-hold index +14.4%/yr (no dividends)

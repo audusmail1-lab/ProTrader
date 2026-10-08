@@ -419,6 +419,8 @@ async def _loop() -> None:
             await _twin.cycle()              # Joel Twin: replay closed MT5 and paper positions under Joel's rules (no orders)
         if _cbook is not None:
             await _cbook.cycle()             # contract book: weekly paper contracts at Deriv's live prices (never bought)
+        if _drift is not None:
+            await _drift.cycle()             # Drift: 200-day line on US Tech 100 / US 500; paper books, demo orders via Sentinel Live
         # Wake shortly after the next 15-minute close, or at once when the
         # focus list changes so new markets appear on the board.
         nxt = (int(cycle_start // 900) + 1) * 900 + 8
@@ -1254,6 +1256,17 @@ def contracts(request: Request) -> dict:
     recs = _cbook.load_all()
     return {"version": _cbook.BOOK_VERSION, "stake": _cbook.STAKE, "entry_hours_gmt": list(_cbook.ENTRY_HOURS_GMT),
             "stats": _cbook.stats(recs), "state": _cbook._state, "records": list(reversed(recs))[:100]}
+
+
+# ── Drift: own the indices' long rise above the 200-day line (drift.py) — paper books + MT5 demo via Sentinel Live
+try:
+    import drift as _drift
+    import sys as _sys6
+    _drift.attach(_sys6.modules[__name__])
+    router.include_router(_drift.router)
+except Exception as e:                  # the scanner runs without it
+    log.warning("drift unavailable: %s", e)
+    _drift = None
 
 
 # ── Research loop: versions, cohorts, 100/150-trade reviews (sentinel_research.py)

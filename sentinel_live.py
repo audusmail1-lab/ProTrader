@@ -60,6 +60,7 @@ SPEC_MAX_AGE = 6 * 3600
 RETRY_S = 20
 TICK_S = 3.0
 
+EXTRA_SYMBOLS: list = []    # callables giving other bots' MT5 symbols whose specs this executor keeps fresh (drift.py)
 _S = None                  # the sentinel module (set by attach)
 _B = None                  # the mt5_bridge module
 _task: Optional[asyncio.Task] = None
@@ -335,11 +336,25 @@ def _orphan_for(r: dict, positions: dict) -> Optional[dict]:
     return None
 
 
+def _extra_symbols() -> set[str]:
+    out: set[str] = set()
+    for f in EXTRA_SYMBOLS:
+        try:
+            out |= set(f() or ())
+        except Exception as e:             # another bot's error must not stop this one
+            log.warning("extra symbols: %s", e)
+    return out
+
+
+def _who(r: dict) -> str:
+    return "Drift · " if r.get("kind") == "drift" else ""
+
+
 def request_specs() -> list[str]:
     c = cfg()
     want = c.setdefault("spec_pending", {})
     sent = []
-    for sym in sorted(set((c.get("symbols") or {}).values())):
+    for sym in sorted(set((c.get("symbols") or {}).values()) | _extra_symbols()):
         cmd = _new_id("ls")
         try:
             _B.enqueue(_cid(), {"id": cmd, "type": "spec", "symbol": sym})
@@ -473,8 +488,9 @@ def tick(now: Optional[float] = None) -> None:
             else:
                 c.setdefault("spec_errors", {})[sym] = x.get("msg") or "spec failed"
         _set_cfg(c)
-    if active(now) and view.get("online") and not pend:
-        old = [s for s in set((c.get("symbols") or {}).values())
+    extra = _extra_symbols()
+    if (active(now) or extra) and view.get("online") and not pend:
+        old = [s for s in (set((c.get("symbols") or {}).values()) if active(now) else set()) | extra
                if now - ((c.get("specs") or {}).get(s) or {}).get("at", 0) > SPEC_MAX_AGE]
         if old and now - c.get("spec_asked", 0) > 600:
             c["spec_asked"] = now
@@ -509,7 +525,7 @@ def tick(now: Optional[float] = None) -> None:
                          lots=float(x.get("volume") or r["lots"]),
                          slip_r=round(-s * (fill - r["sentinel_entry"]) / r["sl_dist"], 4))
                 r["risk_now"] = r["risk_actual"] = round(abs(fill - r["sl_initial"]) / r["sl_dist"] * r["per_lot"] * r["lots"], 2)
-                _telegram(f"filled {r['dir'].upper()} {r['lots']:g} {r['symbol']} @ {fill:g} (slippage {r['slip_r']:+.2f}R)")
+                _telegram(f"{_who(r)}filled {r['dir'].upper()} {r['lots']:g} {r['symbol']} @ {fill:g} (slippage {r['slip_r']:+.2f}R)")
                 dirty = True
             elif x and "Risk at stop" in (x.get("msg") or "") and not r.get("resized"):
                 # price moved a little against the entry since the signal, so the
@@ -530,7 +546,7 @@ def tick(now: Optional[float] = None) -> None:
                 dirty = True
             elif x:
                 r.update(state="rejected", reason=x.get("msg") or "rejected by the EA")
-                _telegram(f"MT5 rejected {r['symbol']}: {r['reason']}")
+                _telegram(f"{_who(r)}MT5 rejected {r['symbol']}: {r['reason']}")
                 dirty = True
             elif now - r["at"] > 60:
                 # No answer in 60 s. The EA may well have filled it and the result
@@ -545,7 +561,7 @@ def tick(now: Optional[float] = None) -> None:
                              lots=float(p.get("volume") or r["lots"]),
                              slip_r=round(-s * (fill - r["sentinel_entry"]) / r["sl_dist"], 4))
                     r["risk_now"] = r["risk_actual"] = round(abs(fill - r["sl_initial"]) / r["sl_dist"] * r["per_lot"] * r["lots"], 2)
-                    _telegram(f"adopted {r['dir'].upper()} {r['lots']:g} {r['symbol']} @ {fill:g} — filled, but MT5's answer was lost")
+                    _telegram(f"{_who(r)}adopted {r['dir'].upper()} {r['lots']:g} {r['symbol']} @ {fill:g} — filled, but MT5's answer was lost")
                 else:
                     r.update(state="rejected", reason="no answer from MT5 within 60 s and no matching position")
                 dirty = True
@@ -561,7 +577,7 @@ def tick(now: Optional[float] = None) -> None:
                     # closed from another terminal): not open any more, P&L unknown
                     r.update(state="closed", closed_at=now, exit=None, pnl=None, r=None,
                              exit_reason="unknown — position gone, no deal in the MT5 history received", manual=True)
-                    _telegram(f"{r['symbol']} is no longer open on MT5 and no deal was reported — marked closed, P&L unknown")
+                    _telegram(f"{_who(r)}{r['symbol']} is no longer open on MT5 and no deal was reported — marked closed, P&L unknown")
                     dirty = True
                 if d:
                     pnl = float(d.get("profit") or 0)
@@ -569,7 +585,7 @@ def tick(now: Optional[float] = None) -> None:
                     r.update(state="closed", closed_at=now, exit=d.get("exit"), pnl=round(pnl, 2),
                              r=round(pnl / risk, 3) if risk > 0 else None, exit_reason=d.get("reason"),
                              manual=d.get("reason") == "Manual")
-                    _telegram(f"closed {r['symbol']} ({d.get('reason')}): ${pnl:+.2f} = {r['r'] if r['r'] is not None else '?'}R")
+                    _telegram(f"{_who(r)}closed {r['symbol']} ({d.get('reason')}): ${pnl:+.2f} = {r['r'] if r['r'] is not None else '?'}R")
                     dirty = True
             elif p is not None:
                 live_sl = float(p.get("sl") or 0) or None
@@ -705,7 +721,7 @@ def live_status(request: Request) -> dict:
     c = cfg()
     view = _view()
     acct = _account(view)
-    rs = rows()
+    rs = [r for r in rows() if r.get("kind") != "drift"]        # Drift has its own panel (/drift)
     return {
         "on": bool(c.get("on")), "active": active(), "started": c.get("started"), "ends": c.get("ends"),
         "stopped": c.get("stopped"),

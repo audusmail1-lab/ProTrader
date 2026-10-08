@@ -1,0 +1,27 @@
+== Nasdaq-100 alone, 1987-2026 (cap 1x) ==
+1x, exit below the line (Joel's pick)          +6.8%/yr  worst   -65%  exposure   76%  open risk 0.00% (>0 on   0% of days)   3.5 trades/yr  1987: +13.9% 2000:  -4.8% 2013: +12.0%
+rules, line stop -2%, one position             +2.8%/yr  worst   -29%  exposure   25%  open risk 0.19% (>0 on  26% of days)   3.5 trades/yr  1987:  +5.8% 2000:  -1.7% 2013:  +4.3%
+rules, line stop -2%, roll-up                  +2.7%/yr  worst   -29%  exposure   25%  open risk 0.19% (>0 on  26% of days)   3.7 trades/yr  1987:  +5.7% 2000:  -1.7% 2013:  +4.2%
+rules, line stop -3%, one position             +2.0%/yr  worst   -22%  exposure   18%  open risk 0.21% (>0 on  29% of days)   3.5 trades/yr  1987:  +4.1% 2000:  -1.2% 2013:  +3.2%
+rules, line stop -3%, roll-up                  +2.0%/yr  worst   -22%  exposure   18%  open risk 0.21% (>0 on  29% of days)   3.6 trades/yr  1987:  +4.1% 2000:  -1.2% 2013:  +3.2%
+rules, line stop -5%, one position             +1.4%/yr  worst   -15%  exposure   12%  open risk 0.25% (>0 on  34% of days)   3.5 trades/yr  1987:  +2.7% 2000:  -0.7% 2013:  +2.1%
+rules, line stop -5%, roll-up                  +1.4%/yr  worst   -15%  exposure   12%  open risk 0.25% (>0 on  34% of days)   3.5 trades/yr  1987:  +2.7% 2000:  -0.7% 2013:  +2.1%
+
+== US Tech 100 + US 500 together, 2017-2026 (FRED's S&P history starts 2016; cap 0.5x each = 1x total) ==
+1x, exit below the line (Joel's pick)          +8.2%/yr  worst   -21%  exposure   82%  open risk 0.00% (>0 on   0% of days)   5.2 trades/yr  2013:  +8.2%
+rules, line stop -2%, one position each        +5.5%/yr  worst   -15%  exposure   47%  open risk 0.36% (>0 on  34% of days)   5.2 trades/yr  2013:  +5.5%
+rules, line stop -2%, roll-up                  +5.4%/yr  worst   -15%  exposure   48%  open risk 0.39% (>0 on  36% of days)   5.9 trades/yr  2013:  +5.4%
+rules, line stop -3%, one position each        +4.1%/yr  worst   -11%  exposure   36%  open risk 0.41% (>0 on  40% of days)   5.2 trades/yr  2013:  +4.1%
+rules, line stop -3%, roll-up                  +4.0%/yr  worst   -11%  exposure   36%  open risk 0.44% (>0 on  40% of days)   5.9 trades/yr  2013:  +4.0%
+rules, line stop -5%, one position each        +2.8%/yr  worst    -8%  exposure   24%  open risk 0.50% (>0 on  49% of days)   5.2 trades/yr  2013:  +2.8%
+rules, line stop -5%, roll-up                  +2.8%/yr  worst    -8%  exposure   25%  open risk 0.53% (>0 on  50% of days)   5.5 trades/yr  2013:  +2.8%
+
+== Nasdaq-100 alone over the same 2017-2026 window, for scale ==
+1x NDX                                        +13.1%/yr  worst   -23%  exposure   84%  open risk 0.00% (>0 on   0% of days)   1.9 trades/yr  2013: +13.1%
+rules -3% roll-up NDX                          +3.2%/yr  worst    -7%  exposure   19%  open risk 0.17% (>0 on  25% of days)   2.2 trades/yr  2013:  +3.2%
+
+== The engine as built: 0.5% risk per index at a stop 3% under the line, at most 0.5x each (1% open risk, 1x in all) ==
+NDX half, 1987-2026                            +1.1%/yr  worst   -12%  exposure    9%  open risk 0.11% (>0 on  28% of days)   3.5 trades/yr  1987:  +2.2% 2000:  -0.6% 2013:  +1.6%
+NDX half, 1x pick, 1987-2026                   +3.8%/yr  worst   -39%  exposure   38%  open risk 0.00% (>0 on   0% of days)   3.5 trades/yr  1987:  +7.3% 2000:  -2.0% 2013:  +6.2%
+both, 2017-2026                                +2.1%/yr  worst    -6%  exposure   19%  open risk 0.21% (>0 on  37% of days)   5.2 trades/yr  2013:  +2.1%
+both, 1x pick, 2017-2026                       +8.2%/yr  worst   -21%  exposure   82%  open risk 0.00% (>0 on   0% of days)   5.2 trades/yr  2013:  +8.2%
