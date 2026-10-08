@@ -255,6 +255,132 @@ html,body{height:100%;overflow:hidden;background:var(--bg-1);color:var(--tx-1);f
   .vx-log{max-height:26vh}
 }
 @media (prefers-reduced-motion:reduce){.vx-orb *{animation:none!important}.vx-sheet,.vx-card{animation:none}}
+/* ── ARIA COPILOT (inside the voice sheet) ── */
+.cp-modes{display:flex;gap:4px;padding:3px;border-radius:12px;background:rgba(148,163,184,.08);border:1px solid rgba(148,163,184,.14);overflow-x:auto;scrollbar-width:none}
+.cp-modes::-webkit-scrollbar{display:none}
+.cp-mode{flex:1 0 auto;min-height:32px;padding:0 10px;border-radius:9px;border:0;background:transparent;color:var(--tx-2);font-size:12.5px;font-weight:800;cursor:pointer;letter-spacing:.2px}
+.cp-mode.on{background:linear-gradient(135deg,rgba(91,140,255,.28),rgba(34,211,238,.18));color:var(--tx-1);box-shadow:0 0 0 1px rgba(91,140,255,.35) inset}
+.cp-panel{display:flex;flex-direction:column;gap:7px;overflow-y:auto;max-height:36vh;min-height:0;padding:2px 2px 4px;scrollbar-width:thin;font-size:13px;line-height:1.45}
+.cp-panel[hidden]{display:none!important}
+.cp-h{display:flex;align-items:center;gap:6px;font-weight:900;font-size:13px;letter-spacing:.2px;color:var(--tx-1)}
+.cp-sub{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.7px;color:var(--tx-3);margin-top:4px}
+.cp-x{color:var(--tx-2)}
+.cp-p{margin:0;color:var(--tx-2)}
+.cp-back{width:26px;height:26px;border-radius:8px;border:1px solid rgba(148,163,184,.25);background:transparent;color:var(--tx-1);font-size:16px;cursor:pointer;line-height:1}
+.cp-row{display:flex;justify-content:space-between;gap:12px;color:var(--tx-2);padding:3px 0;border-bottom:1px dashed rgba(148,163,184,.12)}
+.cp-row b{color:var(--tx-1);text-align:right;font-variant-numeric:tabular-nums;font-weight:700}
+.cp-acts{display:flex;flex-wrap:wrap;gap:6px;margin-top:2px;align-items:center}
+.cp-acts.tight{margin-top:0}
+.cp-btn{min-height:36px;padding:0 12px;border-radius:10px;border:1px solid rgba(148,163,184,.28);background:rgba(148,163,184,.06);color:var(--tx-1);font-size:12.5px;font-weight:800;cursor:pointer}
+.cp-btn.pri{background:var(--blue,#4f8cff);border-color:transparent;color:#fff}
+.cp-btn.sm{min-height:30px;font-size:12px;padding:0 10px}
+.cp-list{display:flex;flex-direction:column;gap:5px}
+.cp-item{display:flex;flex-direction:column;gap:2px;text-align:left;padding:8px 10px;border-radius:10px;border:1px solid rgba(148,163,184,.16);background:rgba(148,163,184,.05);color:var(--tx-1);cursor:pointer;font-size:12.5px}
+.cp-item b{display:flex;align-items:center;gap:8px;font-weight:800}
+.cp-item span{color:var(--tx-2);font-size:12.5px;line-height:1.45}
+.cp-item.on{border-color:rgba(91,140,255,.5);background:rgba(91,140,255,.1)}
+.cp-item.lesson i{display:inline-grid;place-items:center;width:20px;height:20px;border-radius:50%;font-style:normal;font-size:11px;background:rgba(148,163,184,.15);color:var(--tx-2)}
+.cp-item.lesson.done i{background:rgba(34,197,94,.2);color:#4ade80}
+.cp-opts{display:flex;flex-direction:column;gap:6px}
+.cp-opt{display:flex;gap:10px;align-items:center;text-align:left;min-height:40px;padding:6px 10px;border-radius:10px;border:1px solid rgba(148,163,184,.22);background:rgba(148,163,184,.05);color:var(--tx-1);font-size:13px;cursor:pointer}
+.cp-opt i{flex:0 0 22px;height:22px;border-radius:7px;display:grid;place-items:center;font-style:normal;font-weight:900;font-size:12px;background:rgba(91,140,255,.18);color:#9fbcff}
+.cp-opt.right{border-color:rgba(34,197,94,.6);background:rgba(34,197,94,.12)}
+.cp-opt.wrong{border-color:rgba(239,68,68,.6);background:rgba(239,68,68,.1)}
+.cp-opt:disabled{cursor:default;opacity:1}
+.cp-seg{display:flex;gap:4px;flex-wrap:wrap}
+.cp-seg button{flex:1;min-height:34px;border-radius:9px;border:1px solid rgba(148,163,184,.22);background:transparent;color:var(--tx-2);font-weight:800;font-size:12.5px;cursor:pointer}
+.cp-seg button.on{color:var(--tx-1);background:rgba(91,140,255,.16);border-color:rgba(91,140,255,.45)}
+.cp-seg button.on.buy{background:rgba(34,197,94,.18);border-color:rgba(34,197,94,.55)}
+.cp-seg button.on.sell{background:rgba(239,68,68,.16);border-color:rgba(239,68,68,.55)}
+.cp-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+.cp-grid label{display:flex;flex-direction:column;gap:3px;font-size:11px;font-weight:800;color:var(--tx-3);text-transform:uppercase;letter-spacing:.5px}
+.cp-grid input,.rp-plan input{min-width:0;min-height:38px;border-radius:9px;border:1px solid var(--bd-2,rgba(148,163,184,.25));background:var(--bg-3,#0f1626);color:var(--tx-1);padding:0 8px;font-size:16px;font-variant-numeric:tabular-nums}
+.cp-grid input:disabled{opacity:.6}
+.cp-rr{margin-left:auto;font-weight:800;font-variant-numeric:tabular-nums;color:var(--tx-1)}
+.cp-tags{display:flex;flex-wrap:wrap;gap:5px}
+.cp-tags button{min-height:30px;padding:0 10px;border-radius:999px;border:1px solid rgba(148,163,184,.22);background:transparent;color:var(--tx-2);font-size:12px;font-weight:700;cursor:pointer}
+.cp-tags button.on{color:var(--tx-1);border-color:rgba(91,140,255,.5);background:rgba(91,140,255,.14)}
+.cp-oracle{display:flex;flex-direction:column;gap:5px;padding:10px;border-radius:12px;border:1px solid rgba(148,163,184,.2);background:rgba(148,163,184,.05)}
+.cp-oracle.supported{border-color:rgba(34,197,94,.45);background:rgba(34,197,94,.07)}
+.cp-oracle.incomplete{border-color:rgba(245,158,11,.45);background:rgba(245,158,11,.07)}
+.cp-oracle.contradicted{border-color:rgba(239,68,68,.45);background:rgba(239,68,68,.07)}
+.cp-st{display:flex;align-items:baseline;gap:8px}
+.cp-st b{font-weight:900;letter-spacing:.8px;font-size:13px}
+.cp-oracle.supported .cp-st b{color:#4ade80}.cp-oracle.incomplete .cp-st b{color:#fbbf24}.cp-oracle.contradicted .cp-st b{color:#f87171}
+.cp-st span{color:var(--tx-3);font-size:12px;font-weight:700}
+.cp-it{display:flex;gap:8px;align-items:flex-start;font-size:12.5px;color:var(--tx-2)}
+.cp-it i{flex:0 0 18px;height:18px;border-radius:50%;display:grid;place-items:center;font-style:normal;font-size:11px;font-weight:900;margin-top:1px}
+.cp-it.ok i{background:rgba(34,197,94,.2);color:#4ade80}.cp-it.note i{background:rgba(148,163,184,.2);color:var(--tx-2)}
+.cp-it.against i{background:rgba(239,68,68,.22);color:#f87171}.cp-it.missing i{background:rgba(245,158,11,.22);color:#fbbf24}
+.cp-it small{display:block;color:var(--tx-3);font-size:11.5px;margin-top:2px}
+.cp-dna{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px}
+.cp-dna div,.cp-quad div{display:flex;flex-direction:column;align-items:center;padding:6px 4px;border-radius:10px;background:rgba(148,163,184,.06);border:1px solid rgba(148,163,184,.12);text-align:center}
+.cp-dna b,.cp-quad b{font-size:15px;font-weight:900;font-variant-numeric:tabular-nums;color:var(--tx-1)}
+.cp-dna span,.cp-quad span{font-size:10.5px;color:var(--tx-3);font-weight:700;line-height:1.2}
+.cp-quad{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:5px}
+.cp-quad .earned-win b{color:#4ade80}.cp-quad .good-loss b{color:#7dd3fc}.cp-quad .lucky-win b{color:#fbbf24}.cp-quad .warned-loss b{color:#f87171}
+.cp-dec{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--tx-2)}
+.cp-dec b{flex:0 0 34px;text-align:center;border-radius:6px;font-size:10.5px;letter-spacing:.5px;padding:2px 0}
+.cp-dec b.supported{background:rgba(34,197,94,.18);color:#4ade80}.cp-dec b.incomplete{background:rgba(245,158,11,.18);color:#fbbf24}.cp-dec b.contradicted{background:rgba(239,68,68,.18);color:#f87171}
+.cp-dec span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cp-dec em{font-style:normal;font-weight:800;color:var(--tx-1);font-variant-numeric:tabular-nums}
+/* the sheet makes room for a mode panel: the orb steps aside */
+.vx-sheet.cp-on .vx-stage{flex-direction:row;justify-content:flex-start;gap:12px;padding:0}
+.vx-sheet.cp-on .vx-orb{width:58px;height:58px;flex:0 0 58px}
+.vx-sheet.cp-on .vx-orb .vx-core{width:44px;height:44px}
+.vx-sheet.cp-on .vx-orb .vx-core svg{width:20px;height:20px}
+.vx-sheet.cp-on .vx-orb i{inset:6px}
+.vx-sheet.cp-on .vx-heard{text-align:left;font-size:13px;flex:1;min-width:0}
+.vx-sheet.cp-on .vx-log{max-height:16vh}
+.vx-sheet.cp-on{width:min(460px,calc(100vw - 32px))}
+.vx-min{display:none}
+.vx-sheet.cp-on .vx-min{display:grid}
+.vx-sheet.cp-min .vx-min svg{transform:rotate(180deg)}
+.vx-sheet.cp-min .cp-panel,.vx-sheet.cp-min .cp-modes,.vx-sheet.cp-min .vx-settings,.vx-sheet.cp-min .vx-card{display:none!important}
+.vx-sheet.cp-min .vx-log{max-height:5.2em!important}
+.vx-sheet.cp-min .vx-log .vx-msg.you{display:none}
+.vx-wrap.cp-see{pointer-events:none}.vx-wrap.cp-see .vx-sheet{pointer-events:auto}.vx-wrap.cp-see .vx-backdrop{display:none}
+@media (max-width:820px){.vx-sheet.cp-on{width:auto}.cp-panel{max-height:40dvh}.vx-sheet.cp-on .vx-log{max-height:13vh}}
+/* ── REPLAY ── */
+.rp-wrap{position:fixed;inset:0;z-index:3500;display:none;flex-direction:column;background:var(--bg-1,#070b14);color:var(--tx-1)}
+.rp-wrap.open{display:flex}
+@media (min-width:821px){body.vx-open .rp-wrap{right:min(492px,calc(100vw - 360px))}}
+.rp-head{display:flex;align-items:center;gap:10px;padding:10px 14px;padding-top:calc(10px + env(safe-area-inset-top,0px));border-bottom:1px solid rgba(148,163,184,.16)}
+.rp-badge{font-size:10.5px;font-weight:900;letter-spacing:1.2px;padding:3px 8px;border-radius:6px;background:rgba(167,139,250,.18);color:#c4b5fd;border:1px solid rgba(167,139,250,.35)}
+.rp-head b{font-size:14px}
+.rp-when{color:var(--tx-3);font-size:12px;font-variant-numeric:tabular-nums;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rp-x+.rp-x{margin-left:0}.rp-new{min-width:38px;padding:0 10px!important;font-size:16px}
+.rp-x{margin-left:auto;min-height:34px;padding:0 14px;border-radius:10px;border:1px solid rgba(148,163,184,.3);background:transparent;color:var(--tx-1);font-weight:800;cursor:pointer}
+.rp-msg{padding:6px 14px;font-size:12.5px;color:var(--tx-2);line-height:1.45;min-height:18px}
+.rp-msg:empty{display:none}
+.rp-chart{flex:1;min-height:0;position:relative}
+.rp-info:empty{display:none}
+.rp-info{padding:8px 14px 0}
+.rp-pos{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:12px;border:1px solid rgba(148,163,184,.2);font-size:13px}
+.rp-pos.buy{border-color:rgba(34,197,94,.4)}.rp-pos.sell{border-color:rgba(239,68,68,.4)}
+.rp-pos span{color:var(--tx-2);font-variant-numeric:tabular-nums}
+.rp-pos .cp-btn{margin-left:auto}
+.rp-review{display:flex;flex-wrap:wrap;gap:8px 18px;align-items:flex-start;padding:10px 12px;border-radius:12px;border:1px solid rgba(148,163,184,.22)}
+.rp-review.win{border-color:rgba(34,197,94,.45);background:rgba(34,197,94,.06)}.rp-review.loss{border-color:rgba(239,68,68,.4);background:rgba(239,68,68,.05)}
+.rp-review div{display:flex;flex-direction:column}
+.rp-review b{font-size:16px;font-weight:900;font-variant-numeric:tabular-nums}
+.rp-review b.supported{color:#4ade80}.rp-review b.incomplete{color:#fbbf24}.rp-review b.contradicted{color:#f87171}
+.rp-review span{font-size:12px;color:var(--tx-3)}
+.rp-review p{flex-basis:100%;margin:0;font-size:12.5px;color:var(--tx-2)}
+.rp-plan{display:flex;flex-direction:column;gap:7px;padding:8px 14px 0}
+.rp-plan[hidden]{display:none!important}
+.rp-plan-h{display:flex;flex-wrap:wrap;align-items:flex-end;gap:8px}
+.rp-plan-h b{align-self:center;font-size:13px;flex-basis:100%}
+.rp-plan-h b.buy{color:#4ade80}.rp-plan-h b.sell{color:#f87171}
+.rp-plan label{display:flex;flex-direction:column;gap:3px;font-size:11px;font-weight:800;color:var(--tx-3);text-transform:uppercase;letter-spacing:.5px;width:min(150px,30vw)}
+.rp-bar{display:flex;align-items:center;gap:6px;padding:10px 14px;padding-bottom:calc(10px + env(safe-area-inset-bottom,0px));overflow-x:auto;scrollbar-width:none;border-top:1px solid rgba(148,163,184,.14)}
+.rp-bar::-webkit-scrollbar{display:none}
+.rp-bar button{flex:0 0 auto;min-width:42px;min-height:40px;padding:0 12px;border-radius:11px;border:1px solid rgba(148,163,184,.25);background:rgba(148,163,184,.06);color:var(--tx-1);font-weight:800;font-size:13px;cursor:pointer}
+.rp-bar button.buy{background:linear-gradient(180deg,#22c55e,#15803d);border-color:transparent;color:#fff}
+.rp-bar button.sell{background:linear-gradient(180deg,#ef4444,#b91c1c);border-color:transparent;color:#fff}
+.rp-bar .rp-sp{flex:1 0 4px}
+@media (max-width:480px){.rp-bar{gap:5px;padding-left:10px;padding-right:10px}.rp-bar button{min-width:36px;padding:0 9px;font-size:12.5px}.rp-bar .rp-sp{flex:0 0 0}}
+.rp-mic svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;vertical-align:middle}
 
 .icon-btn{
   width:30px;height:30px;border-radius:var(--r-sm);
@@ -685,6 +811,7 @@ kbd{
 .hist-pnl.win{color:var(--green-lt)}.hist-pnl.loss{color:var(--red-lt)}
 .hist-time{font-size:12px;color:var(--tx-3)}
 /* ── account chooser ── */
+.acct-opt[hidden]{display:none!important}
 .acct-opt{display:block;width:100%;text-align:left;background:var(--bg-3);border:1px solid var(--bd-1);border-radius:var(--r-sm);
   padding:12px;margin-bottom:8px;cursor:pointer;color:var(--tx-2);font-family:inherit}
 .acct-opt.current{border-color:var(--green);background:rgba(16,185,129,.07)}
@@ -6116,12 +6243,15 @@ const VOICE = {
       el = document.createElement('div');
       el.id = 'vxSheet'; el.className = 'vx-wrap';
       el.innerHTML = `<div class="vx-backdrop" onclick="VOICE.close()"></div>
-        <section class="vx-sheet" role="dialog" aria-modal="true" aria-label="PROTrader Voice">
-          <header class="vx-head"><span class="vx-title">PROTrader Voice</span><span class="vx-pill" id="vxPill">Ready</span>
+        <section class="vx-sheet" role="dialog" aria-modal="true" aria-label="ARIA Copilot">
+          <header class="vx-head"><span class="vx-title">ARIA Copilot</span><span class="vx-pill" id="vxPill">Ready</span>
             <button type="button" class="vx-icon" onclick="VOICE.toggleSettings()" aria-label="Voice settings" title="Voice settings"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.6 1.6 0 00.3 1.8l.1.1a2 2 0 11-2.8 2.8l-.1-.1a1.6 1.6 0 00-2.7 1.1V21a2 2 0 11-4 0v-.1a1.6 1.6 0 00-2.7-1.1l-.1.1a2 2 0 11-2.8-2.8l.1-.1a1.6 1.6 0 00-1.1-2.7H3a2 2 0 110-4h.1a1.6 1.6 0 001.1-2.7l-.1-.1a2 2 0 112.8-2.8l.1.1a1.6 1.6 0 002.7-1.1V3a2 2 0 114 0v.1a1.6 1.6 0 002.7 1.1l.1-.1a2 2 0 112.8 2.8l-.1.1a1.6 1.6 0 001.1 2.7H21a2 2 0 110 4h-.1a1.6 1.6 0 00-1.5 1z"/></svg></button>
+            <button type="button" class="vx-icon vx-min" id="vxMin" onclick="VOICE.toggleMin()" aria-label="Show the chart" title="Show the chart"><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></button>
             <button type="button" class="vx-icon" onclick="VOICE.close()" aria-label="Close voice">×</button></header>
           <div class="vx-settings" id="vxSettings" hidden></div>
+          <nav class="cp-modes" id="cpModes" aria-label="Copilot mode"></nav>
           <div class="vx-log" id="vxLog" aria-live="polite"></div>
+          <div class="cp-panel" id="cpPanel" hidden></div>
           <div class="vx-stage">
             <button type="button" class="vx-orb" id="vxOrb" data-state="idle" onclick="VOICE.listen()" aria-label="Tap to talk">
               <i></i><i></i><i></i><span class="vx-core"><svg viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0014 0M12 18v3"/></svg></span></button>
@@ -6137,7 +6267,9 @@ const VOICE = {
       this.renderLog();
     }
     el.classList.add('open'); this.open_ = true;
+    document.body.classList.add('vx-open');
     document.getElementById('voiceBtn')?.classList.add('on');
+    if (typeof COPILOT !== 'undefined') { COPILOT.renderModes(); COPILOT.renderPanel(); }
     this.renderChips(); this.renderCard();
     if (!this.supported()) this.heard(this.isIOS && navigator.standalone
       ? 'Voice input is not available in the iPhone home-screen app. Type below, or open PROTrader in Safari to talk.'
@@ -6149,10 +6281,19 @@ const VOICE = {
     this.stopListening(true);
     if (window.speechSynthesis) speechSynthesis.cancel();
     document.getElementById('vxSheet')?.classList.remove('open');
+    document.body.classList.remove('vx-open');
     document.getElementById('voiceBtn')?.classList.remove('on', 'listening');
     this.open_ = false; this.setState('idle');
   },
   toggle() { this.open_ ? this.close() : this.open(true); },
+  // shrink the sheet to its last answer so the chart (and ARIA's drawings) can be seen; tap again to expand
+  toggleMin(force) {
+    const sh = document.querySelector('#vxSheet .vx-sheet'); if (!sh) return;
+    const on = typeof force === 'boolean' ? force : !sh.classList.contains('cp-min');
+    sh.classList.toggle('cp-min', on);
+    const b = document.getElementById('vxMin'); if (b) { b.setAttribute('aria-label', on ? 'Expand' : 'Show the chart'); b.title = on ? 'Expand' : 'Show the chart'; }
+    const log = document.getElementById('vxLog'); if (log) log.scrollTop = log.scrollHeight;
+  },
   setState(s) {
     this.state = s;
     const orb = document.getElementById('vxOrb'); if (orb) orb.dataset.state = s;
@@ -6187,8 +6328,9 @@ const VOICE = {
     const list = this.pending ? []
       : this.awaiting && this.awaiting.slot === 'stop' ? ["Use ARIA's stop", 'Cancel']
       : pos.length ? ['How are my trades?', `Breakeven on ${pos[0].label}`, "What's my risk?", 'Brief me']
-      : ['Brief me', 'What does ARIA say?', `Buy ${lbl} at 1% risk`, "What's my risk?", 'Trend across timeframes', "What's Sentinel seeing?"];
-    box.innerHTML = list.map(c => `<button type="button" class="vx-chip" onclick="VOICE.handle(this.textContent)">${c.replace(/[&<>]/g, '')}</button>`).join('');
+      : ['Brief me', 'Analyze this chart', 'What does ARIA say?', `Buy ${lbl} at 1% risk`, "What's my risk?", 'Teach me', 'Trend across timeframes', "What's Sentinel seeing?"];
+    const cpl = !this.pending && !(this.awaiting && this.awaiting.slot === 'stop') && typeof COPILOT !== 'undefined' ? COPILOT.chips() : null;
+    box.innerHTML = (cpl || list).map(c => `<button type="button" class="vx-chip" onclick="VOICE.handle(this.textContent)">${c.replace(/[&<>]/g, '')}</button>`).join('');
   },
   typed() {
     const i = document.getElementById('vxInput'); if (!i) return;
@@ -6337,6 +6479,10 @@ const VOICE = {
     if (has(/\b(?:mute|be quiet|silence|stop talking|dont talk|no voice)\b/)) return { intent: 'mute' };
     if (has(/\b(?:talk (?:to me|back)|unmute|voice on|speak to me|read (?:it )?out)\b/)) return { intent: 'unmute' };
 
+    // the copilot: analysis, drawings, lessons, plan checks and replay ("buy" inside a replay is a replay trade)
+    const cp = typeof COPILOT !== 'undefined' ? COPILOT.parse(t, out, side) : null;
+    if (cp) return cp;
+
     // managing open trades comes before new orders: "close the long" is a close, not a buy
     const all = has(/\b(?:all|everything|every|both)\b/);
     if (has(/\b(?:break ?even|risk free|protect (?:it|my))\b/)) return Object.assign(out, { intent: 'breakeven', all, side });
@@ -6405,6 +6551,7 @@ const VOICE = {
 
   async run(c, o) {
     const r = (text, x = {}) => this.reply(text, Object.assign({ spoken: o.spoken }, x));
+    if (c.cp && typeof COPILOT !== 'undefined') return COPILOT.run(c, o);
     switch (c.intent) {
       case 'confirm': return this.confirmPending(o);
       case 'cancel': {
@@ -6412,9 +6559,9 @@ const VOICE = {
         return r(had ? 'Cancelled. Nothing was changed.' : 'Okay.');
       }
       case 'slot': return this.fillSlot(c, o);
-      case 'help': return r("Ask me for a briefing, your risk, your trades, a price, what ARIA says, the trend across timeframes, or what Sentinel is seeing. "
-        + "To trade, say something like: buy gold, one percent risk, stop 2640, target two to one. I'll read the plan back and wait for you to confirm. "
-        + "I can also move a stop to breakeven, trail it, close half, or close a trade.");
+      case 'help': return r("Ask me to analyze the chart and I'll draw what I see, with the reason for every drawing: tap one and ask why. "
+        + "Say teach me for a lesson, quiz me to test yourself, or what is a CHOCH for a definition. In Practice, say check my plan and ORACLE will challenge it before it goes on paper. Say start replay to trade history with the future hidden. "
+        + "I also give briefings, your risk, your trades, prices and what Sentinel is seeing. To trade, say something like: buy gold, one percent risk, stop 2640, target two to one. I'll read the plan back and wait for you to confirm.");
       case 'repeat': return r(this.lastReply || 'Nothing to repeat yet.');
       case 'bye': await this.say('Anytime.'); this.close(); return;
       case 'mute': this.cfg.talk = false; this.save(); return r('Okay, I will answer in text only.');
@@ -6861,6 +7008,1317 @@ const VOICE = {
   },
 };
 VOICE.init();
+/* ════════════════════════════════════════════════════════════
+   TA — the copilot's chart analysis, computed, never guessed
+   Every function takes a candle array and reads only what is in it, so a
+   replay that passes candles up to its cursor can never see the future.
+   Only CLOSED candles are analysed; the forming one is reported apart.
+   The rules are written down here because students are taught them:
+     swing high   a candle whose high is above the K candles before it and
+                  not below the K after it (K = 3); confirmed only once those
+                  K later candles exist
+     break        a CLOSE beyond the last unbroken swing. A wick beyond it
+                  that closes back inside is a SWEEP, not a break
+     BOS / CHOCH  a break in the direction of the current structure is a
+                  break of structure (BOS); the first break against it is a
+                  change of character (CHOCH)
+     zone         swing prices within half an average range of each other,
+                  grouped; more touches = more significant
+     equal highs  two unbroken swing highs within a tenth of an average range:
+     / lows       a POSSIBLE liquidity pool, inferred from the chart's shape
+                  only — the app has no order data
+════════════════════════════════════════════════════════════ */
+const TA = {
+  K: 3,
+  tfSec(tf) { return (typeof TF_SEC !== 'undefined' && TF_SEC[tf]) || 900; },
+  split(cd, tf, now) {
+    const sec = this.tfSec(tf), t = now != null ? now : Date.now() / 1000;
+    const last = cd[cd.length - 1];
+    if (last && last.time + sec > t) return { closed: cd.slice(0, -1), forming: last };
+    return { closed: cd.slice(), forming: null };
+  },
+  atr(cd, p = 14) {
+    if (cd.length < 2) return cd.length ? cd[0].high - cd[0].low : 0;
+    const a = calcATR(cd, p); return a[a.length - 1] || (cd[cd.length - 1].high - cd[cd.length - 1].low);
+  },
+  swings(cd, k = this.K) {
+    const out = [];
+    for (let i = k; i < cd.length - k; i++) {
+      let hi = true, lo = true;
+      for (let j = i - k; j <= i + k; j++) {
+        if (j === i) continue;
+        if (j < i ? cd[j].high >= cd[i].high : cd[j].high > cd[i].high) hi = false;
+        if (j < i ? cd[j].low <= cd[i].low : cd[j].low < cd[i].low) lo = false;
+      }
+      if (hi) out.push({ i, time: cd[i].time, price: cd[i].high, type: 'high' });
+      if (lo) out.push({ i, time: cd[i].time, price: cd[i].low, type: 'low' });
+    }
+    return out;
+  },
+  // Walk the closed candles in order; a swing can be broken only after it is confirmed (k candles later).
+  structure(cd, k = this.K) {
+    const sw = this.swings(cd, k), events = [];
+    let trend = null, sh = null, sl = null, si = 0;
+    for (let n = 0; n < cd.length; n++) {
+      while (si < sw.length && sw[si].i + k <= n) {          // swings confirmed by candle n
+        const s = sw[si++];
+        if (s.type === 'high') sh = Object.assign({}, s, { broken: false }); else sl = Object.assign({}, s, { broken: false });
+      }
+      const c = cd[n];
+      if (sh && !sh.broken && n > sh.i) {
+        if (c.close > sh.price) { events.push({ type: trend === 'down' ? 'CHOCH' : 'BOS', dir: 'up', level: sh.price, swingTime: sh.time, time: c.time, i: n }); trend = 'up'; sh.broken = true; }
+        else if (c.high > sh.price && !sh.swept) { events.push({ type: 'SWEEP', dir: 'up', level: sh.price, swingTime: sh.time, time: c.time, i: n }); sh.swept = true; }
+      }
+      if (sl && !sl.broken && n > sl.i) {
+        if (c.close < sl.price) { events.push({ type: trend === 'up' ? 'CHOCH' : 'BOS', dir: 'down', level: sl.price, swingTime: sl.time, time: c.time, i: n }); trend = 'down'; sl.broken = true; }
+        else if (c.low < sl.price && !sl.swept) { events.push({ type: 'SWEEP', dir: 'down', level: sl.price, swingTime: sl.time, time: c.time, i: n }); sl.swept = true; }
+      }
+    }
+    // the swing sequence: higher / lower highs and lows
+    const highs = sw.filter(s => s.type === 'high'), lows = sw.filter(s => s.type === 'low');
+    const lab = (arr, up, dn) => arr.map((s, j) => Object.assign({}, s, { label: j === 0 ? null : s.price > arr[j - 1].price ? up : s.price < arr[j - 1].price ? dn : 'EQ' }));
+    const H = lab(highs, 'HH', 'LH'), L = lab(lows, 'HL', 'LL');
+    const lh = H.slice(-2), ll = L.slice(-2);
+    const seq = lh.length === 2 && ll.length === 2
+      ? (lh[1].label === 'HH' && ll[1].label === 'HL' ? 'up' : lh[1].label === 'LH' && ll[1].label === 'LL' ? 'down' : 'mixed') : 'unknown';
+    const price = cd.length ? cd[cd.length - 1].close : NaN;
+    return {
+      swings: H.concat(L).sort((a, b) => a.i - b.i), highs: H, lows: L, events, trend, sequence: seq,
+      lastHigh: H[H.length - 1] || null, lastLow: L[L.length - 1] || null,
+      lastBreak: events.filter(e => e.type !== 'SWEEP').slice(-1)[0] || null,
+      lastSweep: events.filter(e => e.type === 'SWEEP').slice(-1)[0] || null,
+      lowBelow: L.filter(s => s.price < price).slice(-1)[0] || null, highAbove: H.filter(s => s.price > price).slice(-1)[0] || null,
+    };
+  },
+  zones(cd, st, atr) {
+    st = st || this.structure(cd); atr = atr || this.atr(cd);
+    const price = cd.length ? cd[cd.length - 1].close : NaN, tol = atr * 0.5;
+    const pts = st.swings.slice(-60).map(s => ({ p: s.price, t: s.time, type: s.type })).sort((a, b) => a.p - b.p);
+    const groups = [];
+    for (const x of pts) {
+      const g = groups[groups.length - 1];
+      if (g && x.p - g.lo <= tol) { g.hi = Math.max(g.hi, x.p); g.pts.push(x); }
+      else groups.push({ lo: x.p, hi: x.p, pts: [x] });
+    }
+    return groups.map(g => {
+      const lo = g.lo === g.hi ? g.lo - atr * 0.1 : g.lo, hi = g.lo === g.hi ? g.hi + atr * 0.1 : g.hi;
+      return { lo, hi, mid: (lo + hi) / 2, touches: g.pts.length, first: Math.min(...g.pts.map(q => q.t)), last: Math.max(...g.pts.map(q => q.t)),
+               kind: hi < price ? 'support' : lo > price ? 'resistance' : 'inside' };
+    }).sort((a, b) => b.touches - a.touches || b.last - a.last);
+  },
+  nearest(zones, price) {
+    const above = zones.filter(z => z.lo > price).sort((a, b) => a.lo - b.lo)[0] || null;
+    const below = zones.filter(z => z.hi < price).sort((a, b) => b.hi - a.hi)[0] || null;
+    const inside = zones.find(z => z.lo <= price && price <= z.hi) || null;
+    return { above, below, inside };
+  },
+  equalLevels(cd, st, atr) {
+    st = st || this.structure(cd); atr = atr || this.atr(cd);
+    const out = [], tol = atr * 0.1;
+    const unbroken = (s, type) => !cd.slice(s.i + 1).some(c => type === 'high' ? c.close > s.price : c.close < s.price);
+    for (const [arr, type] of [[st.highs, 'high'], [st.lows, 'low']]) {
+      const a = arr.slice(-12);
+      for (let i = 0; i < a.length; i++) for (let j = i + 1; j < a.length; j++) {
+        if (Math.abs(a[i].price - a[j].price) <= tol && unbroken(a[i], type) && unbroken(a[j], type))
+          out.push({ type, price: (a[i].price + a[j].price) / 2, t1: a[i].time, t2: a[j].time, n: 2 });
+      }
+    }
+    // pairs at the same level are one pool: merge them (earliest to latest touch)
+    const merged = [];
+    for (const e of out.sort((x, y) => x.price - y.price)) {
+      const m = merged.find(g => g.type === e.type && Math.abs(g.price - e.price) <= tol);
+      if (m) { m.t1 = Math.min(m.t1, e.t1); m.t2 = Math.max(m.t2, e.t2); m.price = (m.price * m.n + e.price) / (m.n + 1); m.n++; }
+      else merged.push(Object.assign({}, e));
+    }
+    return merged.sort((x, y) => x.t2 - y.t2).slice(-4);
+  },
+  impulse(cd, st) {
+    st = st || this.structure(cd);
+    const h = st.lastHigh, l = st.lastLow;
+    if (!h || !l) return null;
+    const up = l.i < h.i;                       // the latest leg runs low → high (up) or high → low (down)
+    const a = up ? l : h, b = up ? h : l, range = Math.abs(b.price - a.price);
+    const lv = r => up ? b.price - range * r : b.price + range * r;
+    return { dir: up ? 'up' : 'down', from: a, to: b, range, levels: { '0.382': lv(0.382), '0.5': lv(0.5), '0.618': lv(0.618), '0.786': lv(0.786) } };
+  },
+  candles(cd, n = 5, atr) {
+    atr = atr || this.atr(cd);
+    return cd.slice(-n).map(c => {
+      const range = c.high - c.low || 1e-12, body = Math.abs(c.close - c.open);
+      const up = c.close >= c.open, upper = c.high - Math.max(c.open, c.close), lower = Math.min(c.open, c.close) - c.low;
+      const tags = [];
+      if (body / range < 0.1) tags.push('doji (open and close almost equal: indecision)');
+      if (range > atr * 1.5 && body / range > 0.6) tags.push('displacement (a large, decisive candle)');
+      if (upper > body * 2 && upper / range > 0.5) tags.push('long upper wick (selling pushed it back down)');
+      if (lower > body * 2 && lower / range > 0.5) tags.push('long lower wick (buying pushed it back up)');
+      return { time: c.time, dir: up ? 'up' : 'down', bodyPct: Math.round(body / range * 100), closeAt: Math.round((c.close - c.low) / range * 100),
+               rangeAtr: +(range / (atr || range)).toFixed(2), tags };
+    });
+  },
+  indicators(cd) {
+    const closes = cd.map(c => c.close), n = closes.length; if (n < 30) return null;
+    const e = (p) => { const a = calcEMA(closes, p); return a[n - 1]; };
+    const rsi = calcRSI(closes), macd = calcMACD(closes), st = calcStoch(cd);
+    return { ema20: e(20), ema50: e(50), ema200: n >= 200 ? e(200) : null, rsi: rsi[n - 1], macd: macd.line[n - 1], macdSig: macd.sig[n - 1],
+             stochK: st.k ? st.k[n - 1] : null, stochD: st.d ? st.d[n - 1] : null, atr: this.atr(cd) };
+  },
+  // Everything at once, for one candle series (the chart, a replay cursor, or another timeframe).
+  read(cd, tf, now) {
+    const { closed, forming } = this.split(cd, tf, now);
+    if (closed.length < 30) return null;
+    const atr = this.atr(closed), st = this.structure(closed), zones = this.zones(closed, st, atr);
+    const price = closed[closed.length - 1].close;
+    return { closed, forming, last: closed[closed.length - 1], price, atr, structure: st, zones, near: this.nearest(zones, price),
+             equal: this.equalLevels(closed, st, atr), impulse: this.impulse(closed, st), candles: this.candles(closed, 5, atr), ind: this.indicators(closed) };
+  },
+};
+
+/* ════════════════════════════════════════════════════════════
+   ORACLE — challenges a trade plan with the chart's own evidence
+   SUPPORTED     the plan is consistent with the evidence and the rules
+   INCOMPLETE    something a plan needs is missing (a stop, a target)
+   CONTRADICTED  evidence on the chart argues against it
+   These describe the quality of the reasoning, never the chance of winning.
+════════════════════════════════════════════════════════════ */
+const ORACLE = {
+  check(plan, R, htf) {
+    const items = [], px = v => { if (typeof COPILOT !== 'undefined' && plan.sym) return COPILOT.px(v, plan.sym);
+      const x = String(typeof otFmtPx === 'function' && plan.sym ? otFmtPx(plan.sym, v) : (+v).toFixed(2)); return x.includes('.') ? x.replace(/\.?0+$/, '') : x; };
+    const add = (kind, text, why) => items.push({ kind, text, why: why || '' });
+    const buy = plan.side === 'buy', entry = plan.entry, stop = plan.stop, target = plan.target;
+    const flags = { stopBeyond: null, withTrend: null, rr: null, htfAgrees: null };
+    if (!R) return { status: 'INCOMPLETE', items: [{ kind: 'missing', text: 'Not enough closed candles to check this plan against the chart.' }], flags, meaning: 'Something a plan needs is missing.' };
+    const atr = R.atr, st = R.structure;
+    if (!Number.isFinite(stop)) add('missing', 'No stop loss: the plan has no point where it admits it is wrong.');
+    if (!Number.isFinite(target)) add('missing', 'No target: without one there is no reward to weigh against the risk.');
+    if (Number.isFinite(stop)) {
+      const d = Math.abs(entry - stop), m = d / atr;
+      if ((buy && stop >= entry) || (!buy && stop <= entry)) add('against', 'The stop is on the wrong side of the entry.');
+      else if (m < 1) add('against', `The stop is ${m.toFixed(1)} average candle ranges away: inside normal noise, so ordinary movement can hit it.`, `ATR(14) is ${px(atr)}; the stop is ${px(d)} from the entry.`);
+      else if (m > 4) add('note', `The stop is ${m.toFixed(1)} average ranges away: wide, so the position must be small.`, `ATR(14) ${px(atr)}.`);
+      else add('ok', `Stop distance ${m.toFixed(1)} average ranges: room for normal movement.`);
+      const sw = buy ? st.lowBelow : st.highAbove;
+      if (sw) {
+        const inside = buy ? stop >= sw.price : stop <= sw.price;
+        flags.stopBeyond = !inside;
+        if (inside) add('against', `The stop sits ${buy ? 'above the last swing low' : 'below the last swing high'} (${px(sw.price)}): price can reach it without breaking the structure the idea relies on.`,
+          `Swing ${sw.type} at ${px(sw.price)} on the candle of ${new Date(sw.time * 1000).toUTCString().slice(5, 22)} UTC.`);
+        else add('ok', `The stop is beyond the last swing ${sw.type} (${px(sw.price)}): if it is hit, the structure really has changed.`);
+      } else add('note', `There is no confirmed swing ${buy ? 'low below' : 'high above'} the entry to anchor the stop to.`);
+    }
+    if (Number.isFinite(stop) && Number.isFinite(target)) {
+      const rr = Math.abs(target - entry) / Math.abs(entry - stop);
+      flags.rr = Number.isFinite(rr) ? +rr.toFixed(2) : null;
+      if ((buy && target <= entry) || (!buy && target >= entry)) add('against', 'The target is on the wrong side of the entry.');
+      else if (rr < 1) add('against', `Reward is ${rr.toFixed(2)} times the risk: you would need to win more than half the time just to break even.`);
+      else if (rr < 1.5) add('note', `Reward is ${rr.toFixed(1)} times the risk: thin.`);
+      else add('ok', `Reward is ${rr.toFixed(1)} times the risk.`);
+      const block = buy ? R.zones.find(z => z.lo > entry && z.lo < target) : R.zones.find(z => z.hi < entry && z.hi > target);
+      if (block) add('note', `A ${buy ? 'resistance' : 'support'} zone (${px(block.lo) === px(block.hi) ? px(block.lo) : px(block.lo) + '–' + px(block.hi)}, ${block.touches} touches) sits before your target.`);
+    }
+    const room = buy ? R.near.above : R.near.below;
+    if (room && Math.abs((buy ? room.lo : room.hi) - entry) < atr * 0.5)
+      add('against', `You would be ${buy ? 'buying just under resistance' : 'selling just above support'} (${px(room.lo) === px(room.hi) ? px(room.lo) : px(room.lo) + '–' + px(room.hi)}): there is little room before it.`);
+    const tr = st.trend, lb = st.lastBreak;
+    flags.withTrend = tr ? tr === (buy ? 'up' : 'down') : null;
+    if (tr && tr !== (buy ? 'up' : 'down')) {
+      if (lb && lb.type === 'CHOCH' && lb.dir === (buy ? 'up' : 'down')) add('note', `Reversal case: structure changed ${lb.dir} at ${px(lb.level)}. The older trend still argues against you.`);
+      else add('against', `Counter-trend: the last break of structure was ${tr === 'up' ? 'upward' : 'downward'}${lb ? ` (${lb.type} at ${px(lb.level)})` : ''}, and this plan ${buy ? 'buys' : 'sells'} against it.`);
+    } else if (tr) add('ok', `With the structure: the last break was ${tr === 'up' ? 'upward' : 'downward'}${lb ? ` (${lb.type} at ${px(lb.level)})` : ''}.`);
+    else add('note', 'No break of structure yet on this chart: there is no trend to trade with.');
+    if (htf && htf.trend) flags.htfAgrees = htf.trend === (buy ? 'up' : 'down');
+    if (htf && htf.trend) {
+      if (htf.trend !== (buy ? 'up' : 'down')) add('against', `The ${htf.tf} chart's structure is ${htf.trend === 'up' ? 'up' : 'down'}: this plan trades against the higher timeframe.`);
+      else add('ok', `The ${htf.tf} chart's structure agrees (${htf.trend}).`);
+    }
+    if (R.forming) add('note', 'The current candle has not closed: anything read from it can still change.');
+    if (plan.synthetic) add('note', 'Synthetic indices are random by design. This checks your process — stop, size, structure, reward — not the market\'s next move.');
+    const status = items.some(i => i.kind === 'against') ? 'CONTRADICTED' : items.some(i => i.kind === 'missing') ? 'INCOMPLETE' : 'SUPPORTED';
+    return { status, items, flags, meaning: { SUPPORTED: 'The plan is consistent with the chart\'s evidence and your rules. That is not a prediction that it will win.',
+      INCOMPLETE: 'Something a plan needs is missing.', CONTRADICTED: 'Evidence on the chart argues against this plan.' }[status] };
+  },
+};
+
+
+/* ════════════════════════════════════════════════════════════
+   ARIA COPILOT — teach, analyse, challenge. Paper only.
+   Lives in the voice sheet: talk to it or tap it.
+     Analyze   reads the chart with TA and draws what it found, each drawing
+               carrying the reason it exists ("why did you draw this?")
+     Learn     seven short lessons, each with "show me on this chart" and a
+               quiz built from the chart in front of you
+     Practice  build a plan, ORACLE challenges it, place it on paper; every
+               decision is logged and scored for PROCESS, apart from outcome
+     Replay    walk history candle by candle with the future hidden
+   Every number comes from the candles. No language model is involved yet:
+   nothing is guessed, and every drawing is checked on the chart after it is
+   placed. The learning record is protrader.learning.v1 (synced with the
+   Academy account like the paper account).
+════════════════════════════════════════════════════════════ */
+const CP_HTF = { '1m': '15m', '5m': '1h', '15m': '4h', '1h': '4h' };
+const CP_COL = { up: '#22c55e', dn: '#ef4444', bos: '#f59e0b', choch: '#a78bfa', liq: '#22d3ee', inv: '#f97316', sup: '#14b8a6', res: '#f43f5e', mute: '#94a3b8' };
+const CP_LESSONS = [
+  { id: 'structure', title: 'Market structure', short: 'Highs and lows tell you the trend', draw: 'structure', body: [
+    'Price moves in swings. A swing high is a candle whose high is above the three candles on each side of it; a swing low is the same, upside down.',
+    'Higher highs and higher lows (HH, HL) are an uptrend. Lower highs and lower lows (LH, LL) are a downtrend. Anything else is mixed: no clear trend.',
+    'A swing only counts once three more candles have closed after it, so the newest candles never have a confirmed swing yet.'] },
+  { id: 'bos', title: 'Break of structure', short: 'BOS continues a trend, CHOCH changes it', draw: 'structure', body: [
+    'A break is a candle that CLOSES beyond the last swing high or swing low. A wick through it that closes back inside is not a break.',
+    'A break in the direction of the trend is a break of structure (BOS): the trend continues.',
+    'The first break against the trend is a change of character (CHOCH): the first sign the trend may be turning. It is a warning, not a guarantee.'] },
+  { id: 'zones', title: 'Support and resistance', short: 'Prices where the market turned before', draw: 'zones', body: [
+    'When several swing highs or lows form at almost the same price, that price is a zone: the market turned there more than once.',
+    'Below the price a zone is support; above it, resistance. More touches make a zone more significant, and a zone broken with a close often swaps roles.',
+    'Zones are areas, not exact lines. ARIA groups swing prices that sit within half an average candle range of each other.'] },
+  { id: 'liquidity', title: 'Liquidity', short: 'Where stops are likely to rest', draw: 'liquidity', body: [
+    'Traders put stops just beyond obvious highs and lows. Two highs at the same price (equal highs) are an obvious place for those stops: a possible pool of liquidity.',
+    'A sweep is a wick that runs through a swing level and closes back inside: the stops were taken, but the level held.',
+    'PROTrader has no order data, so liquidity here is inferred from the shape of the chart only. Treat it as a possibility, never a fact.'] },
+  { id: 'invalidation', title: 'Invalidation', short: 'Where your idea is proven wrong', draw: 'invalidation', body: [
+    'Every trade idea has a price that proves it wrong. For a buy in an uptrend, that is below the last swing low: if price closes there, the higher-low structure is gone.',
+    'Your stop belongs beyond that price, not at a round number or a fixed distance. A stop inside the structure gets hit by ordinary movement.',
+    'If the stop that invalidates the idea is too far for your 1% risk, the answer is a smaller position or no trade. Never a tighter stop.'] },
+  { id: 'fib', title: 'Fibonacci retracement', short: 'How deep is the pullback?', draw: 'fib', body: [
+    'After a move, price often pulls back part of the way before the next leg. Fibonacci levels (38.2%, 50%, 61.8%, 78.6%) measure how deep that pullback is.',
+    'Many traders watch the 50 to 61.8% area for entries with the trend. A pullback beyond 78.6% often means the move is failing.',
+    'Fib levels are a ruler, not a signal: combine them with structure and zones.'] },
+  { id: 'candles', title: 'Reading candles', short: 'Bodies, wicks and closes', draw: 'candles', body: [
+    'The body shows where price opened and closed; the wicks show how far it travelled and was pushed back.',
+    'A large body that closes near its extreme is displacement: decisive buying or selling. A tiny body is a doji: indecision.',
+    'A long wick shows rejection: price went there and could not stay. One candle is weak evidence on its own; read it at a level that matters.'] },
+];
+// glossary: spoken forms → [term, meaning, lesson]
+const CP_TERMS = [
+  [['break of structure', 'bos', 'boss'], 'BOS', 'Break of structure: a candle closes beyond the last swing high in an uptrend, or the last swing low in a downtrend. The trend continues.', 'bos'],
+  [['change of character', 'choch', 'choc', 'chock', 'chalk', 'choke'], 'CHOCH', 'Change of character: the first close beyond a swing against the trend. An early warning that the trend may be turning, not a guarantee.', 'bos'],
+  [['liquidity sweep', 'sweep', 'stop hunt', 'liquidity grab'], 'Sweep', 'A wick runs through a swing high or low and the candle closes back inside. The stops beyond the level were taken, but the level held.', 'liquidity'],
+  [['liquidity pool', 'liquidity'], 'Liquidity', 'Where stop orders are likely to rest: just beyond obvious highs, lows and equal levels. On PROTrader it is inferred from the chart\'s shape; there is no order data.', 'liquidity'],
+  [['equal highs', 'equal lows', 'eqh', 'eql'], 'Equal highs / lows', 'Two or more swing highs (or lows) at almost the same price that have not been broken. Stops tend to collect beyond them.', 'liquidity'],
+  [['higher high', 'higher low', 'lower high', 'lower low', 'hh', 'hl', 'lh', 'll'], 'HH, HL, LH, LL', 'Labels for each new swing compared with the one before: higher high, higher low (an uptrend), lower high, lower low (a downtrend).', 'structure'],
+  [['swing high', 'swing low', 'swing', 'swings'], 'Swing', 'A swing high is a candle whose high is above the three candles on each side; a swing low is the reverse. It is confirmed once three more candles close.', 'structure'],
+  [['market structure', 'structure'], 'Market structure', 'The pattern of swing highs and lows. Rising highs and lows are an uptrend, falling ones a downtrend, anything else is mixed.', 'structure'],
+  [['support and resistance', 'support', 'demand'], 'Support', 'A price area below the market where it turned up before. More touches make it more significant.', 'zones'],
+  [['resistance', 'supply'], 'Resistance', 'A price area above the market where it turned down before.', 'zones'],
+  [['zone', 'zones'], 'Zone', 'An area, not a line: swing prices within half an average candle range of each other, grouped together.', 'zones'],
+  [['fibonacci', 'fib', 'fibs', 'retracement', 'golden zone', 'golden pocket'], 'Fibonacci retracement', 'Levels at 38.2, 50, 61.8 and 78.6 percent of the last move, used to measure how deep a pullback is.', 'fib'],
+  [['invalidation', 'invalidated', 'invalidation level'], 'Invalidation', 'The price that proves a trade idea wrong. The stop belongs just beyond it.', 'invalidation'],
+  [['average true range', 'atr', 'average range'], 'ATR', 'Average true range: the average size of recent candles, including gaps. ARIA uses 14 candles. It tells you what normal movement is.', 'invalidation'],
+  [['risk reward', 'risk to reward', 'reward to risk', 'r multiple', 'r r'], 'Risk to reward', 'How far the target is compared with the stop. 2 to 1 means the target is twice as far as the stop.', 'invalidation'],
+  [['doji'], 'Doji', 'A candle whose open and close are almost equal: indecision.', 'candles'],
+  [['displacement'], 'Displacement', 'A large candle with a big body that closes near its extreme: decisive buying or selling.', 'candles'],
+  [['wick', 'wicks', 'shadow'], 'Wick', 'The thin part of a candle beyond its body: how far price went before being pushed back.', 'candles'],
+];
+const CP_REASONS = ['With the trend', 'Break of structure', 'Bounce from a zone', 'Liquidity sweep', 'Other'];
+
+const COPILOT = {
+  KEY: 'protrader.learning.v1',
+  mode: 'talk', last: null, lesson: null, quiz: null, plan: null, check: null, decision: null, shownWhy: null,
+
+  /* ── the learning record ── */
+  load() {
+    let d = null; try { d = JSON.parse(localStorage.getItem(this.KEY) || 'null'); } catch (_) {}
+    if (!d || typeof d !== 'object') d = {};
+    d.v = 1;
+    if (!d.lessons || typeof d.lessons !== 'object') d.lessons = {};
+    if (!Array.isArray(d.decisions)) d.decisions = [];
+    return d;
+  },
+  save(d) {
+    if (d.decisions.length > 200) d.decisions = d.decisions.slice(-200);
+    try { localStorage.setItem(this.KEY, JSON.stringify(d)); } catch (_) {}
+  },
+
+  /* ── helpers ── */
+  esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); },
+  px(v, id) {
+    id = id || this.src().sym;
+    const R = this._atrFor && this._atrFor.id === id ? this._atrFor.atr : null;
+    if (!R || !Number.isFinite(v)) return VOICE.px(id, v);
+    const dp = Math.max(0, Math.min(otSpec(id).dp, Math.ceil(-Math.log10(R / 50))));
+    const x = (+v).toFixed(dp);
+    return Number(x).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: dp });
+  },
+  span(lo, hi, id, dash) { const a = this.px(lo, id), b = this.px(hi, id); return a === b ? (dash ? a : `around ${a}`) : dash ? `${a}–${b}` : `${a} to ${b}`; },
+  // levels read from the chart are approximate: say them to a sensible precision
+  round(R, id) { this._atrFor = R ? { id: id || this.src().sym, atr: R.atr } : null; },
+  when(t) {
+    try { return new Date(t * 1000).toLocaleString([], { weekday: 'short', hour: '2-digit', minute: '2-digit', timeZone: typeof TZ !== 'undefined' ? TZ.zone() : undefined }); }
+    catch (_) { return new Date(t * 1000).toUTCString().slice(0, 22); }
+  },
+  sleep(ms) { return new Promise(r => setTimeout(r, ms)); },
+  synthetic(id) { const m = (PAIR_MAP[id] || {}).market; return m === 'syn' || m === 'basket'; },
+  // the candles ARIA is reading: the replay's visible history while a replay runs, otherwise the chart
+  src() {
+    if (typeof REPLAY !== 'undefined' && REPLAY.active) {
+      const cd = REPLAY.visible(), last = cd[cd.length - 1], tf = REPLAY.tf();
+      return { cd, tf, sym: REPLAY.sym(), now: last ? last.time + TA.tfSec(tf) : undefined, replay: true };
+    }
+    return { cd: S.candles, tf: S.tf, sym: S.sym, now: undefined, replay: false };
+  },
+  read() { const s = this.src(), R = TA.read(s.cd, s.tf, s.now); this.round(R, s.sym); return R; },
+  async ready() { for (let i = 0; i < 15 && !this.src().replay && S.candles.length < 30; i++) await this.sleep(200); },
+  async htf() {
+    if (this.src().replay) return null;               // the replay has no other timeframe: nothing from the future can leak in
+    const tf = CP_HTF[S.tf]; if (!tf || typeof MTF === 'undefined') return null;
+    const have = () => (MTF.data[S.sym] || {})[tf];
+    if (!have()) { MTF.refresh(true); for (let i = 0; i < 15 && !have(); i++) await this.sleep(200); }
+    const R = have() ? TA.read(have(), tf) : null;
+    return R ? { tf, trend: R.structure.trend, seq: R.structure.sequence, lastBreak: R.structure.lastBreak } : null;
+  },
+  tfName(tf) { return VOICE.tfName(tf); },
+  say(text, o) { return VOICE.reply(text, o || {}); },
+
+  /* ── drawing on the chart, with reasons ── */
+  dm() { return typeof DT !== 'undefined' && DT.manager ? DT.manager() : null; },
+  mine(d) { return !!d && (!!d.aria || /^ARIA · /.test(d.name || '')); },
+  ours() { const dm = this.dm(); return dm ? dm.drawings().filter(d => this.mine(d)) : []; },
+  // engine changes as ONE undo step: the drawing module commits only on the last one
+  batch(fns) {
+    const st = DT.state, out = [];
+    for (let i = 0; i < fns.length; i++) {
+      st.loading = i < fns.length - 1;
+      try { out.push(fns[i]()); } catch (_) { out.push(null); } finally { st.loading = false; }
+    }
+    return out;
+  },
+  clear(rule) {
+    const dm = this.dm(); if (!dm) return 0;
+    const ids = this.ours().filter(d => !rule || (d.aria && d.aria.rule === rule)).map(d => d.id);
+    if (ids.length) this.batch(ids.map(id => () => dm.remove(id)));
+    this.renderPanel();
+    return ids.length;
+  },
+  // place drawings; an earlier ARIA drawing for the same rule is replaced. Returns only the ones verified on the chart.
+  place(specs) {
+    const dm = this.dm();
+    if (!dm) return { err: 'The drawing tools are not ready yet.' };
+    if (DT.state.hideAll) return { err: 'Your drawings are hidden, so I did not draw anything. Show them again from the drawing tools.' };
+    if (!specs.length) return { drawn: [] };
+    const rules = [...new Set(specs.map(s => s.rule))];
+    const old = this.ours().filter(d => d.aria && rules.includes(d.aria.rule)).map(d => d.id);
+    const fns = old.map(id => () => dm.remove(id)).concat(specs.map(sp => () => {
+      const style = Object.assign({}, sp.style || {});
+      if (sp.text) style.text = sp.text;
+      const d = { kind: sp.kind, points: sp.points, style, name: 'ARIA · ' + sp.label,
+                  aria: { why: sp.why, rule: sp.rule, label: sp.label, at: Date.now(), tf: S.tf } };
+      if (sp.text) d.text = sp.text;
+      return { id: dm.add(d), sp };
+    }));
+    const res = this.batch(fns).slice(old.length);
+    const drawn = res.filter(r => r && r.id && dm.get(r.id)).map(r => ({ id: r.id, label: r.sp.label, why: r.sp.why, rule: r.sp.rule }));
+    this.renderPanel();
+    return { drawn, asked: specs.length };
+  },
+  whySwing(s) {
+    const what = { HH: 'higher than the swing high before it: a higher high', HL: 'higher than the swing low before it: a higher low',
+                   LH: 'lower than the swing high before it: a lower high', LL: 'lower than the swing low before it: a lower low', EQ: 'level with the swing before it' }[s.label] || 'the first one on this chart';
+    return `A swing ${s.type}: the candle at ${this.when(s.time)} made a ${s.type} of ${this.px(s.price)}, ${s.type === 'high' ? 'above' : 'below'} the 3 candles on each side. It is ${what}.`;
+  },
+  whyBreak(b, R) {
+    const c = R.closed[b.i] || R.last;
+    return `${b.type === 'BOS' ? 'Break of structure' : 'Change of character'}: the candle at ${this.when(b.time)} closed at ${this.px(c.close)}, ${b.dir === 'up' ? 'above' : 'below'} the swing ${b.dir === 'up' ? 'high' : 'low'} of ${this.px(b.level)} from ${this.when(b.swingTime)}. `
+      + (b.type === 'BOS' ? 'It broke in the direction of the trend, so the trend continues.' : 'It was the first break against the previous trend: a warning that the trend may be turning.');
+  },
+  whyZone(z, R) {
+    const name = z.kind === 'support' ? 'Support' : z.kind === 'resistance' ? 'Resistance' : 'A zone price is inside';
+    return `${name}: ${z.touches} swing ${z.touches === 1 ? 'point' : 'points'} at ${this.span(z.lo, z.hi)}, within half an average candle range (ATR ${this.px(R.atr)}) of each other. Price last turned here at ${this.when(z.last)}.`;
+  },
+  depth(R) {
+    const f = R.impulse; if (!f || !f.range) return null;
+    return f.dir === 'up' ? (f.to.price - R.price) / f.range : (R.price - f.to.price) / f.range;
+  },
+  depthText(d) {
+    if (d == null) return 'not measurable';
+    if (d < 0) return 'not retraced at all: price has gone beyond its end';
+    if (d > 1) return 'more than fully retraced: the whole move has been given back';
+    return `${Math.round(d * 100)} percent retraced${d >= 0.5 && d <= 0.618 ? ', inside the 50 to 61.8 percent area' : d > 0.786 ? ', deeper than 78.6 percent' : d < 0.382 ? ', a shallow pullback' : ''}`;
+  },
+  specs(R, what) {
+    const st = R.structure, out = [], lastT = R.last.time, atr = R.atr;
+    if (what.includes('structure')) {
+      for (const s of st.swings.filter(x => x.label).slice(-6))
+        out.push({ rule: 'structure', kind: 'text', label: s.label, text: s.label, points: [{ time: s.time, price: s.type === 'high' ? s.price + atr * 0.15 : s.price - atr * 0.15 }],
+                   style: { color: s.label === 'HH' || s.label === 'HL' ? CP_COL.up : s.label === 'EQ' ? CP_COL.mute : CP_COL.dn, fontSize: 12, bold: true }, why: this.whySwing(s) });
+      const b = st.lastBreak;
+      if (b) out.push({ rule: 'structure', kind: 'trend-line', label: b.type, text: `${b.type} ${b.dir === 'up' ? '↑' : '↓'}`,
+                        points: [{ time: b.swingTime, price: b.level }, { time: b.time, price: b.level }],
+                        style: { color: b.type === 'BOS' ? CP_COL.bos : CP_COL.choch, width: 2, lineStyle: b.type === 'BOS' ? 'solid' : 'dashed' }, why: this.whyBreak(b, R) });
+    }
+    if (what.includes('zones')) {
+      const zs = [R.near.inside, R.near.above, R.near.below].filter((z, i, a) => z && a.indexOf(z) === i);
+      for (const z of zs) {
+        const col = z.kind === 'support' ? CP_COL.sup : z.kind === 'resistance' ? CP_COL.res : CP_COL.mute;
+        const name = z.kind === 'support' ? 'Support' : z.kind === 'resistance' ? 'Resistance' : 'Zone';
+        out.push({ rule: 'zones', kind: 'rectangle', label: name, text: `${name} · ${z.touches}×`,
+                   points: [{ time: z.first, price: z.hi }, { time: lastT, price: z.lo }],
+                   style: { color: col, backgroundColor: col, transparency: 84, fillBackground: true, width: 1, extendRight: true, horzLabelsAlign: 'right', vertLabelsAlign: 'bottom', fontSize: 11, textColor: col },
+                   why: this.whyZone(z, R) });
+      }
+    }
+    if (what.includes('liquidity')) {
+      for (const e of R.equal) out.push({ rule: 'liquidity', kind: 'trend-line', label: e.type === 'high' ? 'Equal highs' : 'Equal lows', text: e.type === 'high' ? 'EQH · liquidity?' : 'EQL · liquidity?',
+        points: [{ time: e.t1, price: e.price }, { time: e.t2, price: e.price }], style: { color: CP_COL.liq, width: 2, lineStyle: 'dashed' },
+        why: `Two swing ${e.type}s at almost the same price (${this.px(e.price)}, within a tenth of an average range), both still unbroken. Stops often rest just ${e.type === 'high' ? 'above' : 'below'} levels like this. This is inferred from the chart's shape only: the app has no order data.` });
+      const w = st.lastSweep;
+      if (w) out.push({ rule: 'liquidity', kind: 'trend-line', label: 'Sweep', text: 'Sweep', points: [{ time: w.swingTime, price: w.level }, { time: w.time, price: w.level }],
+        style: { color: CP_COL.liq, width: 1, lineStyle: 'dotted' },
+        why: `A sweep: the candle at ${this.when(w.time)} went ${w.dir === 'up' ? 'above' : 'below'} the swing ${w.dir === 'up' ? 'high' : 'low'} at ${this.px(w.level)} and closed back ${w.dir === 'up' ? 'below' : 'above'} it. The stops beyond it were taken, but the level was not broken.` });
+    }
+    if (what.includes('fib') && R.impulse) {
+      const f = R.impulse;
+      out.push({ rule: 'fib', kind: 'fib-retracement', label: 'Fib', points: [{ time: f.from.time, price: f.from.price }, { time: f.to.time, price: f.to.price }], style: {},
+        why: `The last ${f.dir} leg ran from ${this.px(f.from.price)} (${this.when(f.from.time)}) to ${this.px(f.to.price)} (${this.when(f.to.time)}). The levels measure how deep the pullback is: the leg is ${this.depthText(this.depth(R))}.` });
+    }
+    if (what.includes('invalidation')) {
+      if (st.lowBelow) out.push({ rule: 'invalidation', kind: 'horizontal-ray', label: 'Buys invalid below', text: 'Buy idea wrong below', points: [{ time: st.lowBelow.time, price: st.lowBelow.price }],
+        style: { color: CP_COL.inv, width: 1, lineStyle: 'dashed' }, why: `The last swing low under the price, ${this.px(st.lowBelow.price)}. A close below it breaks the higher-low structure, so a buy idea is wrong there: its stop belongs just beyond it.` });
+      if (st.highAbove) out.push({ rule: 'invalidation', kind: 'horizontal-ray', label: 'Sells invalid above', text: 'Sell idea wrong above', points: [{ time: st.highAbove.time, price: st.highAbove.price }],
+        style: { color: CP_COL.inv, width: 1, lineStyle: 'dashed' }, why: `The last swing high over the price, ${this.px(st.highAbove.price)}. A close above it breaks the lower-high structure, so a sell idea is wrong there.` });
+    }
+    if (what.includes('candles')) {
+      const rows = R.candles.slice(-3), cs = R.closed.slice(-3);
+      let any = false;
+      rows.forEach((k, i) => {
+        if (!k.tags.length && !(i === rows.length - 1)) return;
+        const c = cs[i], name = k.tags.length ? k.tags[0].split(' (')[0] : (k.dir === 'up' ? 'Up candle' : 'Down candle');
+        any = true;
+        out.push({ rule: 'candles', kind: 'text', label: name.charAt(0).toUpperCase() + name.slice(1), text: name.charAt(0).toUpperCase() + name.slice(1),
+          points: [{ time: c.time, price: c.high + atr * 0.25 }], style: { color: CP_COL.liq, fontSize: 11, bold: true },
+          why: this.candleWhy(k) });
+      });
+      if (!any) { /* nothing worth marking */ }
+    }
+    return out;
+  },
+  candleWhy(k) {
+    const base = `The candle at ${this.when(k.time)}: ${k.dir === 'up' ? 'closed up' : 'closed down'}, body ${k.bodyPct} percent of its range, closing ${k.closeAt} percent of the way up the range, ${k.rangeAtr} times the average range.`;
+    return k.tags.length ? `${base} ${k.tags.map(t => t.charAt(0).toUpperCase() + t.slice(1)).join('. ')}.` : `${base} Nothing unusual about it.`;
+  },
+
+  /* ── the read, in words ── */
+  summary(R, H, id) {
+    const st = R.structure, b = st.lastBreak, rows = [], say = [];
+    const px = v => this.px(v, id), trend = st.trend;
+    const seqTxt = st.lastHigh && st.lastLow && st.lastHigh.label && st.lastLow.label ? `${st.lastHigh.label} and ${st.lastLow.label}` : 'not enough swings yet';
+    rows.push(['Structure', trend ? `${trend === 'up' ? 'Up' : 'Down'} · last ${b.type} ${b.dir === 'up' ? '↑' : '↓'} ${px(b.level)}` : 'No break yet']);
+    rows.push(['Swings', seqTxt]);
+    say.push(trend ? `Structure is ${trend}: the last break was a ${b.type === 'BOS' ? 'break of structure' : 'change of character'} ${b.dir} at ${px(b.level)}.` : 'There is no break of structure on this chart yet, so no trend to trade with.');
+    if (st.sequence === 'mixed') say.push(`The latest swings disagree (${seqTxt}), so the trend is not clean.`);
+    const zt = z => `${this.span(z.lo, z.hi, id, true)} (${z.touches}×)`;
+    rows.push(['Resistance', R.near.above ? zt(R.near.above) : 'none above']);
+    rows.push(['Support', R.near.below ? zt(R.near.below) : 'none below']);
+    if (R.near.inside) say.push(`Price is inside a zone, ${this.span(R.near.inside.lo, R.near.inside.hi, id)}.`);
+    const zs = [R.near.above ? `resistance ${this.span(R.near.above.lo, R.near.above.hi, id)}` : null, R.near.below ? `support ${this.span(R.near.below.lo, R.near.below.hi, id)}` : null].filter(Boolean);
+    if (zs.length) say.push(`Nearest ${zs.join(', and ')}.`);
+    const liq = R.equal.map(e => `${e.type === 'high' ? 'equal highs' : 'equal lows'} at ${px(e.price)}`);
+    rows.push(['Liquidity', liq.length ? liq.join(' · ') : st.lastSweep ? `last sweep ${st.lastSweep.dir} at ${px(st.lastSweep.level)}` : 'none marked']);
+    if (liq.length) say.push(`Possible liquidity: ${liq.slice(0, 2).join(' and ')}.`);
+    const d = this.depth(R);
+    rows.push(['Pullback', R.impulse ? `${Math.round(Math.max(-1, Math.min(2, d)) * 100)}% of the last ${R.impulse.dir} leg` : '—']);
+    if (R.impulse && d != null && d >= 0 && d <= 1) say.push(`The last ${R.impulse.dir} leg is ${this.depthText(d)}.`);
+    const lc = R.candles[R.candles.length - 1];
+    rows.push(['Last candle', lc ? (lc.tags.length ? lc.tags[0].split(' (')[0] : `${lc.dir}, body ${lc.bodyPct}%`) : '—']);
+    if (R.ind) rows.push(['Momentum', `RSI ${Math.round(R.ind.rsi)} · ${R.price > R.ind.ema20 ? 'above' : 'below'} EMA 20`]);
+    if (H) { rows.push([`${H.tf.toUpperCase()} structure`, H.trend || 'no break']); if (H.trend) say.push(`The ${this.tfName(H.tf)} structure is ${H.trend}${trend && H.trend !== trend ? ', against this chart' : ''}.`); }
+    if (R.forming) rows.push(['Forming', 'the current candle is not counted until it closes']);
+    return { rows, say: say.join(' ') };
+  },
+
+  /* ── actions ── */
+  async analyze(c, o) {
+    if (c.sym && c.sym !== S.sym && !this.src().replay) await VOICE.switchTo(c.sym);
+    if (c.tf && c.tf !== S.tf && !this.src().replay) { VOICE.setTf(c.tf); await this.sleep(300); }
+    await this.ready();
+    if (this.src().replay) return REPLAY.analyze(o);
+    const R = this.read();
+    if (!R) return this.say(`I need at least 30 closed candles on ${VOICE.name(S.sym)} and they haven't loaded yet.`, o);
+    const H = await this.htf(), sum = this.summary(R, H);
+    const p = this.place(this.specs(R, ['structure', 'zones', 'liquidity', 'fib']));
+    this.last = { at: Date.now(), sym: S.sym, tf: S.tf, rows: sum.rows };
+    this.setMode('analyze', true);
+    if (p.drawn && p.drawn.length) this.peek();
+    const tail = p.err ? ' ' + p.err : p.drawn.length ? ` I drew ${p.drawn.length} objects and checked that every one is on the chart. Tap one and ask me why.` : '';
+    return this.say(`${VOICE.name(S.sym)}, ${this.tfName(S.tf)}. ${sum.say}${tail}`, o);
+  },
+  async drawCmd(c, o) {
+    await this.ready();
+    if (this.src().replay) return REPLAY.analyze(o);
+    const R = this.read(); if (!R) return this.say('Not enough closed candles to read yet.', o);
+    const what = c.what && c.what.length ? c.what : ['structure', 'zones', 'liquidity', 'fib'];
+    const p = this.place(this.specs(R, what));
+    this.setMode('analyze', true);
+    if (p.drawn && p.drawn.length) this.peek();
+    if (p.err) return this.say(p.err, o);
+    const none = { structure: 'no confirmed swings', zones: 'no zones near the price', liquidity: 'no equal highs or lows and no sweep', fib: 'no completed leg to measure', invalidation: 'no swing to anchor an invalidation level', candles: 'nothing to mark' };
+    if (!p.drawn.length) return this.say(`There is ${what.map(w => none[w]).join(', and ')} on this chart right now, so I drew nothing.`, o);
+    return this.say(`Drawn: ${p.drawn.map(d => d.label).join(', ')}. ${p.drawn.length === p.asked ? 'All checked on the chart.' : `${p.asked - p.drawn.length} could not be placed.`} Tap one and ask me why.`, o);
+  },
+  async topic(c, o) {
+    // a question about one part of the chart: answer from the read, then show it
+    await this.ready();
+    const R = this.read(); if (!R) return this.say('Not enough closed candles to read yet.', o);
+    const st = R.structure, px = v => this.px(v), w = c.what[0];
+    let text = '';
+    if (w === 'structure') {
+      const b = st.lastBreak;
+      text = b ? `${this.whyBreak(b, R)} The latest swings are ${st.lastHigh && st.lastHigh.label ? st.lastHigh.label : 'a first high'} at ${px(st.lastHigh.price)} and ${st.lastLow && st.lastLow.label ? st.lastLow.label : 'a first low'} at ${px(st.lastLow.price)}.`
+        : 'No candle has closed beyond a confirmed swing yet, so there is no break of structure and no trend to follow.';
+    } else if (w === 'zones') {
+      const a = R.near.above, b = R.near.below;
+      text = [a ? `Resistance ${this.span(a.lo, a.hi)}, ${a.touches} touches.` : 'No resistance above the price.', b ? `Support ${this.span(b.lo, b.hi)}, ${b.touches} touches.` : 'No support below the price.', R.near.inside ? 'Price is inside a zone right now.' : ''].join(' ');
+    } else if (w === 'liquidity') {
+      text = R.equal.length ? R.equal.map(e => `Equal ${e.type}s at ${px(e.price)}: stops may rest just ${e.type === 'high' ? 'above' : 'below'}.`).join(' ') : 'No equal highs or lows on this chart.';
+      if (st.lastSweep) text += ` The last sweep went ${st.lastSweep.dir === 'up' ? 'above' : 'below'} ${px(st.lastSweep.level)} at ${this.when(st.lastSweep.time)} and closed back inside.`;
+      text += ' This is read from the chart\'s shape only.';
+    } else if (w === 'fib') {
+      const f = R.impulse;
+      text = f ? `The last ${f.dir} leg ran from ${px(f.from.price)} to ${px(f.to.price)}. It is ${this.depthText(this.depth(R))}. The 50 percent level is ${px(f.levels['0.5'])} and 61.8 percent is ${px(f.levels['0.618'])}.` : 'There is no completed leg to measure yet.';
+    } else if (w === 'candles') {
+      text = R.candles.slice(-3).map(k => this.candleWhy(k)).join(' ');
+    } else if (w === 'invalidation') {
+      text = `${st.lowBelow ? `A buy idea is wrong below the last swing low, ${px(st.lowBelow.price)}.` : 'There is no swing low below the price.'} ${st.highAbove ? `A sell idea is wrong above the last swing high, ${px(st.highAbove.price)}.` : 'There is no swing high above the price.'}`;
+    }
+    if (R.forming) text += ' The current candle is not counted until it closes.';
+    if (!this.src().replay) { const p = this.place(this.specs(R, [w])); if (p.drawn && p.drawn.length) { text += ` I marked it on the chart.`; this.peek(); } }
+    else REPLAY.analyze(null, true);
+    return this.say(text, o);
+  },
+  whyCmd(o) {
+    const dm = this.dm(), sel = typeof DT !== 'undefined' ? DT.selectedId() : null, d = sel && dm ? dm.get(sel) : null;
+    if (d && this.mine(d)) { this.shownWhy = d.id; this.renderPanel(); return this.say(`${d.aria.label || d.name.replace(/^ARIA · /, '')}: ${d.aria.why}`, o); }
+    if (d) return this.say('That drawing is yours, not mine, so I can\'t tell you why it is there. Tap one of my drawings, the ones named ARIA, and ask again.', o);
+    const mine = this.ours();
+    if (!mine.length) return this.say('I have not drawn anything on this chart. Say "analyze the chart" and I will.', o);
+    this.setMode('analyze', true);
+    return this.say(`I have ${mine.length} drawing${mine.length === 1 ? '' : 's'} here: ${mine.slice(0, 6).map(x => (x.aria && x.aria.label) || x.name.replace(/^ARIA · /, '')).join(', ')}. Tap one and ask me why, or pick it from the list.`, o);
+  },
+  focus(id) {
+    const dm = this.dm(), d = dm && dm.get(id); if (!d) return;
+    try { dm.select([id]); } catch (_) {}
+    this.shownWhy = id; this.renderPanel();
+    this.say(`${(d.aria && d.aria.label) || d.name}: ${(d.aria && d.aria.why) || ''}`);
+  },
+  clearCmd(o) {
+    const n = this.clear();
+    return this.say(n ? `Removed my ${n} drawing${n === 1 ? '' : 's'}. Yours are untouched.` : 'There were none of my drawings to remove. Yours are untouched.', o);
+  },
+  define(c, o) {
+    const t = CP_TERMS[c.term];
+    const L = CP_LESSONS.find(x => x.id === t[3]);
+    this.lesson = L.id; this.quiz = null; this.setMode('learn', true);
+    return this.say(`${t[2]} Say "show me" to see it on this chart, or "quiz me".`, o);
+  },
+
+  /* ── learn ── */
+  openLesson(id, o) {
+    const L = CP_LESSONS.find(x => x.id === id) || this.nextLesson();
+    this.lesson = L.id; this.quiz = null;
+    const d = this.load(), rec = d.lessons[L.id] || (d.lessons[L.id] = { seen: 0, right: 0, wrong: 0 });
+    rec.seen++; rec.last = Date.now(); this.save(d);
+    this.setMode('learn', true);
+    return this.say(`${L.title}. ${L.body[0]} ${L.body[1]} Say "show me" to see it on this chart, or "quiz me".`, o);
+  },
+  nextLesson() { const d = this.load(); return CP_LESSONS.find(L => !(d.lessons[L.id] && d.lessons[L.id].right)) || CP_LESSONS[0]; },
+  async showMe(o) {
+    const L = CP_LESSONS.find(x => x.id === this.lesson) || this.nextLesson();
+    this.lesson = L.id;
+    return this.topic({ what: [L.draw] }, o);
+  },
+  quizFor(id, R) {
+    const st = R ? R.structure : null, px = v => this.px(v), rot = R ? Math.floor(R.last.time / TA.tfSec(this.src().tf)) : 0;
+    const mk = (q, opts, correct, why) => {
+      const k = opts.length, r = rot % k, order = opts.map((_, i) => (i + r) % k);
+      return { q, options: order.map(i => opts[i]), answer: order.indexOf(correct), why };
+    };
+    if (id === 'structure') {
+      const opts = ['Uptrend: higher high and higher low', 'Downtrend: lower high and lower low', 'Mixed: no clear trend'];
+      if (st && st.sequence !== 'unknown') return mk('Look at the last two swing highs and lows on this chart. What is the structure?', opts, { up: 0, down: 1, mixed: 2 }[st.sequence],
+        `The last swing high is ${st.lastHigh.label} at ${px(st.lastHigh.price)} and the last swing low is ${st.lastLow.label} at ${px(st.lastLow.price)}.`);
+      return mk('A market makes a higher high, then a higher low. What is the structure?', opts, 0, 'Higher highs with higher lows are the definition of an uptrend.');
+    }
+    if (id === 'bos') {
+      const b = st && st.lastBreak;
+      if (b) {
+        const opts = [['BOS', 'up'], ['CHOCH', 'up'], ['BOS', 'down'], ['CHOCH', 'down']].map(([t, d]) => `${t} ${d === 'up' ? 'upward' : 'downward'} at ${px(b.level)}`);
+        return mk('What was the most recent break on this chart?', opts, ['BOS', 'CHOCH'].indexOf(b.type) + (b.dir === 'down' ? 2 : 0), this.whyBreak(b, R));
+      }
+      return mk('Price is in an uptrend. A candle closes below the last swing low. What is that?', ['A break of structure (BOS)', 'A change of character (CHOCH)', 'A sweep'], 1,
+        'It is the first close against the uptrend: a change of character. A sweep would close back above the low.');
+    }
+    if (id === 'zones') {
+      const a = R && R.near.above, b = R && R.near.below, zt = z => this.span(z.lo, z.hi);
+      if (a) return mk('Where is the nearest resistance above the price?', [zt(a), b ? zt(b) : `${px(R.price - R.atr * 3)} to ${px(R.price - R.atr * 2.5)}`, 'There is none above'], 0,
+        `Resistance is the zone above the price where it turned down before: ${zt(a)}, ${a.touches} touches.`);
+      if (b) return mk('Is there any resistance above the price on this chart?', ['No: price is above every zone', `Yes, at ${zt(b)}`, 'Yes, at the last candle\'s high'], 0,
+        `The only nearby zone, ${zt(b)}, is below the price: that makes it support, not resistance.`);
+      return mk('Several swing highs formed at the same price. What is that area?', ['Resistance', 'Support', 'Liquidity only'], 0, 'Highs where price turned down more than once form resistance.');
+    }
+    if (id === 'liquidity') {
+      const e = R && R.equal[0];
+      if (e) return mk(`There are equal ${e.type}s at ${px(e.price)}. What might rest just ${e.type === 'high' ? 'above' : 'below'} them?`,
+        ['Stop orders: a possible pool of liquidity', 'A guaranteed reversal', 'Nothing: equal levels mean nothing'], 0,
+        'Obvious levels collect stops. It is a possibility, inferred from the chart\'s shape, never a guarantee.');
+      return mk('A wick goes above a swing high, but the candle closes back below it. What is that?', ['A sweep: the stops were taken, the level held', 'A break of structure', 'A change of character'], 0,
+        'Only a close beyond the level breaks it. A wick through it that closes back inside is a sweep.');
+    }
+    if (id === 'invalidation') {
+      const lo = st && st.lowBelow;
+      if (lo && st.highAbove) {
+        const inside = Math.max(lo.price + (R.price - lo.price) / 3, R.price - R.atr * 0.5);
+        return mk(`You want to buy at ${px(R.price)}. Where is the idea proven wrong?`,
+          [`Just below the last swing low, ${px(lo.price - R.atr * 0.2)}`, `Close under the entry, ${px(inside)}`, `Above the last swing high, ${px(st.highAbove.price)}`], 0,
+          `The buy rests on the higher low at ${px(lo.price)}. Only a close below it breaks the structure; a stop above it sits inside normal movement, and a level above the entry is on the wrong side.`);
+      }
+      return mk('Where does the stop for a buy belong?', ['Just beyond the price that proves the idea wrong', 'A fixed 20 points under the entry', 'Wherever keeps the loss small'], 0,
+        'The structure decides the stop; the position size makes the loss fit your 1 percent.');
+    }
+    if (id === 'fib') {
+      const d = R ? this.depth(R) : null;
+      const opts = ['Shallow: under 38.2 percent', 'Between 38.2 and 61.8 percent', 'Between 61.8 and 78.6 percent', 'Deeper than 78.6 percent'];
+      if (d != null && d >= 0 && d <= 1) return mk(`How deep is the current pullback into the last ${R.impulse.dir} leg?`, opts, d < 0.382 ? 0 : d <= 0.618 ? 1 : d <= 0.786 ? 2 : 3,
+        `The leg ran from ${px(R.impulse.from.price)} to ${px(R.impulse.to.price)}; price at ${px(R.price)} is ${Math.round(d * 100)} percent back into it.`);
+      return mk('Which retracement area do many traders watch for entries with the trend?', ['50 to 61.8 percent', 'Under 10 percent', 'Beyond 100 percent'], 0, 'The 50 to 61.8 percent area is the classic pullback zone. It is a ruler, not a signal.');
+    }
+    if (id === 'candles') {
+      const k = R && R.candles[R.candles.length - 1];
+      const opts = ['Indecision: a tiny body (doji)', 'Buyers in control: closed near its high', 'Sellers in control: closed near its low', 'Rejection: a long wick, closed away from its extreme'];
+      if (k) {
+        const ans = k.bodyPct < 10 ? 0 : k.dir === 'up' && k.closeAt >= 67 ? 1 : k.dir === 'down' && k.closeAt <= 33 ? 2 : 3;
+        return mk('Describe the last CLOSED candle on this chart.', opts, ans, this.candleWhy(k));
+      }
+      return mk('A candle opens and closes at almost the same price. What does it show?', opts, 0, 'A doji: neither side won the candle.');
+    }
+    return null;
+  },
+  async quizMe(c, o) {
+    await this.ready();
+    const id = (c && c.lesson) || this.lesson || this.nextLesson().id;
+    this.lesson = id;
+    const q = this.quizFor(id, this.read());
+    if (!q) return this.say('I have no quiz for that yet.', o);
+    this.quiz = Object.assign({ lesson: id, done: false }, q);
+    this.setMode('learn', true);
+    return this.say(`${q.q} ${q.options.map((t, i) => `${'ABCD'[i]}: ${t}.`).join(' ')} Say A, B${q.options.length > 2 ? ', C' : ''}${q.options.length > 3 ? ' or D' : ''}, or tap it.`, Object.assign({ ask: true }, o));
+  },
+  answer(i, o) {
+    const q = this.quiz;
+    if (!q || q.done) return this.say('There is no question waiting. Say "quiz me".', o);
+    if (!(i >= 0 && i < q.options.length)) return this.say(`Pick one of ${q.options.map((_, j) => 'ABCD'[j]).join(', ')}.`, Object.assign({ ask: true }, o));
+    const right = i === q.answer, d = this.load(), rec = d.lessons[q.lesson] || (d.lessons[q.lesson] = { seen: 1, right: 0, wrong: 0 });
+    rec[right ? 'right' : 'wrong']++; rec.last = Date.now(); this.save(d);
+    q.done = true; q.picked = i;
+    this.renderPanel();
+    return this.say(`${right ? 'Correct.' : `Not quite: the answer is ${'ABCD'[q.answer]}, ${q.options[q.answer]}.`} ${q.why} Say "show me" to see it on the chart${right ? ', or "next lesson"' : ', or "quiz me" for another'}.`, o);
+  },
+
+  /* ── practice: plan → ORACLE → paper ── */
+  blankPlan() { return { side: 'buy', type: 'market', price: null, stop: null, target: null, reason: '' }; },
+  entryOf(p) {
+    if (p.type !== 'market') return Number.isFinite(p.price) ? p.price : NaN;
+    const q = otQuote(S.sym); if (q.ok) return p.side === 'buy' ? q.ask : q.bid;
+    const c = S.candles[S.candles.length - 1]; return c ? c.close : NaN;
+  },
+  suggestStop(p) {
+    const R = this.read(); if (!R) return null;
+    const st = R.structure, dp = otSpec(S.sym).dp;
+    const sw = p.side === 'buy' ? st.lowBelow : st.highAbove;
+    const v = sw ? (p.side === 'buy' ? sw.price - R.atr * 0.2 : sw.price + R.atr * 0.2) : (p.side === 'buy' ? R.price - R.atr * 1.5 : R.price + R.atr * 1.5);
+    return +v.toFixed(dp);
+  },
+  rrTarget(p, rr) {
+    const e = this.entryOf(p); if (!Number.isFinite(e) || !Number.isFinite(p.stop)) return null;
+    return +(p.side === 'buy' ? e + rr * Math.abs(e - p.stop) : e - rr * Math.abs(e - p.stop)).toFixed(otSpec(S.sym).dp);
+  },
+  score(res) {
+    const n = k => res.items.filter(i => i.kind === k).length;
+    return Math.max(0, 100 - 30 * n('missing') - 25 * n('against') - 5 * n('note'));
+  },
+  async checkPlan(c, o) {
+    if (this.src().replay) return REPLAY.checkCmd(c, o);
+    await this.ready();
+    const p = this.plan || (this.plan = this.blankPlan());
+    if (c) {                                             // a plan said out loud fills the builder
+      if (c.side) p.side = c.side;
+      if (c.type && c.type !== 'market' && Number.isFinite(c.price)) { p.type = 'limit'; p.price = c.price; }
+      const e0 = this.entryOf(p);
+      if (c.stop) { const s = VOICE.stopFrom(S.sym, p.side, c.stop, e0); if (s != null) p.stop = +s; }
+      if (c.target) {
+        const risk = Number.isFinite(p.stop) ? Math.abs(e0 - p.stop) : NaN;
+        const t = c.target.rr != null ? (Number.isFinite(risk) ? (p.side === 'buy' ? e0 + c.target.rr * risk : e0 - c.target.rr * risk) : null)
+          : c.target.price != null ? c.target.price : (p.side === 'buy' ? e0 + VOICE.distToPrice(S.sym, c.target) : e0 - VOICE.distToPrice(S.sym, c.target));
+        if (t != null) p.target = +(+t).toFixed(otSpec(S.sym).dp);
+      }
+      if (c.reason) p.reason = c.reason;
+    }
+    const entry = this.entryOf(p);
+    if (!Number.isFinite(entry)) return this.say(`I don't have a price for ${VOICE.name(S.sym)} yet, so I can't check a plan.`, o);
+    const R = this.read(), H = await this.htf();
+    const res = ORACLE.check({ side: p.side, entry, stop: Number.isFinite(p.stop) ? p.stop : NaN, target: Number.isFinite(p.target) ? p.target : NaN, sym: S.sym, synthetic: this.synthetic(S.sym) }, R, H);
+    this.check = Object.assign({ at: Date.now(), entry, plan: Object.assign({}, p) }, res);
+    this.decision = this.logDecision({ source: 'practice', sym: S.sym, tf: S.tf, side: p.side, entry, stop: p.stop, target: p.target, reason: p.reason }, res);
+    this.setMode('practice', true);
+    const order = ['against', 'missing', 'note'];
+    const top = res.items.filter(i => i.kind !== 'ok').sort((a, b) => order.indexOf(a.kind) - order.indexOf(b.kind)).slice(0, 3).map(i => i.text);
+    const okN = res.items.filter(i => i.kind === 'ok').length;
+    return this.say(`ORACLE says ${res.status.toLowerCase()}. ${res.meaning} ${top.join(' ')}${okN ? ` ${okN} check${okN === 1 ? '' : 's'} passed.` : ''} Process score ${this.score(res)}.`
+      + (res.status === 'CONTRADICTED' ? ' You can still place it on paper, but it will be logged as overriding ORACLE.' : ' Say "place it" to put it on paper, or change the plan.'), o);
+  },
+  logDecision(x, res) {
+    const d = this.load();
+    const rec = Object.assign({ id: 'd' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5), at: Date.now() }, x, {
+      status: res.status, score: this.score(res), flags: res.flags || {},
+      against: res.items.filter(i => i.kind === 'against').map(i => i.text).slice(0, 4), missing: res.items.filter(i => i.kind === 'missing').length,
+      placed: false, pos: null });
+    // the same unplaced plan checked again replaces its earlier check
+    const prev = d.decisions[d.decisions.length - 1];
+    if (prev && !prev.placed && prev.source === x.source && prev.sym === x.sym && prev.side === x.side && Date.now() - prev.at < 10 * 60 * 1000 && x.source === 'practice') d.decisions[d.decisions.length - 1] = Object.assign(rec, { id: prev.id });
+    else d.decisions.push(rec);
+    this.save(d);
+    return rec.id;
+  },
+  patchDecision(id, patch) {
+    const d = this.load(), r = d.decisions.find(x => x.id === id); if (!r) return;
+    Object.assign(r, patch); this.save(d);
+  },
+  async placePlan(o) {
+    if (VOICE.mt5()) return this.say('Practice trades go on paper only, and your orders are going to MT5 right now. Switch to the paper account first.', o);
+    if (!this.check || !this.decision) return this.say('Check the plan with ORACLE first: say "check my plan".', o);
+    const p = this.check.plan;
+    if (!Number.isFinite(p.stop)) return this.say('Your rules need a stop on every trade. Add one and check again.', o);
+    const chk = this.check, decision = this.decision;
+    setRTab('trade', null);
+    OT.setSide(p.side); OT.setType(p.type === 'market' ? 'market' : 'limit');
+    if (p.type !== 'market') { TK.price = p.price; const el = document.getElementById('otPrice'); if (el) el.value = otFmtPx(S.sym, p.price); }
+    await VOICE.buildOrder({ side: p.side, type: p.type, price: p.price, stopPrice: p.stop, target: Number.isFinite(p.target) ? { price: p.target } : null }, o);
+    const pend = VOICE.pending;
+    if (pend && pend.kind === 'order') {
+      pend.title = 'Practice · ' + pend.title;
+      pend.rows.push(['ORACLE', `${chk.status} · process ${this.score(chk)}`]);
+      const run0 = pend.run;
+      pend.run = async () => {
+        const before = new Set(TR.positions.map(x => x.id)), beforeO = new Set(TR.orders.map(x => x.id));
+        const r = await run0();
+        const np = TR.positions.find(x => !before.has(x.id)), no = TR.orders.find(x => !beforeO.has(x.id));
+        if (np || no) { this.patchDecision(decision, { placed: true, pos: np ? np.id : null, order: no ? no.id : null, overrode: chk.status === 'CONTRADICTED' }); this.check = null; this.decision = null; this.renderPanel(); }
+        return r;
+      };
+      VOICE.renderCard();
+    }
+  },
+  outcome(r) {
+    if (r.source === 'replay') return Number.isFinite(r.outcomeR) ? r.outcomeR : null;
+    if (!r.placed || r.pos == null) return null;
+    if (TR.positions.some(p => p.id === r.pos)) return 'open';
+    const ts = (S.trades || []).filter(t => t.id === r.pos);
+    if (!ts.length || !ts.some(t => t.final)) return null;
+    const pnl = ts.reduce((a, t) => a + (t.pnl || 0), 0), risk = ts[0].risk0;
+    return risk > 0 ? +(pnl / risk).toFixed(2) : null;
+  },
+  quadrant(r, R) {
+    if (R == null || R === 'open') return null;
+    const good = r.status === 'SUPPORTED', win = R > 0;
+    return good && win ? 'earned win' : good ? 'good loss' : win ? 'lucky win' : 'warned loss';
+  },
+  dna() {
+    const d = this.load(), all = d.decisions, placed = all.filter(r => r.placed);
+    const pct = (a, f) => { const xs = a.filter(r => r.flags && r.flags[f] != null); return xs.length ? Math.round(xs.filter(r => r.flags[f]).length / xs.length * 100) : null; };
+    const q = { 'earned win': 0, 'good loss': 0, 'lucky win': 0, 'warned loss': 0 };
+    let closed = 0;
+    for (const r of placed) { const k = this.quadrant(r, this.outcome(r)); if (k) { q[k]++; closed++; } }
+    const avg = placed.length ? Math.round(placed.reduce((a, r) => a + r.score, 0) / placed.length) : null;
+    const rrs = all.map(r => r.flags && r.flags.rr).filter(Number.isFinite);
+    return { checked: all.length, placed: placed.length, avg, stopBeyond: pct(all, 'stopBeyond'), withTrend: pct(all, 'withTrend'),
+             rr: rrs.length ? +(rrs.reduce((a, b) => a + b, 0) / rrs.length).toFixed(1) : null, overrode: placed.filter(r => r.overrode).length, q, closed, recent: all.slice(-5).reverse() };
+  },
+  dnaText() {
+    const x = this.dna();
+    if (!x.checked) return 'Your Decision DNA is empty. Build a plan in Practice, check it with ORACLE and place it on paper, and I will start scoring your process.';
+    const parts = [`You have checked ${x.checked} plan${x.checked === 1 ? '' : 's'} and placed ${x.placed}.`];
+    if (x.avg != null) parts.push(`The plans you placed average a process score of ${x.avg}.`);
+    if (x.stopBeyond != null) parts.push(`Your stop was beyond the structure ${x.stopBeyond} percent of the time.`);
+    if (x.withTrend != null) parts.push(`You traded with the structure ${x.withTrend} percent of the time.`);
+    if (x.rr != null) parts.push(`Your planned reward averages ${x.rr} times the risk.`);
+    if (x.overrode) parts.push(`You placed ${x.overrode} plan${x.overrode === 1 ? '' : 's'} ORACLE contradicted.`);
+    if (x.closed) parts.push(`Of ${x.closed} finished: ${Object.entries(x.q).filter(([, n]) => n).map(([k, n]) => `${n} ${k}${n === 1 ? '' : k.endsWith('s') ? 'es' : 's'}`).join(', ')}.`);
+    parts.push('Judge yourself by the process. A good loss is a good trade; a lucky win is a habit to break.');
+    return parts.join(' ');
+  },
+
+  /* ── understanding what was said ── */
+  parse(t, out, side) {
+    const has = re => re.test(t), words = t.trim().split(' ').filter(Boolean);
+    const cp = (intent, x) => Object.assign({ cp: true, intent }, out, x || {});
+    // a quiz answer
+    if (this.quiz && !this.quiz.done && words.length <= 4) {
+      const m = t.match(/^ (?:(?:option|answer|its|it is|i think|i say) )?(?:(a|b|c|d)|the (first|second|third|fourth)(?: one)?|(1|2|3|4)) $/);
+      if (m) return cp('answer', { pick: m[1] ? 'abcd'.indexOf(m[1]) : m[2] ? ['first', 'second', 'third', 'fourth'].indexOf(m[2]) : +m[3] - 1 });
+    }
+    // replay controls come first while a replay runs: "buy" plans a replay trade, never a real one
+    if (typeof REPLAY !== 'undefined' && REPLAY.active) {
+      let m;
+      if (has(/\b(?:end|exit|quit|close|stop|leave) (?:the )?replay\b/)) return cp('rp_exit');
+      if ((m = t.match(/\b(?:next|step|forward|skip|advance|go)(?: (?:forward|ahead))?(?: (\d+))?(?: candles?| bars?)?\b/)) && has(/\b(?:next|step|forward|skip|advance|candles?|bars?)\b/) && !side) return cp('rp_step', { n: m[1] ? Math.min(50, +m[1]) : 1 });
+      if (has(/^ (?:play|resume|continue|keep going|go|run|start)(?: (?:it|the replay|replay))? $/)) return cp('rp_play');
+      if (has(/^ (?:pause|stop|hold|wait|freeze|hold on)(?: (?:it|the replay|replay|there))? $/)) return cp('rp_pause');
+      if (has(/\b(?:close|exit|get out of) (?:the |my )?(?:trade|position)\b/)) return cp('rp_close');
+      if (has(/\b(?:take (?:it|the trade)|enter(?: it| now| the trade)?|place it|go ahead)\b/) && REPLAY.planning()) return cp('rp_take');
+      if (side && !has(/\bshould i\b/)) return cp('rp_plan', { side, stop: vxStop(t), target: vxTarget(t) });
+      if (has(/\b(?:check|challenge|review|grade|test)\b.*\b(?:plan|trade|idea)\b|\boracle\b/)) return cp('rp_check', { stop: vxStop(t), target: vxTarget(t) });
+    }
+    if (has(/\b(?:start|open|begin|launch|do|try)(?: a| the)? (?:bar )?replay\b|\breplay (?:mode|this|the chart|it)\b|^ replay $|\bbar replay\b/)) return cp('rp_start');
+    // modes
+    if (has(/\b(?:analy[sz]e|analysis) mode\b/)) return cp('mode', { mode: 'analyze' });
+    if (has(/\b(?:learn|learning|lesson|teach) mode\b|\bmode learn\b/)) return cp('mode', { mode: 'learn' });
+    if (has(/\bpractice(?: mode)?\b|\bplan builder\b/) && !side) return cp('mode', { mode: 'practice' });
+    if (has(/\b(?:talk|voice|normal) mode\b/)) return cp('mode', { mode: 'talk' });
+    // drawings
+    if (has(/\b(?:clear|remove|delete|erase|wipe|clean|get rid of)\b/) && has(/\b(?:arias?|your|copilot|ai|analysis|drawings?|lines|markings?|marks|objects|chart)\b/) && !has(/\b(?:stop|target|order|trade|position)s?\b/)) return cp('clear');
+    if (has(/\bwhy\b/) && has(/\b(?:draw|drew|drawn|drawing|line|box|label|mark(?:ed)?|object)\b/)) return cp('why');
+    if (has(/^ why(?: (?:this|that|this one|that one|is this here|is that here|is it there|is this there))? $/) && (DT.selectedId && DT.selectedId() || this.ours().length)) return cp('why');
+    if (has(/\bexplain (?:this|that|the selected) (?:drawing|line|box|zone|label|one)\b/)) return cp('why');
+    // a plan to challenge
+    if (has(/\b(?:check|challenge|review|grade|judge|critique|stress test|rate|score)\b(?: (?:my|this|the|a))?(?: (?:trade|buy|sell))? (?:plan|idea|setup|trade)\b|\b(?:ask|check with|run) (?:the )?oracle\b|\boracle (?:check|this)\b|\bwhat does oracle (?:say|think)\b|\bis (?:this|my|that) (?:a )?(?:good |valid )?(?:plan|trade idea|idea|setup)\b/)) {
+      const o = cp('plan', { side, stop: vxStop(t), target: vxTarget(t), type: 'market' });
+      const m = t.match(new RegExp(`\\b(?:limit|entry|enter|buy at|sell at|in at)(?: (?:at|@))? ${VX_N}\\b`)); if (m) { o.type = 'limit'; o.price = +m[1]; }
+      return o;
+    }
+    if (has(/\b(?:place|put|send) (?:it|the plan|my plan|that)(?: on paper)?\b|\bplace (?:the )?(?:practice )?trade\b/) && this.check) return cp('place');
+    if (has(/\b(?:decision dna|dna|my process|process score|my decisions)\b/)) return cp('dna');
+    if (has(/\b(?:suggest|find|where should|where would|give me) (?:me )?(?:a |the |my )?stop\b/)) return cp('suggest_stop', { side });
+    // learning
+    const termAt = this.termIn(t);
+    if (termAt && has(/\b(?:what (?:is|s|are|does)|whats|meaning of|define|definition of|explain what|tell me about|whats an?)\b/) && !has(/\b(?:the|this|my|current|nearest|next|where)\b (?:\w+ )?(?:structure|support|resistance|zones?|liquidity|fib|trend|candles?)\b/)) return cp('define', { term: termAt.i });
+    if (has(/\b(?:quiz|test) me\b|\bquiz\b|\bgive me (?:a |an )?(?:question|exercise)\b/)) return cp('quiz', { lesson: termAt ? CP_TERMS[termAt.i][3] : null });
+    if (has(/\bnext lesson\b/)) return cp('lesson', { lesson: null, next: true });
+    if (has(/\b(?:teach me|lesson|learn|tutorial|course|train me)\b/)) return cp('lesson', { lesson: termAt ? CP_TERMS[termAt.i][3] : null });
+    if (has(/^ show me(?: (?:it|that|on the chart|on this chart|here))? $/) && this.lesson) return cp('showme');
+    // the chart, read and drawn
+    if (has(/\b(?:analy[sz]e|analysis|read (?:the|this|my) chart|break ?down (?:the|this) chart|what do you see|mark (?:up )?(?:the|this|my) chart|mark ?up|full read)\b/)) return cp('analyze', { tf: vxTimeframe(t) });
+    const what = [];
+    if (has(/\b(?:market )?structure\b|\bbos\b|\bbreak of structure\b|\bchoch\b|\bchange of character\b|\bhigher highs?\b|\blower lows?\b|\bswings?\b/)) what.push('structure');
+    if (has(/\b(?:support|resistance|zones?|key levels?|supply|demand)\b/)) what.push('zones');
+    if (has(/\b(?:liquidity|equal highs?|equal lows?|stop hunts?|sweeps?|swept)\b/)) what.push('liquidity');
+    if (has(/\b(?:fib|fibs|fibonacci|retracement|golden (?:zone|pocket)|pullback)\b/)) what.push('fib');
+    if (has(/\b(?:invalidation|invalidated|where (?:is|would) (?:my|the|a) (?:idea|trade|buy|sell) (?:be )?wrong)\b/)) what.push('invalidation');
+    if (has(/\b(?:candles?|candlesticks?|doji|wicks?)\b/) && !has(/\b(?:next|forward|skip)\b/)) what.push('candles');
+    if (what.length && has(/\b(?:draw|mark|plot|highlight|show(?: me)?|put)\b/)) return cp('draw', { what });
+    if (what.length && !side && (has(/\b(?:where|what|whats|how|is|are|explain|read|tell me|any)\b/) || words.length <= 3)) return cp('topic', { what });
+    return null;
+  },
+  termIn(t) {
+    if (!this._termRe) {
+      const alts = [];
+      CP_TERMS.forEach((row, i) => row[0].forEach(a => alts.push([a, i])));
+      alts.sort((a, b) => b[0].length - a[0].length);
+      this._termAlts = alts;
+      this._termRe = new RegExp(`\\b(${alts.map(a => a[0].replace(/ /g, ' ')).join('|')})\\b`);
+    }
+    const m = t.match(this._termRe); if (!m) return null;
+    return { i: this._termAlts.find(a => a[0] === m[1])[1], word: m[1] };
+  },
+  async run(c, o) {
+    o = o || {};
+    const r = (text, x) => this.say(text, Object.assign({ spoken: o.spoken }, x || {}));
+    switch (c.intent) {
+      case 'mode': this.setMode(c.mode, true); return r({ talk: 'Back to talk mode.', analyze: 'Analyze mode. Say "analyze the chart", or ask about structure, zones, liquidity or the fib.', learn: `Learn mode. ${this.lessonsLine()}`, practice: 'Practice mode. Build a plan below, or say one: "check my plan, buy, stop 43800, target 2 to 1".' }[c.mode] || 'Okay.');
+      case 'analyze': return this.analyze(c, o);
+      case 'draw': return this.drawCmd(c, o);
+      case 'topic': return this.topic(c, o);
+      case 'why': return this.whyCmd(o);
+      case 'clear': return this.clearCmd(o);
+      case 'define': return this.define(c, o);
+      case 'lesson': return this.openLesson(c.next ? this.nextAfter(this.lesson) : c.lesson, o);
+      case 'quiz': return this.quizMe(c, o);
+      case 'answer': return this.answer(c.pick, o);
+      case 'showme': return this.showMe(o);
+      case 'plan': return this.checkPlan(c, o);
+      case 'place': return this.placePlan(o);
+      case 'dna': this.setMode('practice', true); return r(this.dnaText());
+      case 'suggest_stop': {
+        const p = this.plan || (this.plan = this.blankPlan()); if (c.side) p.side = c.side;
+        const s = this.suggestStop(p); if (s == null) return r('Not enough candles to find a swing yet.');
+        p.stop = s; this.setMode('practice', true);
+        return r(`For a ${p.side}, the stop goes just ${p.side === 'buy' ? 'below the last swing low' : 'above the last swing high'}: ${this.px(s)}. That is where the idea is proven wrong.`);
+      }
+      case 'rp_start': return REPLAY.start(o);
+      case 'rp_exit': REPLAY.exit(); return r('Replay closed. You are back on the live chart.');
+      case 'rp_step': return REPLAY.step(c.n, o);
+      case 'rp_play': REPLAY.play(); return r('Playing.');
+      case 'rp_pause': REPLAY.pause(); return r('Paused.');
+      case 'rp_plan': return REPLAY.planFor(c.side, o, c);
+      case 'rp_check': return REPLAY.checkCmd(c, o);
+      case 'rp_take': return REPLAY.take(o);
+      case 'rp_close': return REPLAY.closeTrade(o);
+    }
+    return r('Okay.');
+  },
+  nextAfter(id) { const i = CP_LESSONS.findIndex(L => L.id === id); return CP_LESSONS[(i + 1) % CP_LESSONS.length].id; },
+  lessonsLine() { const d = this.load(), done = CP_LESSONS.filter(L => d.lessons[L.id] && d.lessons[L.id].right).length; return `${done} of ${CP_LESSONS.length} lessons done. Next: ${this.nextLesson().title}. Say "teach me", or pick one below.`; },
+
+  /* ── the panel inside the voice sheet ── */
+  // on a phone the sheet would cover the chart: after drawing, shrink it to the last answer
+  peek() { if (window.innerWidth <= 820 && typeof VOICE !== 'undefined') VOICE.toggleMin(true); },
+  setMode(m, keep) {
+    if (!['talk', 'analyze', 'learn', 'practice', 'replay'].includes(m)) m = 'talk';
+    if (typeof VOICE !== 'undefined') VOICE.toggleMin(false);
+    if (m !== 'learn') this.quiz = null;          // a quiz belongs to Learn: leaving it drops the question
+    this.mode = m;
+    if (m === 'practice' && !this.plan) this.plan = this.blankPlan();
+    this.renderModes(); this.renderPanel();
+    if (typeof VOICE !== 'undefined') VOICE.renderChips();
+  },
+  chips() {
+    if (typeof REPLAY !== 'undefined' && REPLAY.active) return REPLAY.planning() ? ['Take it', 'Check my plan', 'Next candle'] : ['Next candle', 'Forward 5', 'Analyze here', 'Buy here', 'Sell here', 'End replay'];
+    if (this.quiz && !this.quiz.done) return this.quiz.options.map((_, i) => 'ABCD'[i]);
+    return { talk: null,
+      analyze: ['Analyze this chart', 'Why did you draw this?', 'Where is the liquidity?', 'Draw the fib', "Clear ARIA's drawings"],
+      learn: ['Teach me', 'Quiz me', 'Show me', 'What is a CHOCH?', 'Next lesson'],
+      practice: ['Check my plan', 'Suggest a stop', 'Place it', 'My Decision DNA'],
+      replay: ['Start replay'] }[this.mode] || null;
+  },
+  renderModes() {
+    const box = document.getElementById('cpModes'); if (!box) return;
+    const ms = [['talk', 'Talk'], ['analyze', 'Analyze'], ['learn', 'Learn'], ['practice', 'Practice'], ['replay', 'Replay']];
+    box.innerHTML = ms.map(([k, l]) => `<button type="button" class="cp-mode${this.mode === k ? ' on' : ''}" data-mode="${k}" onclick="COPILOT.setMode('${k}')">${l}</button>`).join('');
+    document.querySelector('#vxSheet .vx-sheet')?.classList.toggle('cp-on', this.mode !== 'talk');
+    document.getElementById('vxSheet')?.classList.toggle('cp-see', this.mode !== 'talk');
+  },
+  renderPanel() {
+    const box = document.getElementById('cpPanel'); if (!box) return;
+    if (this.mode === 'talk') { box.hidden = true; box.innerHTML = ''; return; }
+    box.hidden = false;
+    box.innerHTML = this['panel_' + this.mode]();
+  },
+  row(k, v) { return `<div class="cp-row"><span>${this.esc(k)}</span><b>${this.esc(v)}</b></div>`; },
+  panel_analyze() {
+    const L = this.last && this.last.sym === S.sym && this.last.tf === S.tf ? this.last : null, mine = this.ours();
+    const sel = this.shownWhy && mine.find(d => d.id === this.shownWhy);
+    return `<div class="cp-h">${L ? `Chart read · ${this.esc(VOICE.name(S.sym))} · ${this.esc(S.tf)}` : 'Read the chart'}</div>
+      ${L ? L.rows.map(([k, v]) => this.row(k, v)).join('') : '<div class="cp-x">ARIA reads structure, zones, liquidity and the last move from the closed candles, then draws them with the reason for each.</div>'}
+      <div class="cp-acts"><button type="button" class="cp-btn pri" onclick="VOICE.handle('Analyze this chart')">${L ? 'Read again' : 'Analyze this chart'}</button>
+      ${mine.length ? `<button type="button" class="cp-btn" onclick="VOICE.handle('Clear ARIA\\'s drawings')">Clear ARIA's drawings</button>` : ''}</div>
+      ${mine.length ? `<div class="cp-sub">On the chart · tap for the reason</div><div class="cp-list">${mine.map(d => `<button type="button" class="cp-item${sel && sel.id === d.id ? ' on' : ''}" onclick="COPILOT.focus('${this.esc(d.id)}')"><b>${this.esc((d.aria && d.aria.label) || d.name)}</b>${sel && sel.id === d.id ? `<span>${this.esc(d.aria && d.aria.why)}</span>` : ''}</button>`).join('')}</div>` : ''}`;
+  },
+  panel_learn() {
+    const d = this.load(), q = this.quiz, L = this.lesson && CP_LESSONS.find(x => x.id === this.lesson);
+    if (q) return `<div class="cp-h">Quiz · ${this.esc((CP_LESSONS.find(x => x.id === q.lesson) || {}).title || '')}</div><div class="cp-x"><b>${this.esc(q.q)}</b></div>
+      <div class="cp-opts">${q.options.map((t, i) => `<button type="button" class="cp-opt${q.done ? (i === q.answer ? ' right' : i === q.picked ? ' wrong' : '') : ''}" ${q.done ? 'disabled' : ''} onclick="VOICE.handle('${'ABCD'[i]}')"><i>${'ABCD'[i]}</i>${this.esc(t)}</button>`).join('')}</div>
+      ${q.done ? `<div class="cp-x">${this.esc(q.why)}</div><div class="cp-acts"><button type="button" class="cp-btn" onclick="VOICE.handle('show me')">Show me</button><button type="button" class="cp-btn" onclick="VOICE.handle('quiz me')">Another</button><button type="button" class="cp-btn pri" onclick="VOICE.handle('next lesson')">Next lesson</button></div>` : ''}`;
+    if (L) return `<div class="cp-h"><button type="button" class="cp-back" onclick="COPILOT.lesson=null;COPILOT.renderPanel()" aria-label="All lessons">‹</button>${this.esc(L.title)}</div>
+      ${L.body.map(p => `<p class="cp-p">${this.esc(p)}</p>`).join('')}
+      <div class="cp-acts"><button type="button" class="cp-btn" onclick="VOICE.handle('show me')">Show me on this chart</button><button type="button" class="cp-btn pri" onclick="VOICE.handle('quiz me')">Quiz me</button></div>`;
+    const done = CP_LESSONS.filter(x => d.lessons[x.id] && d.lessons[x.id].right).length;
+    return `<div class="cp-h">Lessons · ${done} of ${CP_LESSONS.length} done</div><div class="cp-list">${CP_LESSONS.map((x, i) => {
+      const r = d.lessons[x.id] || {};
+      return `<button type="button" class="cp-item lesson${r.right ? ' done' : ''}" onclick="COPILOT.openLesson('${x.id}')"><b><i>${r.right ? '✓' : i + 1}</i>${this.esc(x.title)}</b><span>${this.esc(x.short)}</span></button>`; }).join('')}</div>`;
+  },
+  panel_practice() {
+    const p = this.plan || (this.plan = this.blankPlan()), id = S.sym, e = this.entryOf(p), dp = otSpec(id).dp;
+    const v = x => Number.isFinite(x) ? (+x).toFixed(dp) : '';
+    const c = this.check, x = this.dna();
+    const icon = { ok: '✓', note: '•', against: '✕', missing: '?' };
+    const risk = Number.isFinite(p.stop) && Number.isFinite(e) ? Math.abs(e - p.stop) : NaN, rr = Number.isFinite(p.target) && risk ? Math.abs(p.target - e) / risk : NaN;
+    return `<div class="cp-h">Plan a paper trade · ${this.esc(VOICE.name(id))}</div>
+      <div class="cp-seg"><button type="button" class="${p.side === 'buy' ? 'on buy' : ''}" onclick="COPILOT.setPlan('side','buy')">Buy</button><button type="button" class="${p.side === 'sell' ? 'on sell' : ''}" onclick="COPILOT.setPlan('side','sell')">Sell</button>
+        <button type="button" class="${p.type === 'market' ? 'on' : ''}" onclick="COPILOT.setPlan('type','market')">Market</button><button type="button" class="${p.type !== 'market' ? 'on' : ''}" onclick="COPILOT.setPlan('type','limit')">Limit</button></div>
+      <div class="cp-grid">
+        <label>Entry<input type="number" inputmode="decimal" step="any" id="cpEntry" ${p.type === 'market' ? 'disabled' : ''} value="${p.type === 'market' ? v(e) : v(p.price)}" onchange="COPILOT.setPlan('price',this.value)"></label>
+        <label>Stop<input type="number" inputmode="decimal" step="any" id="cpStop" value="${v(p.stop)}" onchange="COPILOT.setPlan('stop',this.value)"></label>
+        <label>Target<input type="number" inputmode="decimal" step="any" id="cpTarget" value="${v(p.target)}" onchange="COPILOT.setPlan('target',this.value)"></label>
+      </div>
+      <div class="cp-acts tight"><button type="button" class="cp-btn sm" onclick="COPILOT.setPlan('stop',COPILOT.suggestStop(COPILOT.plan))">Stop beyond the swing</button><button type="button" class="cp-btn sm" onclick="COPILOT.setPlan('target',COPILOT.rrTarget(COPILOT.plan,2))">Target 2R</button>
+        ${Number.isFinite(rr) ? `<span class="cp-rr">${rr.toFixed(1)} : 1</span>` : ''}</div>
+      <div class="cp-sub">Why this trade?</div><div class="cp-tags">${CP_REASONS.map(t => `<button type="button" class="${p.reason === t ? 'on' : ''}" onclick="COPILOT.setPlan('reason',${this.esc(JSON.stringify(t))})">${this.esc(t)}</button>`).join('')}</div>
+      <div class="cp-acts"><button type="button" class="cp-btn pri" onclick="VOICE.handle('check my plan')">Check with ORACLE</button>${c ? `<button type="button" class="cp-btn" onclick="VOICE.handle('place it on paper')">Place on paper</button>` : ''}</div>
+      ${c ? `<div class="cp-oracle ${c.status.toLowerCase()}"><div class="cp-st"><b>${c.status}</b><span>process ${this.score(c)}</span></div><div class="cp-x">${this.esc(c.meaning)}</div>
+        ${c.items.map(i => `<div class="cp-it ${i.kind}"><i>${icon[i.kind]}</i><span>${this.esc(i.text)}${i.why ? `<small>${this.esc(i.why)}</small>` : ''}</span></div>`).join('')}</div>` : ''}
+      <div class="cp-sub">Decision DNA</div>
+      ${x.checked ? `<div class="cp-dna">${[['Checked', x.checked], ['Placed', x.placed], ['Avg process', x.avg == null ? '—' : x.avg], ['Stop beyond swing', x.stopBeyond == null ? '—' : x.stopBeyond + '%'], ['With structure', x.withTrend == null ? '—' : x.withTrend + '%'], ['Overrode ORACLE', x.overrode]].map(([k, n]) => `<div><b>${this.esc(n)}</b><span>${k}</span></div>`).join('')}</div>
+        <div class="cp-quad">${Object.entries(x.q).map(([k, n]) => `<div class="${k.replace(' ', '-')}"><b>${n}</b><span>${k}</span></div>`).join('')}</div>
+        <div class="cp-list">${x.recent.map(r => { const R = this.outcome(r); return `<div class="cp-dec"><b class="${r.status.toLowerCase()}">${r.status.slice(0, 3)}</b><span>${this.esc(r.side)} ${this.esc(VOICE.name(r.sym))}${r.source === 'replay' ? ' · replay' : ''} · ${r.score}</span><em>${R === 'open' ? 'open' : R == null ? (r.placed ? '' : 'not placed') : (R > 0 ? '+' : '') + R + ' R'}</em></div>`; }).join('')}</div>`
+      : '<div class="cp-x">Each plan you check is logged here and scored for process: stop beyond the structure, reward against risk, with or against the trend. Outcome is kept apart, because a good plan can lose and a bad one can win.</div>'}`;
+  },
+  setPlan(k, val) {
+    const p = this.plan || (this.plan = this.blankPlan());
+    if (k === 'side' || k === 'type' || k === 'reason') p[k] = val;
+    else { const n = parseFloat(val); p[k] = Number.isFinite(n) ? n : null; }
+    if (k === 'type' && val === 'limit' && !Number.isFinite(p.price)) p.price = +this.entryOf(Object.assign({}, p, { type: 'market' })).toFixed(otSpec(S.sym).dp);
+    if (k !== 'reason') this.check = null;          // a changed plan has to be checked again
+    this.renderPanel();
+  },
+  panel_replay() {
+    const d = this.load(), rs = d.decisions.filter(r => r.source === 'replay' && Number.isFinite(r.outcomeR));
+    const net = rs.reduce((a, r) => a + r.outcomeR, 0);
+    if (typeof REPLAY !== 'undefined' && REPLAY.active) {
+      const c = REPLAY.visible().slice(-1)[0];
+      return `<div class="cp-h">Replay running · ${this.esc(VOICE.name(REPLAY.sym()))} · ${this.esc(REPLAY.tf())}</div>
+        <div class="cp-x">At ${this.esc(this.when(c.time))}, ${REPLAY.total() - REPLAY.cursor()} candles still hidden. Say "next candle", "forward 5", "analyze", "buy here" or "sell here".</div>
+        <div class="cp-acts"><button type="button" class="cp-btn" onclick="REPLAY.step(1);COPILOT.renderPanel()">Next candle</button><button type="button" class="cp-btn" onclick="REPLAY.step(5);COPILOT.renderPanel()">+5</button><button type="button" class="cp-btn" onclick="VOICE.handle('end replay')">End replay</button></div>
+        ${rs.length ? `${this.row('Replay trades', rs.length)}${this.row('Net', `${net >= 0 ? '+' : ''}${net.toFixed(1)} R`)}` : ''}`;
+    }
+    return `<div class="cp-h">Chart replay</div>
+      <div class="cp-x">Go back in history and trade it candle by candle. The future stays hidden: ARIA and ORACLE only see the candles you have revealed. Fills are simulated at the next candle's open, stops first when a candle touches both.</div>
+      <div class="cp-acts"><button type="button" class="cp-btn pri" onclick="VOICE.handle('start replay')">Start replay on ${this.esc(VOICE.name(S.sym))} ${this.esc(S.tf)}</button></div>
+      ${rs.length ? `<div class="cp-sub">Your replay trades</div>${this.row('Trades', rs.length)}${this.row('Net', `${net >= 0 ? '+' : ''}${net.toFixed(1)} R`)}${this.row('Process avg', Math.round(rs.reduce((a, r) => a + r.score, 0) / rs.length))}` : ''}`;
+  },
+};
+
+
+/* ════════════════════════════════════════════════════════════
+   REPLAY — trade history candle by candle, with the future hidden
+   The history is held in this closure and only ever handed out as
+   all.slice(0, cur): the chart, TA, ORACLE and the copilot see the candles
+   up to the cursor and nothing after it. A trade is filled at the NEXT
+   candle's open; each new candle is then checked against the stop and the
+   target, the stop first when one candle touches both (the cautious way).
+   Results are in R and logged as decisions with their ORACLE process score.
+════════════════════════════════════════════════════════════ */
+const REPLAY = (() => {
+  let all = [], cur = 0, sym = '', tf = '', sec = 900;
+  let chart = null, series = null, timer = null, speed = 1, plan = null, trade = null, lines = [], marks = null, aLines = [];
+  const el = id => document.getElementById(id);
+  const vis = () => all.slice(0, cur);
+  const last = () => all[cur - 1];
+  const px = v => COPILOT.px(v, sym);           // spoken to a sensible precision; the inputs keep every digit
+  // replies show on the replay screen; a command given to ARIA is also answered out loud
+  const say = (t, o) => { const m = el('rpMsg'); if (m) m.textContent = t; return VOICE.open_ ? VOICE.reply(t, o || {}) : o ? VOICE.say(t) : Promise.resolve(); };
+  const bar = c => ({ time: c.time, open: c.open, high: c.high, low: c.low, close: c.close });
+
+  async function history() {
+    let cd = null;
+    const d = typeof derivSym === 'function' ? derivSym(S.sym) : null;
+    if (d && S.wsConnected && typeof FEEDX !== 'undefined') {
+      try {
+        const m = await Promise.race([
+          FEEDX.request({ ticks_history: d, count: 1000, end: 'latest', granularity: TF_SEC[S.tf] || 900, style: 'candles', adjust_start_time: 1 }, 12000, 2, { key: `replay:${d}:${S.tf}` }),
+          new Promise((_, rej) => setTimeout(() => rej(new Error('slow')), 8000))]);
+        cd = (m.candles || []).map(c => ({ time: +c.epoch, open: +c.open, high: +c.high, low: +c.low, close: +c.close }));
+      } catch (_) { cd = null; }
+    }
+    if (!cd || cd.length < S.candles.length) cd = S.candles.map(bar);
+    return TA.split(cd, S.tf).closed;                 // the forming candle is never replayed
+  }
+  function build() {
+    let w = el('rpWrap');
+    if (!w) {
+      w = document.createElement('div'); w.id = 'rpWrap'; w.className = 'rp-wrap';
+      w.innerHTML = `<header class="rp-head"><span class="rp-badge">REPLAY</span><b id="rpTitle"></b><span class="rp-when" id="rpWhen"></span>
+          <button type="button" class="rp-x rp-new" onclick="REPLAY.restart()" title="Start again somewhere else in history" aria-label="New random start">⟲</button>
+          <button type="button" class="rp-x" onclick="REPLAY.exit();showToast('Replay closed. Back on the live chart.',2600)">Exit</button></header>
+        <div class="rp-msg" id="rpMsg" aria-live="polite"></div>
+        <div class="rp-chart" id="rpChart"></div>
+        <div class="rp-info" id="rpInfo"></div>
+        <div class="rp-plan" id="rpPlan" hidden></div>
+        <div class="rp-bar">
+          <button type="button" id="rpPlay" onclick="REPLAY.toggle()" aria-label="Play">▶</button>
+          <button type="button" onclick="REPLAY.step(1)">+1</button><button type="button" onclick="REPLAY.step(5)">+5</button>
+          <button type="button" id="rpSpeed" onclick="REPLAY.cycleSpeed()">1×</button>
+          <span class="rp-sp"></span>
+          <button type="button" onclick="REPLAY.analyze()">Analyze</button>
+          <button type="button" class="buy" onclick="REPLAY.planFor('buy')">Buy</button><button type="button" class="sell" onclick="REPLAY.planFor('sell')">Sell</button>
+          <button type="button" class="rp-mic" onclick="VOICE.open(true)" aria-label="Talk to ARIA"><svg viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0014 0M12 18v3"/></svg></button>
+        </div>`;
+      document.body.appendChild(w);
+    }
+    w.classList.add('open');
+    if (!chart) {
+      const p = CH.palette();
+      chart = LWC.createChart(el('rpChart'), {
+        autoSize: true,
+        layout: { background: { type: 'solid', color: p.bg }, textColor: p.text, fontFamily: "'JetBrains Mono','Inter',monospace", fontSize: 10 },
+        grid: { vertLines: { color: p.grid }, horzLines: { color: p.grid } },
+        rightPriceScale: { borderColor: p.border, scaleMargins: { top: 0.08, bottom: 0.08 } },
+        timeScale: { borderColor: p.border, timeVisible: true, secondsVisible: false, rightOffset: 8, barSpacing: window.innerWidth < 700 ? 5 : 8,
+                     tickMarkFormatter: (t, type) => TZ.tick(typeof t === 'number' ? t : Date.UTC(t.year, t.month - 1, t.day) / 1000, type) },
+        localization: { priceFormatter: v => v.toFixed(otSpec(sym).dp), timeFormatter: t => TZ.crosshair(typeof t === 'number' ? t : 0) },
+        crosshair: { mode: LWC.CrosshairMode.Normal },
+      });
+      series = chart.addSeries(LWC.CandlestickSeries, { upColor: p.up, downColor: p.down, wickUpColor: p.up, wickDownColor: p.down, borderVisible: false,
+        priceFormat: { type: 'price', precision: otSpec(sym).dp, minMove: Math.pow(10, -otSpec(sym).dp) } });
+      marks = typeof LWC.createSeriesMarkers === 'function' ? LWC.createSeriesMarkers(series, []) : null;
+    }
+  }
+  function head() {
+    const c = last(); if (!c) return;
+    el('rpTitle').textContent = `${VOICE.name(sym)} · ${tf}`;
+    el('rpWhen').textContent = `${COPILOT.when(c.time)} · ${all.length - cur} candles hidden`;
+  }
+  function info(html) { const b = el('rpInfo'); if (b) b.innerHTML = html || ''; }
+  function clearLines(arr) { for (const l of arr.splice(0)) { try { series.removePriceLine(l); } catch (_) {} } }
+  function drawTrade() {
+    clearLines(lines);
+    const t = trade || plan; if (!t || !series) return;
+    const L = (price, color, title, style) => Number.isFinite(price) && lines.push(series.createPriceLine({ price, color, lineWidth: 2, lineStyle: style, axisLabelVisible: true, title }));
+    if (trade && Number.isFinite(trade.entry)) L(trade.entry, '#3b82f6', `${trade.side === 'buy' ? 'Buy' : 'Sell'} ${px(trade.entry)}`, 0);
+    L(t.stop, '#ef4444', 'Stop', 2); L(t.target, '#22c55e', 'Target', 2);
+  }
+  function tradeInfo() {
+    if (trade && trade.status === 'open') {
+      const c = last(), r = rOf(trade, c.close);
+      info(`<div class="rp-pos ${trade.side}"><b>${trade.side === 'buy' ? 'Long' : 'Short'} from ${px(trade.entry)}</b><span>${r >= 0 ? '+' : ''}${r.toFixed(2)} R now</span>
+        <button type="button" class="cp-btn sm" onclick="REPLAY.closeTrade()">Close at ${px(c.close)}</button></div>`);
+    } else if (trade && trade.status === 'pending') info(`<div class="rp-pos ${trade.side}"><b>${trade.side === 'buy' ? 'Buy' : 'Sell'} fills at the next candle's open</b><span>step forward</span></div>`);
+  }
+  function rOf(t, exit) { const risk = Math.abs(t.entry - t.stop); return risk ? (t.side === 'buy' ? exit - t.entry : t.entry - exit) / risk : 0; }
+  // the newest candle against an open (or just-filled) trade
+  function evaluate(c) {
+    const t = trade; if (!t) return null;
+    if (t.status === 'pending') { t.entry = c.open; t.status = 'open'; t.openTime = c.time; t.openIdx = cur - 1; }
+    const buy = t.side === 'buy';
+    const hitS = buy ? c.low <= t.stop : c.high >= t.stop;
+    const hitT = Number.isFinite(t.target) && (buy ? c.high >= t.target : c.low <= t.target);
+    if (hitS) return finish(buy ? Math.min(c.open, t.stop) : Math.max(c.open, t.stop), hitT ? 'stop (both levels in one candle: counted as the stop, the cautious way)' : 'stop');
+    if (hitT) return finish(buy ? Math.max(c.open, t.target) : Math.min(c.open, t.target), 'target');
+    return null;
+  }
+  function finish(exit, why) {
+    const t = trade; trade = null;
+    const R = +rOf(t, exit).toFixed(2), q = COPILOT.quadrant({ status: t.check.status }, R);
+    COPILOT.patchDecision(t.decision, { placed: true, outcomeR: R, exit, exitWhy: why, entry: t.entry, filledAt: t.openTime });
+    clearLines(lines);
+    const lesson = { 'earned win': 'The plan was sound and it worked. Repeat the process, not the result.', 'good loss': 'The plan was sound and the market said no. That is a good trade: keep doing it.',
+      'lucky win': 'It won, but ORACLE flagged the plan. Winning this way builds a habit that loses later.', 'warned loss': 'ORACLE warned about this plan before you took it. Look at what it flagged.' }[q];
+    info(`<div class="rp-review ${R > 0 ? 'win' : 'loss'}"><div><b>${R > 0 ? '+' : ''}${R} R</b><span>${why === 'target' ? 'target hit' : why === 'manual' ? 'closed by hand' : why.startsWith('stop') ? 'stopped out' : why} at ${px(exit)}</span></div>
+      <div><b class="${t.check.status.toLowerCase()}">${t.check.status}</b><span>process ${COPILOT.score(t.check)}</span></div><p>${COPILOT.esc(q ? q.charAt(0).toUpperCase() + q.slice(1) + '. ' : '')}${COPILOT.esc(lesson || '')}</p></div>`);
+    say(`Trade closed: ${R > 0 ? 'plus' : R < 0 ? 'minus' : ''} ${Math.abs(R)} R, ${why.startsWith('stop') ? 'stopped out' : why === 'target' ? 'target hit' : 'closed by hand'}. ORACLE had said ${t.check.status.toLowerCase()}, process ${COPILOT.score(t.check)}. ${q ? q.charAt(0).toUpperCase() + q.slice(1) + '. ' : ''}${lesson || ''}`);
+    return R;
+  }
+  function paint() { series.setData(vis().map(bar)); head(); drawTrade(); tradeInfo(); }
+
+  const api = {
+    get active() { return !!(chart && el('rpWrap') && el('rpWrap').classList.contains('open')); },
+    visible: vis, sym: () => sym, tf: () => tf, cursor: () => cur, total: () => all.length,
+    planning: () => !!plan, trading: () => !!trade,
+    shown: () => { const d = series ? series.data() : []; return { n: d.length, last: d.length ? d[d.length - 1].time : null }; },
+    async start(o) {
+      if (api.active) return say('A replay is already running.', o);
+      if (!S.candles.length) return say('The chart has no candles yet.', o);
+      if (typeof VOICE !== 'undefined' && VOICE.open_) VOICE.heard('Loading history…', true);
+      sym = S.sym; tf = S.tf; sec = TA.tfSec(tf);
+      all = await history();
+      if (all.length < 80) { all = []; return say('There is not enough history on this chart for a replay yet.', o); }
+      api.restart(true);
+      if (typeof VOICE !== 'undefined' && VOICE.open_ && window.innerWidth <= 820) VOICE.close();   // a phone shows the replay full screen; a desktop keeps ARIA beside it
+      if (typeof COPILOT !== 'undefined') COPILOT.setMode('replay', true);
+      return say(`Replay started on ${VOICE.name(sym)}, ${VOICE.tfName(tf)}, at ${COPILOT.when(last().time)}. ${all.length - cur} candles are hidden. Step forward, analyze, or plan a trade.`, o);
+    },
+    restart(silent) {
+      api.pause(); build(); plan = null; trade = null; clearLines(lines); clearLines(aLines); if (marks) marks.setMarkers([]);
+      const n = all.length, lo = Math.max(60, Math.floor(n * 0.3)), hi = Math.max(lo + 1, n - 40);
+      cur = lo + Math.floor(Math.random() * (hi - lo));
+      const pb = el('rpPlan'); if (pb) { pb.hidden = true; pb.innerHTML = ''; }
+      paint(); info('');
+      chart.timeScale().scrollToRealTime();
+      if (!silent) say(`New start: ${COPILOT.when(last().time)}.`);
+    },
+    exit() {
+      api.pause(); plan = null; trade = null;
+      if (chart) { try { chart.remove(); } catch (_) {} }
+      chart = null; series = null; marks = null; lines = []; aLines = [];
+      el('rpWrap')?.remove();
+      all = []; cur = 0;
+      if (typeof COPILOT !== 'undefined' && COPILOT.mode === 'replay') COPILOT.renderPanel();
+      if (typeof VOICE !== 'undefined') VOICE.renderChips();
+    },
+    step(n = 1, o) {
+      if (!api.active) return say('No replay is running. Say "start replay".', o);
+      let closed = null;
+      for (let i = 0; i < n && cur < all.length; i++) {
+        cur++;
+        const c = last();
+        series.update(bar(c));
+        if (trade) { const r = evaluate(c); if (r != null) { closed = r; break; } }
+      }
+      head(); drawTrade(); if (trade) tradeInfo();
+      if (typeof COPILOT !== 'undefined' && COPILOT.mode === 'replay' && VOICE.open_) COPILOT.renderPanel();
+      if (cur >= all.length) { api.pause(); return say('That is the end of the history.', o); }
+      if (o && closed == null) return VOICE.reply(`${n === 1 ? 'Next candle' : n + ' candles'}: ${COPILOT.when(last().time)}, close ${px(last().close)}.${trade && trade.status === 'open' ? ` Your trade is ${rOf(trade, last().close) >= 0 ? 'up' : 'down'} ${Math.abs(rOf(trade, last().close)).toFixed(1)} R.` : ''}`, o);
+      return Promise.resolve();
+    },
+    play() { if (!api.active) return; api.pause(); timer = setInterval(() => { if (cur >= all.length) api.pause(); else api.step(1); }, 900 / speed); const b = el('rpPlay'); if (b) b.textContent = '❚❚'; },
+    pause() { clearInterval(timer); timer = null; const b = el('rpPlay'); if (b) b.textContent = '▶'; },
+    toggle() { timer ? api.pause() : api.play(); },
+    cycleSpeed() { speed = speed === 1 ? 2 : speed === 2 ? 4 : 1; const b = el('rpSpeed'); if (b) b.textContent = speed + '×'; if (timer) api.play(); },
+    // analysis of the visible candles only, marked on the replay chart
+    analyze(o, quiet) {
+      if (!api.active) return say('No replay is running.', o);
+      const R = TA.read(vis(), tf, last().time + sec);
+      if (!R) return say('Not enough candles revealed yet.', o);
+      COPILOT.round(R, sym);
+      clearLines(aLines);
+      const add = (price, color, title, style) => aLines.push(series.createPriceLine({ price, color, lineWidth: 1, lineStyle: style, axisLabelVisible: false, title }));
+      if (R.near.above) add(R.near.above.mid, CP_COL.res, `Resistance ${R.near.above.touches}×`, 2);
+      if (R.near.below) add(R.near.below.mid, CP_COL.sup, `Support ${R.near.below.touches}×`, 2);
+      const b = R.structure.lastBreak; if (b) add(b.level, b.type === 'BOS' ? CP_COL.bos : CP_COL.choch, `${b.type} ${b.dir === 'up' ? '↑' : '↓'}`, 0);
+      for (const e of R.equal) add(e.price, CP_COL.liq, e.type === 'high' ? 'EQH' : 'EQL', 1);
+      if (marks) marks.setMarkers(R.structure.swings.filter(s => s.label).slice(-8).map(s => ({ time: s.time, position: s.type === 'high' ? 'aboveBar' : 'belowBar',
+        color: s.label === 'HH' || s.label === 'HL' ? CP_COL.up : CP_COL.dn, shape: 'circle', size: 0.5, text: s.label })));
+      if (quiet) return Promise.resolve();
+      return say(`At ${COPILOT.when(last().time)}: ${COPILOT.summary(R, null, sym).say}`, o);
+    },
+    planFor(side, o, c) {
+      if (!api.active) return say('No replay is running.', o);
+      if (trade) return say('You already have a trade in this replay. Close it first.', o);
+      const R = TA.read(vis(), tf, last().time + sec); if (!R) return say('Not enough candles revealed yet.', o);
+      COPILOT.round(R, sym);
+      const e = last().close, sw = side === 'buy' ? R.structure.lowBelow : R.structure.highAbove, dp = otSpec(sym).dp;
+      let stop = +(sw ? (side === 'buy' ? sw.price - R.atr * 0.2 : sw.price + R.atr * 0.2) : (side === 'buy' ? e - R.atr * 1.5 : e + R.atr * 1.5)).toFixed(dp);
+      if (c && c.stop) { const s = VOICE.stopFrom(sym, side, c.stop, e); if (s != null && !c.stop.aria) stop = +s; }
+      let target = +(side === 'buy' ? e + 2 * Math.abs(e - stop) : e - 2 * Math.abs(e - stop)).toFixed(dp);
+      if (c && c.target) { const t = c.target.rr != null ? (side === 'buy' ? e + c.target.rr * Math.abs(e - stop) : e - c.target.rr * Math.abs(e - stop)) : c.target.price != null ? c.target.price : null; if (t != null) target = +(+t).toFixed(dp); }
+      plan = { side, stop, target, check: null };
+      api.renderPlan(); drawTrade();
+      return say(`${side === 'buy' ? 'Buy' : 'Sell'} plan: entry at the next candle's open, near ${px(e)}. Stop ${px(stop)}${sw ? `, beyond the last swing ${sw.type}` : ''}. Target ${px(target)}, two to one. Change them below, then say "check my plan" or "take it".`, o);
+    },
+    setPlan(k, v) { if (!plan) return; const n = parseFloat(v); plan[k] = Number.isFinite(n) ? n : null; plan.check = null; api.renderPlan(); drawTrade(); },
+    renderPlan() {
+      const b = el('rpPlan'); if (!b) return;
+      if (!plan) { b.hidden = true; b.innerHTML = ''; return; }
+      const dp = otSpec(sym).dp, v = x => Number.isFinite(x) ? x.toFixed(dp) : '', c = plan.check, icon = { ok: '✓', note: '•', against: '✕', missing: '?' };
+      b.hidden = false;
+      b.innerHTML = `<div class="rp-plan-h"><b class="${plan.side}">${plan.side === 'buy' ? 'Buy' : 'Sell'} at the next open</b>
+          <label>Stop<input type="number" step="any" inputmode="decimal" value="${v(plan.stop)}" onchange="REPLAY.setPlan('stop',this.value)"></label>
+          <label>Target<input type="number" step="any" inputmode="decimal" value="${v(plan.target)}" onchange="REPLAY.setPlan('target',this.value)"></label></div>
+        ${c ? `<div class="cp-oracle ${c.status.toLowerCase()}"><div class="cp-st"><b>${c.status}</b><span>process ${COPILOT.score(c)}</span></div>${c.items.filter(i => i.kind !== 'ok').map(i => `<div class="cp-it ${i.kind}"><i>${icon[i.kind]}</i><span>${COPILOT.esc(i.text)}</span></div>`).join('')}</div>` : ''}
+        <div class="cp-acts"><button type="button" class="cp-btn" onclick="REPLAY.checkCmd()">Check with ORACLE</button><button type="button" class="cp-btn pri" onclick="REPLAY.take()">Take it</button><button type="button" class="cp-btn" onclick="REPLAY.cancelPlan()">Cancel</button></div>`;
+    },
+    cancelPlan() { plan = null; api.renderPlan(); drawTrade(); },
+    check() {
+      const R = TA.read(vis(), tf, last().time + sec);
+      COPILOT.round(R, sym);
+      plan.check = ORACLE.check({ side: plan.side, entry: last().close, stop: Number.isFinite(plan.stop) ? plan.stop : NaN, target: Number.isFinite(plan.target) ? plan.target : NaN, sym, synthetic: COPILOT.synthetic(sym) }, R, null);
+      api.renderPlan();
+      return plan.check;
+    },
+    checkCmd(c, o) {
+      if (!plan) return say('Plan a trade first: say "buy here" or "sell here".', o);
+      if (c && (c.stop || c.target)) { const e = last().close;
+        if (c.stop) { const s = VOICE.stopFrom(sym, plan.side, c.stop, e); if (s != null) plan.stop = +s; }
+        if (c.target && c.target.price != null) plan.target = c.target.price;
+        if (c.target && c.target.rr != null && Number.isFinite(plan.stop)) plan.target = plan.side === 'buy' ? e + c.target.rr * Math.abs(e - plan.stop) : e - c.target.rr * Math.abs(e - plan.stop); }
+      const res = api.check();
+      const top = res.items.filter(i => i.kind === 'against' || i.kind === 'missing').slice(0, 2).map(i => i.text);
+      return say(`ORACLE says ${res.status.toLowerCase()}, process ${COPILOT.score(res)}. ${top.join(' ')} Say "take it" to enter at the next open.`, o);
+    },
+    take(o) {
+      if (!plan) return say('Plan a trade first: say "buy here" or "sell here".', o);
+      if (!Number.isFinite(plan.stop)) return say('A replay trade needs a stop too.', o);
+      const res = plan.check || api.check();
+      const decision = COPILOT.logDecision({ source: 'replay', sym, tf, side: plan.side, entry: last().close, stop: plan.stop, target: plan.target, at_candle: last().time }, res);
+      trade = { side: plan.side, stop: plan.stop, target: plan.target, check: res, decision, status: 'pending', entry: null };
+      plan = null; api.renderPlan(); drawTrade(); tradeInfo();
+      return say(`Trade taken: ${trade.side === 'buy' ? 'buying' : 'selling'} at the next candle's open. ORACLE said ${res.status.toLowerCase()}. Step forward to see what happens.`, o);
+    },
+    closeTrade(o) {
+      if (!trade) return say('There is no open replay trade.', o);
+      if (trade.status === 'pending') { COPILOT.patchDecision(trade.decision, { placed: false, cancelled: true }); trade = null; drawTrade(); info(''); return say('Cancelled before it filled.', o); }
+      finish(last().close, 'manual');
+      return Promise.resolve();
+    },
+  };
+  return api;
+})();
+
 
 /* ════════════════════════════════════════════════════════════
    CFD TRADE ENGINE
@@ -7104,6 +8562,19 @@ function otAccount() {
    earlier, friendlier feedback.
 ════════════════════════════════════════════════════════════ */
 const LIVE_STORE_KEY = 'protrader.mt5bridge.v1';
+/* Live MT5 trading is for the owner (the instructor) only. Students and guests
+   practise on the paper account: the same app, no route to a real broker.
+   The owner is recognised by the owner key on this device, or by an Academy
+   sign-in with the owner role (read from the account's saved copy first, so
+   this works before the ACCOUNT module has started). */
+function mt5Allowed() {
+  try {
+    if (localStorage.getItem('protrader.sentinelKey')) return true;
+    const m = JSON.parse(localStorage.getItem('protrader.account.v1') || '{}');
+    if (m && m.owner && m.uid) return true;
+  } catch (_) {}
+  try { return typeof ACCOUNT !== 'undefined' && ACCOUNT.isOwner(); } catch (_) { return false; }
+}
 var LIVE = {
   key: '', on: false, shown: false, route: false, open: false, symMap: {},
   state: null, lastOk: 0, err: '', since: 0,
@@ -7116,7 +8587,7 @@ var LIVE = {
       const d = JSON.parse(localStorage.getItem(LIVE_STORE_KEY) || '{}');
       if (typeof d.key === 'string') this.key = d.key;
       this.shown = !!d.shown;                 // the user picked "Trade live" at some point
-      this.on = this.shown && !!this.key;
+      this.on = this.shown && !!this.key && mt5Allowed();
       if (d.symMap && typeof d.symMap === 'object') this.symMap = d.symMap;
       // Routing is deliberately NOT restored: every session starts on paper
       // and sending real orders is switched on by hand.
@@ -7140,7 +8611,16 @@ var LIVE = {
   acct() { const s = this.snap(); return (s && s.account) || null; },
   limits() { const s = this.snap(); return (s && s.limits) || null; },
   isReal() { const a = this.acct(); return !!a && a.mode === 'real'; },
-  routing() { return this.on && this.route; },
+  routing() { return this.on && this.route && mt5Allowed(); },
+  // the owner signed in or out: start or stop the bridge to match
+  recheck() {
+    const was = this.on;
+    this.load();
+    if (this.on && !was) this.start();
+    if (!this.on && was) { this.route = false; this.stop(); }
+    this.renderCard(); this.renderBook();
+    if (typeof OT !== 'undefined') OT.render();
+  },
   newId() {
     const a = new Uint8Array(9); crypto.getRandomValues(a);
     return 'c' + Array.from(a, b => b.toString(36).padStart(2, '0')).join('').slice(0, 17);
@@ -7530,6 +9010,7 @@ var LIVE = {
 
   /* -- demo / live choice (from the account sheet) -- */
   goLive() {
+    if (!mt5Allowed()) { showToast('Live MT5 trading is for the instructor account. Students practise on the paper account.', 5000); return; }
     this.shown = true; this.open = true; this.on = !!this.key;
     this.save();
     if (this.on) this.start();
@@ -7573,6 +9054,7 @@ var LIVE = {
     catch (_) { const i = document.getElementById('lvKey'); if (i) { i.type = 'text'; i.value = this.key; i.select(); } showToast('Select and copy the key shown.', 3500); }
   },
   setRouting(v) {
+    if (v && !mt5Allowed()) { this.route = false; showToast('Live MT5 trading is for the instructor account.', 4000); return; }
     if (v && !this.online()) {
       showToast('MT5 bridge is offline — connect the EA first.', 4000);
       this.route = false;
@@ -7596,7 +9078,7 @@ var LIVE = {
   renderCard() {
     const el = id => document.getElementById(id);
     const card = el('lvCard'); if (!card) return;
-    card.style.display = this.shown ? '' : 'none';      // hidden until the user chooses to trade live
+    card.style.display = this.shown && mt5Allowed() ? '' : 'none';      // hidden until the owner chooses to trade live
     const a = this.acct(), lim = this.limits(), online = this.online(), real = this.isReal();
     card.className = 'lv' + (this.open ? ' open' : '') + (this.routing() ? ' routing' : '') + (this.routing() && real ? ' real' : '');
     el('lvDot').className = 'lv-dot' + (!this.on ? '' : online ? ' on' : ' off');
@@ -10541,7 +12023,8 @@ function pushSignal(type, price) {
 ════════════════════════════════════════════════════════════ */
 function openDeposit() {
   const el = id => document.getElementById(id);
-  const live = LIVE.shown, routing = LIVE.routing();
+  const live = LIVE.shown, routing = LIVE.routing(), allowed = mt5Allowed();
+  el('acctOptLive').hidden = !allowed;            // students: paper only
   el('acctOptDemo').classList.toggle('current', !routing);
   el('acctOptLive').classList.toggle('current', routing);
   el('acctTagDemo').textContent = routing ? '' : 'Active';
@@ -11119,7 +12602,7 @@ init();
    ACCOUNT — one person, one account, in every browser.
    Sign in with the Pro Trader Academy account (accepted students and the
    instructor). The paper account, trade-management journal, auto-protect,
-   favourites and drawings then live on the server and follow the account
+   favourites, drawings and the copilot's learning record then live on the server and follow the account
    to Telegram, Safari, the installed app and any other device. Without
    signing in the app works as before, as a guest: saved in this browser only.
    Sync: the listed localStorage documents are mirrored. Pull when the app
@@ -11128,7 +12611,7 @@ init();
    is backed up in that browser first (protrader.backup.v1).
 ════════════════════════════════════════════════════════════ */
 const ACCOUNT = (() => {
-  const DOCS = { trade: 'protrader.trade.v2', mgmt: 'protrader.mgmt.v1', autoprotect: 'protrader.autoprotect.v1', favorites: 'protrader.favorites.v1', drawings: 'protrader.drawings.v1', mt5bridge: 'protrader.mt5bridge.v1' };
+  const DOCS = { trade: 'protrader.trade.v2', mgmt: 'protrader.mgmt.v1', autoprotect: 'protrader.autoprotect.v1', favorites: 'protrader.favorites.v1', drawings: 'protrader.drawings.v1', mt5bridge: 'protrader.mt5bridge.v1', learning: 'protrader.learning.v1' };
   const BY_LS = Object.fromEntries(Object.entries(DOCS).map(([k, v]) => [v, k]));
   const META = 'protrader.account.v1', BACKUP = 'protrader.backup.v1';
   const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -11505,8 +12988,9 @@ const ACCOUNT = (() => {
         meta.owner = false; saveMeta();
       }
       paint();
+      if (typeof LIVE !== 'undefined' && LIVE.recheck) LIVE.recheck();
       if (!user) return;
-      if (meta.owner !== !!user.owner) { meta.owner = !!user.owner; saveMeta(); }
+      if (meta.owner !== !!user.owner) { meta.owner = !!user.owner; saveMeta(); if (typeof LIVE !== 'undefined' && LIVE.recheck) LIVE.recheck(); }
       if (result === 'ok') showToast(`Signed in as ${user.name || user.email}.`, 3200);
       await pull(true);
       if (typeof NOTIFY !== 'undefined' && NOTIFY.cfg) NOTIFY.register();       // this device now counts for the account
