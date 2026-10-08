@@ -15,6 +15,13 @@ slices) on the MT5 account whose bridge is bound as the owner's channel:
             trades in a day — checked here AND by the EA, which has the final
             say (and refuses real accounts unless AllowRealAccount is set)
 
+Evidence brake: the bot stands down (and journals every signal it skips)
+while the forward paper record of what it trades is negative beyond chance:
+the current model's paper trades on the bot's markets, or the A/A+ trades it
+takes — at least 30 closed trades with the 95% interval entirely below zero.
+It resumes by itself when neither record is. The paper journal keeps running
+either way, so the evidence keeps coming in.
+
 Demo only: an entry is never sent when the EA reports a real account. The
 test runs for 30 days from Start; after that no new entries are made and open
 positions are managed to the end. Every decision is journaled — trades taken,
@@ -48,6 +55,7 @@ DAILY_LOSS_PCT = 3.0
 MAX_LOSSES_DAY = 3
 GRADES = ("A", "A+")
 DEFAULT_SYMBOLS = {"frxNAS100": "US Tech 100", "frxXAUUSD": "XAUUSD", "cryBTCUSD": "BTCUSD"}
+BRAKE_MIN_N = 30                    # closed paper trades before the evidence brake may act
 SPEC_MAX_AGE = 6 * 3600
 RETRY_S = 20
 TICK_S = 3.0
@@ -156,6 +164,42 @@ def _risk_state(now: float, equity: float) -> dict:
             "day_loss": max(0.0, -day_pnl), "day_cap": equity * DAILY_LOSS_PCT / 100, "losses": losses}
 
 
+# ── evidence brake ──────────────────────────────────────────────────────────
+
+def brake() -> dict:
+    """Is the forward paper record of what this bot trades negative beyond chance?"""
+    import sentinel_core as core
+    try:
+        trades = _S._current(_S._load_trades())
+    except Exception as e:                       # never block on a read error; say so
+        return {"on": False, "reasons": [], "error": str(e), "min_n": BRAKE_MIN_N, "records": {}}
+    markets = set((cfg().get("symbols") or DEFAULT_SYMBOLS).keys())
+    on_mk = [t for t in trades if t.get("market") in markets]
+    graded = [t for t in on_mk if (t.get("grade") or core.grade_of(t)) in GRADES]
+    recs = {"markets": core.summarise(on_mk), "grades": core.summarise(graded)}
+    labels = {"markets": "the model's paper trades on the bot's markets", "grades": "the A/A+ paper trades it takes"}
+    reasons = []
+    for k, sm in recs.items():
+        ci = sm.get("ci95_r")
+        if sm.get("n", 0) >= BRAKE_MIN_N and ci and ci[1] < 0:
+            reasons.append(f"{labels[k]}: {sm['expectancy_r']:+.2f} R a trade over {sm['n']} (95% {ci[0]:+.2f} to {ci[1]:+.2f})")
+    return {"on": bool(reasons), "reasons": reasons, "min_n": BRAKE_MIN_N,
+            "records": {k: {x: v.get(x) for x in ("n", "expectancy_r", "ci95_r", "total_r")} for k, v in recs.items()}}
+
+
+def _note_brake(b: dict) -> None:
+    """Tell the owner once when the brake engages or releases (not on every signal)."""
+    c = cfg()
+    if bool(c.get("brake_on")) == b["on"]:
+        return
+    c["brake_on"] = b["on"]
+    c.setdefault("brake_log", []).append({"at": time.time(), "on": b["on"], "reasons": b["reasons"]})
+    c["brake_log"] = c["brake_log"][-50:]
+    _set_cfg(c)
+    _telegram(("evidence brake ON, standing down: " + "; ".join(b["reasons"])) if b["on"]
+              else "evidence brake released: the forward record is no longer negative beyond chance; taking A/A+ setups again")
+
+
 # ── entries ─────────────────────────────────────────────────────────────────
 
 def on_open(t) -> Optional[dict]:
@@ -172,11 +216,17 @@ def on_open(t) -> Optional[dict]:
            "symbol": sym, "sentinel_entry": t.entry, "sl_initial": t.sl, "sl_dist": t.sl_dist,
            "score": t.score, "state": "skipped", "stop_moves": []}
 
-    def skip(reason: str) -> dict:
+    def skip(reason: str, notify: bool = True) -> dict:
         row["reason"] = reason
         _save(row)
-        _telegram(f"skipped {t.market} {t.tf} {t.dir}: {reason}")
+        if notify:
+            _telegram(f"skipped {t.market} {t.tf} {t.dir}: {reason}")
         return row
+
+    b = brake()
+    _note_brake(b)
+    if b["on"]:
+        return skip("evidence brake: " + b["reasons"][0], notify=False)     # journaled; the owner was told once
 
     if not sym:
         return skip("no MT5 symbol set for this market")
@@ -661,6 +711,7 @@ def live_status(request: Request) -> dict:
         "stopped": c.get("stopped"),
         "rules": {"grades": list(GRADES), "risk_pct": RISK_PCT, "open_risk_pct": OPEN_RISK_PCT,
                   "daily_loss_pct": DAILY_LOSS_PCT, "max_losses_day": MAX_LOSSES_DAY, "days": DAYS, "demo_only": True},
+        "brake": dict(brake(), log=(c.get("brake_log") or [])[-5:]),
         "bridge": {"bound": bool(_cid()), "online": bool(view and view["online"]), "mode": acct.get("mode"),
                    "equity": acct.get("equity"), "currency": acct.get("currency")},
         "availability": dict(avail_report(), offline_skips=sum(

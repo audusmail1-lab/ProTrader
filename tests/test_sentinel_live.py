@@ -246,5 +246,48 @@ def lost_answers(ea):
     print("ok  lost MT5 answers: a fill is adopted from the snapshot, never invented; a close is retried after a minute")
 
 
+
+def brake_checks():
+    """The evidence brake: stands down only when the forward paper record of what it trades is
+    negative beyond chance, journals what it skips, tells the owner once, and resumes by itself."""
+    ea = EA(); ea.fill_px = 2650.0; ea.close_pnl = 0
+    S._meta_set("mt5_channel", CID); ea.sync()
+    L._set_cfg(dict(L.cfg(), on=True, started=time.time(), ends=time.time() + 86400, stopped=None, brake_on=False, brake_log=[]))
+    cycle(ea)
+    with S._lock, S._db() as con:
+        con.execute("DELETE FROM trades")
+    sent = []
+    L._telegram = lambda text: sent.append(text)
+    def closed(i, r, market="frxXAUUSD", tf="15m"):
+        t = trade(f"p{i}", market=market, tf=tf); t.trend_4h = "up"; t.status = "win" if r > 0 else "loss"; t.r = r
+        t.closed_at = int(time.time()) - 1000 + i; t.engine = core.eng.ENGINE_VERSION
+        S._save_trade(t)
+    # 29 losing trades: not enough to act on, the bot still trades
+    for i in range(29):
+        closed(i, -1.0)
+    b = L.brake()
+    assert not b["on"] and b["records"]["markets"]["n"] == 29, b
+    # the 30th: 30 straight losses on gold 15m A setups is negative beyond chance
+    closed(29, -1.0)
+    row = L.on_open(trade("z1"))
+    assert row["state"] == "skipped" and row["reason"].startswith("evidence brake:"), row
+    assert len(sent) == 1 and "brake ON" in sent[0], sent
+    L.on_open(trade("z2")); assert len(sent) == 1                       # told once, not per signal
+    st = c.get("/api/sentinel/live", headers=OWNER).json()["brake"]
+    assert st["on"] and st["records"]["grades"]["n"] == 30 and st["log"][-1]["on"], st
+    # synthetic losses do not count against a bot that only trades real markets
+    with S._lock, S._db() as con:
+        con.execute("DELETE FROM trades")
+    for i in range(40):
+        closed(100 + i, -1.0, market="R_50")
+    for i in range(30):
+        closed(200 + i, 1.2 if i % 2 else -1.0)                         # gold: mixed, not negative beyond chance
+    row = L.on_open(trade("z3"))
+    assert row["state"] != "skipped" or not row["reason"].startswith("evidence brake"), row
+    assert any("released" in x for x in sent), sent
+    print("ok  evidence brake: acts at 30+ trades negative beyond chance, journals skips, tells the owner once, resumes; synthetic trades don't count")
+
+
 if __name__ == "__main__":
     main()
+    brake_checks()

@@ -8427,6 +8427,17 @@ const SENT = (() => {
   }
 
   // Sentinel Live test: Sentinel trades its own A setups on the owner's MT5 demo.
+  // The evidence brake: the demo bot stands down while the paper record of what it trades is negative beyond chance.
+  function brakeLine(B) {
+    if (!B || !B.records) return '';
+    const rec = (x, lbl) => x && x.n ? `${lbl} ${x.expectancy_r >= 0 ? '+' : ''}${x.expectancy_r.toFixed(2)}R over ${x.n}${x.ci95_r ? ` (95% ${x.ci95_r[0] >= 0 ? '+' : ''}${x.ci95_r[0].toFixed(2)} to ${x.ci95_r[1] >= 0 ? '+' : ''}${x.ci95_r[1].toFixed(2)})` : ''}` : `${lbl} none yet`;
+    const m = B.records.markets, g = B.records.grades;
+    return `<div class="twin-sum"><b>Evidence brake</b> · ${B.on ? '<span class="sn-chip ev-negative">On: standing down</span>' : '<span class="sn-chip ev-unproven">Armed: trading</span>'}<br>
+      ${B.on ? esc(B.reasons.join(' · ').replace(/^./, c => c.toUpperCase())) + '. It keeps journaling each skipped signal and resumes by itself.'
+        : `Stands down only when ${B.min_n}+ closed paper trades are negative beyond chance (the whole 95% range below zero).`}<br>
+      <span style="color:var(--tx-3)">${esc(rec(m, 'Model on these markets:'))} · ${esc(rec(g, 'A/A+ trades:'))}</span></div>`;
+  }
+
   function liveBlock() {
     const L = last?.live; if (!L) return '';
     const m = L.metrics || {}, b = L.bridge || {};
@@ -8460,6 +8471,7 @@ const SENT = (() => {
         <div class="sn-meta">Sentinel places and manages its own A setups: ${L.rules.risk_pct}% risk at the stop, stop to breakeven at +1R then trailing 1R, 2% open-risk cap, stop for the day after −3% or 3 losses. The EA has the final say and refuses real accounts. Judged on quality, adherence and drawdown — not profit alone.</div>
         <div class="sn-meta">${bridge}</div>
         <div class="sn-meta">${syms}</div>
+        ${brakeLine(L.brake)}
         ${m.signals ? `<div class="sn-kpis">${kpi('Taken', `${m.taken} / ${m.signals}`)}${kpi('Net', `${r(m.total_r || 0)} · ${money(m.net)}`)}${kpi('Return', m.return_pct != null ? (m.return_pct >= 0 ? '+' : '') + m.return_pct + '%' : '—')}${kpi('Max drawdown', m.max_dd_pct != null ? m.max_dd_pct + '%' : '—')}${kpi('Win rate', m.win_rate != null ? Math.round(m.win_rate * 100) + '%' : '—')}${kpi('Risk ≤ 1%', m.risk_within_limit || '—')}${kpi('Stop moves done', m.stop_moves_ok || '—')}${kpi('Slippage', m.avg_slippage_r != null ? r(m.avg_slippage_r) : '—')}${kpi('Live vs paper', m.live_vs_paper_r != null ? r(m.live_vs_paper_r) : '—')}${kpi('Hand changes', m.manual_interventions)}</div>` : ''}
         ${Object.keys(m.skip_reasons || {}).length ? `<div class="sn-meta">Not taken: ${Object.entries(m.skip_reasons).map(([k, v]) => `${esc(k)} ×${v}`).join(' · ')}</div>` : ''}
         ${availBlock}
