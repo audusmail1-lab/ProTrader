@@ -29,3 +29,9 @@ services:
     envVars:
       - key: PYTHONUNBUFFERED
         value: "1"
+      # ARIA AI (aria_ai.py). The key is a secret: set its value in the Render
+      # dashboard (Environment), never in this file. AI stays off until both are set.
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: GEMINI_FREE_TIER_CONFIRMED
+        sync: false

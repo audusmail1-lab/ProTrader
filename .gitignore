@@ -20,3 +20,5 @@ notify_state.json
 sentinel_research.db*
 research/history/
 research/batches/
+aria_ai.db
+aria_ai.db-*

@@ -339,6 +339,28 @@ html,body{height:100%;overflow:hidden;background:var(--bg-1);color:var(--tx-1);f
 .vx-sheet.cp-min .cp-panel,.vx-sheet.cp-min .cp-modes,.vx-sheet.cp-min .vx-settings,.vx-sheet.cp-min .vx-card{display:none!important}
 .vx-sheet.cp-min .vx-log{max-height:5.2em!important}
 .vx-sheet.cp-min .vx-log .vx-msg.you{display:none}
+.vx-msg.ai{max-width:94%}
+.ai-st{display:flex;align-items:center;gap:7px;color:var(--tx-3);font-size:12px;font-weight:700}
+.ai-st i{width:10px;height:10px;border-radius:50%;border:2px solid rgba(91,140,255,.35);border-top-color:#5b8cff;animation:vxSpin .8s linear infinite}
+.ai-tools{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px}
+.ai-tools span{font-size:11px;font-weight:800;padding:2px 7px;border-radius:999px;background:rgba(34,197,94,.12);color:#86efac;border:1px solid rgba(34,197,94,.28)}
+.ai-by{margin-top:5px;font-size:10.5px;color:var(--tx-3);letter-spacing:.2px}
+.vx-msg code{font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(148,163,184,.14);padding:0 4px;border-radius:4px}
+.ai-code{margin:6px 0;border:1px solid rgba(148,163,184,.22);border-radius:10px;overflow:hidden;white-space:normal}
+.ai-code-h{display:flex;justify-content:space-between;align-items:center;padding:4px 8px;font-size:11px;color:var(--tx-3);background:rgba(148,163,184,.08)}
+.ai-code-h button{border:1px solid rgba(148,163,184,.3);background:transparent;color:var(--tx-1);border-radius:7px;font-size:11px;font-weight:800;padding:2px 8px;cursor:pointer}
+.ai-code pre{margin:0;padding:8px;max-height:260px;overflow:auto;white-space:pre;font-size:11.5px;line-height:1.45}
+.ai-code pre code{background:none;padding:0}
+.ai-code-n{padding:5px 8px;font-size:11px;color:#fbbf24;background:rgba(245,158,11,.08)}
+.cp-ai-note{font-size:11.5px;line-height:1.4;color:var(--tx-3);padding:0 2px}
+.cp-ai-note b{font-size:10.5px;font-weight:900;letter-spacing:.6px;padding:1px 6px;border-radius:5px;margin-right:4px}
+.cp-ai-note.on b{background:rgba(34,197,94,.16);color:#4ade80}.cp-ai-note.off b{background:rgba(148,163,184,.16);color:var(--tx-2)}
+.cp-ai-note[hidden]{display:none!important}
+.vx-sheet.cp-min .cp-ai-note{display:none!important}
+.cp-stage{display:flex;flex-direction:column;gap:2px;padding:8px 10px;border-radius:12px;border:1px solid rgba(34,197,94,.3);background:rgba(34,197,94,.06)}
+.cp-stage b{font-size:13px;color:#4ade80;letter-spacing:.3px}.cp-stage span{font-size:11.5px;color:var(--tx-3)}
+.vx-orb[data-live="listening"] .vx-core{box-shadow:0 0 0 3px rgba(34,197,94,.55),0 0 28px rgba(34,197,94,.45)}
+.vx-orb[data-live="error"] .vx-core,.vx-orb[data-live="disconnected"] .vx-core{filter:grayscale(.7);box-shadow:0 0 0 2px rgba(239,68,68,.6)}
 .vx-wrap.cp-see{pointer-events:none}.vx-wrap.cp-see .vx-sheet{pointer-events:auto}.vx-wrap.cp-see .vx-backdrop{display:none}
 @media (max-width:820px){.vx-sheet.cp-on{width:auto}.cp-panel{max-height:40dvh}.vx-sheet.cp-on .vx-log{max-height:13vh}}
 /* ── REPLAY ── */
@@ -6250,6 +6272,7 @@ const VOICE = {
             <button type="button" class="vx-icon" onclick="VOICE.close()" aria-label="Close voice">×</button></header>
           <div class="vx-settings" id="vxSettings" hidden></div>
           <nav class="cp-modes" id="cpModes" aria-label="Copilot mode"></nav>
+          <div class="cp-ai-note" id="cpAiNote" hidden></div>
           <div class="vx-log" id="vxLog" aria-live="polite"></div>
           <div class="cp-panel" id="cpPanel" hidden></div>
           <div class="vx-stage">
@@ -6270,6 +6293,7 @@ const VOICE = {
     document.body.classList.add('vx-open');
     document.getElementById('voiceBtn')?.classList.add('on');
     if (typeof COPILOT !== 'undefined') { COPILOT.renderModes(); COPILOT.renderPanel(); }
+    if (typeof AI !== 'undefined') { AI.restoreLog(); AI.renderNote(); AI.refresh().then(() => this.renderChips()); }
     this.renderChips(); this.renderCard();
     if (!this.supported()) this.heard(this.isIOS && navigator.standalone
       ? 'Voice input is not available in the iPhone home-screen app. Type below, or open PROTrader in Safari to talk.'
@@ -6278,6 +6302,7 @@ const VOICE = {
     else if (!this.supported()) setTimeout(() => document.getElementById('vxInput')?.focus(), 60);
   },
   close() {
+    if (typeof LIVEV !== 'undefined' && LIVEV.active()) LIVEV.stop('closed');
     this.stopListening(true);
     if (window.speechSynthesis) speechSynthesis.cancel();
     document.getElementById('vxSheet')?.classList.remove('open');
@@ -6316,7 +6341,10 @@ const VOICE = {
   renderLog() {
     const box = document.getElementById('vxLog'); if (!box) return;
     const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-    box.innerHTML = this.log.slice(-8).map(m => `<div class="vx-msg ${m.who}">${esc(m.text)}</div>`).join('');
+    box.innerHTML = this.log.slice(-8).map(m => m.ai
+      ? `<div class="vx-msg vx ai">${m.status ? `<div class="ai-st"><i></i>${esc(m.status)}</div>` : ''}${m.html || (m.text ? esc(m.text) : '')}`
+        + `${m.tools && m.tools.length ? `<div class="ai-tools">${m.tools.map(t => `<span>${esc(t)}</span>`).join('')}</div>` : ''}${m.model ? `<div class="ai-by">ARIA · ${esc(m.model)}</div>` : ''}</div>`
+      : `<div class="vx-msg ${m.who}">${esc(m.text)}</div>`).join('');
     box.scrollTop = box.scrollHeight;
   },
 
@@ -6328,6 +6356,7 @@ const VOICE = {
     const list = this.pending ? []
       : this.awaiting && this.awaiting.slot === 'stop' ? ["Use ARIA's stop", 'Cancel']
       : pos.length ? ['How are my trades?', `Breakeven on ${pos[0].label}`, "What's my risk?", 'Brief me']
+      : typeof AI !== 'undefined' && AI.available() ? ['Analyze this chart', 'Read the candles', 'Draw key levels', 'Explain market structure', 'Ask ORACLE', 'Start a lesson', 'Practice this setup', 'Review my last trade']
       : ['Brief me', 'Analyze this chart', 'What does ARIA say?', `Buy ${lbl} at 1% risk`, "What's my risk?", 'Teach me', 'Trend across timeframes', "What's Sentinel seeing?"];
     const cpl = !this.pending && !(this.awaiting && this.awaiting.slot === 'stop') && typeof COPILOT !== 'undefined' ? COPILOT.chips() : null;
     box.innerHTML = (cpl || list).map(c => `<button type="button" class="vx-chip" onclick="VOICE.handle(this.textContent)">${c.replace(/[&<>]/g, '')}</button>`).join('');
@@ -6365,15 +6394,21 @@ const VOICE = {
       <label class="vx-set"><input type="checkbox" ${this.cfg.announce ? 'checked' : ''} onchange="VOICE.cfg.announce=this.checked;VOICE.save()"> Announce fills and ARIA signals</label>
       <label class="vx-set col">Voice<select onchange="VOICE.cfg.voice=this.value;VOICE.save();VOICE.say('This is how I sound.')">${opts || '<option>System voice</option>'}</select></label>
       <label class="vx-set col">I listen for<select onchange="VOICE.cfg.lang=this.value;VOICE.save()">${langs.map(([k, l]) => `<option value="${k}" ${this.cfg.lang === k ? 'selected' : ''}>${l}</option>`).join('')}</select></label>
-      <div class="vx-note">Your browser turns speech into text (Chrome uses Google's speech service for this). PROTrader never records or stores audio. Orders always need a confirmation, and MT5 orders always need a tap.</div>`;
+      ${typeof LIVEV !== 'undefined' && LIVEV.allowed() ? `<label class="vx-set"><input type="checkbox" ${LIVEV.wanted() ? 'checked' : ''} onchange="LIVEV.setWanted(this.checked)"> Gemini Live voice (instructor account, beta): natural spoken conversation; your voice is sent to Google's free tier</label>` : ''}
+      <label class="vx-set col">Teaching level<select onchange="AI.setLevel(this.value)">${['beginner', 'intermediate', 'advanced'].map(l => `<option value="${l}" ${AI.level() === l ? 'selected' : ''}>${l.charAt(0).toUpperCase() + l.slice(1)}</option>`).join('')}</select></label>
+      <button type="button" class="cp-btn sm" onclick="AI.clear()">Clear this conversation</button>
+      <div class="vx-note">Your browser turns speech into text (Chrome uses Google's speech service for this). PROTrader never records or stores audio. Orders always need a confirmation, and MT5 orders always need a tap.</div>
+      <div class="vx-note">ARIA's AI answers come from Google Gemini's free tier, where Google may use what is sent to improve its products. ARIA sends your words and chart data only: never your name, email, balance, positions or journal. The conversation is kept on this device for seven days.</div>`;
   },
 
   /* ── listening ── */
   listen() {
     if (!this.cfg) this.init();
     if (!this.open_) { this.open(true); return; }
+    if (typeof LIVEV !== 'undefined' && (LIVEV.active() || (LIVEV.wanted() && LIVEV.allowed()))) { if (typeof AI !== 'undefined' && AI.busy) AI.abort(); return LIVEV.start(); }
     if (!this.supported()) { this.heard('No speech input in this browser — type below.'); document.getElementById('vxInput')?.focus(); return; }
     if (this.state === 'listening') { this.stopListening(); return; }
+    if (typeof AI !== 'undefined' && AI.busy) AI.abort();
     if (window.speechSynthesis) speechSynthesis.cancel();
     const R = window.SpeechRecognition || window.webkitSpeechRecognition;
     let rec;
@@ -6424,7 +6459,8 @@ const VOICE = {
   /* ── talking ── */
   say(text, o = {}) {
     if (!this.cfg) this.init();
-    if (!o.announce) { this.lastReply = text; this.addLog('vx', text); }
+    if (this._muted) { this._mutedText = text; return Promise.resolve(); }
+    if (!o.announce) { this.lastReply = text; if (!o.nolog) this.addLog('vx', text); }
     if (!this.cfg.talk || !window.speechSynthesis || typeof SpeechSynthesisUtterance === 'undefined') { if (!o.announce) this.setState('idle'); return Promise.resolve(); }
     const synth = window.speechSynthesis, voice = this.pickVoice();
     const parts = String(text).split(/(?<=[.!?])\s+(?=[A-Z0-9"'(])/).map(s => s.trim()).filter(Boolean);
@@ -6445,6 +6481,7 @@ const VOICE = {
     });
   },
   async reply(text, o = {}) {
+    if (this._muted) { this._mutedText = text; this.renderChips(); this.renderCard(); return; }   // an AI tool is running the app: the model reports, not the tool
     this.renderChips(); this.renderCard();
     this.heard(this.pending ? 'Say confirm or cancel, or tap below' : this.awaiting ? 'Tap the orb to answer' : 'Tap the orb to talk', true);
     await this.say(text);
@@ -6545,12 +6582,13 @@ const VOICE = {
     let c = this.parse(text);
     if (c.intent === 'unknown' && o.alts) for (const a of o.alts.slice(1)) { const c2 = this.parse(a); if (c2.intent !== 'unknown') { c = c2; break; } }
     if (this.awaiting && !['slot', 'confirm', 'cancel', 'repeat', 'help'].includes(c.intent)) this.awaiting = null;
-    try { await this.run(c, o); }
+    try { await this.run(c, Object.assign({ raw: text }, o)); }
     catch (e) { await this.reply(`That didn't work: ${e.message || e}.`, o); }
   },
 
   async run(c, o) {
     const r = (text, x = {}) => this.reply(text, Object.assign({ spoken: o.spoken }, x));
+    if (typeof AI !== 'undefined' && AI.shouldHandle(c)) return AI.ask(c, o);       // natural language and chart questions go to the model
     if (c.cp && typeof COPILOT !== 'undefined') return COPILOT.run(c, o);
     switch (c.intent) {
       case 'confirm': return this.confirmPending(o);
@@ -6602,7 +6640,9 @@ const VOICE = {
       case 'trail': return this.trail(c, o);
       case 'move_stop': return this.moveStop(c, o);
       case 'move_target': return this.moveTarget(c, o);
-      default: return r(`I heard "${String(c.t || '').trim()}" but I'm not sure what to do with it. Try: brief me, what's my risk, price of gold, or buy gold one percent risk with a stop.`);
+      default:
+        if (/^ (?:hello|hi|hey|hiya|good day|greetings|hello aria|hi aria|hey aria)(?: there| aria)? $/.test(c.t || '')) return r('Hello! Would you like to analyze the current chart, continue learning, or review a trading setup?');
+        return r(`I heard "${String(c.t || '').trim()}" but I'm not sure what to do with it. Try: brief me, what's my risk, price of gold, or buy gold one percent risk with a stop.`);
     }
   },
 
@@ -7830,6 +7870,34 @@ const COPILOT = {
     return { checked: all.length, placed: placed.length, avg, stopBeyond: pct(all, 'stopBeyond'), withTrend: pct(all, 'withTrend'),
              rr: rrs.length ? +(rrs.reduce((a, b) => a + b, 0) / rrs.length).toFixed(1) : null, overrode: placed.filter(r => r.overrode).length, q, closed, recent: all.slice(-5).reverse() };
   },
+  // the student's last decision, reviewed on the device (never sent to the AI)
+  reviewLast() {
+    const d = this.load(), placed = d.decisions.filter(r => r.placed).slice(-1)[0];
+    const t = (S.trades || []).filter(x => x.final !== false).slice(-1)[0];
+    if (placed) {
+      const R = this.outcome(placed), q = this.quadrant(placed, R);
+      return `Your last practice decision: ${placed.side} ${VOICE.name(placed.sym)}${placed.source === 'replay' ? ' in a replay' : ''}. ORACLE said ${placed.status.toLowerCase()}, process score ${placed.score}. `
+        + (R === 'open' ? 'It is still open. ' : R == null ? '' : `Result ${R > 0 ? 'plus' : R < 0 ? 'minus' : ''} ${Math.abs(R)} R: ${q}. `)
+        + (placed.against && placed.against.length ? `ORACLE flagged: ${placed.against[0]} ` : 'ORACLE found nothing against it. ')
+        + 'Judge it by the process first, the result second.';
+    }
+    if (t) return `Your last paper trade: ${t.type} ${t.pair}, closed by ${String(t.reason || 'hand').toLowerCase()}${Number.isFinite(t.r) ? `, ${t.r > 0 ? 'plus' : 'minus'} ${Math.abs(t.r).toFixed(2)} R` : ''}. It was not planned through Practice, so ORACLE did not check it. Plan the next one in Practice and I'll score the process.`;
+    return 'You have no finished practice or paper trades yet. Build a plan in Practice and I will review it with you.';
+  },
+  // learning stages reward understanding (lessons, plan quality), never trade count or profit
+  stage() {
+    const d = this.load(), x = this.dna(), lessons = CP_LESSONS.filter(L => d.lessons[L.id] && d.lessons[L.id].right).length;
+    const recent = d.decisions.filter(r => r.placed).slice(-10);
+    const stages = ['Foundation', 'Market Analyst', 'Trade Planner', 'Disciplined Trader', 'Independent Analyst'];
+    let i = 0;
+    if (lessons >= 3) i = 1;
+    if (lessons >= 7 && x.checked >= 5) i = 2;
+    if (i === 2 && x.placed >= 10 && (x.avg || 0) >= 75 && (x.stopBeyond || 0) >= 80) i = 3;
+    if (i === 3 && x.checked >= 25 && (x.avg || 0) >= 85 && !recent.some(r => r.overrode)) i = 4;
+    const next = ['complete 3 lessons', 'complete all 7 lessons and check 5 plans with ORACLE', 'place 10 practice plans averaging a process score of 75+ with stops beyond the swing 80% of the time',
+                  'check 25 plans averaging 85+, with no ORACLE overrides in your last 10', 'keep the standard'][i];
+    return { name: stages[i], index: i, of: stages.length, next };
+  },
   dnaText() {
     const x = this.dna();
     if (!x.checked) return 'Your Decision DNA is empty. Build a plan in Practice, check it with ORACLE and place it on paper, and I will start scoring your process.';
@@ -7884,6 +7952,7 @@ const COPILOT = {
     }
     if (has(/\b(?:place|put|send) (?:it|the plan|my plan|that)(?: on paper)?\b|\bplace (?:the )?(?:practice )?trade\b/) && this.check) return cp('place');
     if (has(/\b(?:decision dna|dna|my process|process score|my decisions)\b/)) return cp('dna');
+    if (has(/\breview (?:my |the )?(?:last|latest|previous|recent) (?:trade|decision|practice trade)\b|\bhow did my last trade\b/)) return cp('review_last');
     if (has(/\b(?:suggest|find|where should|where would|give me) (?:me )?(?:a |the |my )?stop\b/)) return cp('suggest_stop', { side });
     // learning
     const termAt = this.termIn(t);
@@ -7892,6 +7961,8 @@ const COPILOT = {
     if (has(/\bnext lesson\b/)) return cp('lesson', { lesson: null, next: true });
     if (has(/\b(?:teach me|lesson|learn|tutorial|course|train me)\b/)) return cp('lesson', { lesson: termAt ? CP_TERMS[termAt.i][3] : null });
     if (has(/^ show me(?: (?:it|that|on the chart|on this chart|here))? $/) && this.lesson) return cp('showme');
+    // comparing timeframes (before "4h ... chart" can be taken for a timeframe switch)
+    if (has(/\b(?:compare|comparing|versus|vs|align(?:ment|ed)?|agree|conflict)\b/) && (vxTimeframe(t) || has(/\btime ?frames?\b|\bhigher (?:time ?frame|tf)\b/))) return cp('compare');
     // the chart, read and drawn
     if (has(/\b(?:analy[sz]e|analysis|read (?:the|this|my) chart|break ?down (?:the|this) chart|what do you see|mark (?:up )?(?:the|this|my) chart|mark ?up|full read)\b/)) return cp('analyze', { tf: vxTimeframe(t) });
     const what = [];
@@ -7934,6 +8005,8 @@ const COPILOT = {
       case 'plan': return this.checkPlan(c, o);
       case 'place': return this.placePlan(o);
       case 'dna': this.setMode('practice', true); return r(this.dnaText());
+      case 'review_last': this.setMode('practice', true); return r(this.reviewLast());
+      case 'compare': return r(await VOICE.trendText());
       case 'suggest_stop': {
         const p = this.plan || (this.plan = this.blankPlan()); if (c.side) p.side = c.side;
         const s = this.suggestStop(p); if (s == null) return r('Not enough candles to find a swing yet.');
@@ -8007,8 +8080,10 @@ const COPILOT = {
     if (L) return `<div class="cp-h"><button type="button" class="cp-back" onclick="COPILOT.lesson=null;COPILOT.renderPanel()" aria-label="All lessons">‹</button>${this.esc(L.title)}</div>
       ${L.body.map(p => `<p class="cp-p">${this.esc(p)}</p>`).join('')}
       <div class="cp-acts"><button type="button" class="cp-btn" onclick="VOICE.handle('show me')">Show me on this chart</button><button type="button" class="cp-btn pri" onclick="VOICE.handle('quiz me')">Quiz me</button></div>`;
-    const done = CP_LESSONS.filter(x => d.lessons[x.id] && d.lessons[x.id].right).length;
-    return `<div class="cp-h">Lessons · ${done} of ${CP_LESSONS.length} done</div><div class="cp-list">${CP_LESSONS.map((x, i) => {
+    const done = CP_LESSONS.filter(x => d.lessons[x.id] && d.lessons[x.id].right).length, sg = this.stage(), lv = typeof AI !== 'undefined' ? AI.level() : 'beginner';
+    return `<div class="cp-stage"><b>${this.esc(sg.name)}</b><span>Stage ${sg.index + 1} of ${sg.of} · next: ${this.esc(sg.next)}</span></div>
+      <div class="cp-seg">${['beginner', 'intermediate', 'advanced'].map(l => `<button type="button" class="${lv === l ? 'on' : ''}" onclick="AI.setLevel('${l}')">${l.charAt(0).toUpperCase() + l.slice(1)}</button>`).join('')}</div>
+      <div class="cp-h">Lessons · ${done} of ${CP_LESSONS.length} done</div><div class="cp-list">${CP_LESSONS.map((x, i) => {
       const r = d.lessons[x.id] || {};
       return `<button type="button" class="cp-item lesson${r.right ? ' done' : ''}" onclick="COPILOT.openLesson('${x.id}')"><b><i>${r.right ? '✓' : i + 1}</i>${this.esc(x.title)}</b><span>${this.esc(x.short)}</span></button>`; }).join('')}</div>`;
   },
@@ -8318,6 +8393,768 @@ const REPLAY = (() => {
   };
   return api;
 })();
+
+/* ════════════════════════════════════════════════════════════
+   ARIA AI — the language model behind the copilot (server: aria_ai.py)
+   The model never computes market data and never touches the app directly:
+     1. CTX builds a compact snapshot from TA / ARIA / the chart (replay-safe:
+        during a replay it is built from the revealed candles only)
+     2. the server adds its own instructions and tool list and asks Gemini
+     3. any tool the model asks for runs HERE, through AITOOLS: an allowlist
+        of validated actions on the app's own functions (drawings checked on
+        the chart, ORACLE, the paper risk rules). The model is told only what
+        the tool really did.
+   Private data stays on the device: no balance, positions, journal, Decision
+   DNA or identity goes into a request. Those questions are answered by the
+   app's own local commands. When the AI is off or its free allowance is used
+   up, every local command keeps working.
+════════════════════════════════════════════════════════════ */
+const KB = {
+  // a small retrieval layer over the copilot's own teaching material (in-app content, not Academy records)
+  search(text) {
+    const t = ' ' + vxNorm(text) + ' ', hits = [];
+    for (const row of CP_TERMS) if (row[0].some(a => t.includes(' ' + a + ' '))) hits.push({ term: row[1], meaning: row[2], lesson: row[3] });
+    const L = hits.length ? CP_LESSONS.find(x => x.id === hits[0].lesson) : null;
+    return { terms: hits.slice(0, 3), lesson: L ? { id: L.id, title: L.title, text: L.body.join(' ') } : null };
+  },
+};
+
+const CTX = {
+  r(v, dp) { return Number.isFinite(v) ? +(+v).toFixed(dp) : null; },
+  iso(t) { return Number.isFinite(t) ? new Date(t * 1000).toISOString().replace('.000Z', 'Z') : null; },
+  adx(cd, p = 14) {
+    if (cd.length < p * 2 + 2) return null;
+    let tr = 0, pdm = 0, ndm = 0, adx = null; const dxs = [];
+    for (let i = 1; i < cd.length; i++) {
+      const c = cd[i], q = cd[i - 1];
+      const up = c.high - q.high, dn = q.low - c.low;
+      const t = Math.max(c.high - c.low, Math.abs(c.high - q.close), Math.abs(c.low - q.close));
+      const pd = up > dn && up > 0 ? up : 0, nd = dn > up && dn > 0 ? dn : 0;
+      if (i <= p) { tr += t; pdm += pd; ndm += nd; if (i < p) continue; }
+      else { tr = tr - tr / p + t; pdm = pdm - pdm / p + pd; ndm = ndm - ndm / p + nd; }
+      const pdi = tr ? 100 * pdm / tr : 0, ndi = tr ? 100 * ndm / tr : 0;
+      const dx = pdi + ndi ? 100 * Math.abs(pdi - ndi) / (pdi + ndi) : 0;
+      dxs.push(dx);
+      if (dxs.length === p) adx = dxs.reduce((a, b) => a + b, 0) / p;
+      else if (dxs.length > p) adx = (adx * (p - 1) + dx) / p;
+      if (i === cd.length - 1) return adx == null ? null : { adx, plusDI: pdi, minusDI: ndi };
+    }
+    return null;
+  },
+  indicators(closed, dp) {
+    const n = closed.length; if (n < 30) return null;
+    const closes = closed.map(c => c.close), r = v => this.r(v, dp), last = a => a[a.length - 1];
+    const rsi = calcRSI(closes), macd = calcMACD(closes), st = calcStoch(closed), bb = calcBB(closes), atr = calcATR(closed, 14);
+    const e = p => last(calcEMA(closes, p)), ax = this.adx(closed), b = last(bb) || {};
+    const bbu = b.upper, bbl = b.lower;
+    return { rsi14: this.r(last(rsi), 1), ema20: r(e(20)), ema50: r(e(50)), ema200: n >= 200 ? r(e(200)) : null,
+             macd: r(last(macd.line)), macdSignal: r(last(macd.sig)), macdHist: r(last(macd.hist)),
+             stochK: st.k ? this.r(last(st.k), 1) : null, stochD: st.d ? this.r(last(st.d), 1) : null,
+             atr14: r(last(atr)), adx14: ax ? this.r(ax.adx, 1) : null, plusDI: ax ? this.r(ax.plusDI, 1) : null, minusDI: ax ? this.r(ax.minusDI, 1) : null,
+             bbUpper: r(bbu), bbLower: r(bbl), note: n < 200 ? 'EMA 200 needs 200 closed candles' : undefined };
+  },
+  session(t, market) {
+    if (market === 'syn' || market === 'basket') return 'synthetic: trades around the clock, no sessions or news';
+    const h = new Date(t * 1000).getUTCHours();
+    return market === 'crypto' ? 'crypto: trades around the clock' : h < 7 ? 'Asian session (UTC)' : h < 12 ? 'London session (UTC)' : h < 16 ? 'London / New York overlap (UTC)' : h < 21 ? 'New York session (UTC)' : 'after New York close (UTC)';
+  },
+  build() {
+    const s = COPILOT.src(), id = s.sym, sp = otSpec(id), dp = sp.dp, market = (PAIR_MAP[id] || {}).market || 'unknown';
+    const r = v => this.r(v, dp);
+    const copilot = { mode: COPILOT.mode, level: AI.level(), activeLesson: COPILOT.lesson ? (CP_LESSONS.find(x => x.id === COPILOT.lesson) || {}).title : null,
+                      quizOpen: COPILOT.quiz && !COPILOT.quiz.done ? COPILOT.quiz.q : null,
+                      replay: s.replay ? { active: true, cursorTime: this.iso((s.cd[s.cd.length - 1] || {}).time), hiddenCandles: REPLAY.total() - REPLAY.cursor(),
+                                           note: 'Historical exercise: only candles up to the cursor exist for you; the future is hidden.' } : null };
+    const chart = { symbol: id, instrumentName: VOICE.name(id), instrumentType: market, synthetic: COPILOT.synthetic(id), timeframe: s.tf, priceDecimals: dp };
+    const sp2 = TA.split(s.cd, s.tf, s.now), closed = sp2.closed;
+    const q = s.replay ? null : otQuote(id);
+    chart.feed = s.replay ? 'replay of historical Deriv candles' : 'Deriv live feed';
+    if (!s.replay) { chart.feedConnected = !!S.wsConnected; chart.quoteFresh = !!(q && q.ok && !q.stale); }
+    if (closed.length < 30) {
+      chart.available = false;
+      chart.unavailable = !closed.length ? 'no candles have loaded for this chart' : `only ${closed.length} closed candles have loaded (30 needed)`;
+      return { chart, copilot, utcTime: new Date().toISOString() };
+    }
+    const R = TA.read(s.cd, s.tf, s.now), st = R.structure, last = R.last;
+    const tfs = TA.tfSec(s.tf), nowS = s.replay ? last.time + tfs : Date.now() / 1000;
+    chart.available = true;
+    chart.lastPrice = s.replay ? r(last.close) : (q && q.ok ? r(q.last) : r(last.close));
+    chart.lastClosedCandle = this.iso(last.time);
+    chart.dataAgeSeconds = Math.max(0, Math.round(nowS - (last.time + tfs)));
+    if (!s.replay && chart.dataAgeSeconds > tfs * 3) chart.stale = `the newest closed candle is ${Math.round(chart.dataAgeSeconds / 60)} minutes old — the feed may be paused or the market closed`;
+    chart.marketSession = this.session(nowS, market);
+    chart.formingCandle = R.forming ? { time: this.iso(R.forming.time), open: r(R.forming.open), high: r(R.forming.high), low: r(R.forming.low), close: r(R.forming.close), note: 'not closed: can still change' } : null;
+    chart.candles = { format: '[unixTime, open, high, low, close]', closed: R.closed.slice(-20).map(c => [c.time, r(c.open), r(c.high), r(c.low), r(c.close)]) };
+    chart.indicators = this.indicators(R.closed, dp);
+    const zone = z => z ? { low: r(z.lo), high: r(z.hi), touches: z.touches } : null, sw = x => x ? { type: x.type, label: x.label, price: r(x.price), time: x.time } : null;
+    chart.structure = { method: 'swings need 3 candles each side; a break is a CLOSE beyond the last swing',
+      trend: st.trend || 'none (no break yet)', swingSequence: st.sequence,
+      lastBreak: st.lastBreak ? { type: st.lastBreak.type, direction: st.lastBreak.dir, level: r(st.lastBreak.level), time: st.lastBreak.time } : null,
+      lastSweep: st.lastSweep ? { direction: st.lastSweep.dir, level: r(st.lastSweep.level), time: st.lastSweep.time } : null,
+      recentSwings: st.swings.slice(-6).map(sw), lastSwingLowBelowPrice: sw(st.lowBelow), lastSwingHighAbovePrice: sw(st.highAbove),
+      nearestResistance: zone(R.near.above), nearestSupport: zone(R.near.below), priceInsideZone: zone(R.near.inside),
+      equalLevels: R.equal.map(e => ({ type: e.type === 'high' ? 'equal highs' : 'equal lows', price: r(e.price), from: e.t1, to: e.t2 })),
+      lastLeg: R.impulse ? { direction: R.impulse.dir, from: { price: r(R.impulse.from.price), time: R.impulse.from.time }, to: { price: r(R.impulse.to.price), time: R.impulse.to.time },
+                             retracedPercent: Math.round((COPILOT.depth(R) || 0) * 100), fib: Object.fromEntries(Object.entries(R.impulse.levels).map(([k, v]) => [k, r(v)])) } : null };
+    chart.recentCandleReadings = R.candles.slice(-3).map(k => ({ time: k.time, direction: k.dir, bodyPercent: k.bodyPct, closeLocationPercent: k.closeAt, rangeVsATR: k.rangeAtr, tags: k.tags }));
+    if (!s.replay) {
+      try {
+        const a = VOICE.aria();
+        if (a) chart.aria = { gatesPassed: a.gates.score, gatesTotal: ARIA_GATE_COUNT, lean: a.gates.dir, verdict: a.verdict.v, marketCondition: a.mcc.label.replace(/[↑↓]/g, '').trim(),
+                              suggestedStop: r(a.entry.slLevel), note: 'ARIA framework read; WAITING / OBSERVER mean stand aside' };
+      } catch (_) {}
+      const htf = CP_HTF[s.tf], hd = htf && typeof MTF !== 'undefined' ? (MTF.data[id] || {})[htf] : null;
+      const HR = hd ? TA.read(hd, htf) : null;
+      if (HR) chart.higherTimeframe = { timeframe: htf, trend: HR.structure.trend || 'none', swingSequence: HR.structure.sequence };
+      chart.shownIndicators = Object.assign({}, S.ind);
+      try { const vr = CH.chart.timeScale().getVisibleRange(); if (vr) chart.visibleRange = { from: +vr.from, to: +vr.to }; } catch (_) {}
+      const mine = COPILOT.ours();
+      chart.ariaDrawings = mine.slice(-12).map(d => ({ id: d.id, label: (d.aria && d.aria.label) || d.name }));
+      const selId = typeof DT !== 'undefined' ? DT.selectedId() : null, sel = selId && COPILOT.dm() ? COPILOT.dm().get(selId) : null;
+      if (sel) chart.selectedDrawing = COPILOT.mine(sel) ? { id: sel.id, by: 'ARIA', label: sel.aria.label, reason: sel.aria.why } : { id: sel.id, by: 'student', kind: sel.kind };
+    }
+    return { chart, copilot, utcTime: new Date().toISOString() };
+  },
+};
+
+const AITOOLS = {
+  ok(x) { return Object.assign({ ok: true }, x); },
+  no(error, x) { return Object.assign({ ok: false, error }, x || {}); },
+  num(v) { const n = typeof v === 'string' ? parseFloat(v) : v; return Number.isFinite(n) ? n : NaN; },
+  range() {          // prices a drawing may use: the loaded candles, widened by three average ranges
+    const R = COPILOT.read(); if (!R) return null;
+    const cd = R.closed.slice(-300), lo = Math.min(...cd.map(c => c.low)), hi = Math.max(...cd.map(c => c.high));
+    return { R, lo: lo - R.atr * 3, hi: hi + R.atr * 3, t0: cd[0].time, t1: R.last.time, cd };
+  },
+  snapTime(t, g) { if (!Number.isFinite(t)) return null; if (t < g.t0 || t > g.t1 + TA.tfSec(COPILOT.src().tf)) return null; let best = g.cd[0]; for (const c of g.cd) if (Math.abs(c.time - t) < Math.abs(best.time - t)) best = c; return best.time; },
+  inRange(p, g) { return Number.isFinite(p) && p >= g.lo && p <= g.hi; },
+  label(s, n = 30) { return String(s || '').replace(/[\u0000-\u001f<>]/g, '').slice(0, n) || 'ARIA level'; },
+  why(s) { return String(s || '').replace(/[\u0000-\u001f]/g, ' ').slice(0, 300); },
+  status: {
+    get_candles: 'Reading candles', get_indicator_values: 'Reading indicators', compare_timeframes: 'Comparing timeframes', draw_analysis: 'Drawing on the chart',
+    draw_horizontal_level: 'Drawing a level', draw_price_zone: 'Drawing a zone', draw_trendline: 'Drawing a trend line', draw_fibonacci: 'Drawing a fib',
+    remove_ai_drawing: 'Removing a drawing', clear_ai_drawings: 'Clearing ARIA\'s drawings', set_indicator: 'Updating indicators', switch_chart: 'Switching chart',
+    check_plan_with_oracle: 'ORACLE is validating', calculate_risk: 'Sizing the risk', propose_demo_order: 'Preparing a demo order', get_sentinel_observation: 'Asking SENTINEL',
+    start_lesson: 'Opening a lesson', start_quiz: 'Preparing a question', set_copilot_mode: 'Switching tab', start_replay: 'Starting replay', save_journal_note: 'Saving a note',
+  },
+  async run(name, args) {
+    args = args && typeof args === 'object' ? args : {};
+    const fn = this.fns[name];
+    if (!fn) return this.no('That action is not available in the Academy.');
+    VOICE._muted = true; VOICE._mutedText = '';
+    try { return await fn.call(this, args); }
+    catch (e) { return this.no(`The app could not do that: ${String(e && e.message || e).slice(0, 120)}`); }
+    finally { VOICE._muted = false; }
+  },
+  place(spec) {
+    const p = COPILOT.place([spec]);
+    if (p.err) return this.no(p.err);
+    return p.drawn.length ? this.ok({ id: p.drawn[0].id, label: p.drawn[0].label, verifiedOnChart: true }) : this.no('The drawing could not be placed on the chart.');
+  },
+  fns: {
+    get_candles({ count }) {
+      const s = COPILOT.src(), n = Math.max(1, Math.min(120, Math.round(this.num(count) || 20)));
+      const closed = TA.split(s.cd, s.tf, s.now).closed, dp = otSpec(s.sym).dp, r = v => +(+v).toFixed(dp);
+      if (!closed.length) return this.no('No candles have loaded for this chart.');
+      return this.ok({ symbol: s.sym, timeframe: s.tf, format: '[unixTime, open, high, low, close]', closed: closed.slice(-n).map(c => [c.time, r(c.open), r(c.high), r(c.low), r(c.close)]), replay: s.replay || undefined });
+    },
+    get_indicator_values() {
+      const s = COPILOT.src(), closed = TA.split(s.cd, s.tf, s.now).closed, v = CTX.indicators(closed, otSpec(s.sym).dp);
+      return v ? this.ok({ symbol: s.sym, timeframe: s.tf, values: v, shownOnChart: COPILOT.src().replay ? undefined : Object.assign({}, S.ind) }) : this.no('Not enough closed candles for indicators (30 needed).');
+    },
+    async compare_timeframes({ timeframes }) {
+      if (COPILOT.src().replay) return this.no('Not available during a replay: other timeframes would reveal candles after the cursor.');
+      const want = (Array.isArray(timeframes) ? timeframes : []).filter(t => ['1m', '5m', '15m', '1h', '4h'].includes(t)).slice(0, 4);
+      if (!want.length) return this.no('Give one or more of 1m, 5m, 15m, 1h, 4h.');
+      const have = () => want.every(tf => tf === S.tf || (MTF.data[S.sym] || {})[tf]);
+      if (!have()) { MTF.refresh(true); for (let i = 0; i < 25 && !have(); i++) await COPILOT.sleep(200); }
+      const dp = otSpec(S.sym).dp, r = v => Number.isFinite(v) ? +(+v).toFixed(dp) : null;
+      const out = want.map(tf => {
+        const cd = tf === S.tf ? S.candles : (MTF.data[S.sym] || {})[tf];
+        const R = cd ? TA.read(cd, tf) : null;
+        if (!R) return { timeframe: tf, available: false };
+        const ind = R.ind || {};
+        return { timeframe: tf, available: true, trend: R.structure.trend || 'none', swingSequence: R.structure.sequence,
+                 lastBreak: R.structure.lastBreak ? { type: R.structure.lastBreak.type, direction: R.structure.lastBreak.dir, level: r(R.structure.lastBreak.level) } : null,
+                 price: r(R.price), ema20: r(ind.ema20), ema50: r(ind.ema50), rsi14: Number.isFinite(ind.rsi) ? Math.round(ind.rsi) : null,
+                 emaStack: ind.ema20 && ind.ema50 ? (R.price > ind.ema20 && ind.ema20 > ind.ema50 ? 'bullish' : R.price < ind.ema20 && ind.ema20 < ind.ema50 ? 'bearish' : 'mixed') : null };
+      });
+      return this.ok({ symbol: S.sym, timeframes: out });
+    },
+    draw_analysis({ layers }) {
+      const ok = ['structure', 'zones', 'liquidity', 'fib', 'invalidation', 'candles'];
+      const want = (Array.isArray(layers) ? layers : []).filter(l => ok.includes(l));
+      if (!want.length) return this.no(`Choose layers from: ${ok.join(', ')}.`);
+      if (COPILOT.src().replay) { REPLAY.analyze(null, true); return this.ok({ note: 'Marked zones, the last break and swing labels on the replay chart (visible candles only).' }); }
+      const R = COPILOT.read(); if (!R) return this.no('Not enough closed candles to analyse yet.');
+      const p = COPILOT.place(COPILOT.specs(R, want));
+      if (p.err) return this.no(p.err);
+      const got = [...new Set(p.drawn.map(d => d.rule))];
+      return this.ok({ drawn: p.drawn.map(d => ({ id: d.id, label: d.label })), verifiedOnChart: p.drawn.length, nothingToDraw: want.filter(l => !got.includes(l)) });
+    },
+    draw_horizontal_level({ price, label, reason }) {
+      if (COPILOT.src().replay) return this.no('During a replay, use the replay chart: say "analyze" there.');
+      const g = this.range(); if (!g) return this.no('Not enough candles to place a level.');
+      const p = this.num(price); if (!this.inRange(p, g)) return this.no(`Price ${price} is outside the chart's range; use a price from the context.`);
+      return this.place({ rule: 'custom:' + Date.now() + Math.random(), kind: 'horizontal-line', label: this.label(label), text: this.label(label), points: [{ time: g.t1, price: p }],
+                          style: { color: '#eab308', width: 2, lineStyle: 'dashed' }, why: this.why(reason) });
+    },
+    draw_price_zone({ low, high, label, reason, start_time }) {
+      if (COPILOT.src().replay) return this.no('During a replay, use the replay chart: say "analyze" there.');
+      const g = this.range(); if (!g) return this.no('Not enough candles to place a zone.');
+      let lo = this.num(low), hi = this.num(high); if (lo > hi) [lo, hi] = [hi, lo];
+      if (!this.inRange(lo, g) || !this.inRange(hi, g) || !(hi > lo)) return this.no('Zone prices must be two different prices inside the chart\'s range.');
+      if (hi - lo > g.R.atr * 8) return this.no('That zone is wider than eight average candles; a zone should be a tight area.');
+      const t0 = this.snapTime(this.num(start_time), g) || g.cd[Math.max(0, g.cd.length - 60)].time;
+      return this.place({ rule: 'custom:' + Date.now() + Math.random(), kind: 'rectangle', label: this.label(label), text: this.label(label), points: [{ time: t0, price: hi }, { time: g.t1, price: lo }],
+                          style: { color: '#eab308', backgroundColor: '#eab308', transparency: 85, fillBackground: true, width: 1, extendRight: true, horzLabelsAlign: 'right', vertLabelsAlign: 'bottom', fontSize: 11 }, why: this.why(reason) });
+    },
+    draw_trendline({ start_time, start_price, end_time, end_price, label, reason }) {
+      if (COPILOT.src().replay) return this.no('During a replay, use the replay chart.');
+      const g = this.range(); if (!g) return this.no('Not enough candles to place a line.');
+      const t1 = this.snapTime(this.num(start_time), g), t2 = this.snapTime(this.num(end_time), g), p1 = this.num(start_price), p2 = this.num(end_price);
+      if (!t1 || !t2 || t1 >= t2) return this.no('Both points must be candle times on the loaded chart, the start before the end.');
+      if (!this.inRange(p1, g) || !this.inRange(p2, g)) return this.no('Both prices must be inside the chart\'s range.');
+      return this.place({ rule: 'custom:' + Date.now() + Math.random(), kind: 'trend-line', label: this.label(label), text: this.label(label), points: [{ time: t1, price: p1 }, { time: t2, price: p2 }],
+                          style: { color: '#eab308', width: 2 }, why: this.why(reason) });
+    },
+    draw_fibonacci({ start_time, start_price, end_time, end_price, reason }) {
+      if (COPILOT.src().replay) return this.no('During a replay, use the replay chart.');
+      const g = this.range(); if (!g) return this.no('Not enough candles to place a fib.');
+      const t1 = this.snapTime(this.num(start_time), g), t2 = this.snapTime(this.num(end_time), g), p1 = this.num(start_price), p2 = this.num(end_price);
+      if (!t1 || !t2 || t1 >= t2 || !this.inRange(p1, g) || !this.inRange(p2, g) || p1 === p2) return this.no('A fib needs two different swing points on the loaded chart, the start before the end.');
+      return this.place({ rule: 'fib', kind: 'fib-retracement', label: 'Fib', points: [{ time: t1, price: p1 }, { time: t2, price: p2 }], style: {}, why: this.why(reason) });
+    },
+    remove_ai_drawing({ id }) {
+      const dm = COPILOT.dm(), d = dm && dm.get(String(id));
+      if (!d) return this.no('No drawing with that id on this chart.');
+      if (!COPILOT.mine(d)) return this.no('That drawing belongs to the student; ARIA only removes its own.');
+      COPILOT.batch([() => dm.remove(d.id)]); COPILOT.renderPanel();
+      return dm.get(d.id) ? this.no('The drawing could not be removed.') : this.ok({ removed: d.id });
+    },
+    clear_ai_drawings() { const n = COPILOT.clear(); return this.ok({ removed: n, studentDrawingsTouched: 0 }); },
+    set_indicator({ name, visible }) {
+      if (COPILOT.src().replay) return this.no('Indicators on the replay chart are not available yet.');
+      const key = { ema: 'ema', bb: 'bb', rsi: 'rsi', volume: 'vol' }[name]; if (!key) return this.no('Available: ema, bb, rsi, volume.');
+      if (key === 'vol' && visible && !(CH && CH.hasVolume)) return this.no('This instrument has no volume data (Deriv synthetics and forex report none).');
+      S.ind[key] = !!visible;
+      document.getElementById('ind-' + key)?.classList.toggle('active', S.ind[key]);
+      if (typeof CH !== 'undefined' && CH.ready) CH.applyIndicatorVisibility();
+      if (typeof requestChartRedraw === 'function') requestChartRedraw();
+      const v = CTX.indicators(TA.split(S.candles, S.tf).closed, otSpec(S.sym).dp) || {};
+      return this.ok({ indicator: name, visible: !!S.ind[key], note: key === 'ema' ? 'The EMA overlay shows the 20, 50 and 200 EMAs together (and VWAP).' : undefined,
+                       values: key === 'rsi' ? { rsi14: v.rsi14 } : key === 'ema' ? { ema20: v.ema20, ema50: v.ema50, ema200: v.ema200 } : key === 'bb' ? { bbUpper: v.bbUpper, bbLower: v.bbLower } : {} });
+    },
+    async switch_chart({ symbol, timeframe }) {
+      if (COPILOT.src().replay) return this.no('End the replay before switching charts.');
+      let id = null;
+      if (symbol) {
+        const s = String(symbol);
+        id = PAIR_MAP[s] ? s : vxSymbol(vxNorm(s)) || Object.keys(PAIR_MAP).find(k => (PAIR_MAP[k].label || '').toLowerCase() === s.toLowerCase());
+        if (!id) return this.no(`I don't know an instrument called "${s.slice(0, 40)}".`);
+        if (id !== S.sym) await VOICE.switchTo(id);
+      }
+      if (timeframe) {
+        if (!['1m', '5m', '15m', '1h', '4h', '1d', '1w'].includes(timeframe)) return this.no('Timeframes: 1m, 5m, 15m, 1h, 4h, 1d, 1w.');
+        if (timeframe !== S.tf) { VOICE.setTf(timeframe); for (let i = 0; i < 25 && S.candles.length < 30; i++) await COPILOT.sleep(200); }
+      }
+      return this.ok({ symbol: S.sym, instrumentName: VOICE.name(S.sym), timeframe: S.tf, candlesLoaded: S.candles.length, note: 'Read the new workspace context before analysing.' });
+    },
+    check_plan_with_oracle({ side, entry, stop, target, reason }) {
+      if (side !== 'buy' && side !== 'sell') return this.no('side must be buy or sell.');
+      const s = COPILOT.src(), R = COPILOT.read();
+      const q = s.replay ? null : otQuote(s.sym);
+      let e = this.num(entry);
+      if (!Number.isFinite(e)) e = s.replay ? (R ? R.price : NaN) : q && q.ok ? (side === 'buy' ? q.ask : q.bid) : (R ? R.price : NaN);
+      if (!Number.isFinite(e)) return this.no('No price is available to check the plan against.');
+      const g = this.range();
+      for (const [k, v] of [['stop', stop], ['target', target]]) if (v != null && g && !this.inRange(this.num(v), g)) return this.no(`The ${k} is outside the chart's range.`);
+      const H = null;
+      const res = ORACLE.check({ side, entry: e, stop: this.num(stop), target: this.num(target), sym: s.sym, synthetic: COPILOT.synthetic(s.sym) }, R, H);
+      if (!s.replay) {
+        COPILOT.plan = Object.assign(COPILOT.blankPlan(), { side, type: Number.isFinite(this.num(entry)) ? 'limit' : 'market', price: Number.isFinite(this.num(entry)) ? e : null,
+                                                            stop: Number.isFinite(this.num(stop)) ? this.num(stop) : null, target: Number.isFinite(this.num(target)) ? this.num(target) : null, reason: String(reason || '').slice(0, 40) });
+        COPILOT.check = Object.assign({ at: Date.now(), entry: e, plan: Object.assign({}, COPILOT.plan) }, res);
+        COPILOT.decision = COPILOT.logDecision({ source: 'practice', sym: s.sym, tf: s.tf, side, entry: e, stop: COPILOT.plan.stop, target: COPILOT.plan.target, reason: COPILOT.plan.reason, via: 'ai' }, res);
+        COPILOT.renderPanel();
+      }
+      return this.ok({ oracle: res.status, meaning: res.meaning, processScore: COPILOT.score(res), entryUsed: e,
+                       evidence: res.items.map(i => ({ kind: i.kind, text: i.text, detail: i.why || undefined })), flags: res.flags });
+    },
+    calculate_risk({ side, stop, entry, risk_percent }) {
+      if (COPILOT.src().replay) return this.no('Replay trades are measured in R; no position sizing is needed there.');
+      if (side !== 'buy' && side !== 'sell') return this.no('side must be buy or sell.');
+      const id = S.sym, q = otQuote(id), sl = this.num(stop);
+      const e = Number.isFinite(this.num(entry)) ? this.num(entry) : q.ok ? (side === 'buy' ? q.ask : q.bid) : NaN;
+      if (!Number.isFinite(e) || !Number.isFinite(sl)) return this.no('An entry (or a live price) and a stop are needed.');
+      if ((side === 'buy' && sl >= e) || (side === 'sell' && sl <= e)) return this.no('The stop is on the wrong side of the entry.');
+      const warnings = [], plan = S.riskPct;
+      let want = Number.isFinite(this.num(risk_percent)) ? this.num(risk_percent) : plan;
+      if (want > plan) { warnings.push(`The student's rules cap a trade at ${plan}% risk; sized at ${plan}%.`); want = plan; }
+      const B = sizeBudget(); if (B.L && B.L.locked) return this.no(`The paper rules have locked new trades: ${B.L.locked}`);
+      const budget = Math.min(S.balance * want / 100, B.budget);
+      if (B.budget < S.balance * want / 100 - 0.005) warnings.push(`Only ${(B.budget / S.balance * 100).toFixed(2)}% of risk is available now (${B.why === 'open' ? 'open-risk cap' : B.why === 'day' ? 'daily loss cap' : 'equity'}).`);
+      const rl = riskLots(id, e, sl, S.balance, budget);
+      if (!rl) return this.no('Could not size this instrument.');
+      if (rl.lots < rl.min) return this.ok({ lots: 0, minLot: rl.min, warnings: warnings.concat(['Even the minimum lot would risk more than allowed: the stop is too far for this account. Use a smaller-risk setup or skip the trade.']) });
+      const riskPct = rl.lots * rl.riskPerLot / S.balance * 100;
+      return this.ok({ symbol: id, side, entry: e, stop: sl, stopDistance: +Math.abs(e - sl).toFixed(otSpec(id).dp), lots: rl.lots, minLot: rl.min, maxLot: otSpec(id).maxLot,
+                       riskPercentOfAccount: +riskPct.toFixed(2), warnings });
+    },
+    async propose_demo_order({ side, order_type, entry, stop, target, risk_percent }) {
+      if (COPILOT.src().replay) return this.no('In a replay, say "buy here" or "sell here" to plan a replay trade.');
+      if (VOICE.mt5()) return this.no('The Academy is demo only and this device is routing orders to MT5. ARIA cannot prepare that order.');
+      if (side !== 'buy' && side !== 'sell') return this.no('side must be buy or sell.');
+      const sl = this.num(stop); if (!Number.isFinite(sl)) return this.no('A stop loss is required on every trade.');
+      const type = order_type === 'limit' ? 'limit' : 'market', e = this.num(entry);
+      if (type === 'limit' && !Number.isFinite(e)) return this.no('A limit order needs an entry price.');
+      setRTab('trade', null); OT.setSide(side); OT.setType(type);
+      if (type === 'limit') { TK.price = e; const el = document.getElementById('otPrice'); if (el) el.value = otFmtPx(S.sym, e); }
+      const tg = this.num(target);
+      await VOICE.buildOrder({ side, type, price: type === 'limit' ? e : undefined, stopPrice: sl, target: Number.isFinite(tg) ? { price: tg } : null,
+                               riskPct: Number.isFinite(this.num(risk_percent)) ? this.num(risk_percent) : undefined }, {});
+      const p = VOICE.pending;
+      if (p && p.kind === 'order') {
+        p.title = 'Demo order from ARIA · ' + p.title;
+        return this.ok({ status: 'awaiting_student_confirmation', note: 'Shown on screen; nothing is placed until the student taps confirm. The risk rules sized it.',
+                         order: { side: TK.side, type: TK.type, lots: TK.volume, stop: TK.sl, target: TK.tpOn ? TK.tp : null } });
+      }
+      return this.no('The paper risk rules rejected this order.', { rule: String(VOICE._mutedText || '').replace(/\$[\d,.]+/g, '[amount]').slice(0, 300), status: 'rejected_by_risk_rules' });
+    },
+    async get_sentinel_observation() {
+      const id = COPILOT.src().sym;
+      try {
+        const r = await fetch('/api/sentinel/board', { cache: 'no-store' });
+        const j = await r.json();
+        const rows = (j.rows || []).filter(x => x.market === id);
+        if (!rows.length) return this.ok({ observed: false, note: `SENTINEL is not scanning ${VOICE.name(id)}.` });
+        return this.ok({ observed: true, note: 'SENTINEL observations: unproven in forward testing; not signals.', rows: rows.map(x => ({ timeframe: x.tf, read: x.dir, score: x.score, verdict: x.verdict,
+          marketCondition: x.mcc, pattern: x.pattern, trend4h: x.trend_4h, blocked: x.block, evidence: x.evidence, ageMinutes: Math.round((x.age_seconds || 0) / 60), entryEligible: x.entry_eligible })) });
+      } catch (_) { return this.no('SENTINEL could not be reached.'); }
+    },
+    start_lesson({ topic }) {
+      const L = CP_LESSONS.find(x => x.id === topic); if (!L) return this.no('Unknown lesson.');
+      COPILOT.openLesson(L.id, {});
+      return this.ok({ lesson: L.title, shownInLearnTab: true, content: L.body });
+    },
+    async start_quiz({ topic }) {
+      await COPILOT.quizMe({ lesson: CP_LESSONS.some(x => x.id === topic) ? topic : null }, {});
+      const q = COPILOT.quiz; if (!q) return this.no('No quiz is available for that.');
+      return this.ok({ question: q.q, options: q.options.map((t, i) => `${'ABCD'[i]}: ${t}`), note: 'The app grades the answer; do not reveal it. The student answers by saying or tapping a letter.' });
+    },
+    set_copilot_mode({ mode }) { COPILOT.setMode(mode, true); return this.ok({ mode: COPILOT.mode }); },
+    async start_replay() {
+      await REPLAY.start({});
+      return REPLAY.active ? this.ok({ cursorTime: CTX.iso(REPLAY.visible().slice(-1)[0].time), hiddenCandles: REPLAY.total() - REPLAY.cursor() }) : this.no(VOICE._mutedText || 'Replay could not start.');
+    },
+    save_journal_note({ text }) {
+      const t = String(text || '').replace(/[\u0000-\u001f]/g, ' ').trim().slice(0, 500); if (!t) return this.no('Empty note.');
+      const d = COPILOT.load(); d.notes = Array.isArray(d.notes) ? d.notes : [];
+      d.notes.push({ at: Date.now(), sym: S.sym, tf: S.tf, text: t }); if (d.notes.length > 100) d.notes = d.notes.slice(-100);
+      COPILOT.save(d);
+      return this.ok({ saved: true, notes: d.notes.length });
+    },
+  },
+};
+
+const AI = {
+  KEY: 'protrader.aria.chat.v1', LKEY: 'protrader.aria.level.v1', DKEY: 'protrader.aria.device',
+  st: null, stAt: 0, convo: [], busy: false, ctrl: null, turn: null,
+  // what goes to the model when it is available; everything else (orders, account, trades, replay controls, quiz answers) stays local
+  INTENTS: new Set(['unknown', 'help', 'analyze', 'topic', 'define', 'why', 'plan', 'aria', 'trend', 'compare', 'sentinel', 'drift', 'draw', 'lesson']),
+  device() {
+    try {
+      let d = localStorage.getItem(this.DKEY);
+      if (!d || !/^[A-Za-z0-9_-]{16,64}$/.test(d)) { const a = new Uint8Array(16); crypto.getRandomValues(a); d = 'd' + Array.from(a, b => b.toString(16).padStart(2, '0')).join(''); localStorage.setItem(this.DKEY, d); }
+      return d;
+    } catch (_) { return 'nodevice-' + 'x'.repeat(10); }
+  },
+  headers() {
+    const h = { 'Content-Type': 'application/json', 'X-ARIA-Device': this.device() };
+    try { const k = localStorage.getItem('protrader.sentinelKey'); if (k) h['X-Sentinel-Key'] = k; } catch (_) {}
+    return h;
+  },
+  level() { try { const v = localStorage.getItem(this.LKEY); return ['beginner', 'intermediate', 'advanced'].includes(v) ? v : 'beginner'; } catch (_) { return 'beginner'; } },
+  setLevel(v) { try { localStorage.setItem(this.LKEY, v); } catch (_) {} COPILOT.renderPanel(); },
+  async refresh(force) {
+    if (!force && this.st && Date.now() - this.stAt < 60000) return this.st;
+    try {
+      const r = await fetch('/api/aria/ai/status', { headers: this.headers(), cache: 'no-store' });
+      this.st = r.ok ? await r.json() : { enabled: false, reason: 'The AI service did not answer.' };
+    } catch (_) { this.st = { enabled: false, reason: 'The AI service could not be reached.' }; }
+    this.stAt = Date.now();
+    this.renderNote();
+    return this.st;
+  },
+  available() { return !!(this.st && this.st.enabled && !this.st.paused && this.st.remaining_today !== 0); },
+  owner() { try { return !!localStorage.getItem('protrader.sentinelKey') || (typeof ACCOUNT !== 'undefined' && ACCOUNT.isOwner()); } catch (_) { return false; } },
+  shouldHandle(c) { return !!(c && this.INTENTS.has(c.intent) && this.available() && !c.local); },
+
+  /* ── conversation memory: on this device only ── */
+  load() {
+    try {
+      const d = JSON.parse(localStorage.getItem(this.KEY) || 'null');
+      this.convo = d && Array.isArray(d.contents) && Date.now() - (d.at || 0) < 7 * 864e5 ? d.contents : [];
+    } catch (_) { this.convo = []; }
+  },
+  save() {
+    if (this.convo.length > 24) this.convo = this.convo.slice(-24);
+    while (this.convo.length && !(this.convo[0].role === 'user' && this.convo[0].parts.some(p => 'text' in p))) this.convo.shift();
+    try { localStorage.setItem(this.KEY, JSON.stringify({ at: Date.now(), contents: this.convo })); } catch (_) {}
+  },
+  clear() {
+    this.convo = []; try { localStorage.removeItem(this.KEY); } catch (_) {}
+    VOICE.log = []; VOICE.renderLog(); VOICE.heard('Conversation cleared.');
+  },
+  restoreLog() {
+    if (VOICE.log.length || !this.convo.length) return;
+    for (const c of this.convo.slice(-10)) {
+      const t = c.parts.filter(p => typeof p.text === 'string' && !p.text.startsWith('[WORKSPACE')).map(p => p.text).join('');
+      if (t) VOICE.log.push(c.role === 'user' ? { who: 'you', text: t } : { who: 'vx', text: t, html: this.md(t), ai: true });
+    }
+    VOICE.renderLog();
+  },
+
+  /* ── rendering ── */
+  esc(s) { return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); },
+  md(t) {
+    const out = [], parts = String(t).split(/```/);
+    parts.forEach((seg, i) => {
+      if (i % 2) {
+        const m = seg.match(/^([\w+-]*)\n?([\s\S]*)$/), lang = (m && m[1]) || '', code = (m ? m[2] : seg).replace(/\n$/, '');
+        const pine = /pine/i.test(lang) || /\/\/@version=\d/.test(code);
+        out.push(`<div class="ai-code"><div class="ai-code-h"><span>${this.esc(lang || 'code')}</span><button type="button" onclick="AI.copy(this)">Copy</button></div><pre><code>${this.esc(code)}</code></pre>`
+          + (pine ? '<div class="ai-code-n">Not compiled or tested here. Paste it into TradingView\'s Pine Editor and check it there; PROTrader\'s chart cannot run Pine Script.</div>' : '') + '</div>');
+      } else {
+        let h = this.esc(seg);
+        h = h.replace(/`([^`\n]+)`/g, '<code>$1</code>').replace(/\*\*([^*\n]+)\*\*/g, '<b>$1</b>').replace(/^#{1,4} (.+)$/gm, '<b>$1</b>').replace(/^\s*[-*] /gm, '• ');
+        out.push(h);
+      }
+    });
+    return out.join('');
+  },
+  copy(btn) {
+    const code = btn.closest('.ai-code').querySelector('code').innerText;
+    (navigator.clipboard ? navigator.clipboard.writeText(code) : Promise.reject()).then(() => { btn.textContent = 'Copied'; }, () => { btn.textContent = 'Select and copy'; });
+  },
+  speakable(t) {
+    return String(t).replace(/```[\s\S]*?```/g, ' I have put the code in the chat. ').replace(/[*_#`>]/g, '').replace(/^\s*• /gm, '').replace(/\s+/g, ' ').trim();
+  },
+  renderNote() {
+    const box = document.getElementById('cpAiNote'); if (!box) return;
+    const s = this.st;
+    if (!s) { box.hidden = true; return; }
+    box.hidden = false;
+    if (s.enabled) {
+      box.className = 'cp-ai-note on';
+      box.innerHTML = `<b>AI</b> Gemini (free tier) · ${s.remaining_today != null ? `${s.remaining_today} left today · ` : ''}<span>${this.esc('Google may use what you type to improve its products — don\'t share personal details.')}</span>`;
+    } else {
+      box.className = 'cp-ai-note off';
+      box.innerHTML = `<b>AI off</b> ${this.esc(this.owner() ? (s.reason || 'unavailable') : 'ARIA\'s conversational AI is not available right now.')} All chart tools, lessons and demo trading still work.`;
+    }
+  },
+  bubble() {
+    const m = { who: 'vx', text: '', html: '', ai: true, tools: [], status: 'Thinking…', model: '' };
+    VOICE.log.push(m); if (VOICE.log.length > 30) VOICE.log.shift();
+    return m;
+  },
+  paint(m) {
+    m.html = this.md(m.text);
+    clearTimeout(this._pt); this._pt = setTimeout(() => VOICE.renderLog(), 40);
+  },
+  setStatus(m, s) { m.status = s; VOICE.setState('thinking'); const p = document.getElementById('vxPill'); if (p) p.textContent = s ? s.replace(/…$/, '') : 'Working'; VOICE.renderLog(); },
+
+  /* ── one student turn: model, tools, model … ── */
+  abort() { if (this.ctrl) { try { this.ctrl.abort(); } catch (_) {} } },
+  async post(body, m) {
+    this.ctrl = new AbortController();
+    const res = await fetch('/api/aria/ai/chat', { method: 'POST', headers: this.headers(), body: JSON.stringify(body), signal: this.ctrl.signal });
+    if (!res.ok || !res.body) {
+      let j = {}; try { j = await res.json(); } catch (_) {}
+      return { error: j.error || 'http', message: j.message || j.detail || 'ARIA\'s AI could not answer just now.' };
+    }
+    const reader = res.body.getReader(), dec = new TextDecoder();
+    let buf = '', out = { text: '', calls: [], content: null, model: '', error: null };
+    for (;;) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      buf += dec.decode(value, { stream: true });
+      let i;
+      while ((i = buf.indexOf('\n\n')) >= 0) {
+        const block = buf.slice(0, i); buf = buf.slice(i + 2);
+        let ev = '', data = null;
+        for (const line of block.split('\n')) { if (line.startsWith('event: ')) ev = line.slice(7); else if (line.startsWith('data: ')) { try { data = JSON.parse(line.slice(6)); } catch (_) {} } }
+        if (!data) continue;
+        if (ev === 'meta') { out.model = data.model; m.model = data.model + (data.degraded ? ' (lighter model: daily allowance)' : ''); }
+        else if (ev === 'text') { out.text += data.t; m.text += data.t; m.status = ''; this.paint(m); }
+        else if (ev === 'call') out.calls.push(data);
+        else if (ev === 'done') out.content = data.content;
+        else if (ev === 'error') out.error = data;
+      }
+    }
+    if (out.error) return { error: out.error.error || 'provider', message: out.error.message, partial: out.text };
+    return out;
+  },
+  async ask(c, o = {}) {
+    const raw = String(o.raw || c.t || '').trim();
+    if (this.busy) this.abort();
+    this.busy = true;
+    const start = this.convo.length;
+    this.convo.push({ role: 'user', parts: [{ text: raw.slice(0, 2000) }] });
+    const m = this.bubble(); VOICE.renderLog();
+    let context;
+    try {
+      if (c.intent === 'analyze' && !COPILOT.src().replay) {             // the app measures and draws; the model explains what was drawn
+        this.setStatus(m, 'Reading the chart…');
+        if (c.sym && c.sym !== S.sym) await VOICE.switchTo(c.sym);
+        if (c.tf && c.tf !== S.tf) { VOICE.setTf(c.tf); await COPILOT.sleep(400); }
+        await COPILOT.ready();
+        const R = COPILOT.read();
+        if (R) { const p = COPILOT.place(COPILOT.specs(R, ['structure', 'zones', 'liquidity', 'fib'])); if (p.drawn && p.drawn.length) { m.tools.push(`Drew ${p.drawn.length} objects ✓`); COPILOT.setMode('analyze', true); COPILOT.peek(); } }
+      }
+      this.setStatus(m, 'Reading the chart…');
+      context = CTX.build();
+      const kb = KB.search(raw); if (kb.terms.length || kb.lesson) context.knowledge = kb;
+      if (c.intent === 'analyze' && m.tools.length) context.justDrawn = context.chart.ariaDrawings;
+    } catch (e) { context = { chart: { available: false, unavailable: 'the chart snapshot could not be built' } }; }
+    let round = 0, model = '', final = '', failed = null;
+    try {
+      for (;;) {
+        this.setStatus(m, round ? 'Thinking…' : 'Thinking…');
+        const r = await this.post({ contents: this.convo.slice(-16), context: round === 0 ? context : undefined, round, model, hint: c.intent }, m);
+        if (r.error) { failed = r; break; }
+        model = r.model || model;
+        if (r.content) this.convo.push(r.content);
+        final = r.text || final;
+        if (!r.calls.length) break;
+        if (round >= 3) { m.text += (m.text ? '\n\n' : '') + '(I stopped after several steps; ask me to continue.)'; this.paint(m); break; }
+        const responses = [];
+        for (const call of r.calls) {
+          this.setStatus(m, (AITOOLS.status[call.name] || 'Working') + '…');
+          const res = await AITOOLS.run(call.name, call.args);
+          m.tools.push(this.toolChip(call.name, res));
+          // something changed on the chart: let the student see it (no dimming; on a phone the sheet steps aside)
+          if (res.ok && (/^draw_/.test(call.name) || call.name === 'set_indicator')) { if (COPILOT.mode === 'talk') COPILOT.setMode('analyze', true); COPILOT.peek(); }
+          const fr = { name: call.name, response: res }; if (call.id) fr.id = call.id;
+          responses.push({ functionResponse: fr });
+        }
+        this.convo.push({ role: 'user', parts: responses });
+        round++;
+      }
+    } catch (e) {
+      failed = e && e.name === 'AbortError' ? { error: 'aborted' } : { error: 'network', message: 'ARIA\'s AI could not be reached.' };
+    }
+    this.busy = false; this.ctrl = null;
+    m.status = '';
+    if (failed) {
+      // drop the unfinished exchange so the history never ends mid tool-call
+      this.convo.splice(start + 1);
+      if (failed.error === 'aborted') {
+        if (m.text) this.convo.push({ role: 'model', parts: [{ text: m.text + ' …' }] }); else this.convo.splice(start);
+        m.text = (m.text ? m.text + ' …' : '') + (m.text ? '' : '(interrupted)'); this.paint(m); this.save();
+        return;
+      }
+      this.convo.splice(start);
+      VOICE.log.splice(VOICE.log.indexOf(m), 1);
+      if (['quota', 'user_day', 'disabled'].includes(failed.error)) { this.st = Object.assign({}, this.st || {}, { paused: true }); this.renderNote(); }
+      const local = this.fallback(c, o);
+      if (local) { VOICE.addLog('vx', failed.message || 'ARIA\'s AI is unavailable right now.'); return local; }
+      return VOICE.reply(failed.message || 'ARIA\'s AI could not answer just now. Your charts, lessons, and demo workspace keep working.', o);
+    }
+    if (!m.text) { m.text = m.tools.length ? 'Done.' : '…'; }
+    this.paint(m); this.save();
+    VOICE.lastReply = m.text;
+    if (this.st && this.st.remaining_today) { this.st.remaining_today = Math.max(0, this.st.remaining_today - (round + 1)); this.renderNote(); }
+    VOICE.renderChips(); VOICE.renderCard();
+    VOICE.heard(VOICE.pending ? 'Say confirm or cancel, or tap below' : 'Tap the orb to talk', true);
+    await VOICE.say(this.speakable(m.text), { nolog: true });
+  },
+  toolChip(name, res) {
+    const n = { draw_analysis: () => res.ok ? `Drew ${res.verifiedOnChart || 0} ✓` : 'Drawing failed', check_plan_with_oracle: () => res.ok ? `ORACLE: ${res.oracle}` : 'ORACLE unavailable',
+      set_indicator: () => res.ok ? `${res.indicator.toUpperCase()} ${res.visible ? 'on' : 'off'} ✓` : 'Indicator failed', compare_timeframes: () => 'Timeframes compared',
+      propose_demo_order: () => res.ok ? 'Demo order ready to confirm' : 'Risk rules said no', switch_chart: () => res.ok ? `Now ${res.instrumentName} ${res.timeframe}` : 'Switch failed',
+      clear_ai_drawings: () => `Removed ${res.removed || 0}`, get_sentinel_observation: () => 'SENTINEL consulted', calculate_risk: () => res.ok ? `${res.lots} lots` : 'Sizing failed' }[name];
+    if (n) return n();
+    if (/^draw_/.test(name)) return res.ok ? 'Drawn ✓' : 'Drawing refused';
+    return (AITOOLS.status[name] || name) + (res.ok ? ' ✓' : ' ✕');
+  },
+  // the AI could not answer: do what the app can do on its own
+  fallback(c, o) {
+    if (c.intent === 'unknown' || c.intent === 'help') return null;
+    const local = Object.assign({}, c, { local: true });
+    return VOICE.run(local, o);
+  },
+};
+AI.load();
+
+/* ════════════════════════════════════════════════════════════
+   LIVE VOICE — Gemini Live (gemini-3.8-live), owner only for now
+   The server hands out a one-use token that expires in minutes and is
+   locked to ARIA's instructions and tools; the API key never reaches the
+   browser. Audio: microphone → 16 kHz 16-bit PCM up; 24 kHz PCM down,
+   played as it arrives. Talking over ARIA interrupts it (the server's
+   voice detection sends "interrupted"; queued audio is dropped at once).
+   Tool calls run through the same AITOOLS allowlist as typed chat.
+   Students use the browser's own speech (VOICE) until a data-protection
+   arrangement covers sending their voice to the provider.
+════════════════════════════════════════════════════════════ */
+const LIVEV = {
+  KEY: 'protrader.aria.livevoice', ws: null, state: 'idle', mic: null, inCtx: null, outCtx: null, node: null, src: null,
+  playAt: 0, sources: [], you: null, aria: null, timer: null, pending: [], frames: 0,
+  wanted() { try { return localStorage.getItem(this.KEY) === '1'; } catch (_) { return false; } },
+  setWanted(v) { try { localStorage.setItem(this.KEY, v ? '1' : '0'); } catch (_) {} if (!v) this.stop('off'); VOICE.renderSettings(); },
+  allowed() { return !!(AI.st && AI.st.enabled && AI.st.live_voice); },
+  active() { return !!this.ws; },
+  set(s) {
+    this.state = s;
+    const map = { idle: 'idle', connecting: 'thinking', listening: 'listening', processing: 'thinking', speaking: 'speaking', interrupted: 'listening', error: 'idle', disconnected: 'idle' };
+    VOICE.setState(map[s] || 'idle');
+    const pill = document.getElementById('vxPill');
+    if (pill) pill.textContent = { connecting: 'Connecting', listening: 'Live · listening', processing: 'Live · thinking', speaking: 'Live · speaking', interrupted: 'Interrupted', error: 'Voice error', disconnected: 'Disconnected' }[s] || 'Ready';
+    document.getElementById('vxOrb')?.setAttribute('data-live', s);
+  },
+  b64(buf) { let s = ''; const b = new Uint8Array(buf); for (let i = 0; i < b.length; i += 0x8000) s += String.fromCharCode.apply(null, b.subarray(i, i + 0x8000)); return btoa(s); },
+  send(o) { if (this.ws && this.ws.readyState === 1) this.ws.send(JSON.stringify(o)); },
+  async start() {
+    if (this.ws) return this.stop('user');
+    if (!window.WebSocket || !navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) return VOICE.reply('Live voice needs a browser with microphone access. Use the standard voice or type.');
+    this.set('connecting');
+    let sess;
+    try {
+      const r = await fetch('/api/aria/ai/voice/session', { method: 'POST', headers: AI.headers() });
+      sess = await r.json();
+      if (!r.ok) { this.set('idle'); return VOICE.reply(sess.message || 'Live voice could not start. The standard voice still works.'); }
+    } catch (_) { this.set('error'); return VOICE.reply('Live voice could not reach the server. The standard voice still works.'); }
+    try {
+      this.mic = await navigator.mediaDevices.getUserMedia({ audio: { channelCount: 1, echoCancellation: true, noiseSuppression: true, autoGainControl: true } });
+    } catch (e) {
+      this.set('error');
+      return VOICE.reply(e && e.name === 'NotAllowedError' ? 'Microphone access is blocked. Allow the microphone for this site, or use the standard voice.' : 'No microphone could be opened.');
+    }
+    const url = sess.ws + (sess.ws.includes('?') ? '&' : '?') + 'access_token=' + encodeURIComponent(sess.token);
+    let ws;
+    try { ws = new WebSocket(url); } catch (_) { this.cleanup(); this.set('error'); return VOICE.reply('Live voice could not connect.'); }
+    this.ws = ws; this.frames = 0;
+    ws.onopen = () => {
+      const st = sess.setup || {};
+      this.send({ setup: { model: 'models/' + sess.model,
+        generationConfig: { responseModalities: st.responseModalities || ['AUDIO'], speechConfig: st.speechConfig },
+        systemInstruction: st.systemInstruction, tools: st.tools, inputAudioTranscription: {}, outputAudioTranscription: {}, sessionResumption: {} } });
+    };
+    ws.onmessage = ev => this.onMessage(ev);
+    ws.onerror = () => { if (this.ws === ws) { this.set('error'); } };
+    ws.onclose = ev => { if (this.ws === ws) { this.cleanup(); this.set(ev.code === 1000 ? 'idle' : 'disconnected'); if (ev.code !== 1000) VOICE.heard('Live voice disconnected. Tap the orb to start again.'); } };
+    clearTimeout(this.timer);
+    this.timer = setTimeout(() => { this.stop('time'); VOICE.heard('Live voice ended after its time limit. Tap the orb to start a new session.'); }, Math.max(1, sess.minutes || 10) * 60000 - 5000);
+  },
+  async onMessage(ev) {
+    let m;
+    try { m = JSON.parse(typeof ev.data === 'string' ? ev.data : await ev.data.text()); } catch (_) { return; }
+    if (m.setupComplete) { await this.startMic(); this.sendContext(); this.set('listening'); VOICE.heard('Live: talk naturally. Tap the orb to end.'); return; }
+    if (m.toolCall && Array.isArray(m.toolCall.functionCalls)) {
+      this.set('processing');
+      const out = [];
+      for (const c of m.toolCall.functionCalls) {
+        const res = await AITOOLS.run(c.name, c.args || {});
+        if (this.aria) this.aria.tools.push(AI.toolChip(c.name, res));
+        out.push({ id: c.id, name: c.name, response: res });
+      }
+      VOICE.renderLog();
+      this.send({ toolResponse: { functionResponses: out } });
+      return;
+    }
+    if (m.toolCallCancellation) return;
+    if (m.goAway) { VOICE.heard('Live voice is about to end; tap the orb to start again.'); return; }
+    const sc = m.serverContent; if (!sc) return;
+    if (sc.inputTranscription && sc.inputTranscription.text) {
+      if (!this.you) { this.you = { who: 'you', text: '' }; VOICE.log.push(this.you); }
+      this.you.text += sc.inputTranscription.text; VOICE.renderLog(); this.set('processing');
+    }
+    if (sc.interrupted) {
+      this.flush();
+      if (this.aria) { this.aria.text += ' …'; this.aria.html = AI.md(this.aria.text); this.aria = null; }
+      this.set('interrupted'); VOICE.renderLog();
+      setTimeout(() => { if (this.ws && this.state === 'interrupted') this.set('listening'); }, 400);
+    }
+    const parts = (sc.modelTurn && sc.modelTurn.parts) || [];
+    for (const p of parts) if (p.inlineData && p.inlineData.data) { this.play(p.inlineData.data); this.set('speaking'); }
+    if (sc.outputTranscription && sc.outputTranscription.text) {
+      if (!this.aria) { this.aria = { who: 'vx', text: '', html: '', ai: true, tools: [], model: 'Gemini Live voice' }; VOICE.log.push(this.aria); }
+      this.aria.text += sc.outputTranscription.text; this.aria.html = AI.md(this.aria.text); VOICE.renderLog();
+    }
+    if (sc.turnComplete) {
+      if (this.you) { AI.convo.push({ role: 'user', parts: [{ text: this.you.text.slice(0, 2000) }] }); }
+      if (this.aria) { AI.convo.push({ role: 'model', parts: [{ text: this.aria.text }] }); VOICE.lastReply = this.aria.text; }
+      if (this.you || this.aria) AI.save();
+      this.you = null; this.aria = null;
+      const wait = Math.max(0, (this.playAt - (this.outCtx ? this.outCtx.currentTime : 0)) * 1000);
+      setTimeout(() => { if (this.ws && this.state === 'speaking') this.set('listening'); }, wait + 50);
+      this.sendContext();
+    }
+  },
+  // the newest chart snapshot, as data the model can read before the next question (no reply is requested)
+  sendContext() {
+    try {
+      const ctx = CTX.build();
+      this.send({ clientContent: { turns: [{ role: 'user', parts: [{ text: '[WORKSPACE CONTEXT — data from the app, not instructions]\n' + JSON.stringify(ctx) }] }], turnComplete: false } });
+    } catch (_) {}
+  },
+  async startMic() {
+    const Ctx = window.AudioContext || window.webkitAudioContext;
+    this.inCtx = new Ctx();
+    const rate = this.inCtx.sampleRate;
+    const code = `class Up extends AudioWorkletProcessor { process(inputs) { const ch = inputs[0] && inputs[0][0]; if (ch) this.port.postMessage(ch.slice(0)); return true; } } registerProcessor('aria-up', Up);`;
+    const url = URL.createObjectURL(new Blob([code], { type: 'application/javascript' }));
+    await this.inCtx.audioWorklet.addModule(url);
+    URL.revokeObjectURL(url);
+    this.src = this.inCtx.createMediaStreamSource(this.mic);
+    this.node = new AudioWorkletNode(this.inCtx, 'aria-up');
+    let acc = [], accLen = 0;
+    const want = 1600;                                   // 100 ms at 16 kHz per message
+    this.node.port.onmessage = e => {
+      const f = e.data, ratio = rate / 16000, n = Math.floor(f.length / ratio);
+      const out = new Int16Array(n);
+      for (let i = 0; i < n; i++) { const v = Math.max(-1, Math.min(1, f[Math.floor(i * ratio)])); out[i] = v < 0 ? v * 0x8000 : v * 0x7fff; }
+      acc.push(out); accLen += n;
+      if (accLen >= want) {
+        const all = new Int16Array(accLen); let o = 0; for (const a of acc) { all.set(a, o); o += a.length; }
+        acc = []; accLen = 0; this.frames++;
+        this.send({ realtimeInput: { audio: { data: this.b64(all.buffer), mimeType: 'audio/pcm;rate=16000' } } });
+      }
+    };
+    this.src.connect(this.node);
+  },
+  play(b64) {
+    const Ctx = window.AudioContext || window.webkitAudioContext;
+    if (!this.outCtx) this.outCtx = new Ctx({ sampleRate: 24000 });
+    const bin = atob(b64), n = bin.length >> 1, buf = this.outCtx.createBuffer(1, n, 24000), ch = buf.getChannelData(0);
+    for (let i = 0; i < n; i++) { let v = bin.charCodeAt(2 * i) | (bin.charCodeAt(2 * i + 1) << 8); if (v >= 0x8000) v -= 0x10000; ch[i] = v / 0x8000; }
+    const s = this.outCtx.createBufferSource(); s.buffer = buf; s.connect(this.outCtx.destination);
+    const t = Math.max(this.outCtx.currentTime + 0.02, this.playAt);
+    s.start(t); this.playAt = t + buf.duration;
+    this.sources.push(s); s.onended = () => { this.sources = this.sources.filter(x => x !== s); };
+  },
+  flush() { for (const s of this.sources) { try { s.stop(); } catch (_) {} } this.sources = []; this.playAt = 0; },
+  cleanup() {
+    clearTimeout(this.timer); this.timer = null;
+    this.flush();
+    try { this.node && this.node.disconnect(); } catch (_) {}
+    try { this.src && this.src.disconnect(); } catch (_) {}
+    if (this.mic) for (const t of this.mic.getTracks()) { try { t.stop(); } catch (_) {} }
+    try { this.inCtx && this.inCtx.close(); } catch (_) {}
+    try { this.outCtx && this.outCtx.close(); } catch (_) {}
+    this.mic = this.node = this.src = this.inCtx = this.outCtx = null;
+    this.you = this.aria = null;
+    this.ws = null;
+  },
+  stop(why) {
+    const ws = this.ws;
+    if (ws) { try { this.send({ realtimeInput: { audioStreamEnd: true } }); } catch (_) {} this.ws = null; try { ws.close(1000, why || 'user'); } catch (_) {} }
+    this.cleanup();
+    this.set('idle');
+    if (why === 'user') VOICE.heard('Live voice ended.');
+  },
+};
 
 
 /* ════════════════════════════════════════════════════════════
