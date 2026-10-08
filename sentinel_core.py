@@ -304,6 +304,22 @@ def trend_at(close_times: list[int], trends: list[str], t: int) -> str:
     return trends[k] if k >= 0 else "flat"
 
 
+def confirmed_trend(close_times: list[int], trends: list[str], as_of: int,
+                    max_age: int = 14430) -> Optional[str]:
+    """Closed, warmed-up H4 evidence at the decision time, never future data.
+
+    Missing/stale/warming data is unavailable, distinct from a flat trend.
+    Session gaps deliberately block fresh entries until H4 evidence returns.
+    """
+    import bisect
+    if len(close_times) != len(trends) or any(b <= a for a, b in zip(close_times, close_times[1:])):
+        return None
+    k = bisect.bisect_right(close_times, as_of) - 1
+    if k < 60 or as_of - close_times[k] > max_age:
+        return None
+    return trends[k] if trends[k] in ("up", "down", "flat") else None
+
+
 @dataclass(frozen=True)
 class Market:
     id: str            # terminal id (what the chart uses)
@@ -662,7 +678,7 @@ class PaperBook:
         read["trend_4h"] = trend_4h
         read["block"] = None
         if cfg["mtf"] and trend_4h != want:
-            read["block"] = "4h trend " + ("flat" if trend_4h in (None, "flat") else "against")
+            read["block"] = "4h data unavailable" if trend_4h is None else "4h trend " + ("flat" if trend_4h == "flat" else "against")
         elif cfg["wave5_veto"] and (read["elliott"]["label"] or "").startswith("Wave 5"):
             read["block"] = "Wave 5 exhaustion"
         if not allow_open or (m.id, tf) in self.open or read["block"]:
@@ -717,7 +733,8 @@ def summarise(trades: list[dict]) -> dict[str, Any]:
     if not n:
         return {"n": 0}
     rs = [t["r"] for t in done]
-    wins = sum(1 for t in done if t["status"] == "win")
+    wins = sum(1 for t in done if t["r"] > 0)
+    fixed_only = all(t.get("model", "fixed") == "fixed" for t in done)
     exp = sum(rs) / n
     sd = (sum((r - exp) ** 2 for r in rs) / (n - 1)) ** 0.5 if n > 1 else 0.0
     se = sd / n ** 0.5 if n > 1 else float("inf")
@@ -733,14 +750,15 @@ def summarise(trades: list[dict]) -> dict[str, Any]:
     k = sum(1 for t in decided if t["status"] == "win")
     return {
         "n": n, "wins": wins, "win_rate": round(wins / n, 4),
-        "breakeven_win_rate": round(BREAKEVEN_WINRATE, 4),
+        "breakeven_win_rate": round(BREAKEVEN_WINRATE, 4) if fixed_only else None,
+        "win_definition": "positive net R, including time exits",
         "expectancy_r": round(exp, 4), "ci95_r": [round(exp - 1.96 * se, 4), round(exp + 1.96 * se, 4)] if n > 1 else None,
         "se_r": round(se, 5) if n > 1 else None,
         "total_r": round(sum(rs), 2), "profit_factor": round(gains / losses, 3) if losses else None,
         "max_drawdown_r": round(dd, 2), "avg_cost_r": round(sum(t["cost_r"] for t in done) / n, 4),
         "timeouts": sum(1 for t in done if t["status"] == "timeout"),
         # Chance of this many wins or more if the real hit rate were break-even.
-        "p_vs_breakeven": round(_binom_p_at_least(k, len(decided), BREAKEVEN_WINRATE), 4) if decided else None,
+        "p_vs_breakeven": round(_binom_p_at_least(k, len(decided), BREAKEVEN_WINRATE), 4) if fixed_only and decided else None,
         "verdict": _verdict(n, exp, se),
     }
 

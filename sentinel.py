@@ -115,8 +115,16 @@ _task: Optional[asyncio.Task] = None
 
 # ── Storage ──────────────────────────────────────────────────────────────────
 
+class _ClosingConnection(sqlite3.Connection):
+    def __exit__(self, *args):
+        try:
+            return super().__exit__(*args)
+        finally:
+            self.close()
+
+
 def _db() -> sqlite3.Connection:
-    con = sqlite3.connect(DB_PATH, timeout=10)
+    con = sqlite3.connect(DB_PATH, timeout=10, factory=_ClosingConnection)
     con.execute("""CREATE TABLE IF NOT EXISTS trades (
         id TEXT PRIMARY KEY, market TEXT, tf TEXT, status TEXT,
         opened_at INTEGER, closed_at INTEGER, data TEXT)""")
@@ -271,25 +279,38 @@ def _current(trades: list[dict]) -> list[dict]:
 _trend_cache: dict[str, tuple] = {}   # market -> (close_times, trends, next_refresh_epoch)
 
 
-async def _trend_4h(m: core.Market) -> Optional[str]:
-    """4h trend from the last CLOSED 4h bar, refreshed once per 4h close."""
+async def _trend_4h(m: core.Market, as_of: Optional[int] = None) -> Optional[str]:
+    """4h trend of the last CLOSED 4h bar at the decision time `as_of` (the
+    evaluated bar's close), never a later one. None means unavailable: no
+    series, still warming up, or older than one 4h bar (a session gap) — a
+    missing trend is not a flat one, and it blocks entries. Refreshed once per
+    4h close; when the next close is overdue (market shut, feed late) it looks
+    again every 10 minutes, and an empty series is retried after a minute."""
     now = time.time()
     hit = _trend_cache.get(m.id)
     if not hit or now >= hit[2]:
         h4 = await core.fetch_candles(m.deriv, "4h", 5000)
         ct, tr = core.trend_series(h4)
-        nxt = (ct[-1] + core.TF_SEC["4h"] + 30) if ct else now + 600
+        nxt = ct[-1] + core.TF_SEC["4h"] + 30 if ct else now + 60
+        if nxt <= now:
+            nxt = now + 600
         hit = _trend_cache[m.id] = (ct, tr, nxt)
     ct, tr, _ = hit
-    return core.trend_at(ct, tr, int(now)) if ct else None
+    return core.confirmed_trend(ct, tr, int(as_of if as_of is not None else now)) if ct else None
 
 
 def _board_row(m: core.Market, tf: str, last: dict, r: dict) -> dict:
+    decision_at = last["time"] + core.TF_SEC[tf]
+    confirmed = [t for t in _trend_cache.get(m.id, ([], [], 0))[0] if t <= decision_at]
+    htf_closed_at = confirmed[-1] if len(confirmed) >= 61 else None
     return {"market": m.id, "label": m.label, "tf": tf, "mode": m.mode, "bar": last["time"],
             "price": last["close"],
             **{k: r[k] for k in ("dir", "score", "gates", "mcc", "wyckoff", "pattern", "verdict")},
             "sl": r["sl"], "tp2": r["tp2"], "elliott": r["elliott"]["label"], "fib_r": r["fib_r"],
-            "trend_4h": r.get("trend_4h"), "block": r.get("block")}
+            "trend_4h": r.get("trend_4h"), "block": r.get("block"),
+            "decision_at": last["time"] + core.TF_SEC[tf], "source": "Deriv closed candles",
+            "htf_status": "available" if r.get("trend_4h") is not None else "unavailable",
+            "htf_closed_at": htf_closed_at}
 
 
 async def _scan_one(m: core.Market, tf: str, focused: bool = True) -> None:
@@ -315,7 +336,8 @@ async def _scan_one(m: core.Market, tf: str, focused: bool = True) -> None:
     # Only enter on a bar that closed moments ago. After a restart or an
     # outage the latest close may be stale, and its price is no longer
     # available to a trader — record the read, skip the entry.
-    fresh = time.time() - (last["time"] + core.TF_SEC[tf]) < FRESH_S
+    # A close time in the future (clock skew, a bad bar) is not fresh either.
+    fresh = 0 <= time.time() - (last["time"] + core.TF_SEC[tf]) < FRESH_S
     await _research_bars(m, tf, bars, fresh)
     if not focused:          # dropped from focus: only finish its open trade
         t = _book.open.get((m.id, tf))
@@ -328,7 +350,7 @@ async def _scan_one(m: core.Market, tf: str, focused: bool = True) -> None:
     t4 = None
     if last["time"] > evaluated or seen is None:
         try:
-            t4 = await _trend_4h(m)
+            t4 = await _trend_4h(m, last["time"] + core.TF_SEC[tf])
         except Exception as e:          # no 4h trend = no candidate entry, never a crash
             log.warning("4h trend %s: %s", m.id, e)
     read, new = (_book.consider(m, tf, bars[-core.WINDOW:], allow_open=fresh, trend_4h=t4)
@@ -646,6 +668,12 @@ def board() -> dict:
     keep = set(_slices())
     rows = [{**b, "evidence": ev.get(k, {}).get("status", "unproven")}
             for k, b in _state["board"].items() if k in keep]
+    now = time.time()
+    for row in rows:
+        row["age_seconds"] = round(now - (row["bar"] + core.TF_SEC[row["tf"]]), 1)
+        row["entry_fresh"] = 0 <= row["age_seconds"] < FRESH_S
+        row["entry_eligible"] = (row["entry_fresh"] and row.get("htf_status") == "available"
+                                 and not row.get("block") and row["verdict"] in ("QUALIFIED", "EXEC_READY"))
     order = {"EXEC_READY": 0, "QUALIFIED": 1, "WAITING": 2, "BLOCKED": 3, "OBSERVER": 4}
     rows.sort(key=lambda r: (order.get(r["verdict"], 9), -r["score"], r["mode"] != "real"))
     return {"updated": _state["last_cycle"], "rows": rows}
@@ -663,7 +691,10 @@ def feed(limit: int = 40) -> dict:
         t["stage"] = core.stage_of(t)
     for t in open_ + closed:
         t["grade"] = t.get("grade") or core.grade_of(t)
-    return {"open": open_, "closed": closed}
+    return {"open": open_, "closed": closed,
+            "current": {"open": _current(open_), "closed": _current(closed)},
+            "cohort": {"engine": core.eng.ENGINE_VERSION, "model": core.SENTINEL_MODEL},
+            "includes_legacy": True}
 
 
 @router.get("/stats")
@@ -692,8 +723,9 @@ def stats() -> dict:
         "baseline": {k: base.get(k) for k in ("generated", "period", "notes", "all", "exec", "by_slice",
                                              "by_score", "synthetic", "gate_pass_rate")},
         "evidence": {k: v["status"] for k, v in _evidence().items()},
-        "model": {"target_r": core.TARGET_R, "breakeven_win_rate": round(core.BREAKEVEN_WINRATE, 4),
-                  "max_bars": core.MAX_BARS, "evidence_min_trades": EVIDENCE_MIN_N,
+        "model": {"target_r": core.MODELS[core.SENTINEL_MODEL]["tp"],
+                  "breakeven_win_rate": (round(core.BREAKEVEN_WINRATE, 4) if core.SENTINEL_MODEL == "fixed" else None),
+                  "max_bars": core.MODELS[core.SENTINEL_MODEL]["timeout"], "evidence_min_trades": EVIDENCE_MIN_N,
                   "engine": core.eng.ENGINE_VERSION, "gate_count": core.eng.GATE_COUNT,
                   "model": core.SENTINEL_MODEL,
                   "evidence_z": round(core.z_for(len(_slices())), 2), "slices": len(_slices())},
@@ -819,6 +851,7 @@ def _attach_sentinel(recs: list[dict]) -> None:
         if t:
             r["sentinel_status"] = t.get("status")
             r["sentinel_r"] = (t.get("r") + t.get("cost_r", 0)) if t.get("r") is not None else None
+            r["comparison_basis"] = "gross price R; not net account return"
             r["sentinel_stage"] = core.stage_of(t) if t.get("status") != "open" else "open"
 
 
@@ -889,13 +922,15 @@ def _num_or_none(v) -> Optional[float]:
 
 def _mt5_track(cid: str, snap: dict, deals) -> None:
     """Relay hook: runs on every EA snapshot."""
-    if deals is not None:
+    owner = _mt5_owner_channel()
+    if not owner or cid != owner:
+        return
+    if not isinstance(snap, dict) or not isinstance(snap.get("positions"), list):
+        return
+    if deals is not None and isinstance(deals, list):
         _mt5_state["deals"], _mt5_state["deals_at"] = deals, time.time()
     now = time.time()
     if now - _mt5_state["last"] < MT5_EVERY_S:
-        return
-    owner = _mt5_owner_channel()
-    if not owner or cid != owner:
         return
     _mt5_state["last"] = now
     if not _mt5_state["loaded"]:
@@ -920,6 +955,10 @@ def _mt5_track(cid: str, snap: dict, deals) -> None:
         s = 1 if side == "buy" else -1
         r = _mt5_open.get(key)
         dirty = False
+        if r is not None and r.get("reconciliation") == "awaiting_deal_history":
+            r.pop("_gone", None)
+            r["reconciliation"] = "position_visible"
+            dirty = True
         if r is None:
             late = t_ms - opened > 90_000
             r = _mt5_open[key] = {
@@ -949,6 +988,10 @@ def _mt5_track(cid: str, snap: dict, deals) -> None:
             dirty = True
         if vol < (r.get("volume") or vol) - 1e-9:
             r["events"].append({"t": t_ms, "type": "partial", "closed": round(r["volume"] - vol, 6), "price": price, "pnl": pnl})
+            dirty = True
+        if vol > (r.get("volume") or vol) + 1e-9:
+            r["added_volume"] = r.get("added_volume", 0) + vol - r["volume"]
+            r["events"].append({"t": t_ms, "type": "scale_in", "volume": vol})
             dirty = True
         r["volume"] = vol
         if not r.get("per_unit") and abs(price - entry) > 1e-12 and pnl and vol >= (r.get("max_volume") or vol) - 1e-9:
@@ -994,15 +1037,29 @@ def _mt5_track(cid: str, snap: dict, deals) -> None:
         ticket = key.split(":", 1)[1]
         rows = [d for d in _mt5_state["deals"] if isinstance(d, dict) and d.get("kind") == "trade"
                 and str(d.get("ticket")) == ticket]
-        if not rows and t_ms - r.setdefault("_gone", t_ms) < 180_000:
-            continue                                  # history arrives on its own schedule
+        if not rows:
+            r["reconciliation"] = "awaiting_deal_history"
+            r.setdefault("_gone", t_ms)
+            _save_managed(r)
+            continue  # Never turn the last floating P&L into a realised result.
+        # Real bridge rows carry closing volume. A partial history is not a final result.
+        known_volumes = all(isinstance(d.get("volume"), (int, float)) and d["volume"] > 0 for d in rows)
+        expected_volume = (r.get("max_volume") or 0) + r.get("added_volume", 0)
+        if known_volumes and sum(d["volume"] for d in rows) + 1e-6 < expected_volume:
+            r["reconciliation"] = "awaiting_complete_deal_history"
+            _save_managed(r)
+            continue
+        r["reconciliation"] = "deal_history_received" if known_volumes else "legacy_history_volume_unverified"
+        r["result_basis"] = "reported deal profit incl. reported swap/commission; entry costs may be absent"
         s = 1 if r["side"] == "buy" else -1
         r["closed"] = t_ms
-        r["exit_price"] = float(rows[0]["exit"]) if rows else None
+        r["exit_price"] = (sum(float(d["exit"]) * d["volume"] for d in rows) / sum(d["volume"] for d in rows)
+                           if known_volumes else float(rows[0]["exit"]))
         r["pnl"] = round(sum(float(d.get("profit") or 0) for d in rows), 2) if rows else r.get("pnl_now")
         r["exit_reason"] = rows[0].get("reason", "Manual") if rows else "Unknown"
         r["exit_r"] = (round(s * (r["exit_price"] - r["entry"]) / r["r_dist"], 3)
-                       if r.get("r_dist") and r["exit_price"] is not None else None)
+                       if r.get("r_dist") and r["exit_price"] is not None and not r.get("added_volume") else None)
+        r["r_basis"] = "volume-weighted gross price R" if not r.get("added_volume") else "unavailable after scale-in"
         if (not r.get("be_at") and "stop" in (r["exit_reason"] or "").lower()
                 and r["exit_price"] is not None and s * (r["exit_price"] - r["entry"]) >= -1e-9):
             r["be_at"] = t_ms
@@ -1032,7 +1089,7 @@ async def managed_bind(request: Request) -> dict:
     if _mt5_owner_channel() != cid:
         _meta_set("mt5_channel", cid)
         _mt5_open.clear()
-        _mt5_state["loaded"] = False
+        _mt5_state.update(loaded=False, last=0.0, deals=[], deals_at=0.0)
     return {"bound": True, "server_tracking": True}
 
 
