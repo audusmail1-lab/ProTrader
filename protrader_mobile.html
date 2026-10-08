@@ -8258,7 +8258,11 @@ const OT = {
       // Cancelling is irreversible: never do it on a partial equity figure.
       if (acct.unpriced > 0) return;
       TR.orders = TR.orders.filter(x => x.id !== o.id);
-      if (need != null && need > acct.free) {
+      if (need == null) {
+        showToast(`✕ ${o.label} ${o.orderType} cancelled — no conversion rate for this pair`, 4000);
+        this.save(); return;
+      }
+      if (need > acct.free) {
         showToast(`✕ ${o.label} ${o.orderType} cancelled — insufficient margin at trigger`, 4000);
         this.save(); return;
       }
