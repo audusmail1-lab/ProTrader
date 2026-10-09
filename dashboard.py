@@ -83,8 +83,8 @@ import sentinel as _sentinel
 app.include_router(_sentinel.router)
 _sentinel.attach(app)
 
-# ARIA AI (see aria_ai.py): the language model behind the ARIA Copilot. Free
-# tier only, off until GEMINI_API_KEY and GEMINI_FREE_TIER_CONFIRMED are set.
+# ARIA AI (see aria_ai.py): Gemini free tier or optional Claude promotional
+# credits. Claude is off until explicit account/credit/persistence checks pass.
 import aria_ai as _aria_ai
 app.include_router(_aria_ai.router)
 

@@ -6398,7 +6398,7 @@ const VOICE = {
       <label class="vx-set col">Teaching level<select onchange="AI.setLevel(this.value)">${['beginner', 'intermediate', 'advanced'].map(l => `<option value="${l}" ${AI.level() === l ? 'selected' : ''}>${l.charAt(0).toUpperCase() + l.slice(1)}</option>`).join('')}</select></label>
       <button type="button" class="cp-btn sm" onclick="AI.clear()">Clear this conversation</button>
       <div class="vx-note">Your browser turns speech into text (Chrome uses Google's speech service for this). PROTrader never records or stores audio. Orders always need a confirmation, and MT5 orders always need a tap.</div>
-      <div class="vx-note">ARIA's AI answers come from Google Gemini's free tier, where Google may use what is sent to improve its products. ARIA sends your words and chart data only: never your name, email, balance, positions or journal. The conversation is kept on this device for seven days.</div>`;
+      <div class="vx-note">${AI.esc(AI.st && AI.st.privacy || 'ARIA sends your words and chart data only. Do not share personal details.')} The conversation is kept on this device for seven days.</div>`;
   },
 
   /* ── listening ── */
@@ -8849,7 +8849,7 @@ const AI = {
     box.hidden = false;
     if (s.enabled) {
       box.className = 'cp-ai-note on';
-      box.innerHTML = `<b>AI</b> Gemini (free tier) · ${s.remaining_today != null ? `${s.remaining_today} left today · ` : ''}<span>${this.esc('Google may use what you type to improve its products — don\'t share personal details.')}</span>`;
+      box.innerHTML = `<b>AI</b> ${this.esc(s.label || 'Gemini (free tier)')} · ${s.remaining_today != null ? `${s.remaining_today} left today · ` : ''}<span>${this.esc(s.privacy || 'Don\'t share personal details.')}</span>`;
     } else {
       box.className = 'cp-ai-note off';
       box.innerHTML = `<b>AI off</b> ${this.esc(this.owner() ? (s.reason || 'unavailable') : 'ARIA\'s conversational AI is not available right now.')} All chart tools, lessons and demo trading still work.`;
@@ -8887,7 +8887,7 @@ const AI = {
         let ev = '', data = null;
         for (const line of block.split('\n')) { if (line.startsWith('event: ')) ev = line.slice(7); else if (line.startsWith('data: ')) { try { data = JSON.parse(line.slice(6)); } catch (_) {} } }
         if (!data) continue;
-        if (ev === 'meta') { out.model = data.model; m.model = data.model + (data.degraded ? ' (lighter model: daily allowance)' : ''); }
+        if (ev === 'meta') { out.model = data.model; m.model = data.model + (data.fallback ? ' (Gemini free-tier fallback)' : data.degraded ? ' (lighter model: daily allowance)' : ''); if (this.st && data.label) { Object.assign(this.st, { provider: data.provider, label: data.label, privacy: data.privacy }); this.renderNote(); } }
         else if (ev === 'text') { out.text += data.t; m.text += data.t; m.status = ''; this.paint(m); }
         else if (ev === 'call') out.calls.push(data);
         else if (ev === 'done') out.content = data.content;

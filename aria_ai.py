@@ -19,11 +19,16 @@ Provider
   cannot end up in a logged URL or an exception message.
 
 Cost
-  Free tier only. Live requests stay OFF until the owner sets
+  Gemini uses its confirmed free tier. Live Gemini requests stay OFF until the owner sets
   GEMINI_FREE_TIER_CONFIRMED=1 next to GEMINI_API_KEY. There is no paid
-  provider and no paid fallback: when Google answers 429 the copilot says
+  automatic paid fallback: when Google answers 429 the copilot says
   its allowance is used up and keeps working without the model. Every cap
   below is enforced here in code, not by asking the model nicely.
+  Optional Claude reasoning uses direct Anthropic API promotional credits, is
+  OFF by default, and requires fresh account checks plus an offline-provisioned
+  persistent credit ledger. See CLAUDE-CREDITS.md. No payment API is used. Local
+  reservations supplement prepaid account controls; they do not independently
+  verify or atomically enforce Anthropic's real promotional-credit balance.
 
 Privacy (free-tier content may be used by Google to improve its products)
   Requests carry the student's words and chart data only: no name, email,
@@ -52,6 +57,7 @@ from typing import Any, Iterator, Optional
 import requests
 from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import JSONResponse, StreamingResponse
+from claude_credits import CreditBlocked, CreditConfig, CreditLedger, OUTPUT_HARD_CAP
 
 log = logging.getLogger("aria_ai")
 router = APIRouter()
@@ -406,12 +412,17 @@ _CODE = re.compile(r"\b(pine|script|strategy|indicator code|code|repaint|backtes
 _DEEP = re.compile(r"\b(oracle|challenge|critique|compare|multi.?time|timeframes|why .* (fail|wrong)|repaint)\b", re.I)
 
 
-def route(text: str, hint: str = "", round_: int = 0, prev_model: str = "") -> dict:
+def route(text: str, hint: str = "", round_: int = 0, prev_model: str = "", provider_name: str = "") -> dict:
     """Deterministic policy. Small talk, definitions and simplifications go to the
     lightweight model; chart work, plans, ORACLE and code go to the main model with
     low thinking, raised to medium only for code, ORACLE challenges and timeframe
     comparisons. A tool round keeps the model that asked for the tool."""
     cfg = CFG
+    if provider_name == "claude":
+        config = claude_config()
+        code = bool(_CODE.search(text or ""))
+        return {"tier": "main", "model": config.model, "thinking": None,
+                "max_out": min(cfg.max_out_code if code else cfg.max_out_main, OUTPUT_HARD_CAP)}
     if round_ > 0 and prev_model in (cfg.model_main, cfg.model_lite):
         tier = "main" if prev_model == cfg.model_main else "lite"
     else:
@@ -601,6 +612,162 @@ class GeminiProvider(AIProvider):
         return {"token": name, "expires": body["expireTime"]}
 
 
+def claude_config() -> CreditConfig:
+    return CreditConfig.from_environment(_db_path())
+
+
+class ClaudeProvider(AIProvider):
+    """Direct Messages API; same chart/tool contract, no billing calls or retries.
+
+    The browser never supplies a key, model price, system prompt or tool schema.
+    An ambiguous timeout remains reserved and never triggers a second provider.
+    """
+    name = "claude"
+
+    def __init__(self, key: str):
+        self._key = key
+        self._http = requests.Session()
+
+    def _body(self, model, system, contents, tools, max_out) -> dict:
+        messages, pending = [], {}
+        for turn_index, turn in enumerate(contents):
+            blocks = []
+            for part_index, part in enumerate(turn.get("parts", [])):
+                if "text" in part:
+                    blocks.append({"type": "text", "text": part["text"]})
+                elif "functionCall" in part and turn["role"] == "model":
+                    call = part["functionCall"]
+                    if call.get("name") not in TOOL_NAMES:
+                        raise ProviderError("request", "Unsupported chart tool")
+                    identifier = call.get("id") or f"toolu_aria_{turn_index}_{part_index}"
+                    pending.setdefault(call["name"], []).append(identifier)
+                    blocks.append({"type": "tool_use", "id": identifier, "name": call["name"], "input": call.get("args") or {}})
+                elif "functionResponse" in part and turn["role"] == "user":
+                    result = part["functionResponse"]
+                    identifiers = pending.get(result["name"], [])
+                    identifier = result.get("id") or (identifiers[0] if identifiers else "")
+                    if not identifier or identifier not in identifiers:
+                        raise ProviderError("request", "Chart tool result has no matching call")
+                    identifiers.remove(identifier)
+                    blocks.append({"type": "tool_result", "tool_use_id": identifier,
+                                   "content": json.dumps(result.get("response") or {}, ensure_ascii=False)})
+                # Gemini thought signatures never travel to Claude.
+            if not blocks:
+                continue
+            role = "assistant" if turn["role"] == "model" else "user"
+            if role == "user":
+                blocks.sort(key=lambda b: b["type"] != "tool_result")
+            if messages and messages[-1]["role"] == role:
+                messages[-1]["content"].extend(blocks)
+            else:
+                messages.append({"role": role, "content": blocks})
+        if not messages or messages[0]["role"] != "user" or any(pending.values()):
+            raise ProviderError("request", "Incomplete chart tool conversation")
+        body = {"model": model, "system": system, "messages": messages,
+                "max_tokens": min(int(max_out), OUTPUT_HARD_CAP), "stream": True,
+                "thinking": {"type": "disabled"}}
+        if tools:
+            body["tools"] = [{"name": t["name"], "description": t["description"],
+                              "input_schema": t.get("parameters") or {"type": "object", "properties": {}}}
+                             for t in tools]
+        return body
+
+    def handle_provider_error(self, status: int, body: str) -> ProviderError:
+        # Ignore upstream error text entirely: it can echo credentials or input.
+        if status == 429:
+            return ProviderError("quota", "quota", status, retry_after=60)
+        if status in (401, 403):
+            return ProviderError("auth", "Claude authentication was refused", status)
+        if status == 404:
+            return ProviderError("model", "The configured Claude model is unavailable", status)
+        if status in (400, 402):
+            return ProviderError("request", "Claude refused this request or credit allowance", status)
+        return ProviderError("provider", "Claude could not answer", status)
+
+    def stream_response(self, *, model, system, contents, tools, max_out, thinking, timeout) -> Iterator[dict]:
+        body = self._body(model, system, contents, tools, max_out)
+        # Keep every Claude connection/read/stream attempt inside the five-minute
+        # credit-expiry margin, even if the shared provider timeout is misconfigured.
+        timeout = min(60.0, max(5.0, float(timeout)))
+        try:
+            config = claude_config()  # recheck immediately before every billable call/tool round
+            ledger = CreditLedger(config)
+            ledger.reserve(config.reserve_cost(body))
+        except (CreditBlocked, sqlite3.Error, OSError):
+            raise ProviderError("credit", "Claude's promotional-credit allowance is unavailable") from None
+        try:
+            response = self._http.post("https://api.anthropic.com/v1/messages", json=body,
+                                       stream=True, timeout=(10, timeout), allow_redirects=False,
+                                       headers={"x-api-key": self._key, "anthropic-version": "2023-06-01",
+                                                "Content-Type": "application/json"})
+        except requests.Timeout:
+            raise ProviderError("timeout", "The AI provider did not answer in time") from None
+        except requests.RequestException:
+            raise ProviderError("network", "Could not reach the AI provider") from None
+        if response.status_code != 200:
+            response.close()
+            raise self.handle_provider_error(response.status_code, "")
+        blocks, parts, usage, finish, stopped = {}, [], {}, "", False
+        started = time.time()
+        try:
+            for rawb in response.iter_lines(decode_unicode=False):
+                if time.time() - started > timeout:
+                    raise ProviderError("timeout", "The AI answer took too long")
+                raw = rawb.decode("utf-8", "replace") if isinstance(rawb, bytes) else str(rawb)
+                if not raw.startswith("data:"):
+                    continue
+                event = json.loads(raw[5:].strip())
+                kind = event.get("type")
+                if kind == "error":
+                    raise ProviderError("provider", "The Claude answer was cut off")
+                if kind == "message_start":
+                    usage.update(event.get("message", {}).get("usage") or {})
+                elif kind == "content_block_start":
+                    block = dict(event.get("content_block") or {})
+                    block["json"] = ""
+                    blocks[event["index"]] = block
+                    if block.get("type") == "text" and block.get("text"):
+                        yield {"type": "text", "text": block["text"]}
+                elif kind == "content_block_delta":
+                    block = blocks.get(event["index"], {})
+                    delta = event.get("delta") or {}
+                    if delta.get("type") == "text_delta" and block.get("type") == "text":
+                        text = delta.get("text", "")
+                        block["text"] = block.get("text", "") + text
+                        yield {"type": "text", "text": text}
+                    elif delta.get("type") == "input_json_delta" and block.get("type") == "tool_use":
+                        block["json"] += delta.get("partial_json", "")
+                        if len(block["json"]) > MAX_PART_JSON:
+                            raise ProviderError("request", "Claude tool arguments are too large")
+                elif kind == "content_block_stop":
+                    block = blocks.pop(event["index"], {})
+                    if block.get("type") == "text":
+                        parts.append({"text": block.get("text", "")})
+                    elif block.get("type") == "tool_use" and block.get("name") in TOOL_NAMES:
+                        args = json.loads(block["json"]) if block["json"] else block.get("input") or {}
+                        if not isinstance(args, dict):
+                            raise ProviderError("request", "Invalid Claude chart tool arguments")
+                        call = {"name": block["name"], "id": block["id"], "args": args}
+                        parts.append({"functionCall": call})
+                        yield {"type": "call", "call": call}
+                elif kind == "message_delta":
+                    usage.update(event.get("usage") or {})
+                    finish = (event.get("delta") or {}).get("stop_reason") or finish
+                elif kind == "message_stop":
+                    stopped = True
+            if not stopped or blocks:
+                raise ProviderError("network", "The AI answer was cut off")
+        except requests.RequestException:
+            raise ProviderError("network", "The AI answer was cut off") from None
+        except (ValueError, KeyError, TypeError):
+            raise ProviderError("provider", "Claude returned an incomplete answer") from None
+        finally:
+            response.close()
+        # Do not show thought/signature blocks, cache metadata or upstream ids.
+        yield {"type": "done", "content": {"role": "model", "parts": parts}, "finish": finish,
+               "usage": {k: usage[k] for k in ("input_tokens", "output_tokens") if k in usage}}
+
+
 class MockProvider(AIProvider):
     """For automated tests only (ARIA_AI_PROVIDER=mock and ARIA_AI_ALLOW_MOCK=1).
     Scripted, clearly labelled, never used in production: it proves the plumbing
@@ -663,9 +830,14 @@ class MockProvider(AIProvider):
         return [{"text": f"[mock] I received your message ({len(user)} characters) and a chart context for {ch.get('symbol', 'no chart')}."}]
 
 
-def provider() -> AIProvider:
-    if CFG.provider == "mock" and CFG.allow_mock:
+def provider(name: str = "") -> AIProvider:
+    name = name or CFG.provider
+    if name == "mock" and CFG.allow_mock:
         return MockProvider()
+    if name == "claude":
+        return ClaudeProvider(os.getenv("ANTHROPIC_API_KEY", "").strip())
+    if name != "gemini":
+        raise ValueError("Unknown AI provider")
     return GeminiProvider(CFG.key)
 
 
@@ -674,14 +846,27 @@ def ai_state() -> dict:
     if not CFG.enabled_switch:
         return {"enabled": False, "reason": "ARIA's AI is switched off on this server (ARIA_AI_ENABLED)."}
     if CFG.provider == "mock":
-        return {"enabled": CFG.allow_mock, "reason": "" if CFG.allow_mock else "Test provider is not allowed here."}
+        return {"enabled": CFG.allow_mock, "reason": "" if CFG.allow_mock else "Test provider is not allowed here.", "provider": "mock"}
+    if CFG.provider == "claude":
+        try:
+            config = claude_config()
+            if CreditLedger(config).available() <= 0:
+                raise CreditBlocked("Claude's promotional-credit allowance is reserved.")
+            return {"enabled": True, "reason": "", "provider": "claude"}
+        except CreditBlocked as exc:
+            reason = str(exc)
+        except (sqlite3.Error, OSError):
+            reason = "Claude's persistent credit ledger is unavailable."
+        if os.getenv("ARIA_AI_GEMINI_FALLBACK", "") == "1" and CFG.key and CFG.free_tier_confirmed:
+            return {"enabled": True, "reason": "", "provider": "gemini", "fallback": True}
+        return {"enabled": False, "reason": reason}
     if CFG.provider != "gemini":
         return {"enabled": False, "reason": "Unknown AI provider configured."}
     if not CFG.key:
         return {"enabled": False, "reason": "No AI key is configured on the server (GEMINI_API_KEY)."}
     if not CFG.free_tier_confirmed:
         return {"enabled": False, "reason": "The AI key is set but its free tier is not confirmed (GEMINI_FREE_TIER_CONFIRMED)."}
-    return {"enabled": True, "reason": ""}
+    return {"enabled": True, "reason": "", "provider": "gemini"}
 
 
 # ── who is asking ─────────────────────────────────────────────────────────────
@@ -835,24 +1020,40 @@ _LIMIT_TEXT = {
 }
 
 
+def _provider_privacy(name: str) -> str:
+    if name == "claude":
+        text = "AI replies come from Anthropic Claude using a reserved promotional-credit allowance. ARIA sends your words and chart data only; don't share personal details."
+        if os.getenv("ARIA_AI_GEMINI_FALLBACK", "") == "1":
+            text += " If the approved Gemini free-tier fallback is used, Google may use what you send to improve its products."
+        return text
+    return "AI replies come from Google Gemini's free tier, where Google may use what is sent to improve its products. ARIA sends your words and chart data only; don't share personal details."
+
+
 @router.get("/api/aria/ai/status")
 def status(request: Request) -> dict:
     st = ai_state()
     ident = identity(request)
-    out = {"enabled": st["enabled"], "reason": st["reason"], "provider": CFG.provider if st["enabled"] else None,
-           "models": {"main": CFG.model_main, "lite": CFG.model_lite, "voice": CFG.model_voice},
-           "privacy": "AI replies come from Google Gemini's free tier, where Google may use what is sent to improve its products. "
-                      "ARIA sends your words and chart data only — never your name, email, balance, positions or journal. Don't share personal details.",
+    selected = st.get("provider", CFG.provider)
+    out = {"enabled": st["enabled"], "reason": st["reason"], "provider": selected if st["enabled"] else None,
+           "models": {"main": os.getenv("ARIA_CLAUDE_MODEL", "claude-sonnet-5-5") if selected == "claude" else CFG.model_main,
+                      "lite": None if selected == "claude" else CFG.model_lite,
+                      "voice": None if selected == "claude" else CFG.model_voice},
+           "privacy": _provider_privacy(selected),
            "guest": ident["guest"]}
+    if selected == "claude":
+        out["label"] = "Claude (promotional credits)"
+    else:
+        out["label"] = "Gemini (free tier)"
+    out["fallback"] = bool(st.get("fallback"))
     if st["enabled"]:
         if ident["guest"] and not CFG.guests:
             out.update(enabled=False, reason="Sign in with your Academy account to use ARIA's AI.")
         c = count([ident["key"], "t:main", "t:lite"])
         per_day = CFG.guest_per_day if ident["guest"] else CFG.user_per_day
         out["remaining_today"] = max(0, per_day - c[ident["key"]])
-        out["paused"] = bool(cooldown("main") > 0 and cooldown("lite") > 0) or (c["t:main"] >= CFG.daily_main and c["t:lite"] >= CFG.daily_lite)
+        out["paused"] = (cooldown("main") > 0 or c["t:main"] >= CFG.daily_main) if selected == "claude" else bool(cooldown("main") > 0 and cooldown("lite") > 0) or (c["t:main"] >= CFG.daily_main and c["t:lite"] >= CFG.daily_lite)
         voice = CFG.live_voice != "off" and (CFG.live_voice == "all" or ident["owner"])
-        out["live_voice"] = bool(voice and (CFG.provider == "gemini" or CFG.allow_mock))
+        out["live_voice"] = bool(voice and selected in ("gemini", "mock"))
     return out
 
 
@@ -885,12 +1086,42 @@ async def chat(request: Request):
     if round_ < 0 or round_ > MAX_ROUNDS:
         return JSONResponse({"error": "rounds", "message": "ARIA stopped after several tool steps; ask again to continue."}, status_code=429)
     contents = clean_contents(body.get("contents"))
+    selected = st.get("provider", CFG.provider)
+    previous_model = str(body.get("model") or "")
+    if (round_ > 0 and CFG.provider == "claude" and previous_model in (CFG.model_main, CFG.model_lite)
+            and os.getenv("ARIA_AI_GEMINI_FALLBACK", "") == "1" and CFG.key and CFG.free_tier_confirmed):
+        # An approved fallback that asked for a tool owns the remainder of that
+        # turn. A newly available Claude allocation must not take over mid-turn.
+        selected = "gemini"
+    if round_ > 0 and ((selected == "claude" and previous_model != os.getenv("ARIA_CLAUDE_MODEL", "claude-sonnet-5-5")) or
+                       (selected == "gemini" and previous_model.startswith("claude-"))):
+        return JSONResponse({"error": "provider_changed", "message": "The AI provider changed during this turn. Ask again to continue."}, status_code=409)
     user_text = next((p["text"] for c in reversed(contents) if c["role"] == "user" for p in c["parts"] if "text" in p), "")
-    plan = route(user_text, str(body.get("hint") or "")[:20], round_, str(body.get("model") or ""))
+    try:
+        plan = route(user_text, str(body.get("hint") or "")[:20], round_, previous_model, selected)
+    except CreditBlocked:
+        return JSONResponse({"error": "credit", "message": QUOTA_MESSAGE}, status_code=503)
     contents = attach_context(contents, body.get("context"))
+    if selected == "claude":
+        try:
+            config = claude_config()
+            priced_body = ClaudeProvider("")._body(plan["model"], SYSTEM_PROMPT, contents, TOOLS, plan["max_out"])
+            if CreditLedger(config).available() < config.reserve_cost(priced_body):
+                raise CreditBlocked("Insufficient reserved promotional allowance")
+        except ProviderError:
+            raise HTTPException(400, "The chart tool conversation is incomplete.") from None
+        except (CreditBlocked, sqlite3.Error, OSError):
+            # Preflight only: no Claude request has been sent and no credit was
+            # reserved. Never replay a tool round or ambiguous upstream failure.
+            if round_ == 0 and os.getenv("ARIA_AI_GEMINI_FALLBACK", "") == "1" and CFG.key and CFG.free_tier_confirmed:
+                selected = "gemini"
+                plan = route(user_text, str(body.get("hint") or "")[:20], provider_name="gemini")
+                plan["degraded"] = True
+            else:
+                return JSONResponse({"error": "credit", "message": QUOTA_MESSAGE}, status_code=503)
     now = time.time()
     why = _limits_for(ident, plan["tier"], now)
-    if why == "quota" and plan["tier"] == "main" and round_ == 0 and _limits_for(ident, "lite", now) is None:
+    if selected != "claude" and why == "quota" and plan["tier"] == "main" and round_ == 0 and _limits_for(ident, "lite", now) is None:
         # the main model is out for today: the free lightweight model answers instead (never a paid one)
         plan = {"tier": "lite", "model": CFG.model_lite, "thinking": None, "max_out": CFG.max_out_lite, "degraded": True}
         why = None
@@ -898,7 +1129,7 @@ async def chat(request: Request):
         return JSONResponse({"error": why, "message": _LIMIT_TEXT[why]}, status_code=429)
     if len(_leases) >= CFG.concurrency:
         return JSONResponse({"error": "busy", "message": _LIMIT_TEXT["busy"]}, status_code=429)
-    prov = provider()
+    prov = provider(selected)
 
     def gen():
         t0 = time.time()
@@ -909,7 +1140,10 @@ async def chat(request: Request):
             return
         try:
             _record(ident, plan["tier"], time.time())
-            yield _sse("meta", {"model": plan["model"], "tier": plan["tier"], "degraded": bool(plan.get("degraded")), "round": round_})
+            yield _sse("meta", {"provider": selected, "model": plan["model"], "tier": plan["tier"],
+                               "label": "Claude (promotional credits)" if selected == "claude" else "Gemini (free tier)",
+                               "privacy": _provider_privacy(selected), "fallback": selected == "gemini" and CFG.provider == "claude",
+                               "degraded": bool(plan.get("degraded")), "round": round_})
             for ev in prov.stream_response(model=plan["model"], system=SYSTEM_PROMPT, contents=contents, tools=TOOLS,
                                            max_out=plan["max_out"], thinking=plan["thinking"], timeout=CFG.timeout_s):
                 if ev["type"] == "text":
@@ -923,7 +1157,7 @@ async def chat(request: Request):
                     yield _sse("done", {"content": {"role": "model", "parts": parts}, "finish": ev.get("finish"), "usage": ev.get("usage") or {}})
                     ok = True
         except ProviderError as e:
-            if e.kind == "quota":
+            if e.kind in ("quota", "credit"):
                 until = _next_pt_midnight() if e.daily else time.time() + max(30.0, min(600.0, e.retry_after or 60.0))
                 set_cooldown(plan["tier"], until)
                 yield _sse("error", {"error": "quota", "message": QUOTA_MESSAGE})
@@ -972,6 +1206,8 @@ def voice_session(request: Request):
     if not st["enabled"]:
         return JSONResponse({"error": "disabled", "message": st["reason"]}, status_code=503)
     ident = identity(request)
+    if st.get("provider", CFG.provider) == "claude":
+        return JSONResponse({"error": "voice_off", "message": "Live AI voice is not enabled for this provider. ARIA's standard voice keeps working."}, status_code=403)
     if CFG.live_voice == "off" or (CFG.live_voice == "owner" and not ident["owner"]):
         return JSONResponse({"error": "voice_off", "message": "Live AI voice is not enabled for this account. ARIA's standard voice keeps working."}, status_code=403)
     c = count(["voice:all", "voice:" + ident["key"]])
@@ -980,7 +1216,7 @@ def voice_session(request: Request):
     if not _per_minute("voice:" + ident["key"], 3, time.time()):
         return JSONResponse({"error": "user_min", "message": _LIMIT_TEXT["user_min"]}, status_code=429)
     model = CFG.model_voice
-    prov = provider()
+    prov = provider(st.get("provider", CFG.provider))
     try:
         if isinstance(prov, MockProvider):
             tok = {"token": "auth_tokens/mock-" + os.urandom(6).hex(), "expires": ""}
