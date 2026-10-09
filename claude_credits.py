@@ -9,6 +9,7 @@ confirmed. Reservations are never refunded, including on ambiguous failures.
 from __future__ import annotations
 
 import json
+import math
 import os
 import re
 import sqlite3
@@ -27,7 +28,21 @@ MODEL_RATES = {
     "claude-haiku-4-5-20251001": (1, 5),
 }
 OUTPUT_HARD_CAP = 4096
-ATTESTATION_MAX_AGE = 86400
+ATTESTATION_MAX_AGE = 86400            # default; CLAUDE_ATTESTATION_MAX_HOURS may set 1..168 hours
+
+
+def attestation_max_age() -> float:
+    """How long an owner's account check stays valid. Default 24 h; the owner may choose up to 7 days."""
+    raw = os.getenv("CLAUDE_ATTESTATION_MAX_HOURS", "").strip()
+    if not raw:
+        return ATTESTATION_MAX_AGE
+    try:
+        hours = float(raw)
+    except ValueError:
+        raise CreditBlocked("CLAUDE_ATTESTATION_MAX_HOURS must be a number of hours from 1 to 168.") from None
+    if not (math.isfinite(hours) and 1 <= hours <= 168):
+        raise CreditBlocked("CLAUDE_ATTESTATION_MAX_HOURS must be a number of hours from 1 to 168.")
+    return hours * 3600
 
 
 class CreditBlocked(Exception):
@@ -45,13 +60,19 @@ def _usd_micro(value: str) -> int:
 
 
 def _timestamp(name: str) -> float:
+    """A UTC Unix timestamp, or an ISO 8601 time with an explicit UTC zone (2026-10-17T00:00:00Z)."""
+    raw = os.getenv(name, "").strip()
     try:
-        value = float(os.getenv(name, ""))
+        if re.fullmatch(r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2})?(Z|\+00:00)", raw):
+            from datetime import datetime
+            value = datetime.fromisoformat(raw.replace("Z", "+00:00")).timestamp()
+        else:
+            value = float(raw)
         if not 0 < value < 1e11:
             raise ValueError
         return value
     except ValueError:
-        raise CreditBlocked(f"Set a valid {name} UTC Unix timestamp.") from None
+        raise CreditBlocked(f"Set {name} as a UTC time like 2026-10-17T00:00:00Z (or a Unix timestamp).") from None
 
 
 @dataclass(frozen=True)
@@ -91,7 +112,7 @@ class CreditConfig:
 
     def check_time(self) -> None:
         now = time.time()
-        if self.verified > now or now - self.verified >= ATTESTATION_MAX_AGE:
+        if self.verified > now + 60 or now - self.verified >= attestation_max_age():
             raise CreditBlocked("Claude credit/account verification is stale; recheck before using credits.")
         # A request may continue charging after a disconnect. Stop well before expiry.
         if now + 300 >= self.expires:
@@ -112,6 +133,18 @@ class CreditConfig:
         inp, out = MODEL_RATES[self.model]
         return int((Decimal(size * 2 + 2048) * Decimal(inp) + Decimal(max_out) * Decimal(out))
                    .to_integral_value(rounding=ROUND_CEILING))
+
+
+def _owned_by_app_user(path: str) -> None:
+    """Provisioning from a host shell runs as root, but the server runs as the 'app' user:
+    hand the private ledger to it, or the server could not open it until the next restart."""
+    if hasattr(os, "geteuid") and os.geteuid() == 0:
+        try:
+            import pwd
+            entry = pwd.getpwnam("app")
+            os.chown(path, entry.pw_uid, entry.pw_gid)
+        except (KeyError, ImportError, OSError):
+            pass
 
 
 class CreditLedger:
@@ -143,6 +176,7 @@ class CreditLedger:
                 db.execute("INSERT OR IGNORE INTO claude_allowance(period,cap,expires) VALUES(?,?,?)",
                            (self.config.period, self.config.budget, self.config.expires))
         os.chmod(self.config.path, 0o600)
+        _owned_by_app_user(self.config.path)
 
     def available(self) -> int:
         self.config.check_time()
@@ -176,3 +210,29 @@ class CreditLedger:
             raise
         finally:
             db.close()
+
+
+def main(argv: list) -> int:
+    """python3 claude_credits.py provision   create this allocation's ledger (offline, once)
+python3 claude_credits.py check       say whether Claude may run, and what is left (no network)"""
+    if argv[1:] not in (["provision"], ["check"]):
+        print(main.__doc__)
+        return 2
+    try:
+        config = CreditConfig.from_environment("")
+        if argv[1] == "provision":
+            CreditLedger(config).provision()
+            print("Claude ledger ready:", config.path, "| period", config.period)
+        left = CreditLedger(config).available()
+        print(f"Claude may run: ${left / 1e6:.2f} of ${config.budget / 1e6:.2f} left in period {config.period};"
+              f" check valid until {time.strftime('%Y-%m-%d %H:%M UTC', time.gmtime(config.verified + attestation_max_age()))};"
+              f" credits stop at {time.strftime('%Y-%m-%d %H:%M UTC', time.gmtime(config.expires - 300))}.")
+        return 0
+    except (CreditBlocked, sqlite3.Error, OSError) as e:
+        print("Claude is blocked:", e)
+        return 1
+
+
+if __name__ == "__main__":
+    import sys
+    raise SystemExit(main(sys.argv))

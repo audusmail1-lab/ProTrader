@@ -472,3 +472,27 @@ def test_an_unanswered_tool_call_in_an_older_turn_never_blocks_later_questions(m
     # inside the CURRENT turn an unanswered call is still refused (the app must answer it)
     with pytest.raises(aria_ai.ProviderError):
         provider._body("claude-sonnet-5-5", "SYS", stale[:2] + [{"role": "user", "parts": [{"functionResponse": {"name": "draw_analysis", "id": "other", "response": {}}}]}], [], 100)
+
+
+def test_times_may_be_written_as_utc_dates_and_the_check_window_is_the_owners_choice(monkeypatch, capsys):
+    enable(monkeypatch)
+    monkeypatch.setenv("CLAUDE_CREDIT_EXPIRES_AT", time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(time.time() + 86400)))
+    assert aria_ai.ai_state()["enabled"]
+    for bad in ("2026-10-17", "2026-10-17T00:00:00", "17/10/2026", "2026-10-17T00:00:00+01:00"):
+        monkeypatch.setenv("CLAUDE_CREDIT_EXPIRES_AT", bad)            # no zone, or not UTC: refused
+        assert not aria_ai.ai_state()["enabled"], bad
+    monkeypatch.setenv("CLAUDE_CREDIT_EXPIRES_AT", str(time.time() + 86400))
+    monkeypatch.setenv("CLAUDE_CREDIT_VERIFIED_AT", str(time.time() - 30 * 3600))   # 30 h ago
+    assert not aria_ai.ai_state()["enabled"]                          # default window: 24 h
+    monkeypatch.setenv("CLAUDE_ATTESTATION_MAX_HOURS", "72")
+    assert aria_ai.ai_state()["enabled"]
+    for bad in ("0", "169", "nan", "week"):
+        monkeypatch.setenv("CLAUDE_ATTESTATION_MAX_HOURS", bad)
+        assert not aria_ai.ai_state()["enabled"], bad
+    monkeypatch.setenv("CLAUDE_ATTESTATION_MAX_HOURS", "72")
+    import claude_credits
+    assert claude_credits.main(["x", "check"]) == 0
+    out = capsys.readouterr().out
+    assert out.startswith("Claude may run: $1.00 of $1.00") and FAKE_KEY not in out
+    monkeypatch.setenv("ARIA_CLAUDE_ENABLED", "0")
+    assert claude_credits.main(["x", "check"]) == 1 and "blocked" in capsys.readouterr().out

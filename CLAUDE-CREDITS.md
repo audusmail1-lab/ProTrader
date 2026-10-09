@@ -86,8 +86,9 @@ is preferable; verify its organization and workspace before use.
 | `ARIA_CLAUDE_MODEL` | Reviewed exact model ID; default `claude-sonnet-5-5` |
 | `ARIA_CLAUDE_CREDIT_BUDGET_USD` | Positive approved allowance, at most $200; default zero blocks calls |
 | `CLAUDE_CREDIT_PERIOD` | Stable 8–80 character ID for this exact grant/billing-cycle allocation |
-| `CLAUDE_CREDIT_EXPIRES_AT` | Verified conservative UTC Unix expiry timestamp |
-| `CLAUDE_CREDIT_VERIFIED_AT` | UTC Unix timestamp of latest owner verification; expires after 24h |
+| `CLAUDE_CREDIT_EXPIRES_AT` | Verified conservative UTC expiry, e.g. `2026-10-17T00:00:00Z` (or a Unix timestamp) |
+| `CLAUDE_CREDIT_VERIFIED_AT` | UTC time of the owner's latest Console check, e.g. `2026-10-09T16:00:00Z`; valid for 24 h by default |
+| `CLAUDE_ATTESTATION_MAX_HOURS` | Optional, 1–168: how long that check stays valid (default 24) |
 | `ARIA_CLAUDE_BUDGET_DB` | Absolute path on verified private persistent storage, shared by every worker |
 | `CLAUDE_PREPAID_ONLY_CONFIRMED` | `1` only if monthly invoicing is absent |
 | `CLAUDE_AUTO_RELOAD_DISABLED_CONFIRMED` | `1` only if auto-reload is off |
@@ -112,13 +113,13 @@ would bill for it. A $20 allowance therefore covers about 80 such turns before
 Claude stops (or the labelled Gemini fallback answers). Loosening that margin
 is an owner decision, not something this code does by itself.
 
-After approved configuration, provision the ledger once in an offline owner
-maintenance session before starting the application. This operation makes
-no network calls:
+After approved configuration, provision the ledger once from the host's
+shell (Render → Shell). It makes no network calls, and hands the file to the
+server's `app` user:
 
-```python
-from claude_credits import CreditConfig, CreditLedger
-CreditLedger(CreditConfig.from_environment("")).provision()
+```
+python3 claude_credits.py provision
+python3 claude_credits.py check      # any time: may Claude run, and what is left
 ```
 
 Known-price IDs checked on 9 October 2026: `claude-sonnet-5-5` ($2 input/$10

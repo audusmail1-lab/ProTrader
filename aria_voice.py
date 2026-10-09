@@ -224,6 +224,18 @@ def account(cfg: VoiceConfig, cost: int) -> str:
 
 # ── ARIA's own allowance: persistent, created offline, never refunded ─────────
 
+def _owned_by_app_user(path: str) -> None:
+    """Provisioning from a host shell runs as root, but the server runs as the 'app' user:
+    hand the private ledger to it, or the server could not open it until the next restart."""
+    if hasattr(os, "geteuid") and os.geteuid() == 0:
+        try:
+            import pwd
+            entry = pwd.getpwnam("app")
+            os.chown(path, entry.pw_uid, entry.pw_gid)
+        except (KeyError, ImportError, OSError):
+            pass
+
+
 class VoiceLedger:
     def __init__(self, cfg: VoiceConfig):
         self.cfg = cfg
@@ -242,6 +254,7 @@ class VoiceLedger:
                 if col not in have:
                     db.execute(f"ALTER TABLE voice_allowance ADD COLUMN {col} {decl}")
         os.chmod(self.cfg.path, 0o600)
+        _owned_by_app_user(self.cfg.path)
 
     def ready(self) -> bool:
         try:
@@ -253,10 +266,25 @@ class VoiceLedger:
         except sqlite3.Error:
             return False
 
+    @staticmethod
+    def _resolve(db, period: str) -> tuple[str, int, bool]:
+        """(row to charge, reset time, is a new period). Raises when the reset time went backwards."""
+        try:
+            reset = int(period.rsplit("-", 1)[1])
+        except (IndexError, ValueError):
+            raise VoiceBlocked("Invalid ElevenLabs billing period.") from None
+        newest = db.execute("SELECT period, reset FROM voice_allowance ORDER BY reset DESC LIMIT 1").fetchone()
+        if newest and reset < newest[1]:
+            raise VoiceBlocked("The ElevenLabs billing period moved backwards; voice stays off until the owner checks the account.")
+        if newest and reset < newest[1] + NEW_PERIOD_DAYS * 86400:
+            return newest[0], newest[1], False
+        return period, reset, True
+
     def left(self, period: str) -> int:
         db = self._connect()
         try:
-            row = db.execute("SELECT cap, used FROM voice_allowance WHERE period=?", (period,)).fetchone()
+            key, _, new = self._resolve(db, period)
+            row = None if new else db.execute("SELECT cap, used FROM voice_allowance WHERE period=?", (key,)).fetchone()
         finally:
             db.close()
         return self.cfg.allowance if not row else max(0, min(row[0], self.cfg.allowance) - row[1])
@@ -268,19 +296,11 @@ class VoiceLedger:
         jitter mid-cycle does not bring a fresh allowance; a real monthly rollover does)."""
         if type(amount) is not int or amount <= 0:
             raise VoiceBlocked("Invalid voice reservation.")
-        try:
-            reset = int(period.rsplit("-", 1)[1])
-        except (IndexError, ValueError):
-            raise VoiceBlocked("Invalid ElevenLabs billing period.") from None
         db = self._connect()
         try:
             db.execute("BEGIN IMMEDIATE")
-            newest = db.execute("SELECT period, reset FROM voice_allowance ORDER BY reset DESC LIMIT 1").fetchone()
-            if newest and reset < newest[1]:
-                raise VoiceBlocked("The ElevenLabs billing period moved backwards; voice stays off until the owner checks the account.")
-            if newest and reset < newest[1] + NEW_PERIOD_DAYS * 86400:
-                period = newest[0]
-            else:
+            period, reset, new = self._resolve(db, period)
+            if new:
                 # a period's cap is fixed when it starts and can only ever shrink, never grow
                 db.execute("INSERT OR IGNORE INTO voice_allowance(period, cap, used, reset, created) VALUES(?, ?, 0, ?, ?)",
                            (period, self.cfg.allowance, reset, time.time()))
@@ -543,8 +563,40 @@ def _transcribe(st: dict, request: Request, audio: bytes):
     return {"text": text, "language": str(res.get("language_code") or "")[:8], "seconds": round(seconds, 1)}
 
 
+def check() -> int:
+    """Read-only: is voice ready, and what does the account look like? Makes one free account read."""
+    try:
+        cfg = VoiceConfig()
+    except VoiceBlocked as e:
+        print("Voice is off:", e)
+        return 1
+    ledger = VoiceLedger(cfg)
+    if not ledger.ready():
+        print("Voice is blocked: the ledger is missing. Run: python3 aria_voice.py provision")
+        return 1
+    try:
+        data = _fetch_subscription(cfg)
+        remaining, period = check_subscription(data)
+    except VoiceBlocked as e:
+        print("Voice is blocked by the account check:", e)
+        return 1
+    reset = int(period.rsplit("-", 1)[1])
+    print(f"ElevenLabs {data.get('tier')} ({data.get('status')}): {data.get('character_count'):,} of {data.get('character_limit'):,} credits used;"
+          f" resets {time.strftime('%Y-%m-%d', time.gmtime(reset))}; usage-based billing off.")
+    print(f"Left in the shared pool: {remaining:,}; kept back for the other agents: {cfg.reserve:,};"
+          f" ARIA may use up to {max(0, remaining - cfg.reserve):,} of it right now.")
+    print(f"ARIA's own allowance this period: {ledger.left(period):,} of {cfg.allowance:,} credits"
+          f" (speech counted at {cfg.tts_rate:g} credit per character, model {cfg.model}).")
+    why = cfg.stt_blocked()
+    print("Transcription:", f"on for {cfg.stt_mode}" if not why else why)
+    return 0
+
+
 def main(argv: list[str]) -> int:
-    """python3 aria_voice.py provision   (offline, once, on the server's persistent disk)"""
+    """python3 aria_voice.py provision   create ARIA's voice ledger (offline, once, on the persistent disk)
+python3 aria_voice.py check       read-only: is voice ready, and what is left (one free account read)"""
+    if argv[1:] == ["check"]:
+        return check()
     if argv[1:] != ["provision"]:
         print(main.__doc__)
         return 2

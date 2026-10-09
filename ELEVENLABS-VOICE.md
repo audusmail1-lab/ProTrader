@@ -100,11 +100,22 @@ the owner enters the rate shown for the plan).
 | Optional | `ARIA_ELEVEN_GUESTS`; `ARIA_ELEVEN_MAX_CHARS` (900); `ARIA_ELEVEN_STT_MAX_SECONDS` (30); `ARIA_ELEVEN_TTS_PER_DAY` (40); `ARIA_ELEVEN_USER_CHARS_PER_DAY` (8000); `ARIA_ELEVEN_IP_PER_DAY` (80); `ARIA_ELEVEN_TTS_ALL_PER_DAY` (400); `ARIA_ELEVEN_TTS_PER_MIN` (8); `ARIA_ELEVEN_STT_PER_DAY` (60); `ARIA_ELEVEN_DELETE_AFTER_USE` (1) |
 
 Provision the ledger once, in Render's Shell, after the variables are set and
-before voice is used. It makes no network call:
+before voice is used. It makes no network call, and hands the file to the
+server's `app` user. `check` reads the account once (free) and says whether
+voice is ready, how much is left in the shared pool above the reserve, and
+ARIA's allowance:
 
 ```
 python3 aria_voice.py provision
+python3 aria_voice.py check
 ```
+
+Rates: ElevenLabs states Flash v2.5 costs 50% less per character than the
+standard models, so `ARIA_ELEVEN_TTS_CREDITS_PER_CHAR=0.5` matches Flash
+(`1` for the other models). Scribe is $0.22/hour against $0.08 per 1,000
+characters for standard speech, about 46 credits a minute; `100` is a safe
+setting. Confirm both on the Usage page after the first real clip and
+recording.
 
 **Sizing proposal (not approved).** Set the reserve to at least 1.5 times what
 Alex and website support used in the busiest recent month (the usage page shows

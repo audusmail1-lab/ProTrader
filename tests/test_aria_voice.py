@@ -417,3 +417,15 @@ def test_an_older_ledger_is_migrated_by_provisioning(monkeypatch, tmp_path, up):
         db.execute("CREATE TABLE voice_allowance (period TEXT PRIMARY KEY, cap INTEGER NOT NULL, used INTEGER NOT NULL DEFAULT 0)")
     aria_voice.VoiceLedger(aria_voice.VoiceConfig()).provision()
     assert speak(client()).status_code == 200
+
+
+def test_check_command_reads_the_account_and_spends_nothing(monkeypatch, tmp_path, up, capsys):
+    assert aria_voice.main(["x", "check"]) == 1 and "off" in capsys.readouterr().out
+    enable(monkeypatch, tmp_path)
+    assert aria_voice.main(["x", "check"]) == 0
+    out = capsys.readouterr().out
+    assert "110,000" not in out and "111,000 kept" not in out
+    assert "Left in the shared pool: 111,000" in out and "ARIA may use up to 91,000" in out and "5,000 of 5,000" in out
+    assert up.paths() == [("GET", "/v1/user/subscription")] and FAKE_KEY not in out
+    up.subscription = sub(max_credit_limit_extension="unlimited")
+    assert aria_voice.main(["x", "check"]) == 1 and "Usage-based billing" in capsys.readouterr().out
