@@ -529,3 +529,77 @@ def test_claude_and_gemini_never_pause_each_other(monkeypatch):
     assert r.status_code == 200 and calls == ["gemini"] and '"fallback":true' in r.text
     # a Claude tool round is never handed to Gemini, even while Claude is paused
     assert ask(c, round=1, model="claude-sonnet-5-5").status_code in (409, 429)
+
+
+class ErrResponse(FakeResponse):
+    def __init__(self, status, body):
+        super().__init__(status=status)
+        self.text = body
+
+
+def _claude_with(monkeypatch, response):
+    http = FakeHTTP(response)
+    original = aria_ai.ClaudeProvider.__init__
+    def init(self, key):
+        original(self, key); self._http = http
+    monkeypatch.setattr(aria_ai.ClaudeProvider, "__init__", init)
+    return http
+
+
+def test_a_refusal_reason_reaches_the_owner_and_the_log_but_never_a_student(monkeypatch, caplog):
+    enable(monkeypatch)
+    monkeypatch.setenv("SENTINEL_ADMIN_KEY", "owner-key-for-tests")
+    body = json.dumps({"type": "error", "error": {"type": "invalid_request_error",
+                       "message": f"Your credit balance is too low. key={FAKE_KEY} mail joel@example.com"}})
+    _claude_with(monkeypatch, ErrResponse(400, body))
+    c = client()
+    student = ask(c).text
+    assert "credit balance" not in student and "\"detail\"" not in student
+    owner = c.post("/api/aria/ai/chat", headers={"x-sentinel-key": "owner-key-for-tests"},
+                   json={"contents": [{"role": "user", "parts": [{"text": "Analyze the chart"}]}]}).text
+    assert "invalid_request_error: Your credit balance is too low" in owner
+    assert FAKE_KEY not in owner and "joel@example.com" not in owner
+    st = c.get("/api/aria/ai/status", headers={"x-sentinel-key": "owner-key-for-tests"}).json()
+    assert st["claude_last_error"]["status"] == 400 and "credit balance" in st["claude_last_error"]["detail"]
+    assert "claude_last_error" not in c.get("/api/aria/ai/status").json()
+    assert FAKE_KEY not in caplog.text and "credit balance is too low" in caplog.text
+
+
+def test_fallback_after_an_outright_refusal_only_before_any_output(monkeypatch):
+    enable(monkeypatch)
+    monkeypatch.setenv("ARIA_AI_GEMINI_FALLBACK", "1")
+    monkeypatch.setenv("GEMINI_API_KEY", "AIzaFAKE-non-secret-testing-0000000")
+    monkeypatch.setenv("GEMINI_FREE_TIER_CONFIRMED", "1")
+    gem = []
+    def fake_gemini(self, **kw):
+        gem.append(kw["model"])
+        yield {"type": "text", "text": "Gemini here."}
+        yield {"type": "done", "content": {"role": "model", "parts": [{"text": "Gemini here."}]}, "finish": "STOP", "usage": {}}
+    monkeypatch.setattr(aria_ai.GeminiProvider, "stream_response", fake_gemini)
+    http = _claude_with(monkeypatch, ErrResponse(400, json.dumps({"error": {"type": "invalid_request_error", "message": "bad"}})))
+    r = ask(client())
+    assert len(http.calls) == 1 and len(gem) == 1                       # one Claude request, refused; never retried
+    assert '"fallback":true' in r.text and "Gemini here." in r.text and "event: done" in r.text
+    # a timeout is ambiguous (it may have been billed): no fallback, no retry
+    gem.clear()
+    http2 = _claude_with(monkeypatch, None)
+    http2.error = requests.Timeout("t")
+    r = ask(client())
+    assert len(http2.calls) == 1 and gem == [] and "timeout" in r.text
+    # inside a Claude tool round: never handed over
+    http3 = _claude_with(monkeypatch, ErrResponse(400, "{}"))
+    contents = [{"role": "user", "parts": [{"text": "Draw"}]},
+                {"role": "model", "parts": [{"functionCall": {"name": "draw_analysis", "id": "toolu_x", "args": {"layers": ["zones"]}}}]},
+                {"role": "user", "parts": [{"functionResponse": {"name": "draw_analysis", "id": "toolu_x", "response": {"ok": True}}}]}]
+    r = client().post("/api/aria/ai/chat", json={"contents": contents, "round": 1, "model": "claude-sonnet-5-5"})
+    assert gem == [] and "Gemini here." not in r.text
+
+
+def test_probe_command_reports_the_refusal_without_the_key(monkeypatch, capsys):
+    enable(monkeypatch)
+    _claude_with(monkeypatch, ErrResponse(400, json.dumps({"error": {"type": "invalid_request_error", "message": "thinking.type: unexpected value"}})))
+    assert aria_ai._probe_claude() == 1
+    out = capsys.readouterr().out
+    assert "status 400" in out and "thinking.type: unexpected value" in out and FAKE_KEY not in out
+    _claude_with(monkeypatch, FakeResponse(events=stream_events()))
+    assert aria_ai._probe_claude() == 0 and "Claude answered: Measured evidence." in capsys.readouterr().out

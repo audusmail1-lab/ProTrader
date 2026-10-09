@@ -9160,14 +9160,16 @@ const AI = {
         let ev = '', data = null;
         for (const line of block.split('\n')) { if (line.startsWith('event: ')) ev = line.slice(7); else if (line.startsWith('data: ')) { try { data = JSON.parse(line.slice(6)); } catch (_) {} } }
         if (!data) continue;
-        if (ev === 'meta') { out.model = data.model; m.model = (data.provider === 'claude' ? String(data.label || data.model).replace(/ \(.*$/, '') + ' · promotional credits' : data.model) + (data.fallback ? ' (Gemini free-tier fallback for Claude)' : data.degraded ? ' (lighter model: daily allowance)' : ''); if (this.st && data.label) { Object.assign(this.st, { provider: data.provider, label: data.label, privacy: data.privacy, fallback: !!data.fallback }); this.renderNote(); } }
+        if (ev === 'meta') { out.model = data.model; m.model = (data.provider === 'claude' ? String(data.label || data.model).replace(/ \(.*$/, '') + ' · promotional credits' : data.model) + (data.fallback ? ' (Gemini free-tier fallback for Claude)' : data.degraded ? ' (lighter model: daily allowance)' : ''); if (this.st && data.label) { Object.assign(this.st, { provider: data.provider, label: data.label, privacy: data.privacy, fallback: !!data.fallback }); this.renderNote(); }
+          if (data.claude_refused) m.tools.push('Claude refused: ' + String(data.claude_refused).slice(0, 160)); }
         else if (ev === 'text') { out.text += data.t; m.text += data.t; m.status = ''; this.paint(m); }
         else if (ev === 'call') out.calls.push(data);
         else if (ev === 'done') out.content = data.content;
         else if (ev === 'error') out.error = data;
       }
     }
-    if (out.error) return { error: out.error.error || 'provider', message: out.error.message, partial: out.text };
+    // the owner (only) is told why a provider refused, so a configuration problem can be fixed
+    if (out.error) return { error: out.error.error || 'provider', message: out.error.message + (out.error.detail ? ` (Claude said: ${String(out.error.detail).slice(0, 200)})` : ''), partial: out.text };
     return out;
   },
   async ask(c, o = {}) {

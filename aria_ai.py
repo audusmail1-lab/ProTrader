@@ -475,9 +475,9 @@ def route(text: str, hint: str = "", round_: int = 0, prev_model: str = "", prov
 # ── providers ─────────────────────────────────────────────────────────────────
 
 class ProviderError(Exception):
-    def __init__(self, kind: str, message: str, status: int = 0, retry_after: float = 0.0, daily: bool = False):
+    def __init__(self, kind: str, message: str, status: int = 0, retry_after: float = 0.0, daily: bool = False, detail: str = ""):
         super().__init__(message)
-        self.kind, self.status, self.retry_after, self.daily = kind, status, retry_after, daily
+        self.kind, self.status, self.retry_after, self.daily, self.detail = kind, status, retry_after, daily, detail
 
 
 class AIProvider:
@@ -752,16 +752,25 @@ class ClaudeProvider(AIProvider):
         return body
 
     def handle_provider_error(self, status: int, body: str) -> ProviderError:
-        # Ignore upstream error text entirely: it can echo credentials or input.
+        # The student never sees upstream text. The owner (and the server log) gets Anthropic's
+        # error type and a scrubbed, shortened message, so a refusal can be diagnosed.
+        detail = ""
+        try:
+            err = (json.loads(body) or {}).get("error") or {}
+            detail = f"{str(err.get('type', ''))[:60]}: {scrub_text(str(err.get('message', ''))[:300])}".strip(": ")
+        except (ValueError, AttributeError):
+            pass
+        if self._key:
+            detail = detail.replace(self._key, "[key removed]")
         if status == 429:
-            return ProviderError("quota", "quota", status, retry_after=60)
+            return ProviderError("quota", "quota", status, retry_after=60, detail=detail)
         if status in (401, 403):
-            return ProviderError("auth", "Claude authentication was refused", status)
+            return ProviderError("auth", "Claude authentication was refused", status, detail=detail)
         if status == 404:
-            return ProviderError("model", "The configured Claude model is unavailable", status)
-        if status in (400, 402):
-            return ProviderError("request", "Claude refused this request or credit allowance", status)
-        return ProviderError("provider", "Claude could not answer", status)
+            return ProviderError("model", "The configured Claude model is unavailable", status, detail=detail)
+        if status in (400, 402, 413):
+            return ProviderError("request", "Claude refused this request or credit allowance", status, detail=detail)
+        return ProviderError("provider", "Claude could not answer", status, detail=detail)
 
     def stream_response(self, *, model, system, contents, tools, max_out, thinking, timeout) -> Iterator[dict]:
         body = self._body(model, system, contents, tools, max_out, effort=thinking)
@@ -784,8 +793,12 @@ class ClaudeProvider(AIProvider):
         except requests.RequestException:
             raise ProviderError("network", "Could not reach the AI provider") from None
         if response.status_code != 200:
+            try:
+                text = response.text[:4000]
+            except Exception:
+                text = ""
             response.close()
-            raise self.handle_provider_error(response.status_code, "")
+            raise self.handle_provider_error(response.status_code, text)
         blocks, parts, usage, finish, stopped, oversized = {}, [], {}, "", False, False
         started = time.time()
         try:
@@ -1181,6 +1194,13 @@ def status(request: Request) -> dict:
            "guest": ident["guest"]}
     if fallback and ident["owner"]:
         out["fallback_reason"] = st.get("claude_reason", "")
+    if ident["owner"] and selected == "claude":
+        try:
+            last = json.loads(_get_state("claude_last_error") or "null")
+        except ValueError:
+            last = None
+        if last and time.time() - last.get("at", 0) < 86400:
+            out["claude_last_error"] = last
     if st["enabled"]:
         if ident["guest"] and not CFG.guests:
             out.update(enabled=False, reason="Sign in with your Academy account to use ARIA's AI.")
@@ -1283,7 +1303,7 @@ async def chat(request: Request):
 
     def gen():
         t0 = time.time()
-        ok = False
+        ok, streamed = False, False
         slot = lease()                     # taken here, so a stream that never starts holds nothing
         if not slot:
             yield _sse("error", {"error": "busy", "message": _LIMIT_TEXT["busy"]})
@@ -1297,23 +1317,37 @@ async def chat(request: Request):
             for ev in prov.stream_response(model=plan["model"], system=SYSTEM_PROMPT, contents=contents, tools=TOOLS,
                                            max_out=plan["max_out"], thinking=plan["thinking"], timeout=CFG.timeout_s):
                 if ev["type"] == "text":
+                    streamed = True
                     yield _sse("text", {"t": ev["text"]})
                 elif ev["type"] == "call":
                     c = ev["call"]
                     if c.get("name") in TOOL_NAMES:
+                        streamed = True
                         yield _sse("call", {"name": c["name"], "args": c.get("args") or {}, "id": c.get("id")})
                 elif ev["type"] == "done":
                     parts = [p for p in ev["content"]["parts"] if "functionCall" not in p or p["functionCall"].get("name") in TOOL_NAMES]
                     yield _sse("done", {"content": {"role": "model", "parts": parts}, "finish": ev.get("finish"), "usage": ev.get("usage") or {}})
                     ok = True
         except ProviderError as e:
+            if selected == "claude" and e.kind in ("auth", "model", "request"):
+                _set_state("claude_last_error", json.dumps({"at": int(time.time()), "status": e.status, "kind": e.kind, "detail": e.detail}))
+                log.warning("aria ai claude refused (status %s): %s", e.status, e.detail)
+            if (selected == "claude" and e.kind in ("auth", "model", "request") and e.status and not streamed
+                    and round_ == 0 and _fallback_ready()):
+                # Anthropic refused the request outright (4xx before any output: nothing generated,
+                # nothing billed). Only then may the approved fallback answer this turn, labelled.
+                yield from _fallback_turn(e)
+                return
             if e.kind in ("quota", "credit"):
                 until = _next_pt_midnight() if e.daily else time.time() + max(30.0, min(600.0, e.retry_after or 60.0))
                 set_cooldown(plan["tier"], until)
                 yield _sse("error", {"error": "quota", "message": QUOTA_MESSAGE})
             else:
-                yield _sse("error", {"error": e.kind, "message": str(e) if e.kind in ("timeout", "network") else
-                                     "ARIA's AI could not answer just now. Your charts, lessons, and demo workspace keep working."})
+                out = {"error": e.kind, "message": str(e) if e.kind in ("timeout", "network") else
+                       "ARIA's AI could not answer just now. Your charts, lessons, and demo workspace keep working."}
+                if ident["owner"] and e.detail:
+                    out["detail"] = e.detail                 # the owner sees why; students never do
+                yield _sse("error", out)
                 if e.kind in ("auth", "model", "request"):
                     log.warning("aria ai %s error from provider (status %s)", e.kind, e.status)
         except Exception as e:                   # never leak internals (or the key) to the browser
@@ -1322,6 +1356,42 @@ async def chat(request: Request):
         finally:
             release(slot)
             log.info("aria ai %s %s round=%d ok=%s %.1fs", plan["tier"], plan["model"], round_, ok, time.time() - t0)
+
+    def _fallback_turn(err: ProviderError):
+        gplan = route(user_text, str(body.get("hint") or "")[:20], provider_name="gemini")
+        now2 = time.time()
+        if _limits_for(ident, gplan["tier"], now2) is not None:
+            if gplan["tier"] == "main" and _limits_for(ident, "lite", now2) is None:
+                gplan = {"tier": "lite", "model": CFG.model_lite, "thinking": None, "max_out": CFG.max_out_lite}
+            else:
+                out = {"error": err.kind, "message": "ARIA's AI could not answer just now. Your charts, lessons, and demo workspace keep working."}
+                if ident["owner"] and err.detail:
+                    out["detail"] = err.detail
+                yield _sse("error", out)
+                return
+        _record(ident, gplan["tier"], now2)
+        meta = {"provider": "gemini", "model": gplan["model"], "tier": gplan["tier"], "label": _provider_label("gemini", True),
+                "privacy": _provider_privacy("gemini", True), "fallback": True, "degraded": True, "round": round_}
+        if ident["owner"] and err.detail:
+            meta["claude_refused"] = err.detail
+        yield _sse("meta", meta)
+        try:
+            for ev in provider("gemini").stream_response(model=gplan["model"], system=SYSTEM_PROMPT, contents=contents, tools=TOOLS,
+                                                         max_out=gplan["max_out"], thinking=gplan["thinking"], timeout=CFG.timeout_s):
+                if ev["type"] == "text":
+                    yield _sse("text", {"t": ev["text"]})
+                elif ev["type"] == "call" and ev["call"].get("name") in TOOL_NAMES:
+                    c = ev["call"]
+                    yield _sse("call", {"name": c["name"], "args": c.get("args") or {}, "id": c.get("id")})
+                elif ev["type"] == "done":
+                    parts = [p for p in ev["content"]["parts"] if "functionCall" not in p or p["functionCall"].get("name") in TOOL_NAMES]
+                    yield _sse("done", {"content": {"role": "model", "parts": parts}, "finish": ev.get("finish"), "usage": ev.get("usage") or {}})
+        except ProviderError as e2:
+            if e2.kind == "quota":
+                set_cooldown(gplan["tier"], _next_pt_midnight() if e2.daily else time.time() + max(30.0, min(600.0, e2.retry_after or 60.0)))
+                yield _sse("error", {"error": "quota", "message": QUOTA_MESSAGE})
+            else:
+                yield _sse("error", {"error": e2.kind, "message": "ARIA's AI could not answer just now. Your charts, lessons, and demo workspace keep working."})
 
     return StreamingResponse(gen(), media_type="text/event-stream", headers={"Cache-Control": "no-store", "X-Accel-Buffering": "no"})
 
@@ -1383,3 +1453,37 @@ def voice_session(request: Request):
     ws = os.getenv("ARIA_LIVE_WS_URL", LIVE_WS) if CFG.provider == "mock" else LIVE_WS
     return {"token": tok["token"], "expires": tok["expires"], "model": model, "ws": ws, "setup": live_setup(model),
             "minutes": CFG.voice_minutes}
+
+
+def _probe_claude() -> int:
+    """One real, minimal Claude request with ARIA's exact settings (it reserves from the ledger
+    like any other request and costs well under a cent). Prints the answer, or Anthropic's
+    reason for refusing it. The key is never printed."""
+    try:
+        config = claude_config()
+    except CreditBlocked as e:
+        print("Claude is blocked:", e)
+        return 1
+    prov = ClaudeProvider(os.getenv("ANTHROPIC_API_KEY", "").strip())
+    text, usage = "", {}
+    try:
+        for ev in prov.stream_response(model=config.model, system=SYSTEM_PROMPT, tools=TOOLS, max_out=300, thinking="low", timeout=45,
+                                       contents=[{"role": "user", "parts": [{"text": "Hello ARIA. In one short sentence, who are you?"}]}]):
+            if ev["type"] == "text":
+                text += ev["text"]
+            elif ev["type"] == "done":
+                usage = ev.get("usage") or {}
+    except ProviderError as e:
+        print(f"Claude refused: status {e.status} ({e.kind}) {e.detail or str(e)}")
+        return 1
+    print("Claude answered:", text.strip()[:400])
+    print("Tokens:", usage)
+    return 0
+
+
+if __name__ == "__main__":
+    import sys
+    if sys.argv[1:] != ["probe-claude"]:
+        print("python3 aria_ai.py probe-claude   one real, minimal Claude request with ARIA's settings")
+        raise SystemExit(2)
+    raise SystemExit(_probe_claude())
