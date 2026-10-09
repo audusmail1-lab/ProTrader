@@ -603,3 +603,19 @@ def test_probe_command_reports_the_refusal_without_the_key(monkeypatch, capsys):
     assert "status 400" in out and "thinking.type: unexpected value" in out and FAKE_KEY not in out
     _claude_with(monkeypatch, FakeResponse(events=stream_events()))
     assert aria_ai._probe_claude() == 0 and "Claude answered: Measured evidence." in capsys.readouterr().out
+
+
+def test_an_organization_key_can_name_its_workspace(monkeypatch):
+    enable(monkeypatch)
+    provider = aria_ai.ClaudeProvider(FAKE_KEY)
+    provider._http = FakeHTTP(FakeResponse(events=stream_events()))
+    run(provider)
+    assert "anthropic-workspace-id" not in provider._http.calls[0][1]["headers"]
+    monkeypatch.setenv("ANTHROPIC_WORKSPACE_ID", "wrkspc_01HvwFRqWugPrZAx93khhqvY")
+    provider._http = FakeHTTP(FakeResponse(events=stream_events()))
+    run(provider)
+    assert provider._http.calls[0][1]["headers"]["anthropic-workspace-id"] == "wrkspc_01HvwFRqWugPrZAx93khhqvY"
+    monkeypatch.setenv("ANTHROPIC_WORKSPACE_ID", "wrkspc_x\r\nX-Evil: 1")      # anything else is ignored
+    provider._http = FakeHTTP(FakeResponse(events=stream_events()))
+    run(provider)
+    assert "anthropic-workspace-id" not in provider._http.calls[0][1]["headers"]

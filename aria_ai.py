@@ -784,10 +784,13 @@ class ClaudeProvider(AIProvider):
         except (CreditBlocked, sqlite3.Error, OSError):
             raise ProviderError("credit", "Claude's promotional-credit allowance is unavailable") from None
         try:
+            headers = {"x-api-key": self._key, "anthropic-version": "2023-06-01", "Content-Type": "application/json"}
+            # An organization-level key (not scoped to a workspace) must name the workspace to bill.
+            workspace = os.getenv("ANTHROPIC_WORKSPACE_ID", "").strip()
+            if re.fullmatch(r"wrkspc_[A-Za-z0-9]{8,64}", workspace):
+                headers["anthropic-workspace-id"] = workspace
             response = self._http.post("https://api.anthropic.com/v1/messages", json=body,
-                                       stream=True, timeout=(10, timeout), allow_redirects=False,
-                                       headers={"x-api-key": self._key, "anthropic-version": "2023-06-01",
-                                                "Content-Type": "application/json"})
+                                       stream=True, timeout=(10, timeout), allow_redirects=False, headers=headers)
         except requests.Timeout:
             raise ProviderError("timeout", "The AI provider did not answer in time") from None
         except requests.RequestException:

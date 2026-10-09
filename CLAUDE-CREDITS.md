@@ -96,6 +96,7 @@ is preferable; verify its organization and workspace before use.
 | `CLAUDE_ISOLATED_ALLOCATION_CONFIRMED` | `1` only if other workloads cannot spend this allocation |
 | `CLAUDE_PRICING_CONFIRMED` | `1` after confirming current rates still match the code allowlist |
 | `CLAUDE_PERSISTENT_LEDGER_CONFIRMED` | `1` after verifying deployment persistence and backups |
+| `ANTHROPIC_WORKSPACE_ID` | Needed only for an organization-level key (not scoped to a workspace): the workspace to use, e.g. `wrkspc_…` from Console → Workspaces |
 | `ARIA_AI_GEMINI_FALLBACK` | Optional `1`; default off. Also requires existing Gemini key and free-tier confirmation |
 
 Changing these environment values does not itself prove account facts.
