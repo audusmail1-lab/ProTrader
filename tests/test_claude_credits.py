@@ -496,3 +496,36 @@ def test_times_may_be_written_as_utc_dates_and_the_check_window_is_the_owners_ch
     assert out.startswith("Claude may run: $1.00 of $1.00") and FAKE_KEY not in out
     monkeypatch.setenv("ARIA_CLAUDE_ENABLED", "0")
     assert claude_credits.main(["x", "check"]) == 1 and "blocked" in capsys.readouterr().out
+
+
+def test_claude_and_gemini_never_pause_each_other(monkeypatch):
+    enable(monkeypatch)
+    c = client()
+    # Gemini's free tier is out for the day (its own cooldown and daily cap): Claude is unaffected
+    aria_ai.set_cooldown("main", time.time() + 6 * 3600)
+    monkeypatch.setenv("ARIA_AI_DAILY_MAIN", "1")
+    aria_ai.bump(["t:main"])
+    st = c.get("/api/aria/ai/status").json()
+    assert st["provider"] == "claude" and st["paused"] is False
+    calls = []
+    def fake(name):
+        calls.append(name); return aria_ai.MockProvider()
+    monkeypatch.setattr(aria_ai, "provider", fake)
+    r = ask(c)
+    assert r.status_code == 200 and calls == ["claude"]
+    # Claude paused (say, after a 429), no fallback configured: paused, refused, nothing sent
+    aria_ai.set_cooldown("claude", time.time() + 120)
+    assert c.get("/api/aria/ai/status").json()["paused"] is True
+    calls.clear()
+    assert ask(c).status_code == 429 and calls == []
+    # with the approved fallback, Gemini answers (labelled) before any Claude request
+    aria_ai.set_cooldown("main", 0)
+    monkeypatch.setenv("ARIA_AI_DAILY_MAIN", "200")
+    monkeypatch.setenv("ARIA_AI_GEMINI_FALLBACK", "1")
+    monkeypatch.setenv("GEMINI_API_KEY", "AIzaFAKE-non-secret-testing-0000000")
+    monkeypatch.setenv("GEMINI_FREE_TIER_CONFIRMED", "1")
+    assert c.get("/api/aria/ai/status").json()["paused"] is False
+    r = ask(c)
+    assert r.status_code == 200 and calls == ["gemini"] and '"fallback":true' in r.text
+    # a Claude tool round is never handed to Gemini, even while Claude is paused
+    assert ask(c, round=1, model="claude-sonnet-5-5").status_code in (409, 429)

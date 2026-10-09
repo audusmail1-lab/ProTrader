@@ -123,6 +123,13 @@ class Config:
     def rpm_main(self) -> int: return _env_int("ARIA_AI_RPM_MAIN", 10)
     @property
     def rpm_lite(self) -> int: return _env_int("ARIA_AI_RPM_LITE", 12)
+    # Claude has its own counters and pause: Gemini's free-tier caps and quota pauses never
+    # stop Claude, and a Claude pause never stops the Gemini fallback. Spend is bounded by
+    # the credit ledger; these only pace requests.
+    @property
+    def daily_claude(self) -> int: return _env_int("ARIA_CLAUDE_DAILY", 400)
+    @property
+    def rpm_claude(self) -> int: return _env_int("ARIA_CLAUDE_RPM", 60)
     @property
     def concurrency(self) -> int: return max(1, _env_int("ARIA_AI_CONCURRENCY", 3))
     @property
@@ -449,7 +456,7 @@ def route(text: str, hint: str = "", round_: int = 0, prev_model: str = "", prov
         config = claude_config()
         code = bool(_CODE.search(text or ""))
         deep = code or bool(_DEEP.search(text or "")) or hint in ("plan", "compare", "analyze")
-        return {"tier": "main", "model": config.model, "thinking": "medium" if deep else "low",
+        return {"tier": "claude", "model": config.model, "thinking": "medium" if deep else "low",
                 "max_out": min(cfg.max_out_code if code else cfg.max_out_main, OUTPUT_HARD_CAP)}
     if round_ > 0 and prev_model in (cfg.model_main, cfg.model_lite):
         tier = "main" if prev_model == cfg.model_main else "lite"
@@ -1094,7 +1101,7 @@ def _limits_for(ident: dict, tier: str, now: float, continuing: bool = False) ->
     cfg = CFG
     if cooldown(tier) > 0:
         return "quota"
-    day_cap = cfg.daily_main if tier == "main" else cfg.daily_lite
+    day_cap = {"main": cfg.daily_main, "lite": cfg.daily_lite, "claude": cfg.daily_claude}[tier]
     per_day = cfg.guest_per_day if ident["guest"] else cfg.user_per_day
     c = count([f"t:{tier}", ident["key"], ident["ip"]])
     if c[f"t:{tier}"] >= day_cap:
@@ -1105,7 +1112,7 @@ def _limits_for(ident: dict, tier: str, now: float, continuing: bool = False) ->
         return None
     if not _per_minute_ok(ident["key"], cfg.user_per_min, now) or not _per_minute_ok("min:" + ident["ip"], cfg.user_per_min * 3, now):
         return "user_min"
-    if not _per_minute_ok(f"tier:{tier}", cfg.rpm_main if tier == "main" else cfg.rpm_lite, now):
+    if not _per_minute_ok(f"tier:{tier}", {"main": cfg.rpm_main, "lite": cfg.rpm_lite, "claude": cfg.rpm_claude}[tier], now):
         return "busy"
     return None
 
@@ -1177,10 +1184,16 @@ def status(request: Request) -> dict:
     if st["enabled"]:
         if ident["guest"] and not CFG.guests:
             out.update(enabled=False, reason="Sign in with your Academy account to use ARIA's AI.")
-        c = count([ident["key"], "t:main", "t:lite"])
+        c = count([ident["key"], "t:main", "t:lite", "t:claude"])
         per_day = CFG.guest_per_day if ident["guest"] else CFG.user_per_day
         out["remaining_today"] = max(0, per_day - c[ident["key"]])
-        out["paused"] = (cooldown("main") > 0 or c["t:main"] >= CFG.daily_main) if selected == "claude" else bool(cooldown("main") > 0 and cooldown("lite") > 0) or (c["t:main"] >= CFG.daily_main and c["t:lite"] >= CFG.daily_lite)
+        gemini_paused = bool(cooldown("main") > 0 and cooldown("lite") > 0) or (c["t:main"] >= CFG.daily_main and c["t:lite"] >= CFG.daily_lite)
+        if selected == "claude":
+            claude_paused = cooldown("claude") > 0 or c["t:claude"] >= CFG.daily_claude
+            # a paused Claude still answers through the approved fallback, before any Claude request
+            out["paused"] = claude_paused and (not _fallback_ready() or gemini_paused)
+        else:
+            out["paused"] = gemini_paused
         voice = CFG.live_voice != "off" and (CFG.live_voice == "all" or ident["owner"])
         out["live_voice"] = bool(voice and selected in ("gemini", "mock"))
     return out
@@ -1250,6 +1263,14 @@ async def chat(request: Request):
                 return JSONResponse({"error": "credit", "message": QUOTA_MESSAGE}, status_code=503)
     now = time.time()
     why = _limits_for(ident, plan["tier"], now, continuing=round_ > 0)
+    if selected == "claude" and why == "quota" and round_ == 0 and _fallback_ready():
+        # Claude is paused or at its daily request cap: the approved free-tier fallback answers,
+        # labelled, before any Claude request is sent (never after one).
+        gplan = route(user_text, str(body.get("hint") or "")[:20], provider_name="gemini")
+        if _limits_for(ident, gplan["tier"], now) is None or (gplan["tier"] == "main" and _limits_for(ident, "lite", now) is None):
+            if _limits_for(ident, gplan["tier"], now) is not None:
+                gplan = {"tier": "lite", "model": CFG.model_lite, "thinking": None, "max_out": CFG.max_out_lite}
+            selected, plan, why = "gemini", dict(gplan, degraded=True), None
     if selected != "claude" and why == "quota" and plan["tier"] == "main" and round_ == 0 and _limits_for(ident, "lite", now) is None:
         # the main model is out for today: the free lightweight model answers instead (never a paid one)
         plan = {"tier": "lite", "model": CFG.model_lite, "thinking": None, "max_out": CFG.max_out_lite, "degraded": True}

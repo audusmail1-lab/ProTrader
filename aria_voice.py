@@ -378,7 +378,9 @@ def status(request: Request) -> dict:
     st = _state(request)
     ident = st["ident"]
     out = {"provider": "elevenlabs", "tts": st["tts"], "stt": st["stt"], "privacy_tts": PRIVACY_TTS, "privacy_stt": PRIVACY_STT,
-           "label": "ElevenLabs voice"}
+           "label": "ElevenLabs voice",
+           # configured and provisioned on the server (says nothing about the account or who may use it)
+           "configured": bool(st.get("cfg")) and (st["tts"] or "Sign in" in st["reason"])}
     cfg = st.get("cfg")
     if cfg:
         out.update(max_chars=cfg.max_chars, max_seconds=cfg.max_seconds)

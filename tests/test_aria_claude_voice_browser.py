@@ -25,7 +25,7 @@ OWNER = "owner-key-claude-voice-test"
 os.environ.update({
     "ACCOUNTS_DB": os.path.join(TMP, "accounts.db"), "ARIA_AI_DB": os.path.join(TMP, "aria.db"),
     "ARIA_AI_ALLOW_MOCK": "1", "ARIA_AI_USER_PER_MIN": "200", "ARIA_AI_GUEST_PER_DAY": "500", "ARIA_AI_IP_PER_DAY": "500",
-    "ARIA_AI_USER_PER_DAY": "500", "ARIA_AI_RPM_MAIN": "200", "ARIA_AI_RPM_LITE": "200", "SENTINEL_ADMIN_KEY": OWNER,
+    "ARIA_AI_USER_PER_DAY": "500", "ARIA_AI_RPM_MAIN": "200", "ARIA_AI_RPM_LITE": "200", "ARIA_CLAUDE_RPM": "500", "SENTINEL_ADMIN_KEY": OWNER,
     # Claude, every check confirmed (in a test), on a provisioned persistent ledger
     "ARIA_AI_PROVIDER": "claude", "ARIA_CLAUDE_ENABLED": "1", "ANTHROPIC_API_KEY": FAKE_ANTHROPIC,
     "CLAUDE_PREPAID_ONLY_CONFIRMED": "1", "CLAUDE_AUTO_RELOAD_DISABLED_CONFIRMED": "1", "CLAUDE_NO_PURCHASED_CREDITS_CONFIRMED": "1",
@@ -577,8 +577,19 @@ def check_new_question_mid_tool(page):
     assert page.evaluate("VOICE.log.filter(m => m.ai).slice(-2)[0].text").endswith(("…", "(interrupted)"))
     assert page.evaluate("AI.busy") is False
     wait_quiet(page)
+    # the same, but the new question fails: ARIA shows why and is never left spinning
+    CLAUDE["script"] = [{"tool": ("check_plan_with_oracle", {"side": "buy", "stop": round(px - 150, 2), "target": round(px + 250, 2)}, "toolu_slow2")},
+                        {"timeout": True}]
+    page.fill("#vxInput", "Ask ORACLE about a long with a stop 150 below")
+    page.press("#vxInput", "Enter")
+    page.wait_for_function("AI.busy && VOICE.log.some(m => m.ai && (m.status || '').startsWith('ORACLE is validating'))", timeout=8000)
+    page.fill("#vxInput", "Never mind, what is the structure now?")
+    page.press("#vxInput", "Enter")
+    page.wait_for_function("!AI.busy && VOICE.state === 'idle' && document.getElementById('vxLog').textContent.includes('did not answer in time')", timeout=15000)
+    page.wait_for_timeout(3600)
+    assert page.evaluate("VOICE.state") == "idle"
     page.evaluate(HTF)
-    ok("interrupting: a new question during a tool step ends the old turn there; it never posts again or corrupts the history")
+    ok("interrupting: a new question during a tool step ends the old turn there; it never posts again or corrupts the history; a failure never leaves ARIA spinning")
 
 
 def check_secrets(page):

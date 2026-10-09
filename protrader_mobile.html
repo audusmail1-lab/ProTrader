@@ -9239,8 +9239,14 @@ const AI = {
       VOICE.log.splice(VOICE.log.indexOf(m), 1);
       if (['quota', 'user_day', 'disabled'].includes(failed.error)) { this.st = Object.assign({}, this.st || {}, { paused: true }); this.renderNote(); }
       const local = this.fallback(c, o);
-      if (local) { VOICE.addLog('vx', failed.message || 'ARIA\'s AI is unavailable right now.'); return local; }
-      return VOICE.reply(failed.message || 'ARIA\'s AI could not answer just now. Your charts, lessons, and demo workspace keep working.', o);
+      if (local) {
+        VOICE.addLog('vx', failed.message || 'ARIA\'s AI is unavailable right now.');
+        try { return await local; } finally { if (VOICE.state === 'thinking' && !this.busy) VOICE.setState('idle'); }   // never left spinning
+      }
+      const msg = failed.message || 'ARIA\'s AI could not answer just now. Your charts, lessons, and demo workspace keep working.';
+      // an interrupted turn's tool may still be finishing (speech is held for it): show the message, don't hang
+      if (VOICE._muted) { VOICE.addLog('vx', msg); VOICE.setState('idle'); return; }
+      return VOICE.reply(msg, o);
     }
     if (!m.text) { m.text = m.tools.length ? 'Done.' : 'I ran out of room before answering. Ask again, perhaps more narrowly.'; }
     // a finished turn no longer needs Claude's reasoning blocks: they are not kept on the device

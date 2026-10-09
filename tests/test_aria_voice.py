@@ -429,3 +429,12 @@ def test_check_command_reads_the_account_and_spends_nothing(monkeypatch, tmp_pat
     assert up.paths() == [("GET", "/v1/user/subscription")] and FAKE_KEY not in out
     up.subscription = sub(max_credit_limit_extension="unlimited")
     assert aria_voice.main(["x", "check"]) == 1 and "Usage-based billing" in capsys.readouterr().out
+
+
+def test_status_says_whether_voice_is_set_up_without_saying_why(monkeypatch, tmp_path, up):
+    c = client()
+    assert c.get("/api/aria/voice/status").json()["configured"] is False
+    enable(monkeypatch, tmp_path)
+    st = c.get("/api/aria/voice/status").json()                       # a guest: set up, but not for them
+    assert st["configured"] is True and st["tts"] is False and "reason" not in st
+    assert up.calls == []
