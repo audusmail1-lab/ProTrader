@@ -204,6 +204,20 @@ def test_per_minute_and_per_day_caps(monkeypatch):
     assert ask(c, "hello", headers={"x-aria-device": "device-bbbbbbbbbbbbbbbb", "x-forwarded-for": "10.0.0.9"}).status_code == 200
 
 
+def test_a_tool_round_is_not_cut_off_by_the_minute_gates(monkeypatch):
+    c = client()
+    monkeypatch.setenv("ARIA_AI_RPM_MAIN", "1")
+    assert events(ask(c, "analyze the chart").text)[0][1]["model"] == "gemini-3.8-flash"
+    assert ask(c, "analyze the chart").status_code == 429, "a new question waits for the minute"
+    body = {"contents": [{"role": "user", "parts": [{"text": "draw it"}]},
+                         {"role": "model", "parts": [{"functionCall": {"name": "clear_ai_drawings", "args": {}}}]},
+                         {"role": "user", "parts": [{"functionResponse": {"name": "clear_ai_drawings", "response": {"ok": True}}}]}],
+            "round": 1, "model": "gemini-3.8-flash"}
+    assert c.post("/api/aria/ai/chat", json=body, headers={"x-aria-device": "device-aaaaaaaaaaaaaaaa"}).status_code == 200, "the started answer finishes"
+    monkeypatch.setenv("ARIA_AI_DAILY_MAIN", "1")
+    assert c.post("/api/aria/ai/chat", json=body, headers={"x-aria-device": "device-aaaaaaaaaaaaaaaa"}).status_code == 429, "daily caps still apply"
+
+
 def test_daily_model_caps_degrade_to_the_free_lite_model_then_stop(monkeypatch):
     c = client()
     monkeypatch.setenv("ARIA_AI_DAILY_MAIN", "1")

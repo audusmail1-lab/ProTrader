@@ -120,7 +120,7 @@ class Config:
     @property
     def daily_lite(self) -> int: return _env_int("ARIA_AI_DAILY_LITE", 600)
     @property
-    def rpm_main(self) -> int: return _env_int("ARIA_AI_RPM_MAIN", 8)
+    def rpm_main(self) -> int: return _env_int("ARIA_AI_RPM_MAIN", 10)
     @property
     def rpm_lite(self) -> int: return _env_int("ARIA_AI_RPM_LITE", 12)
     @property
@@ -988,8 +988,11 @@ def attach_context(contents: list, context: Any) -> list:
 
 # ── endpoints ─────────────────────────────────────────────────────────────────
 
-def _limits_for(ident: dict, tier: str, now: float) -> Optional[str]:
-    """None when one more request is allowed; otherwise why not (and nothing is recorded)."""
+def _limits_for(ident: dict, tier: str, now: float, continuing: bool = False) -> Optional[str]:
+    """None when one more request is allowed; otherwise why not (and nothing is recorded).
+    A tool round of a turn already admitted (continuing) skips the per-minute gates, so a
+    student's answer is not cut off halfway; it still counts, and the daily caps, the
+    provider pause and MAX_ROUNDS still bound it."""
     cfg = CFG
     if cooldown(tier) > 0:
         return "quota"
@@ -1000,6 +1003,8 @@ def _limits_for(ident: dict, tier: str, now: float) -> Optional[str]:
         return "quota"
     if c[ident["key"]] >= per_day or c[ident["ip"]] >= cfg.ip_per_day:
         return "user_day"
+    if continuing:
+        return None
     if not _per_minute_ok(ident["key"], cfg.user_per_min, now) or not _per_minute_ok("min:" + ident["ip"], cfg.user_per_min * 3, now):
         return "user_min"
     if not _per_minute_ok(f"tier:{tier}", cfg.rpm_main if tier == "main" else cfg.rpm_lite, now):
@@ -1120,7 +1125,7 @@ async def chat(request: Request):
             else:
                 return JSONResponse({"error": "credit", "message": QUOTA_MESSAGE}, status_code=503)
     now = time.time()
-    why = _limits_for(ident, plan["tier"], now)
+    why = _limits_for(ident, plan["tier"], now, continuing=round_ > 0)
     if selected != "claude" and why == "quota" and plan["tier"] == "main" and round_ == 0 and _limits_for(ident, "lite", now) is None:
         # the main model is out for today: the free lightweight model answers instead (never a paid one)
         plan = {"tier": "lite", "model": CFG.model_lite, "thinking": None, "max_out": CFG.max_out_lite, "degraded": True}
