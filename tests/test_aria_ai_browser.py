@@ -335,7 +335,7 @@ def main():
         page.evaluate("localStorage.removeItem('protrader.aria.chat.v1'); AI.convo = []")
         page.evaluate("VOICE.open(false)")
         page.wait_for_function("AI.st && AI.st.enabled", timeout=5000)
-        assert page.evaluate("document.getElementById('cpAiNote').textContent").startswith("AI Gemini (free tier)")
+        assert page.evaluate("document.getElementById('cpAiNote').textContent").startswith("AI Test provider (no AI model)")
         check_conversation(page)
         check_context(page)
         check_pine(page)

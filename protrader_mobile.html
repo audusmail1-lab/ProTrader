@@ -230,6 +230,17 @@ html,body{height:100%;overflow:hidden;background:var(--bg-1);color:var(--tx-1);f
 @keyframes vxSpin{to{transform:rotate(360deg)}}
 .vx-heard{min-height:20px;max-width:100%;text-align:center;font-size:14px;font-weight:600;color:var(--tx-2);overflow-wrap:anywhere}
 .vx-heard.interim{color:var(--tx-3);font-style:italic}
+.vx-ctl{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:8px;min-height:0}
+.vx-ctl:not(:has(:not([hidden]))){display:none}
+.vx-stop{display:inline-flex;align-items:center;gap:6px;font:inherit;font-size:12.5px;font-weight:800;padding:7px 14px;border-radius:999px;border:1px solid rgba(167,139,250,.5);background:rgba(91,63,214,.18);color:var(--tx-1,#fff);cursor:pointer;min-height:36px}
+.vx-stop svg{width:12px;height:12px;fill:currentColor}
+.vx-stop[hidden],.vx-rec[hidden]{display:none!important}
+#vxCancel{border-color:rgba(148,163,184,.45);background:rgba(148,163,184,.12)}
+.vx-rec{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:800;color:#f87171;letter-spacing:.2px}
+.vx-rec i{width:9px;height:9px;border-radius:50%;background:#ef4444;box-shadow:0 0 0 0 rgba(239,68,68,.6);animation:vxRec 1.2s ease-out infinite}
+.vx-rec b{font-variant-numeric:tabular-nums;color:var(--tx-2)}
+@keyframes vxRec{0%{box-shadow:0 0 0 0 rgba(239,68,68,.6)}100%{box-shadow:0 0 0 9px rgba(239,68,68,0)}}
+.vx-sheet.cp-on .vx-ctl{justify-content:flex-start}
 .vx-card{border-radius:16px;padding:12px;background:rgba(148,163,184,.07);border:1px solid rgba(148,163,184,.18);display:flex;flex-direction:column;gap:6px;animation:vxRise .2s ease}
 .vx-card-t{font-weight:900;font-size:14px}
 .vx-card-x{font-size:13px;color:var(--tx-2);line-height:1.45}
@@ -6239,6 +6250,186 @@ function vxTarget(t) {
   return null;
 }
 
+/* ════════════════════════════════════════════════════════════
+   ARIA NATURAL VOICE — ElevenLabs, always through PROTrader's server
+   Spoken replies and lessons: the server turns ARIA's reply text into speech;
+   the ElevenLabs key never reaches the browser and the server caps every
+   request against ARIA's allowance and the reserve kept for the Academy's other
+   agents. Transcription (instructor account by default): only between two
+   deliberate taps on the orb, 16 kHz audio held in memory, sent once, dropped.
+   Any failure falls back to this device's own voice and speech input.
+════════════════════════════════════════════════════════════ */
+const ELV = {
+  st: null, stAt: 0, el: null, url: null, ctrl: null, rec: null, opening: null, tctrl: null, unsupported: false, warned: false, failedAt: 0, _resolve: null, _pulse: null,
+  SILENT: 'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAIA+AAACABAAZGF0YQAAAAA=',
+  async refresh(force) {
+    if (!force && this.st && Date.now() - this.stAt < 60000) return this.st;
+    try { const r = await fetch('/api/aria/voice/status', { headers: AI.headers(), cache: 'no-store' }); this.st = r.ok ? await r.json() : null; }
+    catch (_) { this.st = null; }
+    this.stAt = Date.now();
+    if (VOICE.open_) VOICE.renderSettings();
+    return this.st;
+  },
+  ttsOn() { return !!(this.st && this.st.tts && VOICE.cfg && VOICE.cfg.natural !== false && Date.now() - this.failedAt > 120000); },
+  sttOn() { return !!(this.st && this.st.stt && VOICE.cfg && VOICE.cfg.elevenMic === true && !this.unsupported && navigator.mediaDevices && navigator.mediaDevices.getUserMedia && typeof AudioWorkletNode !== 'undefined'); },
+  // phones only let a page play sound it started from a tap: prime one audio element during a tap and reuse it
+  unlock() {
+    if (this.el) return;
+    try { this.el = new Audio(); this.el.src = this.SILENT; const p = this.el.play(); if (p && p.catch) p.catch(() => {}); } catch (_) { this.el = null; }
+  },
+  // long replies: the first part is spoken, all of it stays on screen
+  clip(text) {
+    const max = (this.st && this.st.max_chars) || 900, t = String(text).trim();
+    if (t.length <= max) return t;
+    const cut = t.slice(0, max - 30), end = Math.max(cut.lastIndexOf('. '), cut.lastIndexOf('? '), cut.lastIndexOf('! '));
+    return (end > 80 ? cut.slice(0, end + 1) : cut) + ' The rest is on screen.';
+  },
+  async say(text) {
+    this.stop();
+    const ctrl = new AbortController(); this.ctrl = ctrl;
+    const res = await fetch('/api/aria/voice/speak', { method: 'POST', headers: AI.headers(), body: JSON.stringify({ text: this.clip(text) }), signal: ctrl.signal });
+    if (!res.ok) { let j = {}; try { j = await res.json(); } catch (_) {} const e = new Error(j.message || 'ARIA\'s natural voice is unavailable.'); e.code = j.error; throw e; }
+    const blob = await res.blob();
+    if (ctrl.signal.aborted || this.ctrl !== ctrl) { const e = new Error('stopped'); e.name = 'AbortError'; throw e; }
+    this.ctrl = null;
+    if (!this.el) this.el = new Audio();
+    const a = this.el, url = URL.createObjectURL(blob);
+    this.url = url;
+    return new Promise((resolve, reject) => {
+      const finish = (err) => {
+        if (this._resolve !== settle) return;
+        this.release();
+        err ? reject(err) : resolve('done');
+      };
+      const settle = why => { if (why === 'stopped') { const e = new Error('stopped'); e.name = 'AbortError'; reject(e); } };
+      this._resolve = settle;
+      a.onended = () => finish();
+      a.onerror = () => finish(new Error('The audio could not be played.'));
+      a.src = url;
+      this._pulse = setInterval(() => VOICE.pulse(0.45 + Math.random() * 0.5), 170);
+      const p = a.play();
+      if (p && p.catch) p.catch(e => finish(e && e.name === 'NotAllowedError' ? Object.assign(new Error('Playback was blocked by the browser.'), { code: 'blocked' }) : e));
+    });
+  },
+  speaking() { return !!this._resolve; },
+  release() {
+    clearInterval(this._pulse); this._pulse = null;
+    if (this.el) { this.el.onended = this.el.onerror = null; }
+    if (this.url) { try { URL.revokeObjectURL(this.url); } catch (_) {} this.url = null; }
+    this._resolve = null;
+  },
+  stop() {
+    if (this.ctrl) { try { this.ctrl.abort(); } catch (_) {} this.ctrl = null; }
+    const settle = this._resolve;
+    if (this.el) { try { this.el.pause(); } catch (_) {} }
+    this.release();
+    if (settle) settle('stopped');
+  },
+
+  /* ── a deliberate recording for transcription ── */
+  // Only a tap starts it; the orb, the red REC badge and a timer show it is on; a second tap sends it; Cancel,
+  // closing the sheet or a new tap while the mic is still opening sends nothing and releases the mic.
+  async record() {
+    if (this.rec) return this.finishRec();
+    if (this.opening) return;                                      // the mic is still opening: one recording at a time
+    const max = Math.max(2, Math.min(60, (this.st && this.st.max_seconds) || 30));
+    const token = this.opening = {};
+    const Ctx = window.AudioContext || window.webkitAudioContext;
+    let ctx = null, mic = null;
+    const abandon = () => {                                         // cancelled or closed while opening
+      if (mic) for (const t of mic.getTracks()) { try { t.stop(); } catch (_) {} }
+      try { ctx && ctx.close(); } catch (_) {}
+      return false;
+    };
+    const still = () => this.opening === token && VOICE.open_;
+    try { ctx = new Ctx(); if (ctx.resume) ctx.resume().catch(() => {}); } catch (_) { ctx = null; }   // created inside the tap (iPhone)
+    VOICE.setState('thinking', 'Opening mic');
+    try { mic = await navigator.mediaDevices.getUserMedia({ audio: { channelCount: 1, echoCancellation: true, noiseSuppression: true, autoGainControl: true } }); }
+    catch (e) {
+      abandon(); if (this.opening === token) this.opening = null;
+      VOICE.setState('idle');
+      return VOICE.heard(e && e.name === 'NotAllowedError' ? 'Microphone access is blocked. Allow the microphone for this site, or type below.' : 'No microphone could be opened. Type below.');
+    }
+    if (!still()) return abandon();
+    const r = { mic, ctx, node: null, src: null, chunks: [], len: 0, t0: 0, max, timer: null, tick: null, acc: 0, accN: 0, pos: 0, next: 0 };
+    try {
+      if (!ctx) throw new Error('no audio');
+      const code = `class Rec extends AudioWorkletProcessor { process(i) { const c = i[0] && i[0][0]; if (c) this.port.postMessage(c.slice(0)); return true; } } registerProcessor('aria-rec', Rec);`;
+      const url = URL.createObjectURL(new Blob([code], { type: 'application/javascript' }));
+      await ctx.audioWorklet.addModule(url); URL.revokeObjectURL(url);
+      if (!still()) return abandon();
+      const ratio = ctx.sampleRate / 16000; r.next = ratio;
+      r.src = ctx.createMediaStreamSource(mic); r.node = new AudioWorkletNode(ctx, 'aria-rec');
+      r.node.port.onmessage = e => {
+        if (this.rec !== r) return;
+        // to 16 kHz: average each output sample's span of input (a simple anti-alias filter), position carried across blocks
+        const f = e.data, out = new Int16Array(Math.ceil(f.length / ratio) + 1); let n = 0, peak = 0;
+        for (let i = 0; i < f.length; i++) {
+          const v = f[i]; r.acc += v; r.accN++; r.pos++; peak = Math.max(peak, Math.abs(v));
+          if (r.pos >= r.next) { const a = Math.max(-1, Math.min(1, r.acc / r.accN)); out[n++] = a < 0 ? a * 0x8000 : a * 0x7fff; r.acc = 0; r.accN = 0; r.next += ratio; }
+        }
+        r.chunks.push(out.subarray(0, n)); r.len += n; VOICE.pulse(Math.min(1, peak * 3));
+      };
+      r.src.connect(r.node);
+    } catch (_) {
+      abandon(); if (this.opening === token) this.opening = null;
+      this.unsupported = true;                                       // this browser cannot record: device speech input from now on
+      VOICE.setState('idle'); return VOICE.heard('Recording is not supported in this browser. Tap the orb to use its speech input, or type below.');
+    }
+    this.opening = null; this.rec = r; r.t0 = Date.now();
+    VOICE.setState('listening', 'Recording');
+    VOICE.heard(`Recording — speak, then tap the orb to send (up to ${max} s). Cancel sends nothing.`, true);
+    const tEl = document.getElementById('vxRecT'); if (tEl) tEl.textContent = '0s';
+    r.tick = setInterval(() => { if (tEl) tEl.textContent = Math.floor((Date.now() - r.t0) / 1000) + 's'; }, 250);
+    r.timer = setTimeout(() => { if (this.rec === r) this.finishRec(); }, max * 1000);
+  },
+  closeMic(r) {
+    clearTimeout(r.timer); clearInterval(r.tick);
+    try { r.node && r.node.disconnect(); } catch (_) {}
+    try { r.src && r.src.disconnect(); } catch (_) {}
+    for (const t of r.mic.getTracks()) { try { t.stop(); } catch (_) {} }
+    try { r.ctx && r.ctx.close(); } catch (_) {}
+  },
+  async finishRec() {
+    const r = this.rec; if (!r) return;
+    this.rec = null; this.closeMic(r);
+    const pcm = new Int16Array(r.len); let o = 0; for (const c of r.chunks) { pcm.set(c, o); o += c.length; }
+    r.chunks = null;
+    if (pcm.length < 16000 * 0.5) { VOICE.setState('idle'); return VOICE.heard('That was too short to transcribe. Tap the orb, speak, then tap again to send.'); }
+    VOICE.setState('thinking', 'Transcribing');
+    VOICE.heard('Transcribing…', true);
+    const ctrl = this.tctrl = new AbortController();
+    try {
+      const res = await fetch('/api/aria/voice/transcribe', { method: 'POST', body: pcm.buffer, signal: ctrl.signal,
+        headers: Object.assign(AI.headers(), { 'Content-Type': 'application/octet-stream', 'X-Audio-Format': 'pcm_s16le_16', 'X-Language': VOICE.lang().slice(0, 2).toLowerCase() }) });
+      const j = await res.json().catch(() => ({}));
+      if (this.tctrl !== ctrl || !VOICE.open_) return;               // cancelled or closed meanwhile: the words are not used
+      this.tctrl = null;
+      const text = String(j.text || '').trim();
+      if (!res.ok || !text) {
+        VOICE.setState('idle');
+        return VOICE.heard(`${String(!res.ok ? j.message || 'Transcription failed.' : 'I didn\'t catch any words.').slice(0, 160)} Tap the orb to try again, or type below.`);
+      }
+      VOICE.heard(text);
+      return VOICE.handle(text, { spoken: true });
+    } catch (e) {
+      if (this.tctrl !== ctrl) return;                               // cancelled (the abort lands here)
+      this.tctrl = null;
+      VOICE.setState('idle');
+      VOICE.heard('The transcription service could not be reached. Tap the orb to try again, or type below.');
+    }
+  },
+  cancelRec(silent) {
+    const wasOpening = !!this.opening, sending = !!this.tctrl, r = this.rec;
+    this.opening = null;                                             // a mic still opening is released as soon as it opens
+    if (this.tctrl) { try { this.tctrl.abort(); } catch (_) {} this.tctrl = null; }
+    if (r) { this.rec = null; this.closeMic(r); r.chunks = null; }
+    if (!r && !wasOpening && !sending) return;
+    VOICE.setState('idle');
+    if (!silent) VOICE.heard(r || wasOpening ? 'Recording cancelled. Nothing was sent.' : 'Stopped. That recording\'s words will not be used.');
+  },
+};
+
 const VOICE = {
   KEY: 'protrader.voice.v1',
   cfg: null, state: 'idle', rec: null, pending: null, awaiting: null, log: [], lastReply: '', quietGlobal: false, _ariaNoteSaid: false,
@@ -6279,6 +6470,11 @@ const VOICE = {
             <button type="button" class="vx-orb" id="vxOrb" data-state="idle" onclick="VOICE.listen()" aria-label="Tap to talk">
               <i></i><i></i><i></i><span class="vx-core"><svg viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0014 0M12 18v3"/></svg></span></button>
             <div class="vx-heard" id="vxHeard">Tap the orb and talk to your terminal</div>
+            <div class="vx-ctl">
+              <span class="vx-rec" id="vxRec" hidden><i></i>Recording <b id="vxRecT">0s</b></span>
+              <button type="button" class="vx-stop" id="vxCancel" hidden onclick="ELV.cancelRec()">Cancel recording</button>
+              <button type="button" class="vx-stop" id="vxStop" hidden onclick="VOICE.stopSpeaking()" aria-label="Stop speaking"><svg viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>Stop speaking</button>
+            </div>
           </div>
           <div class="vx-card" id="vxCard" hidden></div>
           <div class="vx-chips" id="vxChips"></div>
@@ -6294,15 +6490,17 @@ const VOICE = {
     document.getElementById('voiceBtn')?.classList.add('on');
     if (typeof COPILOT !== 'undefined') { COPILOT.renderModes(); COPILOT.renderPanel(); }
     if (typeof AI !== 'undefined') { AI.restoreLog(); AI.renderNote(); AI.refresh().then(() => this.renderChips()); }
+    if (typeof ELV !== 'undefined') ELV.refresh().then(() => AI.renderNote());
     this.renderChips(); this.renderCard();
     if (!this.supported()) this.heard(this.isIOS && navigator.standalone
       ? 'Voice input is not available in the iPhone home-screen app. Type below, or open PROTrader in Safari to talk.'
       : 'This browser has no speech input. Type your command below.');
-    if (listen && this.supported()) this.listen();
+    if (listen && this.supported() && !(typeof ELV !== 'undefined' && ELV.sttOn())) this.listen();   // a recording only ever starts from the orb
     else if (!this.supported()) setTimeout(() => document.getElementById('vxInput')?.focus(), 60);
   },
   close() {
     if (typeof LIVEV !== 'undefined' && LIVEV.active()) LIVEV.stop('closed');
+    if (typeof ELV !== 'undefined') { ELV.cancelRec(true); ELV.stop(); }
     this.stopListening(true);
     if (window.speechSynthesis) speechSynthesis.cancel();
     document.getElementById('vxSheet')?.classList.remove('open');
@@ -6319,11 +6517,14 @@ const VOICE = {
     const b = document.getElementById('vxMin'); if (b) { b.setAttribute('aria-label', on ? 'Expand' : 'Show the chart'); b.title = on ? 'Expand' : 'Show the chart'; }
     const log = document.getElementById('vxLog'); if (log) log.scrollTop = log.scrollHeight;
   },
-  setState(s) {
+  setState(s, label) {
     this.state = s;
-    const orb = document.getElementById('vxOrb'); if (orb) orb.dataset.state = s;
-    const pill = document.getElementById('vxPill'); if (pill) pill.textContent = { idle: 'Ready', listening: 'Listening', thinking: 'Working', speaking: 'Speaking' }[s] || 'Ready';
+    const orb = document.getElementById('vxOrb'); if (orb) { orb.dataset.state = s; orb.setAttribute('aria-label', { listening: ELV.rec ? 'Stop and send the recording' : 'Stop listening', speaking: 'Interrupt and talk' }[s] || 'Tap to talk'); }
+    const pill = document.getElementById('vxPill'); if (pill) pill.textContent = label || { idle: 'Ready', listening: 'Listening', thinking: 'Working', speaking: 'Speaking' }[s] || 'Ready';
     document.getElementById('voiceBtn')?.classList.toggle('listening', s === 'listening');
+    const rec = !!(typeof ELV !== 'undefined' && ELV.rec);
+    const show = (id, on) => { const el = document.getElementById(id); if (el) el.hidden = !on; };
+    show('vxStop', s === 'speaking'); show('vxRec', rec); show('vxCancel', rec || !!(typeof ELV !== 'undefined' && ELV.opening));
   },
   heard(text, interim) {
     const h = document.getElementById('vxHeard'); if (!h) return;
@@ -6394,10 +6595,14 @@ const VOICE = {
       <label class="vx-set"><input type="checkbox" ${this.cfg.announce ? 'checked' : ''} onchange="VOICE.cfg.announce=this.checked;VOICE.save()"> Announce fills and ARIA signals</label>
       <label class="vx-set col">Voice<select onchange="VOICE.cfg.voice=this.value;VOICE.save();VOICE.say('This is how I sound.')">${opts || '<option>System voice</option>'}</select></label>
       <label class="vx-set col">I listen for<select onchange="VOICE.cfg.lang=this.value;VOICE.save()">${langs.map(([k, l]) => `<option value="${k}" ${this.cfg.lang === k ? 'selected' : ''}>${l}</option>`).join('')}</select></label>
+      ${ELV.st && ELV.st.tts ? `<label class="vx-set"><input type="checkbox" id="vxNatural" ${this.cfg.natural !== false ? 'checked' : ''} onchange="VOICE.cfg.natural=this.checked;VOICE.save();AI.renderNote()"> ARIA's natural voice (ElevenLabs) for spoken replies and lessons</label>` : ''}
+      ${ELV.st && ELV.st.stt ? `<label class="vx-set"><input type="checkbox" id="vxElevenMic" ${this.cfg.elevenMic ? 'checked' : ''} onchange="VOICE.cfg.elevenMic=this.checked;VOICE.save();VOICE.renderSettings()"> Transcribe my speech with ElevenLabs (instructor account): it records only between your two taps on the orb</label>` : ''}
       ${typeof LIVEV !== 'undefined' && LIVEV.allowed() ? `<label class="vx-set"><input type="checkbox" ${LIVEV.wanted() ? 'checked' : ''} onchange="LIVEV.setWanted(this.checked)"> Gemini Live voice (instructor account, beta): natural spoken conversation; your voice is sent to Google's free tier</label>` : ''}
       <label class="vx-set col">Teaching level<select onchange="AI.setLevel(this.value)">${['beginner', 'intermediate', 'advanced'].map(l => `<option value="${l}" ${AI.level() === l ? 'selected' : ''}>${l.charAt(0).toUpperCase() + l.slice(1)}</option>`).join('')}</select></label>
       <button type="button" class="cp-btn sm" onclick="AI.clear()">Clear this conversation</button>
-      <div class="vx-note">Your browser turns speech into text (Chrome uses Google's speech service for this). PROTrader never records or stores audio. Orders always need a confirmation, and MT5 orders always need a tap.</div>
+      <div class="vx-note">${ELV.sttOn() ? AI.esc(ELV.st.privacy_stt) + ' Tap the orb to start recording and again to send; Cancel discards it.'
+        : 'Your browser turns speech into text (Chrome uses Google\'s speech service for this). PROTrader never records or stores audio.'} Orders always need a confirmation, and MT5 orders always need a tap.</div>
+      ${ELV.ttsOn() ? `<div class="vx-note">${AI.esc(ELV.st.privacy_tts)} Tap Stop speaking, or the orb, to interrupt.</div>` : ''}
       <div class="vx-note">${AI.esc(AI.st && AI.st.privacy || 'ARIA sends your words and chart data only. Do not share personal details.')} The conversation is kept on this device for seven days.</div>`;
   },
 
@@ -6406,6 +6611,9 @@ const VOICE = {
     if (!this.cfg) this.init();
     if (!this.open_) { this.open(true); return; }
     if (typeof LIVEV !== 'undefined' && (LIVEV.active() || (LIVEV.wanted() && LIVEV.allowed()))) { if (typeof AI !== 'undefined' && AI.busy) AI.abort(); return LIVEV.start(); }
+    if (typeof ELV !== 'undefined') ELV.unlock();
+    if (this.state === 'speaking') this.stopSpeaking(true);            // tapping the orb while ARIA talks interrupts it
+    if (typeof ELV !== 'undefined' && (ELV.rec || ELV.sttOn())) { if (!ELV.rec && typeof AI !== 'undefined' && AI.busy) AI.abort(); return ELV.rec ? ELV.finishRec() : ELV.record(); }
     if (!this.supported()) { this.heard('No speech input in this browser — type below.'); document.getElementById('vxInput')?.focus(); return; }
     if (this.state === 'listening') { this.stopListening(); return; }
     if (typeof AI !== 'undefined' && AI.busy) AI.abort();
@@ -6459,8 +6667,11 @@ const VOICE = {
   /* ── talking ── */
   say(text, o = {}) {
     if (!this.cfg) this.init();
-    if (this._muted) { this._mutedText = text; return Promise.resolve(); }
+    if (this._muted && !o.reply) { this._mutedText = text; return Promise.resolve(); }   // a tool is running the app: the model reports, not the tool
     if (!o.announce) { this.lastReply = text; if (!o.nolog) this.addLog('vx', text); }
+    // ARIA's natural voice only for text that opts in (AI replies and lessons). Balances, positions, order
+    // read-backs, briefings and announcements stay on this device's own voice and never leave it.
+    if (this.cfg.talk && o.natural === true && !o.announce && typeof ELV !== 'undefined' && ELV.ttsOn()) return this.sayNatural(text, o);
     if (!this.cfg.talk || !window.speechSynthesis || typeof SpeechSynthesisUtterance === 'undefined') { if (!o.announce) this.setState('idle'); return Promise.resolve(); }
     const synth = window.speechSynthesis, voice = this.pickVoice();
     const parts = String(text).split(/(?<=[.!?])\s+(?=[A-Z0-9"'(])/).map(s => s.trim()).filter(Boolean);
@@ -6480,13 +6691,35 @@ const VOICE = {
       });
     });
   },
+  async sayNatural(text, o) {
+    const n = ++this._sayN;
+    this.setState('speaking', 'Speaking · ElevenLabs');
+    try {
+      await ELV.say(text);
+      if (n === this._sayN && this.state === 'speaking') this.setState('idle');
+    } catch (e) {
+      if (n !== this._sayN || (e && e.name === 'AbortError')) return;   // interrupted: nothing to recover
+      ELV.failedAt = Date.now(); ELV.lastError = String(e && (e.code || e.message) || 'error').slice(0, 120);
+      if (!ELV.warned) { ELV.warned = true; this.log.push({ who: 'vx', text: 'ARIA\'s natural voice is unavailable right now, so this device\'s voice is reading instead.', note: true }); this.renderLog(); }
+      if (this.state === 'speaking') return this.say(text, Object.assign({}, o, { nolog: true, natural: false }));
+    }
+  },
+  _sayN: 0,
+  // the Stop control, the orb while speaking, a new question and closing the sheet all end speech at once
+  stopSpeaking(silent) {
+    this._sayN++;
+    if (typeof ELV !== 'undefined') ELV.stop();
+    if (window.speechSynthesis) speechSynthesis.cancel();
+    if (this.state === 'speaking') this.setState('idle');
+    if (!silent) this.heard('Stopped speaking. Tap the orb to talk, or type below.');
+  },
   async reply(text, o = {}) {
     if (this._muted) { this._mutedText = text; this.renderChips(); this.renderCard(); return; }   // an AI tool is running the app: the model reports, not the tool
     this.renderChips(); this.renderCard();
     this.heard(this.pending ? 'Say confirm or cancel, or tap below' : this.awaiting ? 'Tap the orb to answer' : 'Tap the orb to talk', true);
-    await this.say(text);
+    await this.say(text, o.natural === true ? { natural: true } : {});
     // a question waiting for an answer: listen again by itself (not on iPhone, where it hangs)
-    if (o.ask && o.spoken && this.cfg.handsFree && this.open_ && this.supported() && !this.isIOS && this.state !== 'listening') setTimeout(() => this.listen(), 250);
+    if (o.ask && o.spoken && this.cfg.handsFree && this.open_ && this.supported() && !this.isIOS && this.state !== 'listening' && !(typeof ELV !== 'undefined' && ELV.sttOn())) setTimeout(() => this.listen(), 250);
   },
 
   /* ── understanding ── */
@@ -6577,6 +6810,8 @@ const VOICE = {
     if (!this.cfg) this.init();
     const text = String(raw || '').trim(); if (!text) return;
     if (!this.open_) this.open(false);
+    if (this.state === 'speaking') this.stopSpeaking(true);
+    if (typeof ELV !== 'undefined') ELV.unlock();
     this.addLog('you', text); this.heard(text);
     this.setState('thinking');
     let c = this.parse(text);
@@ -7656,7 +7891,7 @@ const COPILOT = {
     const d = this.load(), rec = d.lessons[L.id] || (d.lessons[L.id] = { seen: 0, right: 0, wrong: 0 });
     rec.seen++; rec.last = Date.now(); this.save(d);
     this.setMode('learn', true);
-    return this.say(`${L.title}. ${L.body[0]} ${L.body[1]} Say "show me" to see it on this chart, or "quiz me".`, o);
+    return this.say(`${L.title}. ${L.body[0]} ${L.body[1]} Say "show me" to see it on this chart, or "quiz me".`, Object.assign({}, o, { natural: true }));
   },
   nextLesson() { const d = this.load(); return CP_LESSONS.find(L => !(d.lessons[L.id] && d.lessons[L.id].right)) || CP_LESSONS[0]; },
   async showMe(o) {
@@ -7794,7 +8029,7 @@ const COPILOT = {
     if (!Number.isFinite(entry)) return this.say(`I don't have a price for ${VOICE.name(S.sym)} yet, so I can't check a plan.`, o);
     const R = this.read(), H = await this.htf();
     const res = ORACLE.check({ side: p.side, entry, stop: Number.isFinite(p.stop) ? p.stop : NaN, target: Number.isFinite(p.target) ? p.target : NaN, sym: S.sym, synthetic: this.synthetic(S.sym) }, R, H);
-    this.check = Object.assign({ at: Date.now(), entry, plan: Object.assign({}, p) }, res);
+    this.check = Object.assign({ at: Date.now(), entry, sym: S.sym, plan: Object.assign({}, p) }, res);
     this.decision = this.logDecision({ source: 'practice', sym: S.sym, tf: S.tf, side: p.side, entry, stop: p.stop, target: p.target, reason: p.reason }, res);
     this.setMode('practice', true);
     const order = ['against', 'missing', 'note'];
@@ -8458,7 +8693,7 @@ const CTX = {
     const h = new Date(t * 1000).getUTCHours();
     return market === 'crypto' ? 'crypto: trades around the clock' : h < 7 ? 'Asian session (UTC)' : h < 12 ? 'London session (UTC)' : h < 16 ? 'London / New York overlap (UTC)' : h < 21 ? 'New York session (UTC)' : 'after New York close (UTC)';
   },
-  build() {
+  build(o = {}) {
     const s = COPILOT.src(), id = s.sym, sp = otSpec(id), dp = sp.dp, market = (PAIR_MAP[id] || {}).market || 'unknown';
     const r = v => this.r(v, dp);
     const copilot = { mode: COPILOT.mode, level: AI.level(), activeLesson: COPILOT.lesson ? (CP_LESSONS.find(x => x.id === COPILOT.lesson) || {}).title : null,
@@ -8470,9 +8705,16 @@ const CTX = {
     const q = s.replay ? null : otQuote(id);
     chart.feed = s.replay ? 'replay of historical Deriv candles' : 'Deriv live feed';
     if (!s.replay) { chart.feedConnected = !!S.wsConnected; chart.quoteFresh = !!(q && q.ok && !q.stale); }
+    // the student moved to another chart since the last question: levels must not carry across
+    const key = `${id} ${s.tf}${s.replay ? ' replay' : ''}`;
+    if (o.track) {            // only a typed or spoken question moves the marker (Live voice snapshots do not)
+      if (AI._lastChart && AI._lastChart !== key) chart.changedSinceLastTurn = { from: AI._lastChart, to: key };
+      AI._lastChart = key;
+    }
     if (closed.length < 30) {
       chart.available = false;
       chart.unavailable = !closed.length ? 'no candles have loaded for this chart' : `only ${closed.length} closed candles have loaded (30 needed)`;
+      chart.dataQuality = { closedCandles: closed.length, enoughForAnalysis: false };
       return { chart, copilot, utcTime: new Date().toISOString() };
     }
     const R = TA.read(s.cd, s.tf, s.now), st = R.structure, last = R.last;
@@ -8497,15 +8739,33 @@ const CTX = {
       lastLeg: R.impulse ? { direction: R.impulse.dir, from: { price: r(R.impulse.from.price), time: R.impulse.from.time }, to: { price: r(R.impulse.to.price), time: R.impulse.to.time },
                              retracedPercent: Math.round((COPILOT.depth(R) || 0) * 100), fib: Object.fromEntries(Object.entries(R.impulse.levels).map(([k, v]) => [k, r(v)])) } : null };
     chart.recentCandleReadings = R.candles.slice(-3).map(k => ({ time: k.time, direction: k.dir, bodyPercent: k.bodyPct, closeLocationPercent: k.closeAt, rangeVsATR: k.rangeAtr, tags: k.tags }));
+    const htf = s.replay ? null : CP_HTF[s.tf];
+    chart.dataQuality = { closedCandles: closed.length, candlesInContext: Math.min(20, R.closed.length), formingCandleIncluded: !!R.forming,
+                          ema200Available: closed.length >= 200, stale: !!chart.stale,
+                          feedConnected: s.replay ? undefined : !!S.wsConnected, quoteFresh: s.replay ? undefined : chart.quoteFresh,
+                          higherTimeframeLoaded: htf ? !!(typeof MTF !== 'undefined' && (MTF.data[id] || {})[htf]) : undefined,
+                          note: 'Only closed candles are evidence; the forming candle can still change.' };
     if (!s.replay) {
       try {
         const a = VOICE.aria();
         if (a) chart.aria = { gatesPassed: a.gates.score, gatesTotal: ARIA_GATE_COUNT, lean: a.gates.dir, verdict: a.verdict.v, marketCondition: a.mcc.label.replace(/[↑↓]/g, '').trim(),
-                              suggestedStop: r(a.entry.slLevel), note: 'ARIA framework read; WAITING / OBSERVER mean stand aside' };
+                              suggestedStop: r(a.entry.slLevel), note: 'ARIA framework read; WAITING / OBSERVER mean stand aside. The Live Candle gate reads the forming candle.',
+                              gates: (a.gates.gates || []).map(g => ({ gate: g.name, pass: !!g.pass, detail: String(g.detail || '').replace(/[✓✗]\s*/g, '').trim() })) };
       } catch (_) {}
-      const htf = CP_HTF[s.tf], hd = htf && typeof MTF !== 'undefined' ? (MTF.data[id] || {})[htf] : null;
+      const hd = htf && typeof MTF !== 'undefined' ? (MTF.data[id] || {})[htf] : null;
       const HR = hd ? TA.read(hd, htf) : null;
-      if (HR) chart.higherTimeframe = { timeframe: htf, trend: HR.structure.trend || 'none', swingSequence: HR.structure.sequence };
+      if (HR) {
+        const ht = HR.structure.trend || null, lt = st.trend || null, lb = HR.structure.lastBreak;
+        chart.higherTimeframe = { timeframe: htf, trend: ht || 'none', swingSequence: HR.structure.sequence,
+                                  lastBreak: lb ? { type: lb.type, direction: lb.dir, level: r(lb.level) } : null };
+        chart.timeframeAgreement = !ht || !lt ? 'unclear: at least one timeframe has no break of structure yet'
+          : ht === lt ? `aligned: ${s.tf} and ${htf} structure both ${lt}` : `conflict: ${s.tf} structure is ${lt} but ${htf} is ${ht}`;
+      } else if (htf) chart.higherTimeframe = { timeframe: htf, available: false, note: 'not loaded yet: unknown, do not guess it' };
+      const ck = COPILOT.check;
+      if (ck && ck.plan && Date.now() - ck.at < 2 * 3600e3 && (!ck.sym || ck.sym === id))
+        chart.lastOracleCheck = { verdict: ck.status, minutesAgo: Math.round((Date.now() - ck.at) / 60000), side: ck.plan.side, entry: r(ck.entry),
+                                  stop: Number.isFinite(ck.plan.stop) ? r(ck.plan.stop) : null, target: Number.isFinite(ck.plan.target) ? r(ck.plan.target) : null,
+                                  evidence: (ck.items || []).slice(0, 5).map(i => `${i.kind}: ${i.text}`) };
       chart.shownIndicators = Object.assign({}, S.ind);
       try { const vr = CH.chart.timeScale().getVisibleRange(); if (vr) chart.visibleRange = { from: +vr.from, to: +vr.to }; } catch (_) {}
       const mine = COPILOT.ours();
@@ -8541,10 +8801,10 @@ const AITOOLS = {
     args = args && typeof args === 'object' ? args : {};
     const fn = Object.prototype.hasOwnProperty.call(this.fns, name) ? this.fns[name] : null;
     if (typeof fn !== 'function') return this.no('That action is not available in the Academy.');
-    VOICE._muted = true; VOICE._mutedText = '';
+    VOICE._muted = (VOICE._muted || 0) + 1; VOICE._mutedText = '';     // counted: a tool from an interrupted turn may still be running
     try { return await fn.call(this, args); }
     catch (e) { return this.no(`The app could not do that: ${String(e && e.message || e).slice(0, 120)}`); }
-    finally { VOICE._muted = false; }
+    finally { VOICE._muted = Math.max(0, (VOICE._muted || 0) - 1); }
   },
   place(spec) {
     const p = COPILOT.place([spec]);
@@ -8661,7 +8921,7 @@ const AITOOLS = {
       }
       return this.ok({ symbol: S.sym, instrumentName: VOICE.name(S.sym), timeframe: S.tf, candlesLoaded: S.candles.length, note: 'Read the new workspace context before analysing.' });
     },
-    check_plan_with_oracle({ side, entry, stop, target, reason }) {
+    async check_plan_with_oracle({ side, entry, stop, target, reason }) {
       if (side !== 'buy' && side !== 'sell') return this.no('side must be buy or sell.');
       const s = COPILOT.src(), R = COPILOT.read();
       const q = s.replay ? null : otQuote(s.sym);
@@ -8670,17 +8930,18 @@ const AITOOLS = {
       if (!Number.isFinite(e)) return this.no('No price is available to check the plan against.');
       const g = this.range();
       for (const [k, v] of [['stop', stop], ['target', target]]) if (v != null && g && !this.inRange(this.num(v), g)) return this.no(`The ${k} is outside the chart's range.`);
-      const H = null;
+      const H = s.replay ? null : await COPILOT.htf();          // the same higher-timeframe evidence the Practice tab uses
       const res = ORACLE.check({ side, entry: e, stop: this.num(stop), target: this.num(target), sym: s.sym, synthetic: COPILOT.synthetic(s.sym) }, R, H);
       if (!s.replay) {
         COPILOT.plan = Object.assign(COPILOT.blankPlan(), { side, type: Number.isFinite(this.num(entry)) ? 'limit' : 'market', price: Number.isFinite(this.num(entry)) ? e : null,
                                                             stop: Number.isFinite(this.num(stop)) ? this.num(stop) : null, target: Number.isFinite(this.num(target)) ? this.num(target) : null, reason: String(reason || '').slice(0, 40) });
-        COPILOT.check = Object.assign({ at: Date.now(), entry: e, plan: Object.assign({}, COPILOT.plan) }, res);
+        COPILOT.check = Object.assign({ at: Date.now(), entry: e, sym: s.sym, plan: Object.assign({}, COPILOT.plan) }, res);
         COPILOT.decision = COPILOT.logDecision({ source: 'practice', sym: s.sym, tf: s.tf, side, entry: e, stop: COPILOT.plan.stop, target: COPILOT.plan.target, reason: COPILOT.plan.reason, via: 'ai' }, res);
         COPILOT.renderPanel();
       }
       return this.ok({ oracle: res.status, meaning: res.meaning, processScore: COPILOT.score(res), entryUsed: e,
-                       evidence: res.items.map(i => ({ kind: i.kind, text: i.text, detail: i.why || undefined })), flags: res.flags });
+                       evidence: res.items.map(i => ({ kind: i.kind, text: i.text, detail: i.why || undefined })), flags: res.flags,
+                       higherTimeframe: H ? { timeframe: H.tf, trend: H.trend || 'none' } : (s.replay ? 'not used in a replay' : 'not loaded') });
     },
     calculate_risk({ side, stop, entry, risk_percent }) {
       if (COPILOT.src().replay) return this.no('Replay trades are measured in R; no position sizing is needed there.');
@@ -8785,6 +9046,7 @@ const AI = {
       this.st = r.ok ? await r.json() : { enabled: false, reason: 'The AI service did not answer.' };
     } catch (_) { this.st = { enabled: false, reason: 'The AI service could not be reached.' }; }
     this.stAt = Date.now();
+    if (force && typeof ELV !== 'undefined') await ELV.refresh(true);     // an owner key or sign-in change can change voice access too
     this.renderNote();
     return this.st;
   },
@@ -8805,7 +9067,7 @@ const AI = {
     try { localStorage.setItem(this.KEY, JSON.stringify({ at: Date.now(), contents: this.convo })); } catch (_) {}
   },
   clear() {
-    this.convo = []; try { localStorage.removeItem(this.KEY); } catch (_) {}
+    this.convo = []; this._lastChart = null; try { localStorage.removeItem(this.KEY); } catch (_) {}
     VOICE.log = []; VOICE.renderLog(); VOICE.heard('Conversation cleared.');
   },
   restoreLog() {
@@ -8849,7 +9111,7 @@ const AI = {
     box.hidden = false;
     if (s.enabled) {
       box.className = 'cp-ai-note on';
-      box.innerHTML = `<b>AI</b> ${this.esc(s.label || 'Gemini (free tier)')} · ${s.remaining_today != null ? `${s.remaining_today} left today · ` : ''}<span>${this.esc(s.privacy || 'Don\'t share personal details.')}</span>`;
+      box.innerHTML = `<b>AI</b> ${this.esc(s.label || 'Gemini (free tier)')}${typeof ELV !== 'undefined' && ELV.ttsOn() ? ' · voice: ElevenLabs' : ''} · ${s.remaining_today != null ? `${s.remaining_today} left today · ` : ''}<span>${this.esc(s.privacy || 'Don\'t share personal details.')}</span>`;
     } else {
       box.className = 'cp-ai-note off';
       box.innerHTML = `<b>AI off</b> ${this.esc(this.owner() ? (s.reason || 'unavailable') : 'ARIA\'s conversational AI is not available right now.')} All chart tools, lessons and demo trading still work.`;
@@ -8867,7 +9129,18 @@ const AI = {
   setStatus(m, s) { m.status = s; VOICE.setState('thinking'); const p = document.getElementById('vxPill'); if (p) p.textContent = s ? s.replace(/…$/, '') : 'Working'; VOICE.renderLog(); },
 
   /* ── one student turn: model, tools, model … ── */
-  abort() { if (this.ctrl) { try { this.ctrl.abort(); } catch (_) {} } },
+  // Stop the turn in progress at once, wherever it is (streaming, or waiting on a tool), and settle its
+  // history now, so a new question can follow it cleanly. The old turn notices it is no longer current
+  // after its next await and touches nothing again.
+  abort() {
+    const t = this.turn; if (!t) return;
+    this.turn = null; this.busy = false;
+    if (this.ctrl) { try { this.ctrl.abort(); } catch (_) {} this.ctrl = null; }
+    this.convo.splice(t.start + 1);                     // never ends mid tool-call
+    if (t.m && t.m.text) this.convo.push({ role: 'model', parts: [{ text: t.m.text + ' …' }] }); else this.convo.splice(t.start);
+    if (t.m) { t.m.status = ''; t.m.text = t.m.text ? t.m.text + ' …' : '(interrupted)'; this.paint(t.m); }
+    this.save();
+  },
   async post(body, m) {
     this.ctrl = new AbortController();
     const res = await fetch('/api/aria/ai/chat', { method: 'POST', headers: this.headers(), body: JSON.stringify(body), signal: this.ctrl.signal });
@@ -8887,7 +9160,7 @@ const AI = {
         let ev = '', data = null;
         for (const line of block.split('\n')) { if (line.startsWith('event: ')) ev = line.slice(7); else if (line.startsWith('data: ')) { try { data = JSON.parse(line.slice(6)); } catch (_) {} } }
         if (!data) continue;
-        if (ev === 'meta') { out.model = data.model; m.model = data.model + (data.fallback ? ' (Gemini free-tier fallback)' : data.degraded ? ' (lighter model: daily allowance)' : ''); if (this.st && data.label) { Object.assign(this.st, { provider: data.provider, label: data.label, privacy: data.privacy }); this.renderNote(); } }
+        if (ev === 'meta') { out.model = data.model; m.model = (data.provider === 'claude' ? String(data.label || data.model).replace(/ \(.*$/, '') + ' · promotional credits' : data.model) + (data.fallback ? ' (Gemini free-tier fallback for Claude)' : data.degraded ? ' (lighter model: daily allowance)' : ''); if (this.st && data.label) { Object.assign(this.st, { provider: data.provider, label: data.label, privacy: data.privacy, fallback: !!data.fallback }); this.renderNote(); } }
         else if (ev === 'text') { out.text += data.t; m.text += data.t; m.status = ''; this.paint(m); }
         else if (ev === 'call') out.calls.push(data);
         else if (ev === 'done') out.content = data.content;
@@ -8900,10 +9173,10 @@ const AI = {
   async ask(c, o = {}) {
     const raw = String(o.raw || c.t || '').trim();
     if (this.busy) this.abort();
+    const start = this.convo.length, turn = this.turn = { start, m: null }, live = () => this.turn === turn;
     this.busy = true;
-    const start = this.convo.length;
     this.convo.push({ role: 'user', parts: [{ text: raw.slice(0, 2000) }] });
-    const m = this.bubble(); VOICE.renderLog();
+    const m = turn.m = this.bubble(); VOICE.renderLog();
     let context;
     try {
       if (c.intent === 'analyze' && !COPILOT.src().replay) {             // the app measures and draws; the model explains what was drawn
@@ -8914,27 +9187,36 @@ const AI = {
         const R = COPILOT.read();
         if (R) { const p = COPILOT.place(COPILOT.specs(R, ['structure', 'zones', 'liquidity', 'fib'])); if (p.drawn && p.drawn.length) { m.tools.push(`Drew ${p.drawn.length} objects ✓`); COPILOT.setMode('analyze', true); COPILOT.peek(); } }
       }
+      if (!live()) return;
       this.setStatus(m, 'Reading the chart…');
-      context = CTX.build();
+      context = CTX.build({ track: true });
       const kb = KB.search(raw); if (kb.terms.length || kb.lesson) context.knowledge = kb;
       if (c.intent === 'analyze' && m.tools.length) context.justDrawn = context.chart.ariaDrawings;
     } catch (e) { context = { chart: { available: false, unavailable: 'the chart snapshot could not be built' } }; }
     let round = 0, model = '', final = '', failed = null;
     try {
       for (;;) {
+        if (!live()) return;
         this.setStatus(m, round ? 'Thinking…' : 'Thinking…');
         const r = await this.post({ contents: this.convo.slice(-16), context, round, model, hint: c.intent }, m);
+        if (!live()) return;                                 // stopped or replaced meanwhile: abort() settled this turn
         if (r.error) { failed = r; break; }
         model = r.model || model;
         if (r.content) this.convo.push(r.content);
         final = r.text || final;
         if (!r.calls.length) break;
-        if (round >= 3) { m.text += (m.text ? '\n\n' : '') + '(I stopped after several steps; ask me to continue.)'; this.paint(m); break; }
+        if (round >= 3) {
+          // never leave a tool call without its result in the history: the next question would be refused
+          const last = this.convo[this.convo.length - 1];
+          if (last && last.role === 'model') { last.parts = last.parts.filter(p => !p.functionCall && !p.claudeThinking); if (!last.parts.some(p => p.text)) this.convo.pop(); }
+          m.text += (m.text ? '\n\n' : '') + '(I stopped after several steps; ask me to continue.)'; this.paint(m); break;
+        }
         const responses = [];
         for (const call of r.calls) {
           this.setStatus(m, (AITOOLS.status[call.name] || 'Working') + '…');
           this._localNote = '';
           const res = await AITOOLS.run(call.name, call.args);
+          if (!live()) return;
           m.tools.push(this.toolChip(call.name, res));
           if (this._localNote) m.tools.push('Rules: ' + this._localNote);
           // something changed on the chart: let the student see it (no dimming; on a phone the sheet steps aside)
@@ -8946,18 +9228,13 @@ const AI = {
         round++;
       }
     } catch (e) {
-      failed = e && e.name === 'AbortError' ? { error: 'aborted' } : { error: 'network', message: 'ARIA\'s AI could not be reached.' };
+      if (!live()) return;
+      failed = { error: 'network', message: 'ARIA\'s AI could not be reached.' };
     }
-    this.busy = false; this.ctrl = null;
+    this.turn = null; this.busy = false; this.ctrl = null;
     m.status = '';
     if (failed) {
       // drop the unfinished exchange so the history never ends mid tool-call
-      this.convo.splice(start + 1);
-      if (failed.error === 'aborted') {
-        if (m.text) this.convo.push({ role: 'model', parts: [{ text: m.text + ' …' }] }); else this.convo.splice(start);
-        m.text = (m.text ? m.text + ' …' : '') + (m.text ? '' : '(interrupted)'); this.paint(m); this.save();
-        return;
-      }
       this.convo.splice(start);
       VOICE.log.splice(VOICE.log.indexOf(m), 1);
       if (['quota', 'user_day', 'disabled'].includes(failed.error)) { this.st = Object.assign({}, this.st || {}, { paused: true }); this.renderNote(); }
@@ -8966,12 +9243,15 @@ const AI = {
       return VOICE.reply(failed.message || 'ARIA\'s AI could not answer just now. Your charts, lessons, and demo workspace keep working.', o);
     }
     if (!m.text) { m.text = m.tools.length ? 'Done.' : 'I ran out of room before answering. Ask again, perhaps more narrowly.'; }
+    // a finished turn no longer needs Claude's reasoning blocks: they are not kept on the device
+    for (const c of this.convo) if (c.role === 'model' && c.parts.some(p => p.claudeThinking)) c.parts = c.parts.filter(p => !p.claudeThinking);
+    this.convo = this.convo.filter(c => c.parts.length);
     this.paint(m); this.save();
     VOICE.lastReply = m.text;
     if (this.st && this.st.remaining_today) { this.st.remaining_today = Math.max(0, this.st.remaining_today - (round + 1)); this.renderNote(); }
     VOICE.renderChips(); VOICE.renderCard();
     VOICE.heard(VOICE.pending ? 'Say confirm or cancel, or tap below' : 'Tap the orb to talk', true);
-    await VOICE.say(this.speakable(m.text), { nolog: true });
+    await VOICE.say(this.speakable(m.text), { nolog: true, natural: true, reply: true });   // ARIA's reply: chart talk only, never account data
   },
   toolChip(name, res) {
     const n = { draw_analysis: () => res.ok ? `Drew ${res.verifiedOnChart || 0} ✓` : 'Drawing failed', check_plan_with_oracle: () => res.ok ? `ORACLE: ${res.oracle}` : 'ORACLE unavailable',

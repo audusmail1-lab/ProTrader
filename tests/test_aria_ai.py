@@ -282,7 +282,7 @@ def test_forwarded_for_uses_the_proxy_hop(monkeypatch):
 def test_requests_must_come_from_the_app_and_stay_small():
     c = client()
     assert c.post("/api/aria/ai/chat", json={"contents": []}, headers={"origin": "https://evil.example", "host": "testserver"}).status_code == 403
-    big = {"contents": [{"role": "user", "parts": [{"text": "x" * 100}]}], "context": {"blob": "y" * 100000}}
+    big = {"contents": [{"role": "user", "parts": [{"text": "x" * 100}]}], "context": {"blob": "y" * (aria_ai.MAX_BODY + 1000)}}
     assert c.post("/api/aria/ai/chat", json=big).status_code == 413
 
 

@@ -145,7 +145,9 @@ def test_claude_wire_format_tools_and_stream_round_trip(monkeypatch):
     assert call["headers"]["anthropic-version"] == "2023-06-01"
     assert call["allow_redirects"] is False
     body = call["json"]
-    assert body["system"] == aria_ai.SYSTEM_PROMPT and body["thinking"] == {"type": "disabled"}
+    # Sonnet 5.5 refuses {"type": "disabled"}; its lowest setting is between_tools at effort <= high
+    assert body["system"] == aria_ai.SYSTEM_PROMPT and body["thinking"] == {"type": "between_tools"}
+    assert body["output_config"] == {"effort": "medium"}
     assert body["max_tokens"] == 100 and body["stream"] is True
     assert "cache_control" not in body and "metadata" not in body and "fallback_models" not in body
     assert {t["name"] for t in body["tools"]} == aria_ai.TOOL_NAMES
@@ -212,7 +214,8 @@ def test_status_and_voice_match_claude_without_secrets(monkeypatch):
     c = client()
     status = c.get("/api/aria/ai/status").json()
     assert status["provider"] == "claude" and status["live_voice"] is False
-    assert status["label"] == "Claude (promotional credits)"
+    assert status["label"] == "Claude Sonnet 5.5 (Anthropic API, promotional credits)"
+    assert "does not use API inputs or outputs to train" in status["privacy"]
     assert FAKE_KEY not in json.dumps(status) and "Claude" in status["privacy"]
     assert c.post("/api/aria/ai/voice/session").status_code == 403
 
@@ -347,3 +350,125 @@ def test_preflight_gemini_fallback_keeps_its_tool_round(monkeypatch):
     assert second.status_code == 200 and '"provider":"gemini"' in second.text
     assert providers == ["gemini", "gemini"] and "event: done" in second.text
     assert CreditLedger(aria_ai.claude_config()).available() == 1
+
+
+# ── reasoning configuration and Claude's reasoning blocks ─────────────────────
+
+def test_thinking_settings_follow_each_models_documented_rules(monkeypatch):
+    # Sonnet 5.5 rejects "disabled" (400); between_tools is its lowest setting, valid only at effort <= high.
+    assert aria_ai.claude_thinking("claude-sonnet-5-5", "low") == {"thinking": {"type": "between_tools"}, "output_config": {"effort": "low"}}
+    # Haiku 5.5 accepts "disabled" at effort <= high.
+    assert aria_ai.claude_thinking("claude-haiku-5-5", "medium") == {"thinking": {"type": "disabled"}, "output_config": {"effort": "medium"}}
+    # 4.x models think only when asked: neither field is sent.
+    assert aria_ai.claude_thinking("claude-sonnet-4-6", "medium") == {}
+    # never xhigh/max (both turn the lowest settings into a 400)
+    for bad in ("xhigh", "max", "", None, "extreme"):
+        assert aria_ai.claude_thinking("claude-sonnet-5-5", bad)["output_config"] == {"effort": "low"}
+    monkeypatch.setenv("ARIA_CLAUDE_THINKING", "adaptive")
+    assert aria_ai.claude_thinking("claude-sonnet-5-5", "medium")["thinking"] == {"type": "adaptive"}
+    enable(monkeypatch)
+    assert aria_ai.route("hello", provider_name="claude")["thinking"] == "low"
+    assert aria_ai.route("compare the 4h and 1h", provider_name="claude")["thinking"] == "medium"
+    assert aria_ai.route("check my plan", hint="plan", provider_name="claude")["thinking"] == "medium"
+
+
+def reasoning_stream():
+    return [
+        {"type": "message_start", "message": {"usage": {"input_tokens": 40}}},
+        {"type": "content_block_start", "index": 0, "content_block": {"type": "thinking", "thinking": "", "signature": ""}},
+        {"type": "content_block_delta", "index": 0, "delta": {"type": "thinking_delta", "thinking": "Checking structure first."}},
+        {"type": "content_block_delta", "index": 0, "delta": {"type": "signature_delta", "signature": "c2lnbmF0dXJlLWZha2U="}},
+        {"type": "content_block_stop", "index": 0},
+        {"type": "content_block_start", "index": 1, "content_block": {"type": "text", "text": ""}},
+        {"type": "content_block_stop", "index": 1},
+        {"type": "content_block_start", "index": 2, "content_block": {"type": "tool_use", "id": "toolu_r1", "name": "draw_analysis", "input": {}}},
+        {"type": "content_block_delta", "index": 2, "delta": {"type": "input_json_delta", "partial_json": '{"layers":["structure"]}'}},
+        {"type": "content_block_stop", "index": 2},
+        {"type": "message_delta", "delta": {"stop_reason": "tool_use"}, "usage": {"output_tokens": 12}},
+        {"type": "message_stop"},
+    ]
+
+
+def test_reasoning_blocks_round_trip_verbatim_inside_the_tool_turn_only(monkeypatch):
+    enable(monkeypatch)
+    provider = aria_ai.ClaudeProvider(FAKE_KEY)
+    provider._http = FakeHTTP(FakeResponse(events=reasoning_stream()))
+    events = run(provider)
+    content = events[-1]["content"]
+    # kept in order, never streamed to the student as text; the empty text block is dropped
+    assert content["parts"][0] == {"claudeThinking": {"type": "thinking", "thinking": "Checking structure first.", "signature": "c2lnbmF0dXJlLWZha2U="}}
+    assert "functionCall" in content["parts"][1] and len(content["parts"]) == 2
+    assert all("Checking structure" not in e.get("text", "") for e in events if e["type"] == "text")
+    # the browser sends it back; the server's validation keeps it unchanged
+    old_turn = {"role": "model", "parts": [{"claudeThinking": {"type": "thinking", "thinking": "old", "signature": "b2xk"}}, {"text": "Earlier answer."}]}
+    raw = [{"role": "user", "parts": [{"text": "Earlier question"}]}, old_turn,
+           {"role": "user", "parts": [{"text": "Draw the structure"}]}, content,
+           {"role": "user", "parts": [{"functionResponse": {"name": "draw_analysis", "id": "toolu_r1", "response": {"ok": True}}}]}]
+    cleaned = aria_ai.clean_contents(json.loads(json.dumps(raw)))
+    assert cleaned[3]["parts"][0] == content["parts"][0]
+    body = provider._body("claude-sonnet-5-5", "SYS", cleaned, aria_ai.TOOLS, 100, effort="low")
+    assistant = [m for m in body["messages"] if m["role"] == "assistant"]
+    # current tool turn: thinking first, then tool_use, verbatim; older turn: reasoning omitted (allowed, saves credit)
+    assert assistant[-1]["content"][0] == {"type": "thinking", "thinking": "Checking structure first.", "signature": "c2lnbmF0dXJlLWZha2U="}
+    assert assistant[-1]["content"][1]["type"] == "tool_use"
+    assert all(b["type"] != "thinking" for b in assistant[0]["content"])
+    assert body["messages"][-1]["content"][0] == {"type": "tool_result", "tool_use_id": "toolu_r1", "content": '{"ok": true}'}
+    # the same history sent to Gemini (a later fallback) carries no Claude blocks
+    gem = aria_ai.GeminiProvider("AIzaFAKE-non-secret-testing-0000000")._body("SYS", cleaned, [], 100, None)
+    assert "claudeThinking" not in json.dumps(gem)
+
+
+def test_altered_or_oversized_reasoning_blocks_are_refused(monkeypatch):
+    bad = [{"claudeThinking": {"type": "thinking", "thinking": "x", "signature": "not base64 <script>"}},
+           {"claudeThinking": {"type": "thinking", "thinking": "x"}},
+           {"claudeThinking": {"type": "other", "data": "abc"}},
+           {"claudeThinking": {"type": "thinking", "thinking": "x" * 30000, "signature": "abc"}}]
+    for part in bad:
+        assert aria_ai._clean_part(part, "model") is None
+    # only the model's own turn may carry one
+    assert aria_ai._clean_part({"claudeThinking": {"type": "redacted_thinking", "data": "ZGF0YQ=="}}, "user") is None
+    assert aria_ai._clean_part({"claudeThinking": {"type": "redacted_thinking", "data": "ZGF0YQ=="}}, "model") == {"claudeThinking": {"type": "redacted_thinking", "data": "ZGF0YQ=="}}
+    # an oversized block is dropped from a plain answer, but a tool step that needs it stops instead
+    enable(monkeypatch)
+    big = reasoning_stream()
+    big[3] = {"type": "content_block_delta", "index": 0, "delta": {"type": "signature_delta", "signature": "A" * 30000}}
+    provider = aria_ai.ClaudeProvider(FAKE_KEY)
+    provider._http = FakeHTTP(FakeResponse(events=big))
+    with pytest.raises(aria_ai.ProviderError):
+        run(provider)
+    plain = [e for e in big if not (e.get("index") == 2)]
+    plain[-2] = {"type": "message_delta", "delta": {"stop_reason": "end_turn"}, "usage": {"output_tokens": 5}}
+    provider._http = FakeHTTP(FakeResponse(events=plain))
+    assert all("claudeThinking" not in p for p in run(provider)[-1]["content"]["parts"])
+
+
+def test_labels_and_privacy_notice_name_the_provider_that_answers(monkeypatch):
+    monkeypatch.setenv("GEMINI_API_KEY", "AIzaFAKE-non-secret-testing-0000000")
+    monkeypatch.setenv("GEMINI_FREE_TIER_CONFIRMED", "1")
+    monkeypatch.setenv("ARIA_AI_GEMINI_FALLBACK", "1")
+    c = client()
+    st = c.get("/api/aria/ai/status").json()        # Claude not approved: the labelled Gemini fallback answers
+    assert st["provider"] == "gemini" and st["fallback"] is True and st["label"] == "Gemini (free-tier fallback)"
+    assert "standing in for Claude" in st["privacy"] and "Google may use" in st["privacy"]
+    assert "fallback_reason" not in st                # why Claude is off is shown to the owner only
+    monkeypatch.setenv("SENTINEL_ADMIN_KEY", "owner-key-for-tests")
+    st = c.get("/api/aria/ai/status", headers={"x-sentinel-key": "owner-key-for-tests"}).json()
+    assert "ARIA_CLAUDE_ENABLED" in st["fallback_reason"]
+    enable(monkeypatch)
+    st = c.get("/api/aria/ai/status").json()
+    assert st["provider"] == "claude" and st["fallback"] is False and "Gemini's free tier answers instead (labelled)" in st["privacy"]
+    assert FAKE_KEY not in json.dumps(st) and "AIzaFAKE" not in json.dumps(st)
+
+
+def test_an_unanswered_tool_call_in_an_older_turn_never_blocks_later_questions(monkeypatch):
+    enable(monkeypatch)
+    provider = aria_ai.ClaudeProvider(FAKE_KEY)
+    stale = [{"role": "user", "parts": [{"text": "Analyse"}]},
+             {"role": "model", "parts": [{"text": "Let me draw."}, {"functionCall": {"name": "draw_analysis", "id": "toolu_cut", "args": {"layers": ["zones"]}}}]},
+             {"role": "user", "parts": [{"text": "Next question"}]}]
+    body = provider._body("claude-sonnet-5-5", "SYS", aria_ai.clean_contents(stale), [], 100)
+    assert [b["type"] for m in body["messages"] for b in m["content"]].count("tool_use") == 0
+    assert body["messages"][1] == {"role": "assistant", "content": [{"type": "text", "text": "Let me draw."}]}
+    # inside the CURRENT turn an unanswered call is still refused (the app must answer it)
+    with pytest.raises(aria_ai.ProviderError):
+        provider._body("claude-sonnet-5-5", "SYS", stale[:2] + [{"role": "user", "parts": [{"functionResponse": {"name": "draw_analysis", "id": "other", "response": {}}}]}], [], 100)

@@ -144,7 +144,7 @@ MAX_CONTENTS = 16            # history entries sent upstream
 MAX_TEXT = 2000              # one user message
 MAX_CONTEXT = 12000          # the chart snapshot, serialised
 MAX_PART_JSON = 14000        # one tool result, serialised (120 candles fit)
-MAX_BODY = 90000             # the whole request from the browser
+MAX_BODY = 150000            # the whole request from the browser (Claude reasoning blocks ride along)
 MAX_ROUNDS = 3               # tool rounds inside one student turn
 _leases: dict[str, float] = {}
 _lease_lock = threading.Lock()
@@ -220,11 +220,11 @@ def count(keys: list[str]) -> dict[str, int]:
     return {k: int(got.get(k, 0)) for k in keys}
 
 
-def bump(keys: list[str]) -> None:
+def bump(keys: list[str], n: int = 1) -> None:
     day = _pt_day()
     with _db_lock, _db() as db:
         for k in keys:
-            db.execute("INSERT INTO usage (day, k, n) VALUES (?, ?, 1) ON CONFLICT(day, k) DO UPDATE SET n = n + 1", (day, k))
+            db.execute("INSERT INTO usage (day, k, n) VALUES (?, ?, ?) ON CONFLICT(day, k) DO UPDATE SET n = n + excluded.n", (day, k, int(n)))
         db.execute("DELETE FROM usage WHERE day < ?", ((datetime.now(timezone.utc) - timedelta(days=8)).strftime("%Y-%m-%d"),))
 
 
@@ -340,14 +340,39 @@ TOOLS
 - propose_demo_order only prepares a paper order; the student must confirm it on screen. The app's risk rules decide sizing and can reject it; you cannot override them.
 - You do not have the student's balance, positions, journal, progress or any personal data, and you must not ask for personal information. For their trades or account, tell them to ask "how are my trades" or "what's my risk" (the app answers those privately on the device).
 
+DATA QUALITY (check before any analysis)
+- Read chart.available, chart.stale, chart.dataAgeSeconds, chart.feedConnected, chart.quoteFresh and chart.dataQuality first. If data is missing, say what is missing and stop. If it is stale or the feed is disconnected, say so in your first sentence and treat every level as historical, not current.
+- The forming candle is not evidence yet; say so if your read leans on it. If a timeframe or the higher timeframe is not loaded, say it is unknown rather than guessing it. If a tool fails, report the failure; never fill the gap with an estimate.
+
+HOW TO REASON ABOUT A CHART
+- Keep three kinds of statement visibly apart, using these labels in analysis answers:
+  **Observed:** facts read directly from the context or a tool result, with their values (price, swing, break level, indicator, zone, candle time).
+  **Interpretation:** what that evidence suggests and how strongly; name the evidence each point rests on and what weakens it.
+  **Scenarios (hypothetical):** at least two if/then paths, the main case and the alternative. For each: what would confirm it, what would invalidate it (a price from the data), and where risk would be defined. A scenario is never a prediction or an instruction.
+- Then **Risk:** where the idea is proven wrong, why a stop belongs beyond that structure, and that size follows from the stop (the app's 1% rule sizes it).
+- Then **Uncertainty:** what conflicts or is missing (mixed indicators, a counter-trend higher timeframe, a forming candle, few touches on a zone, synthetic randomness). Conflicting evidence is information: say which side has more weight and why, and that conflict usually means WAITING.
+- Structure: describe the swing sequence, the last BOS or CHOCH and what would change it. Liquidity: equal highs/lows and sweeps are inferred from the chart's shape only; call them possibilities. Indicators confirm or question structure; they never replace it.
+- Timeframes: when asked to compare, or when the higher timeframe disagrees with the chart, use compare_timeframes (or chart.higherTimeframe and chart.timeframeAgreement). State agreement or conflict per timeframe, which timeframe sets the bias and which times the entry, and what alignment would look like.
+- ARIA's gates (chart.aria.gates) explain ARIA's verdict: name the gates that fail and what would need to change. SENTINEL (get_sentinel_observation) is a separate observer whose reads are unproven forward; when it and ARIA disagree, show both and explain the difference instead of picking a winner.
+- A trade idea from the student goes through ORACLE (check_plan_with_oracle) before you comment on its quality. Quote ORACLE's verdict exactly, then teach from its evidence. chart.lastOracleCheck holds the most recent check in this session.
+
+SHOW YOUR REASONING ON THE CHART
+- When you explain structure, zones, liquidity, a fib leg or invalidation, draw it (draw_analysis with only the matching layers) so the student can see what you mean, then refer to the drawings by their labels. Do not redraw what chart.ariaDrawings or justDrawn already shows; refer to it.
+- A hand-placed level, zone or line must use a price and candle time from the data, and its reason must name the evidence.
+
 TEACHING
 - Teaching level is given in the context: BEGINNER (guide with one question at a time, plain words), INTERMEDIATE (let them try, then check their work), ADVANCED (ask for their analysis first, then give detailed critique). Aim to build the student's own judgement, not dependence on you.
 - Method: observe, analyse the evidence, form a hypothesis, validate it, control risk, decide, review.
+- Explain each idea in plain words first, then the term. Use the student's chart as the example. End a teaching or analysis answer with ONE short follow-up question that checks understanding or asks for the student's own read (skip it for quick factual answers or when they asked you not to).
+- When the student answers your question, assess their answer against the evidence: say what is right, correct what is not, and explain why.
 - Pine Script: write Pine Script v6, state the explicit rules and assumptions, point out repainting risks, and say clearly that the code has NOT been compiled or tested here; tell the student to paste it into TradingView's Pine Editor and check it there. PROTrader's chart cannot run Pine Script.
 
+CONTINUITY
+- Use the whole conversation. Keep one consistent thesis per chart; if new data changes it, say what changed and why. If chart.changedSinceLastTurn is present, the student is now on a different chart: do not carry levels across instruments or timeframes.
+- Answer follow-ups ("explain that more simply", "what would invalidate it", "and the 4H?") from what was already said, adding only what is new.
+
 STYLE
-- Speak as ARIA. Be concise: 2–5 sentences for simple questions, short sections for analysis, more only when asked. Replies may be read aloud: write numbers plainly, avoid tables, use at most light markdown (bold, short lists, code blocks for code).
-- Use the conversation: answer follow-ups ("explain that more simply", "what would invalidate it") from what was already said instead of repeating a full analysis.
+- Speak as ARIA. Be concise: 2–5 sentences for simple questions, short labelled sections for analysis, more only when asked. Replies may be read aloud: write numbers plainly, avoid tables, use at most light markdown (bold labels, short lists, code blocks for code).
 - For a greeting, greet back briefly and offer to analyse the chart, continue learning, or review a setup."""
 
 _P = lambda **kw: {"type": "object", "properties": kw}
@@ -419,9 +444,12 @@ def route(text: str, hint: str = "", round_: int = 0, prev_model: str = "", prov
     comparisons. A tool round keeps the model that asked for the tool."""
     cfg = CFG
     if provider_name == "claude":
+        # For Claude, "thinking" carries the effort level. Never xhigh/max: the
+        # lowest-thinking settings ARIA uses return a 400 at those levels.
         config = claude_config()
         code = bool(_CODE.search(text or ""))
-        return {"tier": "main", "model": config.model, "thinking": None,
+        deep = code or bool(_DEEP.search(text or "")) or hint in ("plan", "compare", "analyze")
+        return {"tier": "main", "model": config.model, "thinking": "medium" if deep else "low",
                 "max_out": min(cfg.max_out_code if code else cfg.max_out_main, OUTPUT_HARD_CAP)}
     if round_ > 0 and prev_model in (cfg.model_main, cfg.model_lite):
         tier = "main" if prev_model == cfg.model_main else "lite"
@@ -494,6 +522,8 @@ class GeminiProvider(AIProvider):
         gen: dict = {"maxOutputTokens": int(max_out)}
         if thinking:
             gen["thinkingConfig"] = {"thinkingLevel": thinking}
+        # Claude's reasoning blocks belong to Claude only; Gemini would refuse them.
+        contents = [t for t in ({"role": c["role"], "parts": [p for p in c.get("parts", []) if "claudeThinking" not in p]} for c in contents) if t["parts"]]
         body = {"systemInstruction": {"parts": [{"text": system}]}, "contents": contents, "generationConfig": gen}
         if tools:
             body["tools"] = [{"functionDeclarations": tools}]
@@ -616,11 +646,37 @@ def claude_config() -> CreditConfig:
     return CreditConfig.from_environment(_db_path())
 
 
+# How each reviewed model is asked to think (checked 2026-10-09 against
+# platform.claude.com/docs/en/build-with-claude/thinking):
+#   Sonnet 5.5 rejects {"type": "disabled"} with a 400. Its lowest setting is
+#   {"type": "between_tools"}: no up-front thinking, short progress notes between
+#   tool calls; accepted only at effort low/medium/high.
+#   Haiku 5.5 accepts {"type": "disabled"} at effort low/medium/high.
+#   The 4.x models think only when asked, so they get neither field.
+# ARIA_CLAUDE_THINKING=adaptive lets Claude decide how much to think (5.5 models);
+# thinking tokens count toward max_tokens, so the credit reservation still covers them.
+CLAUDE_LOW_THINKING = {"claude-sonnet-5-5": {"type": "between_tools"}, "claude-haiku-5-5": {"type": "disabled"}}
+CLAUDE_EFFORTS = ("low", "medium", "high")
+MAX_THINKING_PART = 24000       # one returned reasoning block (summary + encrypted signature)
+_SIGNATURE = re.compile(r"[A-Za-z0-9+/=_.\-]*")
+
+
+def claude_thinking(model: str, effort: Optional[str]) -> dict:
+    """The thinking/effort fields for one request (empty for models without them)."""
+    if model not in CLAUDE_LOW_THINKING:
+        return {}
+    mode = os.getenv("ARIA_CLAUDE_THINKING", "low").strip().lower()
+    thinking = {"type": "adaptive"} if mode == "adaptive" else dict(CLAUDE_LOW_THINKING[model])
+    return {"thinking": thinking, "output_config": {"effort": effort if effort in CLAUDE_EFFORTS else "low"}}
+
+
 class ClaudeProvider(AIProvider):
     """Direct Messages API; same chart/tool contract, no billing calls or retries.
 
     The browser never supplies a key, model price, system prompt or tool schema.
     An ambiguous timeout remains reserved and never triggers a second provider.
+    Claude's reasoning blocks (encrypted, with a signature) ride back unchanged in
+    the conversation, because the API requires them inside a tool-use turn.
     """
     name = "claude"
 
@@ -628,15 +684,31 @@ class ClaudeProvider(AIProvider):
         self._key = key
         self._http = requests.Session()
 
-    def _body(self, model, system, contents, tools, max_out) -> dict:
+    def _body(self, model, system, contents, tools, max_out, effort: Optional[str] = None) -> dict:
         messages, pending = [], {}
+        # Reasoning blocks are required only inside the current tool-use turn (after the
+        # newest plain student message); older ones may be omitted, which saves credit.
+        current = max((i for i, t in enumerate(contents)
+                       if t.get("role") == "user" and any("text" in p for p in t.get("parts", []))), default=0)
+        # An earlier turn that stopped with a tool call left unanswered (a turn cut short in the
+        # app) must not block every later question: such calls are dropped from older turns only.
+        answered = {(p["functionResponse"].get("name"), p["functionResponse"].get("id")) for t in contents if t.get("role") == "user"
+                    for p in t.get("parts", []) if "functionResponse" in p}
+        answered_names = {n for n, _ in answered}
         for turn_index, turn in enumerate(contents):
             blocks = []
             for part_index, part in enumerate(turn.get("parts", [])):
-                if "text" in part:
-                    blocks.append({"type": "text", "text": part["text"]})
+                if "claudeThinking" in part:
+                    if turn["role"] == "model" and turn_index > current:
+                        blocks.append(dict(part["claudeThinking"]))
+                elif "text" in part:
+                    if part["text"].strip():           # the API refuses empty text blocks
+                        blocks.append({"type": "text", "text": part["text"]})
                 elif "functionCall" in part and turn["role"] == "model":
                     call = part["functionCall"]
+                    if turn_index < current and ((call.get("name"), call.get("id")) not in answered if call.get("id")
+                                                 else call.get("name") not in answered_names):
+                        continue
                     if call.get("name") not in TOOL_NAMES:
                         raise ProviderError("request", "Unsupported chart tool")
                     identifier = call.get("id") or f"toolu_aria_{turn_index}_{part_index}"
@@ -664,8 +736,8 @@ class ClaudeProvider(AIProvider):
         if not messages or messages[0]["role"] != "user" or any(pending.values()):
             raise ProviderError("request", "Incomplete chart tool conversation")
         body = {"model": model, "system": system, "messages": messages,
-                "max_tokens": min(int(max_out), OUTPUT_HARD_CAP), "stream": True,
-                "thinking": {"type": "disabled"}}
+                "max_tokens": min(int(max_out), OUTPUT_HARD_CAP), "stream": True}
+        body.update(claude_thinking(model, effort))
         if tools:
             body["tools"] = [{"name": t["name"], "description": t["description"],
                               "input_schema": t.get("parameters") or {"type": "object", "properties": {}}}
@@ -685,7 +757,7 @@ class ClaudeProvider(AIProvider):
         return ProviderError("provider", "Claude could not answer", status)
 
     def stream_response(self, *, model, system, contents, tools, max_out, thinking, timeout) -> Iterator[dict]:
-        body = self._body(model, system, contents, tools, max_out)
+        body = self._body(model, system, contents, tools, max_out, effort=thinking)
         # Keep every Claude connection/read/stream attempt inside the five-minute
         # credit-expiry margin, even if the shared provider timeout is misconfigured.
         timeout = min(60.0, max(5.0, float(timeout)))
@@ -707,7 +779,7 @@ class ClaudeProvider(AIProvider):
         if response.status_code != 200:
             response.close()
             raise self.handle_provider_error(response.status_code, "")
-        blocks, parts, usage, finish, stopped = {}, [], {}, "", False
+        blocks, parts, usage, finish, stopped, oversized = {}, [], {}, "", False, False
         started = time.time()
         try:
             for rawb in response.iter_lines(decode_unicode=False):
@@ -739,10 +811,23 @@ class ClaudeProvider(AIProvider):
                         block["json"] += delta.get("partial_json", "")
                         if len(block["json"]) > MAX_PART_JSON:
                             raise ProviderError("request", "Claude tool arguments are too large")
+                    elif delta.get("type") == "thinking_delta" and block.get("type") == "thinking":
+                        block["thinking"] = block.get("thinking", "") + str(delta.get("thinking", ""))
+                    elif delta.get("type") == "signature_delta" and block.get("type") == "thinking":
+                        block["signature"] = block.get("signature", "") + str(delta.get("signature", ""))
                 elif kind == "content_block_stop":
                     block = blocks.pop(event["index"], {})
                     if block.get("type") == "text":
-                        parts.append({"text": block.get("text", "")})
+                        if block.get("text"):
+                            parts.append({"text": block["text"]})
+                    elif block.get("type") in ("thinking", "redacted_thinking"):
+                        # Never shown to the student; returned to Claude verbatim on the next tool round.
+                        keep = {"type": "thinking", "thinking": str(block.get("thinking", "")), "signature": str(block.get("signature", ""))} \
+                            if block["type"] == "thinking" else {"type": "redacted_thinking", "data": str(block.get("data", ""))}
+                        if len(json.dumps(keep)) > MAX_THINKING_PART:
+                            oversized = True           # fine to drop, unless a tool round must carry it back
+                        else:
+                            parts.append({"claudeThinking": keep})
                     elif block.get("type") == "tool_use" and block.get("name") in TOOL_NAMES:
                         args = json.loads(block["json"]) if block["json"] else block.get("input") or {}
                         if not isinstance(args, dict):
@@ -757,13 +842,15 @@ class ClaudeProvider(AIProvider):
                     stopped = True
             if not stopped or blocks:
                 raise ProviderError("network", "The AI answer was cut off")
+            if oversized and any("functionCall" in p for p in parts):
+                raise ProviderError("request", "Claude's reasoning block is too large to continue this tool step")
         except requests.RequestException:
             raise ProviderError("network", "The AI answer was cut off") from None
         except (ValueError, KeyError, TypeError):
             raise ProviderError("provider", "Claude returned an incomplete answer") from None
         finally:
             response.close()
-        # Do not show thought/signature blocks, cache metadata or upstream ids.
+        # Reasoning blocks go to the browser only to be sent back (never displayed); no cache metadata or upstream ids.
         yield {"type": "done", "content": {"role": "model", "parts": parts}, "finish": finish,
                "usage": {k: usage[k] for k in ("input_tokens", "output_tokens") if k in usage}}
 
@@ -857,8 +944,8 @@ def ai_state() -> dict:
             reason = str(exc)
         except (sqlite3.Error, OSError):
             reason = "Claude's persistent credit ledger is unavailable."
-        if os.getenv("ARIA_AI_GEMINI_FALLBACK", "") == "1" and CFG.key and CFG.free_tier_confirmed:
-            return {"enabled": True, "reason": "", "provider": "gemini", "fallback": True}
+        if _fallback_ready():
+            return {"enabled": True, "reason": "", "provider": "gemini", "fallback": True, "claude_reason": reason}
         return {"enabled": False, "reason": reason}
     if CFG.provider != "gemini":
         return {"enabled": False, "reason": "Unknown AI provider configured."}
@@ -941,6 +1028,17 @@ def _clean_part(p: Any, role: str) -> Optional[dict]:
         out["functionResponse"] = {"name": fr["name"], "response": resp}
         if isinstance(fr.get("id"), str):
             out["functionResponse"]["id"] = fr["id"][:80]
+    elif "claudeThinking" in p and role == "model":
+        # Claude's reasoning block, returned verbatim (Anthropic rejects an altered one).
+        b = p["claudeThinking"] if isinstance(p["claudeThinking"], dict) else {}
+        if b.get("type") == "thinking" and isinstance(b.get("thinking"), str) and isinstance(b.get("signature"), str) \
+                and _SIGNATURE.fullmatch(b["signature"]):
+            out["claudeThinking"] = {"type": "thinking", "thinking": b["thinking"], "signature": b["signature"]}
+        elif b.get("type") == "redacted_thinking" and isinstance(b.get("data"), str) and _SIGNATURE.fullmatch(b["data"]):
+            out["claudeThinking"] = {"type": "redacted_thinking", "data": b["data"]}
+        if not out or len(json.dumps(out["claudeThinking"])) > MAX_THINKING_PART:
+            return None
+        return out
     elif role == "model" and isinstance(p.get("thoughtSignature"), str):
         pass                                          # a signature-only part: kept, it must go back verbatim
     else:
@@ -1025,13 +1123,39 @@ _LIMIT_TEXT = {
 }
 
 
-def _provider_privacy(name: str) -> str:
+_CLAUDE_NAMES = {"claude-sonnet-5-5": "Claude Sonnet 5.5", "claude-haiku-5-5": "Claude Haiku 5.5",
+                 "claude-sonnet-4-6": "Claude Sonnet 4.6", "claude-haiku-4-5-20251001": "Claude Haiku 4.5"}
+
+
+def _claude_model() -> str:
+    return os.getenv("ARIA_CLAUDE_MODEL", "claude-sonnet-5-5").strip()
+
+
+def _fallback_ready() -> bool:
+    return os.getenv("ARIA_AI_GEMINI_FALLBACK", "") == "1" and bool(CFG.key) and CFG.free_tier_confirmed
+
+
+def _provider_label(name: str, fallback: bool = False) -> str:
     if name == "claude":
-        text = "AI replies come from Anthropic Claude using a reserved promotional-credit allowance. ARIA sends your words and chart data only; don't share personal details."
-        if os.getenv("ARIA_AI_GEMINI_FALLBACK", "") == "1":
-            text += " If the approved Gemini free-tier fallback is used, Google may use what you send to improve its products."
+        return f"{_CLAUDE_NAMES.get(_claude_model(), 'Claude')} (Anthropic API, promotional credits)"
+    if name == "mock":
+        return "Test provider (no AI model)"
+    return "Gemini (free-tier fallback)" if fallback else "Gemini (free tier)"
+
+
+def _provider_privacy(name: str, fallback: bool = False) -> str:
+    """The notice shown beside ARIA: who answers, and what that provider may do with it."""
+    base = " ARIA sends your words and chart data only: no name, email, balance, positions or journal. Don't share personal details."
+    if name == "claude":
+        text = ("AI replies come from Anthropic's Claude API on a capped promotional-credit allowance. "
+                "By default Anthropic does not use API inputs or outputs to train its models." + base)
+        if _fallback_ready():
+            text += " If that allowance is unavailable before a reply starts, Gemini's free tier answers instead (labelled), where Google may use what is sent to improve its products."
         return text
-    return "AI replies come from Google Gemini's free tier, where Google may use what is sent to improve its products. ARIA sends your words and chart data only; don't share personal details."
+    if name == "mock":
+        return "A scripted test provider answers; nothing leaves this server." + base
+    return ("AI replies come from Google Gemini's free tier" + (", standing in for Claude" if fallback else "") +
+            ", where Google may use what is sent to improve its products." + base)
 
 
 @router.get("/api/aria/ai/status")
@@ -1039,17 +1163,17 @@ def status(request: Request) -> dict:
     st = ai_state()
     ident = identity(request)
     selected = st.get("provider", CFG.provider)
+    fallback = bool(st.get("fallback"))
     out = {"enabled": st["enabled"], "reason": st["reason"], "provider": selected if st["enabled"] else None,
-           "models": {"main": os.getenv("ARIA_CLAUDE_MODEL", "claude-sonnet-5-5") if selected == "claude" else CFG.model_main,
+           "models": {"main": _claude_model() if selected == "claude" else CFG.model_main,
                       "lite": None if selected == "claude" else CFG.model_lite,
                       "voice": None if selected == "claude" else CFG.model_voice},
-           "privacy": _provider_privacy(selected),
+           "privacy": _provider_privacy(selected, fallback),
+           "label": _provider_label(selected, fallback),
+           "fallback": fallback,
            "guest": ident["guest"]}
-    if selected == "claude":
-        out["label"] = "Claude (promotional credits)"
-    else:
-        out["label"] = "Gemini (free tier)"
-    out["fallback"] = bool(st.get("fallback"))
+    if fallback and ident["owner"]:
+        out["fallback_reason"] = st.get("claude_reason", "")
     if st["enabled"]:
         if ident["guest"] and not CFG.guests:
             out.update(enabled=False, reason="Sign in with your Academy account to use ARIA's AI.")
@@ -1094,11 +1218,11 @@ async def chat(request: Request):
     selected = st.get("provider", CFG.provider)
     previous_model = str(body.get("model") or "")
     if (round_ > 0 and CFG.provider == "claude" and previous_model in (CFG.model_main, CFG.model_lite)
-            and os.getenv("ARIA_AI_GEMINI_FALLBACK", "") == "1" and CFG.key and CFG.free_tier_confirmed):
+            and _fallback_ready()):
         # An approved fallback that asked for a tool owns the remainder of that
         # turn. A newly available Claude allocation must not take over mid-turn.
         selected = "gemini"
-    if round_ > 0 and ((selected == "claude" and previous_model != os.getenv("ARIA_CLAUDE_MODEL", "claude-sonnet-5-5")) or
+    if round_ > 0 and ((selected == "claude" and previous_model != _claude_model()) or
                        (selected == "gemini" and previous_model.startswith("claude-"))):
         return JSONResponse({"error": "provider_changed", "message": "The AI provider changed during this turn. Ask again to continue."}, status_code=409)
     user_text = next((p["text"] for c in reversed(contents) if c["role"] == "user" for p in c["parts"] if "text" in p), "")
@@ -1110,7 +1234,7 @@ async def chat(request: Request):
     if selected == "claude":
         try:
             config = claude_config()
-            priced_body = ClaudeProvider("")._body(plan["model"], SYSTEM_PROMPT, contents, TOOLS, plan["max_out"])
+            priced_body = ClaudeProvider("")._body(plan["model"], SYSTEM_PROMPT, contents, TOOLS, plan["max_out"], effort=plan["thinking"])
             if CreditLedger(config).available() < config.reserve_cost(priced_body):
                 raise CreditBlocked("Insufficient reserved promotional allowance")
         except ProviderError:
@@ -1118,7 +1242,7 @@ async def chat(request: Request):
         except (CreditBlocked, sqlite3.Error, OSError):
             # Preflight only: no Claude request has been sent and no credit was
             # reserved. Never replay a tool round or ambiguous upstream failure.
-            if round_ == 0 and os.getenv("ARIA_AI_GEMINI_FALLBACK", "") == "1" and CFG.key and CFG.free_tier_confirmed:
+            if round_ == 0 and _fallback_ready():
                 selected = "gemini"
                 plan = route(user_text, str(body.get("hint") or "")[:20], provider_name="gemini")
                 plan["degraded"] = True
@@ -1145,9 +1269,9 @@ async def chat(request: Request):
             return
         try:
             _record(ident, plan["tier"], time.time())
+            fb = selected == "gemini" and CFG.provider == "claude"
             yield _sse("meta", {"provider": selected, "model": plan["model"], "tier": plan["tier"],
-                               "label": "Claude (promotional credits)" if selected == "claude" else "Gemini (free tier)",
-                               "privacy": _provider_privacy(selected), "fallback": selected == "gemini" and CFG.provider == "claude",
+                               "label": _provider_label(selected, fb), "privacy": _provider_privacy(selected, fb), "fallback": fb,
                                "degraded": bool(plan.get("degraded")), "round": round_})
             for ev in prov.stream_response(model=plan["model"], system=SYSTEM_PROMPT, contents=contents, tools=TOOLS,
                                            max_out=plan["max_out"], thinking=plan["thinking"], timeout=CFG.timeout_s):
@@ -1188,6 +1312,7 @@ VOICE_PROMPT = SYSTEM_PROMPT + """
 VOICE
 - You are speaking aloud. Keep answers short (one to four sentences) unless the student asks for detail. Say prices and percentages clearly, e.g. "forty-four thousand one hundred and twenty".
 - The student can interrupt you at any time; when they do, stop and answer the new question.
+- Spoken answers keep the same honesty with fewer words: say "I can see…" for observed facts, "that suggests…" for interpretation and "if… then…" for scenarios. Skip the written section labels.
 - The latest workspace context arrives as text marked [WORKSPACE CONTEXT]. Use only that and tool results for market data."""
 
 VOICE_TOOLS = [t for t in TOOLS if t["name"] in {"draw_analysis", "draw_horizontal_level", "clear_ai_drawings", "set_indicator", "switch_chart",

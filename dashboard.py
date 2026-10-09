@@ -87,6 +87,10 @@ _sentinel.attach(app)
 # credits. Claude is off until explicit account/credit/persistence checks pass.
 import aria_ai as _aria_ai
 app.include_router(_aria_ai.router)
+# ARIA voice (see aria_voice.py): ElevenLabs spoken replies and owner-only
+# transcription, off until ARIA_ELEVEN_ENABLED and its billing checks pass.
+import aria_voice as _aria_voice
+app.include_router(_aria_voice.router)
 
 # In-memory store
 history: deque = deque(maxlen=50)

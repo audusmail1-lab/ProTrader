@@ -36,8 +36,22 @@ exact expiry time.
   the same period does not reset its counters. Back up the ledger and do not
   restore an older ledger over a newer one.
 - Reservations include system prompt, history, tool schemas/results, chart
-  context and the full output limit. Plain text/client tools only; no extended
-  thinking, prompt caching, server tools, batches or priced add-ons are requested.
+  context and the full output limit. Client tools only; no prompt caching,
+  server tools, batches or priced add-ons are requested.
+- Thinking (checked 9 Oct 2026 against the thinking docs): Claude Sonnet 5.5
+  rejects `thinking: {type: "disabled"}` with a 400, so ARIA sends its lowest
+  setting, `{type: "between_tools"}` (no up-front thinking; short progress notes
+  between tool calls), with `output_config.effort` `low` or `medium` (never
+  `xhigh`/`max`, which turn that setting into a 400). Haiku 5.5 gets
+  `{type: "disabled"}`; the 4.x models get neither field. Thinking tokens are
+  billed as output and count toward `max_tokens`, so the reservation (which
+  prices every allowed output token) still covers them.
+  `ARIA_CLAUDE_THINKING=adaptive` lets Claude decide how much to think, inside
+  the same limit.
+- Claude's reasoning blocks (encrypted, with a signature) go back to the API
+  unchanged inside a tool-use turn, as the API requires. They are never shown,
+  older turns' blocks are omitted (allowed; saves input credit), and the app
+  drops them from the device once a turn is finished.
   Output is limited to 4,096 tokens, serialized input to 120,000 UTF-8 bytes,
   and each Claude connection/read/stream timeout to 60 seconds.
 - Reservations remain consumed on success, error, interruption or timeout.
@@ -87,8 +101,16 @@ Changing these environment values does not itself prove account facts.
 Recheck actual Console controls; never enable auto-reload or add a payment
 method to satisfy setup. A new credit period must correspond to newly verified
 credits, not an application restart. Renewal of an attestation uses the same
-period and ledger. Render's existing private `/var/data` disk is a candidate;
-verify it is actually mounted and keep the database outside public assets.
+period and ledger. Render's existing private `/var/data` disk is a candidate
+(`ARIA_CLAUDE_BUDGET_DB=/var/data/aria_claude_ledger.db`); verify it is
+actually mounted and keep the database outside public assets.
+
+The reservation is deliberately much larger than the real cost: in the browser
+test a typical tool turn (two requests, about 16 turns of history plus the
+chart snapshot) reserved about $0.24, roughly six to seven times what Sonnet 5.5
+would bill for it. A $20 allowance therefore covers about 80 such turns before
+Claude stops (or the labelled Gemini fallback answers). Loosening that margin
+is an owner decision, not something this code does by itself.
 
 After approved configuration, provision the ledger once in an offline owner
 maintenance session before starting the application. This operation makes
@@ -113,22 +135,27 @@ allowance are unavailable. A fallback that requested a chart tool keeps its
 Gemini model through the rest of that turn. It does not switch providers
 after a Claude timeout/error or during Claude's tool exchange.
 
-The UI states the active provider and its privacy notice. Configured fallback
-is disclosed in advance because Google's free-tier inputs may be used for
-product improvement. Claude does not provide Gemini Live tokens. Standard
-device speech remains available; ElevenLabs voice is outside this code change.
+The UI states the active provider and its privacy notice ("Claude Sonnet 5.5
+(Anthropic API, promotional credits)"; "Gemini (free-tier fallback)" when the
+fallback answers). Configured fallback is disclosed in advance because
+Google's free-tier inputs may be used for product improvement; Anthropic does
+not use API inputs or outputs for training by default. Claude does not provide
+Gemini Live tokens. ARIA's natural voice (ElevenLabs) is separate and has its
+own gates: see ELEVENLABS-VOICE.md.
 
 ## Verification and rollout
 
-49 mocked tests passed; the final reviewed test count is also recorded
-in the accompanying integration review. Tests cover the existing ARIA behavior,
+Mocked tests (9 Oct 2026): `tests/test_claude_credits.py` (32),
+`tests/test_aria_ai.py` (23), and the browser suite
+`tests/test_aria_claude_voice_browser.py`, which runs the real server code
+against a scripted Anthropic stream. Tests cover the existing ARIA behavior,
 Claude wire/stream/tool conversion, secrets, activation/expiry, insufficient
 budget, durable cap behavior, cross-process reservations, redirects, bounded
 timeouts and fallback tool rounds. No live model intelligence, hosting
 environment or provider credit consumption has been tested.
 
 Run the scoped suites with `python3 -m pytest -q tests/test_aria_ai.py
-tests/test_claude_credits.py`. All Claude/Gemini calls in them are mocked. The
+tests/test_claude_credits.py` and `python3 tests/test_aria_claude_voice_browser.py`. All Claude/Gemini calls in them are mocked. The
 new suite forbids real HTTP posts. Full app deployment and wider trading
 regression tests are separate from this provider-only change. Roll back these
 source changes if needed, or set `ARIA_CLAUDE_ENABLED=0` to stop Claude calls.
