@@ -2910,11 +2910,13 @@ DASHBOARD_HTML = """<!DOCTYPE html>
 
     try {
       const res = await fetch('/api/analyze/' + ticker + '?interval=' + currentInterval);
+      if (document.getElementById('tickerSelect').value !== ticker) { setLoading(false); return; }
       if (!res.ok) {
         const err = await res.json();
         throw new Error(err.detail || res.statusText);
       }
       const data = await res.json();
+      if (document.getElementById('tickerSelect').value !== ticker) { setLoading(false); return; }
       updateUI(data);
       updateConditions(data);
       addHistoryRow(data);
