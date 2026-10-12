@@ -11166,7 +11166,8 @@ const OT = {
     // a field left as the dialog showed it is not a change: the position keeps
     // whatever it has by the time Apply lands (a trailing stop may have moved)
     const slChanged = slEl.value !== (slEl.dataset.was ?? ''), tpChanged = tpEl.value !== (tpEl.dataset.was ?? '');
-    const ref = kind === 'position' ? rec.entry : rec.price;
+    const q = kind === 'position' ? otQuote(rec.symbol) : null;
+    const ref = kind === 'position' ? (q.ok ? (rec.side === 'buy' ? q.bid : q.ask) : rec.entry) : rec.price;
     const minDist = otMinDist(rec.symbol);
     const minPts = Math.round(minDist / s.tick);
     const err = document.getElementById('modErr');
