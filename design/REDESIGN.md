@@ -42,9 +42,11 @@ Desktop ≥ 960: watchlist 224 · chart (min 0, flexible) · panel 320.
 Phone ≤ 820 (**forest**, approved October 2026 from Joel's prototype): the phone
 sets `data-theme="forest"` at boot (`MOB` in `protrader_mobile.html`) — a deep
 green frame (`#05443a`), a white chart card, teal for up, coral for down, violet
-for the EMA, amber for ORACLE and the paper account. Header rows: symbol ·
-PAPER chip · ARIA button, then price · 24h change · clock. The chart card has a
-timeframe menu, Draw, Indicators and Expand. The bottom strip is the
+for the EMA, amber for ORACLE and the paper account. One compact header row:
+symbol · PAPER chip · ARIA button (no price row: the chart's axis and last-price
+label carry the live state). The chart card begins right under it and holds the
+timeframe menu, Draw, Indicators and Expand; its first view is candles and the
+20 EMA alone (the Indicators menu adds the rest). The bottom strip is the
 **Insights · Positions · Orders** sheet: Insights is one list fed by ARIA
 (`checkModel`), ORACLE (`ORACLE.check` on the ticket) and Sentinel (open setups
 plus the pattern scanner, numbered like the chart markers); each row's action

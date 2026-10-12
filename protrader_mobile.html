@@ -1834,7 +1834,7 @@ svg.ico{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.7;st
   --sh-card:0 10px 30px rgba(0,0,0,.25);
   --f-brand:#05443a;--f-deep:#03362e;--f-card:#ffffff;--f-ink:#15211e;--f-ink2:#5d6b67;
   --f-up:#089981;--f-down:#f23645;--f-ema:#5b5bd6;--f-paper:#fde7bb;--f-live:#5eead4;
-  --hdr-h:92px;--mobile-nav-h:74px;
+  --hdr-h:52px;--mobile-nav-h:64px;
 }
 [data-theme="forest"] body{background:var(--f-brand);color:#fff}
 [data-theme="forest"] body::before{content:none}
@@ -1864,8 +1864,8 @@ svg.ico{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.7;st
 
   /* ── header: symbol · PAPER · ARIA / price · change · clock ── */
   [data-theme="forest"] .topbar{
-    height:calc(var(--hdr-h) + var(--safe-top));padding:calc(6px + var(--safe-top)) 14px 0;gap:4px 8px;
-    grid-template-columns:auto auto minmax(0,1fr) auto auto;grid-template-rows:34px 40px;align-items:center;
+    height:calc(var(--hdr-h) + var(--safe-top));padding:calc(8px + var(--safe-top)) 14px 8px;gap:0 8px;
+    grid-template-columns:auto auto minmax(0,1fr) auto auto;grid-template-rows:36px;align-items:center;
     background:transparent;border-bottom:0;box-shadow:none;
   }
   [data-theme="forest"] .topbar-right{display:contents}
@@ -1873,7 +1873,7 @@ svg.ico{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.7;st
   [data-theme="forest"] .logo-icon{width:18px;height:18px;margin:0}
   [data-theme="forest"] .sym-chip{
     grid-column:2;grid-row:1;height:34px;min-width:0;max-width:none;padding:0 4px;border:0;background:transparent;color:#fff;
-    font-size:17px;font-weight:600;letter-spacing:-.1px;justify-content:flex-start;gap:6px;
+    font:600 17px/1 var(--font-display);letter-spacing:-.1px;justify-content:flex-start;gap:6px;
   }
   [data-theme="forest"] .sym-chip::after{content:'';width:7px;height:7px;border-right:2px solid rgba(255,255,255,.85);border-bottom:2px solid rgba(255,255,255,.85);transform:rotate(45deg) translate(-2px,-2px);margin-left:4px}
   [data-theme="forest"] .sym-flag{display:none}
@@ -1889,24 +1889,8 @@ svg.ico{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.7;st
   [data-theme="forest"] .voice-btn .ico{width:16px;height:16px}
   [data-theme="forest"] .vb-txt{display:inline}
   [data-theme="forest"] #acctBtn,[data-theme="forest"] #notifyBtn,[data-theme="forest"] #themeBtn,[data-theme="forest"] #menuBtn,[data-theme="forest"] .topbar-right .icon-btn{display:none!important}
-  [data-theme="forest"] .live-price{
-    grid-column:1 / span 2;grid-row:2;align-self:center;font-size:31px!important;font-weight:700;letter-spacing:-.9px;line-height:1;
-    font-family:var(--font-display);font-variant-numeric:tabular-nums;color:#fff!important;-webkit-text-fill-color:#fff!important;
-  }
-  [data-theme="forest"] .live-chg{
-    grid-column:3;grid-row:2;justify-self:start;align-self:center;display:inline-flex;align-items:center;height:22px;padding:0 9px;border-radius:7px;
-    font-size:12.5px;font-weight:700;font-variant-numeric:tabular-nums;background:rgba(255,255,255,.1);color:#fff;
-  }
-  [data-theme="forest"] .live-chg.dn{background:rgba(242,54,69,.18);color:var(--red-lt)}
-  [data-theme="forest"] .live-chg.up{background:rgba(47,211,165,.16);color:var(--green-lt)}
-  [data-theme="forest"] .live-chg::after{content:'24H';margin-left:6px;font-weight:500;opacity:.8}
-  [data-theme="forest"] .live-chg:empty{display:none}
-  [data-theme="forest"] #updateTs{
-    display:inline-flex!important;grid-column:4 / span 2;grid-row:2;justify-self:end;align-self:center;align-items:center;gap:6px;
-    border:0;background:none;padding:0;color:var(--tx-3);font-size:12px;font-weight:500;font-variant-numeric:tabular-nums;cursor:pointer;
-  }
-  [data-theme="forest"] #updateTs::before{content:'';width:7px;height:7px;border-radius:50%;background:var(--f-live);box-shadow:0 0 0 3px rgba(94,234,212,.18)}
-  [data-theme="forest"] #updateTs:empty{display:none!important}
+  /* no second header row: the chart's price axis and its last-price tag carry the live state */
+  [data-theme="forest"] .live-price,[data-theme="forest"] .live-chg,[data-theme="forest"] #updateTs{display:none!important}
 
   /* ── the chart card ── */
   [data-theme="forest"] .center{padding:0 10px}
@@ -1937,8 +1921,9 @@ svg.ico{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.7;st
   [data-theme="forest"] .chart-wrap{background:var(--f-card)}
   [data-theme="forest"] #dtBar{background:#f7f9f8;border-right-color:#eef2f1}
   [data-theme="forest"] .dt-btn{color:#5d6b67}[data-theme="forest"] .dt-btn:hover{color:var(--f-ink);background:#eef2f1}
+  [data-theme="forest"] #lwChart{top:28px}        /* the legend has its own band above the plot, clear of the top price label */
   [data-theme="forest"] .ohlc-bar{
-    left:12px;right:12px;top:8px;gap:0 10px;justify-content:flex-end;padding:0;border:0;background:transparent;backdrop-filter:none;
+    left:12px;right:12px;top:7px;gap:0 10px;justify-content:flex-end;padding:0;border:0;background:transparent;backdrop-filter:none;
     font-family:var(--font-display);font-size:11px;font-weight:600;color:var(--f-ink);
   }
   [data-theme="forest"] .ohlc-lbl{color:var(--f-ink2);font-weight:500}
@@ -1946,7 +1931,7 @@ svg.ico{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.7;st
   [data-theme="forest"] .ohlc-bar::before{content:attr(data-ema);margin-right:auto;color:var(--f-ema);font-weight:700;padding-left:20px;position:relative;white-space:nowrap}
   [data-theme="forest"] .ohlc-bar.has-ema::before{background:linear-gradient(var(--f-ema),var(--f-ema)) 0 50%/14px 3px no-repeat;border-radius:2px}
   [data-theme="forest"] .chart-loading{background:#fff;border-color:#e4e9e7;color:var(--f-ink2);box-shadow:0 6px 20px rgba(0,0,0,.08)}
-  [data-theme="forest"] .price-tag{background:var(--f-brand);color:#fff;border-radius:7px 0 0 7px;padding:4px 7px}
+  [data-theme="forest"] .price-tag{display:none}   /* the axis label carries the last price */
   [data-theme="forest"] .ch-price,[data-theme="forest"] .ch-time{background:#fff;color:var(--f-ink);border-color:#d7dedb}
   [data-theme="forest"] .ch-xline,[data-theme="forest"] .ch-yline{background:#5d6b67}
   [data-theme="forest"] .ticker-wrap,[data-theme="forest"] .ws-summary{display:none!important}
@@ -1962,15 +1947,15 @@ svg.ico{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.7;st
   /* ── the sheet: Insights · Positions · Orders ── */
   [data-theme="forest"] .workspace{padding-bottom:calc(var(--mobile-nav-h) + var(--safe-bottom))}
   [data-theme="forest"] #tradeDock{
-    margin:10px -10px 0;border-radius:22px 22px 0 0;border-top:0;background:var(--f-brand);
-    box-shadow:0 -10px 30px rgba(0,0,0,.22);padding-top:6px;overflow:hidden;position:relative;z-index:5;
+    margin:8px -10px 0;border-radius:22px 22px 0 0;border-top:0;background:var(--f-brand);
+    box-shadow:0 -10px 30px rgba(0,0,0,.22);padding-top:4px;overflow:hidden;position:relative;z-index:5;
   }
   [data-theme="forest"] #tradeDockGrip{height:14px;background:transparent;cursor:pointer}
   [data-theme="forest"] #tradeDockGrip span{width:38px;height:5px;background:rgba(255,255,255,.32)}
-  [data-theme="forest"] .bstrip-tabs{min-height:40px;padding:0 18px;gap:22px;border-bottom:1px solid rgba(255,255,255,.1);overflow-x:auto;scrollbar-width:none}
+  [data-theme="forest"] .bstrip-tabs{min-height:38px;padding:0 18px;gap:22px;border-bottom:1px solid rgba(255,255,255,.1);overflow-x:auto;scrollbar-width:none}
   [data-theme="forest"] .bstab{
-    position:relative;min-width:0;min-height:40px;padding:0;margin:0;border:0;border-radius:0;background:transparent;
-    color:var(--tx-2);font:600 14.5px var(--font-display);display:inline-flex;align-items:center;gap:7px;white-space:nowrap;
+    position:relative;min-width:0;min-height:38px;padding:0;margin:0;border:0;border-radius:0;background:transparent;
+    color:var(--tx-2);font:600 14.5px var(--font-display);text-transform:none;letter-spacing:0;display:inline-flex;align-items:center;gap:7px;white-space:nowrap;
   }
   [data-theme="forest"] .bstab.active{color:#fff;background:transparent}
   [data-theme="forest"] .bstab.active::after{content:'';position:absolute;left:0;right:0;bottom:-1px;height:3px;border-radius:3px 3px 0 0;background:#fff}
@@ -1980,7 +1965,7 @@ svg.ico{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.7;st
   [data-theme="forest"] .bs-cnt{display:inline-grid;place-items:center;min-width:20px;height:20px;padding:0 6px;border-radius:999px;background:rgba(255,255,255,.14);font-size:11.5px;font-weight:700;color:#fff}
   [data-theme="forest"] .bstab.active .bs-cnt{background:#fff;color:var(--f-brand)}
   [data-theme="forest"] .bs-cnt[hidden]{display:none}
-  [data-theme="forest"] #tradeDock .bstrip-body{height:auto!important;max-height:var(--m-sheet,132px);transition:max-height .28s cubic-bezier(.2,.9,.3,1);overflow:auto;overscroll-behavior:contain}
+  [data-theme="forest"] #tradeDock .bstrip-body{height:auto!important;max-height:var(--m-sheet,116px);transition:max-height .28s cubic-bezier(.2,.9,.3,1);overflow:auto;overscroll-behavior:contain}
   [data-theme="forest"] .center{position:relative}
   [data-theme="forest"] #tradeDock.up{position:absolute;left:0;right:0;bottom:0;margin:0;z-index:30}
   [data-theme="forest"] #tradeDock.up .bstrip-body{max-height:min(62dvh,calc(100dvh - var(--hdr-h) - var(--safe-top) - var(--mobile-nav-h) - var(--safe-bottom) - 170px))}
@@ -2018,16 +2003,16 @@ svg.ico{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.7;st
   .mi-act.pri{background:#fff;color:var(--f-brand);border-color:#fff;height:44px;border-radius:13px;font-size:14.5px;padding:0 15px}
   .mi-act.pri svg{width:16px;height:16px;stroke:var(--f-brand);fill:none;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round}
   .mi-empty{padding:12px 16px 6px;font-size:13px;color:var(--tx-3)}
-  .mi-head .mi-row{padding-top:6px;padding-bottom:6px}
+  .mi-head .mi-row{padding-top:5px;padding-bottom:7px}
 
   /* ── the four-tab bar ── */
   [data-theme="forest"] .mobile-nav{
     grid-template-columns:repeat(4,1fr);height:calc(var(--mobile-nav-h) + var(--safe-bottom));padding:6px 8px calc(0px + var(--safe-bottom));
     background:var(--f-deep);border-top:1px solid rgba(255,255,255,.07);box-shadow:none;backdrop-filter:none;
   }
-  [data-theme="forest"] .mobile-nav-btn{min-height:0;height:auto;gap:4px;border:0;border-radius:0;background:transparent;color:var(--tx-3);font-size:11.5px;font-weight:600;justify-content:flex-start;padding-top:0}
+  [data-theme="forest"] .mobile-nav-btn{min-height:0;height:auto;gap:3px;border:0;border-radius:0;background:transparent;color:var(--tx-3);font-size:11.5px;font-weight:600;justify-content:flex-start;padding-top:0}
   [data-theme="forest"] .mobile-nav-btn .ico{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
-  [data-theme="forest"] .mobile-nav-btn .nav-bx{width:56px;height:30px;border-radius:15px;display:grid;place-items:center}
+  [data-theme="forest"] .mobile-nav-btn .nav-bx{width:54px;height:28px;border-radius:14px;display:grid;place-items:center}
   [data-theme="forest"] .mobile-nav-btn.active{color:#fff;background:transparent;box-shadow:none}
   [data-theme="forest"] .mobile-nav-btn.active .nav-bx{background:rgba(255,255,255,.14)}
 
@@ -2047,12 +2032,8 @@ svg.ico{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.7;st
   [data-theme="forest"] .port-orb{background:var(--bg-3);border-color:var(--bd-2)}
 }
 @media (max-height:520px) and (pointer:coarse){
-  [data-theme="forest"]{--hdr-h:48px;--mobile-nav-h:50px}
-  [data-theme="forest"] .topbar{grid-template-columns:auto auto minmax(0,1fr) auto auto auto;grid-template-rows:36px;gap:8px;padding-top:calc(6px + var(--safe-top))}
-  [data-theme="forest"] .live-price{grid-column:3;grid-row:1;font-size:22px!important;justify-self:start}
-  [data-theme="forest"] .live-chg{display:none!important}
-  [data-theme="forest"] #updateTs{display:none!important}
-  [data-theme="forest"] .acct-chip{grid-column:4;grid-row:1}[data-theme="forest"] .voice-btn{grid-column:5;grid-row:1}
+  [data-theme="forest"]{--hdr-h:46px;--mobile-nav-h:50px}
+  [data-theme="forest"] .topbar{padding:calc(5px + var(--safe-top)) 14px 5px}
   [data-theme="forest"] .mobile-nav-btn{flex-direction:row;gap:6px}[data-theme="forest"] .mobile-nav-btn .nav-bx{width:34px;height:28px}
   [data-theme="forest"] #tradeDock:not(.up) .bstrip-body{max-height:0}
   [data-theme="forest"] #tradeDock{margin-top:6px;padding-top:2px}
@@ -3714,12 +3695,13 @@ const CH = {
   applyIndicatorVisibility() {
     if (!this.ready) return;
     const on = S.ind || {};
+    const forest = typeof MOB !== 'undefined' && MOB.forest();   // the phone's EMA is the 20 alone: one line reads at a glance
     this.ema20.applyOptions({ visible: !!on.ema });
-    this.ema50.applyOptions({ visible: !!on.ema });
-    this.ema200.applyOptions({ visible: !!on.ema });
+    this.ema50.applyOptions({ visible: !!on.ema && !forest });
+    this.ema200.applyOptions({ visible: !!on.ema && !forest });
     this.bbU.applyOptions({ visible: !!on.bb });
     this.bbL.applyOptions({ visible: !!on.bb });
-    this.vwap.applyOptions({ visible: !!on.ema });
+    this.vwap.applyOptions({ visible: !!on.ema && !forest });
     // Forex and Deriv synthetics report no volume — showing an empty
     // histogram and its scale would just waste chart height.
     this.volume.applyOptions({ visible: !!on.vol && !!this.hasVolume });
@@ -3937,7 +3919,7 @@ const CH = {
         marks.push({
           time: t, position: bear ? 'aboveBar' : 'belowBar',
           color: forest ? (bull ? '#089981' : bear ? '#F23645' : '#5d6b67') : bull ? '#26A69A' : bear ? '#EF5350' : '#94A3B8',
-          shape: 'circle', size: forest ? 1.6 : 1,
+          shape: 'circle', size: 1,
           text: forest ? String(i + 1) : `${pt.name}${pt.conf ? ' ' + pt.conf + '%' : ''}`,   // the phone numbers them like its Insights rows
         });
       });
@@ -3979,8 +3961,10 @@ const CH = {
   applyTheme() {
     if (!this.ready) return;
     const p = this.palette();
+    const forestChart = document.documentElement.getAttribute('data-theme') === 'forest';
     this.chart.applyOptions({
       layout: { background: { type: 'solid', color: p.bg }, textColor: p.text,
+                fontFamily: forestChart ? "'IBM Plex Sans',system-ui,sans-serif" : "'JetBrains Mono','Inter',monospace", fontSize: forestChart ? 11 : 10,
                 panes: { separatorColor: p.border } },
       grid: { vertLines: { color: p.grid }, horzLines: { color: p.grid } },
       rightPriceScale: { borderColor: p.border },
@@ -14129,7 +14113,7 @@ const MOB = {
     }
     this.chartStyle();
   },
-  chartStyle() { if (typeof CH !== 'undefined' && CH.ready) { CH.applyTheme(); requestChartRedraw(); } },
+  chartStyle() { if (typeof CH !== 'undefined' && CH.ready) { CH.applyTheme(); CH.applyIndicatorVisibility(); requestChartRedraw(); } },
 
   boot() {
     this.theme();
@@ -14139,7 +14123,11 @@ const MOB = {
     const onChange = () => { this.theme(); if (this.on()) this.sheet.tab('insights'); };
     if (mq.addEventListener) mq.addEventListener('change', onChange); else mq.addListener(onChange);
     this.sheetBind();
-    if (this.on()) this.sheet.tab('insights');
+    if (this.on()) {
+      this.sheet.tab('insights');
+      S.ind.bb = false; S.ind.vol = false;                       // the phone's first chart: candles and the 20 EMA; the Indicators menu adds the rest
+      ['bb', 'vol'].forEach(k => document.getElementById('ind-' + k)?.classList.remove('active'));
+    }
     this.syncTf();
     document.addEventListener('click', e => { if (this._tfMenu && !this._tfMenu.hidden && !e.target.closest('#mTfMenu,#mTf')) this.tfMenu(false); });
     window.addEventListener('resize', () => { if (this._tfMenu && !this._tfMenu.hidden) this.tfMenu(false); });

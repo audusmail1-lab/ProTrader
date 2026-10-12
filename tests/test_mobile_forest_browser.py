@@ -75,14 +75,15 @@ def check_phone(page, port, shots):
     assert page.evaluate("document.documentElement.scrollWidth") <= 392
     ok("phone: the forest theme is on, with no sideways scroll")
 
-    # header: symbol, PAPER, ARIA on the first row; price, change, clock on the second
-    sym, acct, aria, price, chg = (rect(page, s) for s in ("#symChip", "#acctChip", "#voiceBtn", "#livePrice", "#liveChg"))
+    # one compact header row: symbol · PAPER · ARIA; no price row, no clock; the chart starts right under it
+    sym, acct, aria, hd, card = (rect(page, s) for s in ("#symChip", "#acctChip", "#voiceBtn", ".topbar", ".chart-toolbar"))
     assert abs(sym["t"] - acct["t"]) < 6 and abs(acct["t"] - aria["t"]) < 6 and aria["r"] <= 390, (sym, acct, aria)
-    assert price["t"] > sym["b"] and abs(price["t"] - chg["t"]) < 14, (price, chg)
+    assert hd["h"] <= 56 and card["t"] - hd["b"] <= 4, (hd, card)
+    assert not visible(page, "#livePrice") and not visible(page, "#liveChg") and not visible(page, "#updateTs")
     assert page.evaluate("document.getElementById('acctChip').textContent.trim().toUpperCase().startsWith('PAPER')")
     assert page.evaluate("getComputedStyle(document.querySelector('.vb-txt')).display") != "none"
     assert not visible(page, "#notifyBtn") and not visible(page, "#themeBtn")
-    ok("phone: header rows — symbol · PAPER · ARIA, then price · 24h change · clock")
+    ok("phone: one compact header (symbol · PAPER · ARIA); the chart card begins right under it")
 
     # the chart card: white, a timeframe menu, Draw, Indicators, Expand
     bg = page.evaluate("getComputedStyle(document.querySelector('.chart-wrap')).backgroundColor")
@@ -184,7 +185,7 @@ def check_phone(page, port, shots):
     page.set_viewport_size({"width": 844, "height": 390}); page.wait_for_timeout(400)
     assert page.evaluate("document.documentElement.dataset.theme") == "forest"
     hd, ch, nav = rect(page, ".topbar"), rect(page, ".chart-wrap"), rect(page, ".mobile-nav")
-    assert hd["h"] <= 60 and ch["h"] >= 150 and nav["h"] <= 60 and page.evaluate("document.documentElement.scrollWidth") <= 846, (hd, ch, nav)
+    assert hd["h"] <= 50 and ch["h"] >= 170 and nav["h"] <= 60 and page.evaluate("document.documentElement.scrollWidth") <= 846, (hd, ch, nav)
     page.set_viewport_size({"width": 390, "height": 844}); page.wait_for_timeout(400)
     ok("phone: landscape keeps a usable chart (one header row, short bar)")
 
