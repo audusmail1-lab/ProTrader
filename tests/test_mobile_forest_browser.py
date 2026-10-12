@@ -81,7 +81,7 @@ def check_phone(page, port, shots):
     assert hd["h"] <= 56 and card["t"] - hd["b"] <= 4, (hd, card)
     assert not visible(page, "#livePrice") and not visible(page, "#liveChg") and not visible(page, "#updateTs")
     assert page.evaluate("document.getElementById('acctChip').textContent.trim().toUpperCase().startsWith('PAPER')")
-    assert page.evaluate("getComputedStyle(document.querySelector('.vb-txt')).display") != "none"
+    r = rect(page, "#voiceBtn"); assert r and abs(r["w"] - r["h"]) < 2, r                  # the round ARIA button
     assert not visible(page, "#notifyBtn") and not visible(page, "#themeBtn")
     ok("phone: one compact header (symbol · PAPER · ARIA); the chart card begins right under it")
 
@@ -101,11 +101,16 @@ def check_phone(page, port, shots):
     ok("phone: the white chart card with a timeframe menu (1M … 1W) that changes the chart")
 
     # rising candles are hollow, the EMA is violet, the markers are numbered
-    opts = page.evaluate("({ up: CH.candle.options().upColor, border: CH.candle.options().borderVisible, ema: CH.ema20.options().color })")
-    assert opts == {"up": "#FFFFFF", "border": True, "ema": "#5b5bd6"}, opts
+    opts = page.evaluate("({ up: CH.candle.options().upColor, border: CH.candle.options().borderVisible, ema: CH.ema20.options().color, spacing: CH.chart.timeScale().options().barSpacing })")
+    assert opts == {"up": "#FFFFFF", "border": True, "ema": "#7c9193", "spacing": 4}, opts
     marks = page.evaluate("S.activePatterns.slice(0, 3).map((p, i) => String(i + 1))")
-    assert len(marks) >= 1
-    ok(f"phone: hollow rising candles, violet EMA, {len(marks)} numbered pattern marker(s)")
+    assert len(marks) >= 1 and page.evaluate("BADGES.items.map(b => b.label)") == marks
+    assert page.evaluate("!!document.querySelector('.ohlc-bar .m-eye')") and not visible(page, ".ohlc-bar .ohlc-item")
+    page.tap(".ohlc-bar .m-eye"); page.wait_for_timeout(150)
+    assert page.evaluate("!S.ind.ema && !CH.ema20.options().visible")
+    page.tap(".ohlc-bar .m-eye"); page.wait_for_timeout(150)
+    assert page.evaluate("S.ind.ema && CH.ema20.options().visible")
+    ok(f"phone: hollow rising candles, a thin grey EMA with an eye toggle, {len(marks)} numbered badge(s) drawn in the chart")
 
     # the sheet: Insights is the default tab, collapsed to one headline; the grip pulls it up
     assert page.evaluate("document.querySelector('.bstab.active').dataset.tab") == "insights"
