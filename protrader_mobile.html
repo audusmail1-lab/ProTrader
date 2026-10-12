@@ -1836,7 +1836,7 @@ svg.ico{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.7;st
   --sh-card:0 10px 30px rgba(0,0,0,.25);
   --f-brand:#05443a;--f-deep:#03362e;--f-card:#ffffff;--f-ink:#15211e;--f-ink2:#5d6b67;
   --f-up:#089981;--f-down:#f23645;--f-ema:#5b5bd6;--f-paper:#fde7bb;--f-live:#5eead4;
-  --hdr-h:50px;--mobile-nav-h:60px;
+  --hdr-h:52px;--mobile-nav-h:46px;
   --font-display:'Inter',system-ui,-apple-system,'Segoe UI',sans-serif;
   --fs-2:13.5px;--fs-3:15px;--fs-4:19px;--fs-5:26px;
 }
@@ -1897,14 +1897,14 @@ svg.ico{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.7;st
   [data-theme="forest"] .live-price,[data-theme="forest"] .live-chg,[data-theme="forest"] #updateTs{display:none!important}
 
   /* ── the chart card ── */
-  [data-theme="forest"] .center{padding:0 10px}
+  [data-theme="forest"] .center{padding:0 8px}
   [data-theme="forest"] .chart-toolbar{
-    height:44px;padding:5px 8px;gap:2px;margin:0;border-radius:20px 20px 0 0;border:0;
+    height:50px;padding:7px 8px;gap:2px;margin:0;border-radius:20px 20px 0 0;border:0;
     background:var(--f-card);color:var(--f-ink);box-shadow:0 10px 30px rgba(0,0,0,.18);overflow:visible;
   }
   [data-theme="forest"] .chart-toolbar .tf-btn,[data-theme="forest"] .chart-toolbar .ws-menu:nth-of-type(2),[data-theme="forest"] .chart-toolbar .ws-button:not(.ws-draw-menu):not(.m-expand){display:none!important}
   [data-theme="forest"] .m-tf{
-    display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 11px;border-radius:10px;border:0;flex:0 0 auto;
+    display:inline-flex;align-items:center;gap:6px;height:34px;padding:0 12px;border-radius:11px;border:0;flex:0 0 auto;
     background:var(--f-brand);color:#fff;font:700 13px var(--font-display);cursor:pointer;
   }
   [data-theme="forest"] .m-tf::after{content:'';width:6px;height:6px;border-right:2.5px solid #fff;border-bottom:2.5px solid #fff;transform:rotate(45deg) translate(-1px,-1px)}
@@ -1915,6 +1915,7 @@ svg.ico{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.7;st
   [data-theme="forest"] .chart-toolbar .ws-menu{flex:1 1 0;min-width:0;display:block}
   [data-theme="forest"] .chart-toolbar .ws-menu summary::-webkit-details-marker{display:none}
   [data-theme="forest"] .chart-toolbar .ws-menu summary::after{content:none}
+  .m-expand .m-exp-in,.m-expand[aria-pressed="true"] .m-exp-out{display:none!important}.m-expand[aria-pressed="true"] .m-exp-in{display:inline-block!important}
   [data-theme="forest"] .chart-toolbar .ws-draw-menu svg,[data-theme="forest"] .m-expand svg{width:17px;height:17px;stroke:var(--f-ink);fill:none;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round;opacity:.85}
   [data-theme="forest"] .chart-toolbar .ws-menu summary::before{content:'';width:17px;height:17px;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2315211e' stroke-width='1.9' stroke-linecap='round'%3E%3Cpath d='M4 7h10M18 7h2M4 17h4M12 17h8'/%3E%3Ccircle cx='16' cy='7' r='2'/%3E%3Ccircle cx='10' cy='17' r='2'/%3E%3C/svg%3E") center/contain no-repeat;opacity:.85}
   [data-theme="forest"] .chart-toolbar .ws-menu-body{background:var(--f-card);color:var(--f-ink);border-color:rgba(21,33,30,.12);box-shadow:0 14px 40px rgba(0,0,0,.25)}
@@ -1925,7 +1926,7 @@ svg.ico{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.7;st
   [data-theme="forest"] .chart-wrap{background:var(--f-card)}
   [data-theme="forest"] #dtBar{background:#f7f9f8;border-right-color:#eef2f1}
   [data-theme="forest"] .dt-btn{color:#5d6b67}[data-theme="forest"] .dt-btn:hover{color:var(--f-ink);background:#eef2f1}
-  [data-theme="forest"] #lwChart{top:26px}        /* the legend has its own band above the plot, clear of the top price label */
+  [data-theme="forest"] #lwChart{top:26px;height:auto}   /* the base rule's height:100% would push the time axis under the card's edge */        /* the legend has its own band above the plot, clear of the top price label */
   [data-theme="forest"] .ohlc-bar{
     left:12px;right:12px;top:7px;gap:0 10px;justify-content:flex-end;padding:0;border:0;background:transparent;backdrop-filter:none;
     font-family:var(--font-display);font-size:10.5px;font-weight:600;color:var(--f-ink);
@@ -1951,14 +1952,14 @@ svg.ico{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.7;st
   /* ── the sheet: Insights · Positions · Orders ── */
   [data-theme="forest"] .workspace{padding-bottom:calc(var(--mobile-nav-h) + var(--safe-bottom))}
   [data-theme="forest"] #tradeDock{
-    margin:8px -10px 0;border-radius:22px 22px 0 0;border-top:0;background:var(--f-brand);
+    margin:6px -8px 0;border-radius:22px 22px 0 0;border-top:0;background:var(--f-brand);
     box-shadow:0 -10px 30px rgba(0,0,0,.22);padding-top:4px;overflow:hidden;position:relative;z-index:5;
   }
-  [data-theme="forest"] #tradeDockGrip{height:14px;background:transparent;cursor:pointer}
+  [data-theme="forest"] #tradeDockGrip{height:12px;background:transparent;cursor:pointer}
   [data-theme="forest"] #tradeDockGrip span{width:38px;height:5px;background:rgba(255,255,255,.32)}
-  [data-theme="forest"] .bstrip-tabs{min-height:36px;padding:0 16px;gap:20px;border-bottom:1px solid rgba(255,255,255,.1);overflow-x:auto;scrollbar-width:none}
+  [data-theme="forest"] .bstrip-tabs{min-height:30px;padding:0 16px;gap:20px;border-bottom:1px solid rgba(255,255,255,.1);overflow-x:auto;scrollbar-width:none}
   [data-theme="forest"] .bstab{
-    position:relative;min-width:0;min-height:36px;padding:0;margin:0;border:0;border-radius:0;background:transparent;
+    position:relative;min-width:0;min-height:30px;padding:0;margin:0;border:0;border-radius:0;background:transparent;
     color:var(--tx-2);font:600 14px var(--font-display);text-transform:none;letter-spacing:0;display:inline-flex;align-items:center;gap:6px;white-space:nowrap;
   }
   [data-theme="forest"] .bstab.active{color:#fff;background:transparent}
@@ -1969,7 +1970,7 @@ svg.ico{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.7;st
   [data-theme="forest"] .bs-cnt{display:inline-grid;place-items:center;min-width:18px;height:18px;padding:0 5px;border-radius:999px;background:rgba(255,255,255,.14);font-size:11px;font-weight:600;color:#fff}
   [data-theme="forest"] .bstab.active .bs-cnt{background:#fff;color:var(--f-brand)}
   [data-theme="forest"] .bs-cnt[hidden]{display:none}
-  [data-theme="forest"] #tradeDock .bstrip-body{height:auto!important;max-height:var(--m-sheet,108px);transition:max-height .28s cubic-bezier(.2,.9,.3,1);overflow:auto;overscroll-behavior:contain}
+  [data-theme="forest"] #tradeDock .bstrip-body{height:auto!important;max-height:var(--m-sheet,45px);transition:max-height .28s cubic-bezier(.2,.9,.3,1);overflow:auto;overscroll-behavior:contain}
   [data-theme="forest"] .center{position:relative}
   [data-theme="forest"] #tradeDock.up{position:absolute;left:0;right:0;bottom:0;margin:0;z-index:30}
   [data-theme="forest"] #tradeDock.up .bstrip-body{max-height:min(62dvh,calc(100dvh - var(--hdr-h) - var(--safe-top) - var(--mobile-nav-h) - var(--safe-bottom) - 170px))}
@@ -2007,17 +2008,19 @@ svg.ico{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.7;st
   .mi-act.pri{background:#fff;color:var(--f-brand);border-color:#fff;height:40px;border-radius:12px;font-size:13.5px;font-weight:700;padding:0 14px}
   .mi-act.pri svg{width:15px;height:15px;stroke:var(--f-brand);fill:none;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round}
   .mi-empty{padding:12px 16px 6px;font-size:12.5px;color:var(--tx-3)}
-  .mi-head .mi-row{padding-top:5px;padding-bottom:7px}
+  .mi-head .mi-row{padding-top:3px;padding-bottom:4px;gap:10px}
+  .mi-head .mi-act.pri{height:32px;border-radius:10px;font-size:13px;padding:0 12px}
+  .mi-head .mi-act{height:30px}
 
   /* ── the four-tab bar ── */
   [data-theme="forest"] .mobile-nav{
-    grid-template-columns:repeat(4,1fr);height:calc(var(--mobile-nav-h) + var(--safe-bottom));padding:5px 8px calc(0px + var(--safe-bottom));
+    grid-template-columns:repeat(4,1fr);height:calc(var(--mobile-nav-h) + var(--safe-bottom));padding:4px 8px calc(0px + var(--safe-bottom));
     background:var(--f-deep);border-top:1px solid rgba(255,255,255,.07);box-shadow:none;backdrop-filter:none;
   }
-  [data-theme="forest"] .mobile-nav-btn{min-height:0;height:auto;gap:3px;border:0;border-radius:0;background:transparent;color:var(--tx-3);font:500 11px var(--font-display);justify-content:flex-start;padding-top:0}
+  [data-theme="forest"] .mobile-nav-btn{min-height:0;height:auto;gap:2px;border:0;border-radius:0;background:transparent;color:var(--tx-3);font:500 11px var(--font-display);justify-content:flex-start;padding-top:0}
   [data-theme="forest"] .mobile-nav-btn.active{font-weight:600}
   [data-theme="forest"] .mobile-nav-btn .ico{width:21px;height:21px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
-  [data-theme="forest"] .mobile-nav-btn .nav-bx{width:52px;height:27px;border-radius:14px;display:grid;place-items:center}
+  [data-theme="forest"] .mobile-nav-btn .nav-bx{width:50px;height:25px;border-radius:13px;display:grid;place-items:center}
   [data-theme="forest"] .mobile-nav-btn.active{color:#fff;background:transparent;box-shadow:none}
   [data-theme="forest"] .mobile-nav-btn.active .nav-bx{background:rgba(255,255,255,.14)}
 
@@ -2167,7 +2170,7 @@ svg.ico{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.7;st
       <button class="ind-btn" onclick="chartZoomBy(1.25)" title="Zoom in (or pinch / Ctrl+scroll)" style="font-weight:900" aria-label="Zoom in">+</button>
       </div></details>
       <button class="ws-button" type="button" onclick="WS.openObjects()">Objects</button>
-      <button type="button" class="ws-button m-expand" id="mExpand" onclick="MOB.expand()" aria-pressed="false"><svg viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg><span>Expand</span></button>
+      <button type="button" class="ws-button m-expand" id="mExpand" onclick="MOB.expand()" aria-pressed="false"><svg viewBox="0 0 24 24" class="m-exp-out"><path d="M4 9.5V4h5.5M4 4l5.5 5.5M14.5 4H20v5.5M20 4l-5.5 5.5M4 14.5V20h5.5M4 20l5.5-5.5M14.5 20H20v-5.5M20 20l-5.5-5.5"/></svg><svg viewBox="0 0 24 24" class="m-exp-in"><path d="M9.5 3v6.5H3M9.5 9.5L3 3M14.5 3v6.5H21M14.5 9.5L21 3M9.5 21v-6.5H3M9.5 14.5L3 21M14.5 21v-6.5H21M14.5 14.5L21 21"/></svg><span>Expand</span></button>
     </div>
 
     <div id="positionMeasure" hidden style="padding:8px 12px;border-bottom:1px solid var(--bd-2);font-size:12px;flex-shrink:0">
