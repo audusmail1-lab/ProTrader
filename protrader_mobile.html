@@ -9532,7 +9532,7 @@ function otSpec(id) {
   const tick = Math.pow(10, -dp);
   // Forex pip: 5dp → 0.0001, 3dp (JPY) → 0.01, 4dp (MXN/PLN) → 0.001; else the tick.
   const pip = p.market === 'forex'
-    ? (dp >= 4 ? 0.0001 : dp === 3 ? 0.01 : tick)
+    ? (dp >= 5 ? 0.0001 : dp === 4 ? 0.001 : dp === 3 ? 0.01 : tick)
     : tick;
   // While orders are routed to MT5, lot limits and contract size come from
   // the terminal itself — the paper defaults above do not apply there.
