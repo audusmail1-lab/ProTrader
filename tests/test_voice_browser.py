@@ -207,6 +207,38 @@ def check_mt5_needs_a_tap(page):
     run(page, "LIVE.routing = () => false")
 
 
+def check_mt5_multi_position(page):
+    """A command that matches more than one MT5 position must act on all of
+    them (never silently only the first), and a filtered command (by symbol
+    or side) must never widen into LIVE.closeAll() unless "all"/"everything"
+    was said with no symbol filter."""
+    run(page, """(() => {
+      window.__mt5 = [];
+      LIVE.routing = () => true; LIVE.validate = () => ({}); LIVE.acct = () => ({ equity: 10000, balance: 10000, mode: 'demo' });
+      LIVE.snap = () => ({ positions: [
+        { ticket: '101', symbol: LIVE.mt5Symbol('R_75'), side: 'buy', volume: 0.2, entry: 44000, price: 44600, sl: 43500, tp: 0, profit: 120 },
+        { ticket: '202', symbol: LIVE.mt5Symbol('frxXAUUSD'), side: 'buy', volume: 0.1, entry: 1900, price: 1920, sl: 1850, tp: 0, profit: 80 },
+        { ticket: '303', symbol: LIVE.mt5Symbol('frxXAUUSD'), side: 'sell', volume: 0.1, entry: 1950, price: 1920, sl: 2000, tp: 0, profit: 30 },
+      ] });
+      LIVE.breakeven = async t => { window.__mt5.push(['breakeven', t]); };
+      LIVE.closePosition = async t => { window.__mt5.push(['close', t]); };
+      LIVE.closeAll = async () => { window.__mt5.push(['closeAll']); };
+    })()""")
+    talk(page, "breakeven everything")
+    calls = run(page, "window.__mt5")
+    assert ["breakeven", "101"] in calls and ["breakeven", "202"] in calls and ["breakeven", "303"] in calls, calls
+
+    run(page, "window.__mt5 = []")
+    # matches tickets 202 and 303 (the Gold positions) out of 3 open trades: must close only those two.
+    talk(page, "close all my gold")
+    assert run(page, "window.__mt5") == [["close", "202"], ["close", "303"]], run(page, "window.__mt5")
+
+    run(page, "window.__mt5 = []")
+    talk(page, "close everything")
+    assert run(page, "window.__mt5") == [["closeAll"]], run(page, "window.__mt5")
+    run(page, "LIVE.routing = () => false")
+
+
 def check_without_speech(page):
     run(page, "VOICE.close(); delete window.SpeechRecognition; delete window.webkitSpeechRecognition; VOICE.open(true)")
     assert "no speech input" in page.inner_text("#vxHeard")
@@ -262,7 +294,8 @@ def main():
         for name, fn in [("parser", check_parse), ("an order by voice, confirmed by voice", check_order_by_voice),
                          ("breakeven tells the truth", check_breakeven_is_honest), ("the risk rules hold", check_rules_hold),
                          ("questions", check_questions), ("closing asks first", check_close), ("a plan expires", check_expiry),
-                         ("MT5 always needs a tap", check_mt5_needs_a_tap), ("no speech input: typing works", check_without_speech)]:
+                         ("MT5 always needs a tap", check_mt5_needs_a_tap), ("MT5 commands cover every matched position", check_mt5_multi_position),
+                         ("no speech input: typing works", check_without_speech)]:
             fn(page)
             print(f"ok  {name}")
         page.screenshot(path=os.path.join(tempfile.gettempdir(), "voice_desktop.png"))
