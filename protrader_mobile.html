@@ -6760,7 +6760,7 @@ const VOICE = {
       const half = has(/\b(?:half|50 percent|0\.5 of)\b/);
       return Object.assign(out, { intent: 'close', all, half, side });
     }
-    if (has(/\btrail(?:ing)?\b/)) return Object.assign(out, { intent: 'trail', side });
+    if (has(/\btrail(?:ing)?\b/)) return Object.assign(out, { intent: 'trail', side, all });
     if (has(/\b(?:move|set|put|change|tighten|raise|lower|adjust|update|bring)\b.*\b(?:stop|sl|stop loss)\b|\bstop (?:loss )?to \d/) && !has(/\b(?:buy|sell) (?:limit|stop)\b/) && !(side && has(/\b(?:buy|sell|go long|go short)\b/))) {
       const m = t.match(new RegExp(`\\bto ${VX_N}\\b`));
       return Object.assign(out, { intent: 'move_stop', price: m ? +m[1] : null, side });
@@ -7197,7 +7197,10 @@ const VOICE = {
   },
   async breakeven(c, o) {
     const ps = await this.which(c, o, 'breakeven', 'protect'); if (!ps) return;
-    if (ps[0].mt5) { await LIVE.breakeven(ps[0].ticket); return this.reply(`Tap the MT5 card to move the ${ps[0].label} stop to entry.`, o); }
+    if (ps[0].mt5) {
+      for (const p of ps) await LIVE.breakeven(p.ticket);
+      return this.reply(ps.length > 1 ? `Tap each MT5 card to move the ${ps.map(p => p.label).join(', ')} stops to entry.` : `Tap the MT5 card to move the ${ps[0].label} stop to entry.`, o);
+    }
     const done = [], not = [];
     for (const p of ps) {
       const raw = p.raw;
@@ -7215,17 +7218,24 @@ const VOICE = {
   },
   async trail(c, o) {
     const ps = await this.which(c, o, 'trail', 'trail'); if (!ps) return;
-    const p = ps[0];
-    if (p.mt5) { await LIVE.trailStop(p.ticket); return this.reply(`The MT5 trailing card for ${p.label} is open: choose the distance and tap to confirm.`, o); }
-    OT.trailStop(p.id);
-    const now = TR.positions.find(x => x.id === p.id);
-    return this.reply(now && now.trail > 0 ? `${p.label}: the stop now trails ${this.px(p.symbol, now.trail)} behind the price.` : `${p.label}: trailing is off.`, o);
+    if (ps[0].mt5) {
+      for (const p of ps) await LIVE.trailStop(p.ticket);
+      return this.reply(ps.length > 1 ? `The MT5 trailing cards for ${ps.map(p => p.label).join(', ')} are open, one at a time: choose each distance and tap to confirm.` : `The MT5 trailing card for ${ps[0].label} is open: choose the distance and tap to confirm.`, o);
+    }
+    const done = [];
+    for (const p of ps) {
+      OT.trailStop(p.id);
+      const now = TR.positions.find(x => x.id === p.id);
+      done.push(now && now.trail > 0 ? `${p.label}: the stop now trails ${this.px(p.symbol, now.trail)} behind the price.` : `${p.label}: trailing is off.`);
+    }
+    return this.reply(done.join(' '), o);
   },
   async closeCmd(c, o) {
     const ps = await this.which(c, o, 'closeCmd', 'close'); if (!ps) return;
     if (ps[0].mt5) {
-      if (ps.length > 1) { await LIVE.closeAll(); return this.reply('The MT5 card to close everything is open. Tap it to confirm.', o); }
-      await LIVE.closePosition(ps[0].ticket); return this.reply(`Tap the MT5 card to close ${ps[0].label}.`, o);
+      if (c.all && !c.sym) { await LIVE.closeAll(); return this.reply('The MT5 card to close everything is open. Tap it to confirm.', o); }
+      for (const p of ps) await LIVE.closePosition(p.ticket);
+      return this.reply(ps.length > 1 ? `Tap each MT5 card to close ${ps.map(p => p.label).join(', ')}.` : `Tap the MT5 card to close ${ps[0].label}.`, o);
     }
     const tot = ps.reduce((a, p) => a + (p.pnl || 0), 0);
     const what = ps.length === 1 ? `${c.half ? 'half of ' : ''}your ${ps[0].label} ${ps[0].side === 'buy' ? 'long' : 'short'}` : `all ${ps.length} trades`;
@@ -9501,6 +9511,11 @@ const TR = {
   positions: [], orders: [], seq: 1, busy: false, lastSubmit: 0,
 };
 
+// Margin level (equity/used-margin * 100) at or below which the worst
+// floating loser gets force-closed, mirroring a real broker's stop-out —
+// without it a paper account has no floor and can run arbitrarily negative.
+const STOP_OUT_LEVEL = 50;
+
 // Ticket state. Symbol and volume survive order-type switches.
 const TK = { side: 'buy', type: 'market', volume: 0.10, price: null, sl: null, tp: null, slOn: false, tpOn: false, auto: true };
 
@@ -10964,6 +10979,30 @@ const OT = {
       const now = Date.now();
       if (!this._trailDrawn || now - this._trailDrawn > 800) { this._trailDrawn = now; this.renderBook(); if (typeof CH !== 'undefined' && CH.ready) CH.refreshLevels(); }
     }
+    this.checkStopOut();
+  },
+
+  // Force-closes the single worst floating loser when margin level drops to
+  // or below STOP_OUT_LEVEL. Closes one position per tick (called every
+  // 500ms) rather than looping here: closePosition() is async and marks the
+  // position `_closing` before its fill comes back, so a synchronous loop
+  // would just stall on that same position. One-per-tick still converges in
+  // well under a second and never risks a double-close race.
+  checkStopOut() {
+    if (!TR.positions.length) return;
+    const acct = otAccount();
+    // A partial equity figure (a position with no live/fresh quote) must
+    // never drive an irreversible force-close.
+    if (acct.unpriced > 0 || acct.level == null || acct.level > STOP_OUT_LEVEL) return;
+    let worst = null, worstPnl = Infinity;
+    TR.positions.forEach(p => {
+      if (p._closing) return;
+      const q = otQuote(p.symbol);
+      if (!q.ok || q.stale) return;
+      const v = otPnl(p.side, p.entry, p.side === 'buy' ? q.bid : q.ask, p.volume, p.symbol);
+      if (v != null && v < worstPnl) { worstPnl = v; worst = p; }
+    });
+    if (worst) this.closePosition(worst.id, null, 'Stop out');
   },
 
   /* Positions list → chart: switch to the trade's market if needed and focus it. */
