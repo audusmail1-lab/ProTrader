@@ -37,9 +37,10 @@ function loadOT() {
   const stateBlock = sliceBetween(src, 'const S = {', 'const pairPrices = {};') + 'const pairPrices = {};\n';
 
   // CLASS_SPECS ... end of the OT object (checkStopOut lives inside OT,
-  // right after checkProtection). Stops before closeAllModals(), the next
-  // top-level declaration after OT in the file.
-  const otBlock = sliceBetween(src, 'const CLASS_SPECS = {', 'function closeAllModals');
+  // right after checkProtection). Stops before TRADE_DOCK, whose module-level
+  // `TRADE_DOCK.init(); WS.init(); NOTIFY.init();` bootstrap call would
+  // otherwise run against this test's bare DOM shim and throw.
+  const otBlock = sliceBetween(src, 'const CLASS_SPECS = {', 'const TRADE_DOCK = {');
 
   // NEXUS is defined later (feed-freshness bookkeeping); otQuote only reads
   // NEXUS.staleMs, so shim just that field. DOM/animation hooks OT.tick()
@@ -50,6 +51,7 @@ function loadOT() {
     let ws = null, CH;
     function showToast(){} function speak(){} function updateBalDisplay(){}
     function renderPortfolio(){} function updateGarden(){} function requestChartRedraw(){}
+    function renderAcctChip(){} function renderLimits(){}
     const document = { getElementById: () => null, querySelectorAll: () => [],
       documentElement: { getAttribute: () => null } };
     const performance = { now: () => Date.now() };
