@@ -74,9 +74,27 @@ the owner enters the rate shown for the plan).
 - **After use.** ARIA asks ElevenLabs to delete each generated clip from the
   account's history, and each transcript, whenever the API returns its id. This
   is best effort; whether the live API returns those ids has not been verified.
-- **Who gets it.** Guests (not signed in) get the device's voice unless the owner
-  sets `ARIA_ELEVEN_GUESTS=1`. A guest identity is cheap to rotate, so it would
-  let anyone drain ARIA's allowance.
+- **Who gets it.** Everyone hears ARIA's natural voice, guests (not signed in)
+  included. A guest identity is cheap to rotate, so guests are bounded separately:
+  together they may use only `ARIA_ELEVEN_GUEST_SHARE` (default 0.5) of ARIA's
+  allowance in a billing period, so signed-in students and the owner always keep
+  the rest; each guest gets at most `ARIA_ELEVEN_TTS_GUEST_PER_DAY` (10) replies and
+  `ARIA_ELEVEN_GUEST_CHARS_PER_DAY` (3000) characters a day, and the per-IP and
+  all-users daily caps still apply. `ARIA_ELEVEN_GUESTS=0` turns guests back to the
+  device's voice. Guests' share is counted in the ledger's `guest_used` column,
+  which an older ledger gains by itself on first use.
+- **When the natural voice is unavailable** (allowance used, guests' share used,
+  account check failed, or turned off), ARIA's own replies use the most natural
+  voice the device offers: neural "Natural" voices (Edge, Windows), Apple's
+  Premium/Enhanced voices, then Google's. Balances, positions, order read-backs,
+  briefings and announcements are read only by a voice that runs on the device,
+  because a browser's online voices send the text to Google or Microsoft.
+- **Guests' daily buckets.** Guests together may use at most their share of
+  `ARIA_ELEVEN_TTS_ALL_PER_DAY`, and they are counted per IP separately from
+  signed-in users (many phones share one carrier IP), so guests can never use
+  up a student's or the owner's day. Guests never get ElevenLabs transcription,
+  whatever `ARIA_ELEVEN_STT` says. A refused request never counts as pending
+  spend against the shared pool.
 - **Never in the browser.** The key stays in the server's environment and travels
   only in the `xi-api-key` header.
 
@@ -97,7 +115,7 @@ the owner enters the rate shown for the plan).
 | `ARIA_ELEVEN_LEDGER_DB` | `/var/data/aria_voice_ledger.db` |
 | `ARIA_ELEVEN_STT` | `owner` (default), `off`, or `all` (only after student data protections) |
 | `ARIA_ELEVEN_STT_CREDITS_PER_MINUTE` | The plan's speech-to-text rate in credits per minute; without it transcription stays off |
-| Optional | `ARIA_ELEVEN_GUESTS`; `ARIA_ELEVEN_MAX_CHARS` (900); `ARIA_ELEVEN_STT_MAX_SECONDS` (30); `ARIA_ELEVEN_TTS_PER_DAY` (40); `ARIA_ELEVEN_USER_CHARS_PER_DAY` (8000); `ARIA_ELEVEN_IP_PER_DAY` (80); `ARIA_ELEVEN_TTS_ALL_PER_DAY` (400); `ARIA_ELEVEN_TTS_PER_MIN` (8); `ARIA_ELEVEN_STT_PER_DAY` (60); `ARIA_ELEVEN_DELETE_AFTER_USE` (1) |
+| Optional | `ARIA_ELEVEN_GUESTS` (1; `0` = device voice for guests); `ARIA_ELEVEN_GUEST_SHARE` (0.5); `ARIA_ELEVEN_GUEST_CHARS_PER_DAY` (3000); `ARIA_ELEVEN_TTS_GUEST_PER_DAY` (10); `ARIA_ELEVEN_MAX_CHARS` (900); `ARIA_ELEVEN_STT_MAX_SECONDS` (30); `ARIA_ELEVEN_TTS_PER_DAY` (40); `ARIA_ELEVEN_USER_CHARS_PER_DAY` (8000); `ARIA_ELEVEN_IP_PER_DAY` (80); `ARIA_ELEVEN_TTS_ALL_PER_DAY` (400); `ARIA_ELEVEN_TTS_PER_MIN` (8); `ARIA_ELEVEN_STT_PER_DAY` (60); `ARIA_ELEVEN_DELETE_AFTER_USE` (1) |
 
 Provision the ledger once, in Render's Shell, after the variables are set and
 before voice is used. It makes no network call, and hands the file to the

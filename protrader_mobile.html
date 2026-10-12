@@ -181,20 +181,49 @@ html,body{height:100%;overflow:hidden;background:var(--bg-1);color:var(--tx-1);f
 @keyframes listening{0%,100%{box-shadow:0 0 8px rgba(239,68,68,.4)}50%{box-shadow:0 0 22px rgba(239,68,68,.9)}}
 /* ── PROTRADER VOICE ── */
 .voice-btn.on{border-color:var(--blue);box-shadow:0 0 0 3px rgba(79,140,255,.18)}
-.vx-wrap{position:fixed;inset:0;z-index:4000;display:none}
+/* ARIA floats over the app: the layer passes every touch through except on the card or its bubble,
+   so the chart, the order ticket and the tabs keep working while a conversation goes on */
+.vx-wrap{position:fixed;inset:0;z-index:4000;display:none;pointer-events:none}
 .vx-wrap.open{display:block}
 .vx-settings[hidden],.vx-card[hidden]{display:none!important}
-.vx-backdrop{position:absolute;inset:0;background:rgba(3,6,12,.42);backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px);animation:vxFade .2s ease}
-.vx-sheet{position:absolute;right:18px;bottom:18px;width:min(420px,calc(100vw - 32px));max-height:min(720px,calc(100vh - 36px));
-  display:flex;flex-direction:column;gap:10px;padding:14px 14px 12px;border-radius:22px;
+.vx-sheet{position:absolute;right:12px;bottom:12px;width:min(420px,calc(100vw - 24px));max-height:min(720px,calc(100vh - 24px));pointer-events:auto;
+  display:flex;flex-direction:column;gap:10px;padding:18px 14px 12px;border-radius:22px;
   background:linear-gradient(180deg,rgba(17,24,39,.97),rgba(8,12,22,.98));border:1px solid rgba(148,163,184,.18);
   box-shadow:0 30px 80px rgba(0,0,0,.55),0 0 0 1px rgba(79,140,255,.08) inset;color:var(--tx-1);animation:vxRise .26s cubic-bezier(.2,.9,.3,1.15)}
 [data-theme="light"] .vx-sheet{background:linear-gradient(180deg,#fff,#f6f8fc);border-color:rgba(148,163,184,.3);box-shadow:0 24px 60px rgba(15,23,42,.22)}
 @keyframes vxRise{from{transform:translateY(24px) scale(.98);opacity:0}to{transform:none;opacity:1}}
 @keyframes vxFade{from{opacity:0}to{opacity:1}}
-.vx-head{display:flex;align-items:center;gap:8px}
+.vx-head{display:flex;align-items:center;gap:8px;min-width:0;cursor:grab;touch-action:none;-webkit-user-select:none;user-select:none}
+.vx-head button{cursor:pointer}
+.vx-grip{position:absolute;top:2px;left:50%;transform:translateX(-50%);width:64px;height:16px;padding:0;border:0;border-radius:8px;background:none;display:grid;place-items:center;cursor:grab!important;touch-action:none}
+.vx-grip::before{content:'';width:38px;height:4px;border-radius:2px;background:rgba(148,163,184,.45)}
+.vx-grip:hover::before,.vx-grip:focus-visible::before{background:rgba(122,167,255,.85)}
+.vx-grip:focus-visible{outline:2px solid var(--blue,#4f8cff);outline-offset:1px}
+.vx-wrap.vx-dragging,.vx-wrap.vx-dragging *{cursor:grabbing!important;-webkit-user-select:none;user-select:none}
+.vx-wrap.vx-dragging .vx-sheet,.vx-wrap.vx-dragging .vx-bub{transition:none;animation:none;box-shadow:0 36px 90px rgba(0,0,0,.6),0 0 0 1px rgba(79,140,255,.35) inset}
+.vx-glide{transition:left .22s cubic-bezier(.2,.9,.3,1),top .22s cubic-bezier(.2,.9,.3,1)}
+/* minimised: the card hides (the conversation, the microphone and the voice keep running) and a bubble stands in */
+.vx-wrap.min .vx-sheet{display:none}
+/* a dialog (the MT5 confirmation, a deposit, the terms) always sits above ARIA, which waits underneath */
+body:has(.modal-backdrop.open) .vx-wrap,body:has(dialog[open]) .vx-wrap{z-index:499}
+.vx-sheet.vx-tight{overflow-y:auto;overscroll-behavior:contain}
+.vx-sheet.vx-tight>*{flex-shrink:0}
+.vx-sheet.vx-tight .vx-log{min-height:4.5em}
+.vx-sr{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+.vx-orb.vx-bub{position:absolute;right:12px;bottom:12px;width:60px;height:60px;display:none;pointer-events:auto;cursor:grab;touch-action:none;filter:drop-shadow(0 8px 18px rgba(0,0,0,.5));animation:vxPop .22s cubic-bezier(.2,.9,.3,1.2)}
+.vx-wrap.min .vx-orb.vx-bub{display:grid}
+.vx-orb.vx-bub .vx-core{width:50px;height:50px;border:2px solid rgba(255,255,255,.16)}
+.vx-orb.vx-bub .vx-core svg{width:22px;height:22px}
+.vx-orb.vx-bub i{inset:4px}
+.vx-orb.vx-bub:focus-visible{outline:2px solid var(--blue,#4f8cff);outline-offset:3px;border-radius:50%}
+.vx-bub b{position:absolute;z-index:3;top:3px;width:13px;height:13px;border-radius:50%;box-shadow:0 0 0 2px var(--bg-1,#070b14);display:none}
+.vx-bub .vx-dot-rec{right:3px;background:#ef4444;animation:vxRec 1.2s ease-out infinite}
+.vx-bub .vx-dot-new{left:3px;background:#22d3ee}
+.vx-bub.rec .vx-dot-rec,.vx-bub.unread .vx-dot-new{display:block}
+@keyframes vxPop{from{transform:scale(.6);opacity:0}to{transform:none;opacity:1}}
 .vx-title{font-weight:900;font-size:14px;letter-spacing:.3px;background:linear-gradient(90deg,#7aa7ff,#22d3ee 55%,#a78bfa);-webkit-background-clip:text;background-clip:text;color:transparent}
-.vx-pill{font-size:11px;font-weight:800;padding:3px 8px;border-radius:999px;background:rgba(79,140,255,.12);color:var(--blue-lt,#8fb3ff);border:1px solid rgba(79,140,255,.25)}
+.vx-title{flex:0 0 auto}
+.vx-pill{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px;font-weight:800;padding:3px 8px;border-radius:999px;background:rgba(79,140,255,.12);color:var(--blue-lt,#8fb3ff);border:1px solid rgba(79,140,255,.25)}
 .vx-icon{margin-left:auto;width:32px;height:32px;border-radius:10px;border:1px solid var(--bd-2,rgba(148,163,184,.2));background:transparent;color:var(--tx-2);font-size:18px;display:grid;place-items:center;cursor:pointer}
 .vx-icon+.vx-icon{margin-left:0}
 .vx-icon svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.8}
@@ -262,10 +291,10 @@ html,body{height:100%;overflow:hidden;background:var(--bg-1);color:var(--tx-1);f
 .vx-type input{flex:1;min-width:0;min-height:42px;border-radius:12px;border:1px solid var(--bd-2,rgba(148,163,184,.25));background:var(--bg-3,#0f1626);color:var(--tx-1);padding:0 12px;font-size:16px}
 .vx-type button{width:44px;border-radius:12px;border:0;background:var(--blue,#4f8cff);color:#fff;font-size:16px;cursor:pointer}
 @media (max-width:820px){
-  .vx-sheet{left:0;right:0;bottom:0;width:auto;max-height:calc(100dvh - 40px);border-radius:22px 22px 0 0;padding:12px 14px calc(12px + env(safe-area-inset-bottom,0px))}
+  .vx-sheet{left:8px;right:8px;bottom:calc(var(--mobile-nav-h,64px) + var(--safe-bottom,0px) + 8px);width:auto;max-height:calc(100dvh - 160px);border-radius:20px;padding:18px 12px 10px}
   .vx-log{max-height:26vh}
 }
-@media (prefers-reduced-motion:reduce){.vx-orb *{animation:none!important}.vx-sheet,.vx-card{animation:none}}
+@media (prefers-reduced-motion:reduce){.vx-orb *{animation:none!important}.vx-sheet,.vx-card,.vx-orb.vx-bub{animation:none}.vx-glide{transition:none}}
 /* ── ARIA COPILOT (inside the voice sheet) ── */
 .cp-modes{display:flex;gap:4px;padding:3px;border-radius:12px;background:rgba(148,163,184,.08);border:1px solid rgba(148,163,184,.14);overflow-x:auto;scrollbar-width:none}
 .cp-modes::-webkit-scrollbar{display:none}
@@ -372,12 +401,12 @@ html,body{height:100%;overflow:hidden;background:var(--bg-1);color:var(--tx-1);f
 .cp-stage b{font-size:13px;color:#4ade80;letter-spacing:.3px}.cp-stage span{font-size:11.5px;color:var(--tx-3)}
 .vx-orb[data-live="listening"] .vx-core{box-shadow:0 0 0 3px rgba(34,197,94,.55),0 0 28px rgba(34,197,94,.45)}
 .vx-orb[data-live="error"] .vx-core,.vx-orb[data-live="disconnected"] .vx-core{filter:grayscale(.7);box-shadow:0 0 0 2px rgba(239,68,68,.6)}
-.vx-wrap.cp-see{pointer-events:none}.vx-wrap.cp-see .vx-sheet{pointer-events:auto}.vx-wrap.cp-see .vx-backdrop{display:none}
 @media (max-width:820px){.vx-sheet.cp-on{width:auto}.cp-panel{max-height:40dvh}.vx-sheet.cp-on .vx-log{max-height:13vh}}
 /* ── REPLAY ── */
 .rp-wrap{position:fixed;inset:0;z-index:3500;display:none;flex-direction:column;background:var(--bg-1,#070b14);color:var(--tx-1)}
 .rp-wrap.open{display:flex}
-@media (min-width:821px){body.vx-open .rp-wrap{right:min(492px,calc(100vw - 360px))}}
+/* a card snapped against a side docks there: the replay makes room for it on that side */
+@media (min-width:821px){body.vx-side-r .rp-wrap{right:min(492px,calc(100vw - 360px))}body.vx-side-l .rp-wrap{left:min(492px,calc(100vw - 360px))}}
 .rp-head{display:flex;align-items:center;gap:10px;padding:10px 14px;padding-top:calc(10px + env(safe-area-inset-top,0px));border-bottom:1px solid rgba(148,163,184,.16)}
 .rp-badge{font-size:10.5px;font-weight:900;letter-spacing:1.2px;padding:3px 8px;border-radius:6px;background:rgba(167,139,250,.18);color:#c4b5fd;border:1px solid rgba(167,139,250,.35)}
 .rp-head b{font-size:14px}
@@ -4210,7 +4239,11 @@ const DT = (() => {
       if (mod && e.altKey && k === 'h') { e.preventDefault(); hideAllToggle(); return; }
       if (mod && !e.altKey && k === 'z') { e.preventDefault(); if (e.shiftKey) redo(); else undo(); return; }
       if (mod && !e.altKey && k === 'y') { e.preventDefault(); redo(); return; }
-      if (e.key === 'Escape') { if (st.flyout) closeFlyout(); closeSheet(); st.measuring = false; }
+      if (e.key === 'Escape') {
+        const had = !!st.flyout || !!$('dtSheet') || !!st.measuring;   // something was closed: the key is used up (ARIA stays as it is)
+        if (st.flyout) closeFlyout(); closeSheet(); st.measuring = false;
+        if (had) e.preventDefault();
+      }
     });
     document.addEventListener('pointerdown', e => { if (st.flyout && !st.flyout.contains(e.target) && !e.target.closest('#dtBar')) closeFlyout(); if (st.els.pop && !st.els.pop.contains(e.target) && !e.target.closest('#dtFloat')) closePop(); }, true);
     window.addEventListener('pagehide', () => { if (st.saveT) save(true); });
@@ -6438,7 +6471,7 @@ const VOICE = {
   init() {
     try { this.cfg = Object.assign({ talk: true, announce: false, lang: 'auto', voice: '', handsFree: true, rate: 1.0 }, JSON.parse(localStorage.getItem(this.KEY) || '{}')); }
     catch (_) { this.cfg = { talk: true, announce: false, lang: 'auto', voice: '', handsFree: true, rate: 1.0 }; }
-    if (window.speechSynthesis) { speechSynthesis.getVoices(); speechSynthesis.onvoiceschanged = () => { if (this.open_) this.renderSettings(); }; }
+    if (window.speechSynthesis) { speechSynthesis.getVoices(); speechSynthesis.onvoiceschanged = () => { this._best = null; if (this.open_) this.renderSettings(); }; }
   },
   save() { try { localStorage.setItem(this.KEY, JSON.stringify(this.cfg)); } catch (_) {} },
   supported() { return !!(window.SpeechRecognition || window.webkitSpeechRecognition); },
@@ -6449,18 +6482,22 @@ const VOICE = {
   },
 
   /* ── the sheet ── */
-  open(listen) {
+  // ARIA floats above the app instead of covering it: nothing outside the card closes it, so a conversation
+  // (and a recording, or a spoken answer) carries on while you work the chart and the order ticket.
+  // The header drags it, it snaps to the nearest edge, minimise leaves a bubble, and it stays put for the session (VXF).
+  open(listen, o = {}) {
     if (!this.cfg) this.init();
     let el = document.getElementById('vxSheet');
     if (!el) {
       el = document.createElement('div');
       el.id = 'vxSheet'; el.className = 'vx-wrap';
-      el.innerHTML = `<div class="vx-backdrop" onclick="VOICE.close()"></div>
-        <section class="vx-sheet" role="dialog" aria-modal="true" aria-label="ARIA Copilot">
-          <header class="vx-head"><span class="vx-title">ARIA Copilot</span><span class="vx-pill" id="vxPill">Ready</span>
+      el.innerHTML = `<section class="vx-sheet" role="dialog" aria-modal="false" aria-label="ARIA Copilot">
+          <header class="vx-head"><button type="button" class="vx-grip" id="vxGrip" aria-label="Move ARIA Copilot: drag, or use the arrow keys; Home and End dock it to a side" title="Drag to move"></button>
+            <span class="vx-title">ARIA Copilot</span><span class="vx-pill" id="vxPill">Ready</span>
             <button type="button" class="vx-icon" onclick="VOICE.toggleSettings()" aria-label="Voice settings" title="Voice settings"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.6 1.6 0 00.3 1.8l.1.1a2 2 0 11-2.8 2.8l-.1-.1a1.6 1.6 0 00-2.7 1.1V21a2 2 0 11-4 0v-.1a1.6 1.6 0 00-2.7-1.1l-.1.1a2 2 0 11-2.8-2.8l.1-.1a1.6 1.6 0 00-1.1-2.7H3a2 2 0 110-4h.1a1.6 1.6 0 001.1-2.7l-.1-.1a2 2 0 112.8-2.8l.1.1a1.6 1.6 0 002.7-1.1V3a2 2 0 114 0v.1a1.6 1.6 0 002.7 1.1l.1-.1a2 2 0 112.8 2.8l-.1.1a1.6 1.6 0 001.1 2.7H21a2 2 0 110 4h-.1a1.6 1.6 0 00-1.5 1z"/></svg></button>
             <button type="button" class="vx-icon vx-min" id="vxMin" onclick="VOICE.toggleMin()" aria-label="Show the chart" title="Show the chart"><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></button>
-            <button type="button" class="vx-icon" onclick="VOICE.close()" aria-label="Close voice">×</button></header>
+            <button type="button" class="vx-icon" id="vxHide" onclick="VOICE.minimize(true)" aria-label="Minimise ARIA (the conversation keeps going)" title="Minimise"><svg viewBox="0 0 24 24"><path d="M6 12h12"/></svg></button>
+            <button type="button" class="vx-icon" onclick="VOICE.close()" aria-label="Close ARIA and end the conversation" title="Close">×</button></header>
           <div class="vx-settings" id="vxSettings" hidden></div>
           <nav class="cp-modes" id="cpModes" aria-label="Copilot mode"></nav>
           <div class="cp-ai-note" id="cpAiNote" hidden></div>
@@ -6481,12 +6518,23 @@ const VOICE = {
           <form class="vx-type" onsubmit="event.preventDefault(); VOICE.typed()">
             <input id="vxInput" type="text" autocomplete="off" enterkeyhint="send" placeholder="Or type: buy gold 1% risk, stop 2640" aria-label="Type a command">
             <button type="submit" aria-label="Send">➤</button></form>
-        </section>`;
+        </section>
+        <button type="button" class="vx-orb vx-bub" id="vxBub" data-state="idle" aria-label="Open ARIA Copilot" title="ARIA: tap to open, drag to move">
+          <i></i><i></i><i></i><span class="vx-core"><svg viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0014 0M12 18v3"/></svg></span><b class="vx-dot-rec"></b><b class="vx-dot-new"></b></button>
+        <div class="vx-sr" id="vxSr" aria-live="polite"></div>`;
       document.body.appendChild(el);
       this.renderLog();
+      VXF.bind();
+    }
+    if (this.open_ && this.min_) {                   // already running behind the bubble: bring the card back
+      this.restore();
+      if (listen && this.supported() && this.state !== 'listening' && !(typeof ELV !== 'undefined' && ELV.sttOn())) this.listen();
+      return;
     }
     el.classList.add('open'); this.open_ = true;
+    if (!this.min_) el.classList.remove('min');
     document.body.classList.add('vx-open');
+    VXF.place(); VXF.save();
     document.getElementById('voiceBtn')?.classList.add('on');
     if (typeof COPILOT !== 'undefined') { COPILOT.renderModes(); COPILOT.renderPanel(); }
     if (typeof AI !== 'undefined') { AI.restoreLog(); AI.renderNote(); AI.refresh().then(() => this.renderChips()); }
@@ -6496,19 +6544,45 @@ const VOICE = {
       ? 'Voice input is not available in the iPhone home-screen app. Type below, or open PROTrader in Safari to talk.'
       : 'This browser has no speech input. Type your command below.');
     if (listen && this.supported() && !(typeof ELV !== 'undefined' && ELV.sttOn())) this.listen();   // a recording only ever starts from the orb
-    else if (!this.supported()) setTimeout(() => document.getElementById('vxInput')?.focus(), 60);
+    else if (!this.supported() && !o.quiet) setTimeout(() => document.getElementById('vxInput')?.focus(), 60);
   },
   close() {
     if (typeof LIVEV !== 'undefined' && LIVEV.active()) LIVEV.stop('closed');
     if (typeof ELV !== 'undefined') { ELV.cancelRec(true); ELV.stop(); }
     this.stopListening(true);
     if (window.speechSynthesis) speechSynthesis.cancel();
-    document.getElementById('vxSheet')?.classList.remove('open');
+    if (typeof VXF !== 'undefined') VXF.cancelDrag();
+    document.getElementById('vxSheet')?.classList.remove('open', 'min');
     document.body.classList.remove('vx-open');
     document.getElementById('voiceBtn')?.classList.remove('on', 'listening');
-    this.open_ = false; this.setState('idle');
+    this.open_ = false; this.min_ = false; this.setState('idle');
+    VXF.save(); VXF.dock();
   },
-  toggle() { this.open_ ? this.close() : this.open(true); },
+  // the mic button and V: open ARIA, or tuck the card away and bring it back; only × (or "goodbye") ends the conversation
+  toggle() { !this.open_ ? this.open(true) : this.min_ ? this.restore() : this.minimize(); },
+  min_: false,
+  minimize(focus) {
+    const el = document.getElementById('vxSheet'); if (!this.open_ || !el || this.min_) return;
+    const had = el.contains(document.activeElement);
+    VXF.cancelDrag();
+    this.min_ = true; this._seen = this.log[this.log.length - 1];
+    el.classList.add('min');
+    document.getElementById('vxBub')?.classList.remove('unread');
+    VXF.place(); VXF.save(); VXF.dock();
+    if (focus || had) document.getElementById('vxBub')?.focus({ preventScroll: true });
+  },
+  restore(focus) {
+    const el = document.getElementById('vxSheet'); if (!this.open_ || !el || !this.min_) return;
+    const fromBub = document.activeElement && document.activeElement.id === 'vxBub';
+    VXF.cancelDrag();
+    this.min_ = false;
+    el.classList.remove('min');
+    document.getElementById('vxBub')?.classList.remove('unread');
+    VXF.place(); VXF.save(); VXF.dock();
+    const log = document.getElementById('vxLog'); if (log) log.scrollTop = log.scrollHeight;
+    if (focus && !VXF.phone()) document.getElementById('vxInput')?.focus({ preventScroll: true });
+    else if (focus || fromBub) document.getElementById('vxHide')?.focus({ preventScroll: true });   // focus never falls to the page
+  },
   // shrink the sheet to its last answer so the chart (and ARIA's drawings) can be seen; tap again to expand
   toggleMin(force) {
     const sh = document.querySelector('#vxSheet .vx-sheet'); if (!sh) return;
@@ -6523,6 +6597,12 @@ const VOICE = {
     const pill = document.getElementById('vxPill'); if (pill) pill.textContent = label || { idle: 'Ready', listening: 'Listening', thinking: 'Working', speaking: 'Speaking' }[s] || 'Ready';
     document.getElementById('voiceBtn')?.classList.toggle('listening', s === 'listening');
     const rec = !!(typeof ELV !== 'undefined' && ELV.rec);
+    const bub = document.getElementById('vxBub');
+    if (bub) {                                       // the bubble shows what ARIA is doing while the card is away
+      const said = rec ? 'Recording' : (pill ? pill.textContent : 'Ready');
+      bub.dataset.state = s; bub.classList.toggle('rec', rec);
+      bub.setAttribute('aria-label', `Open ARIA Copilot (${said})`); bub.title = `ARIA · ${said}: tap to open, drag to move`;
+    }
     const show = (id, on) => { const el = document.getElementById(id); if (el) el.hidden = !on; };
     show('vxStop', s === 'speaking'); show('vxRec', rec); show('vxCancel', rec || !!(typeof ELV !== 'undefined' && ELV.opening));
   },
@@ -6547,6 +6627,12 @@ const VOICE = {
         + `${m.tools && m.tools.length ? `<div class="ai-tools">${m.tools.map(t => `<span>${esc(t)}</span>`).join('')}</div>` : ''}${m.model ? `<div class="ai-by">ARIA · ${esc(m.model)}</div>` : ''}</div>`
       : `<div class="vx-msg ${m.who}">${esc(m.text)}</div>`).join('');
     box.scrollTop = box.scrollHeight;
+    const last = this.log[this.log.length - 1];
+    if (this.min_ && last && last !== this._seen && last.who !== 'you') {
+      document.getElementById('vxBub')?.classList.add('unread');
+      const sr = document.getElementById('vxSr');
+      if (sr && this._said !== last) { this._said = last; sr.textContent = 'ARIA has a new reply. Open the ARIA bubble to read it.'; }
+    }
   },
 
   /* ── chips: what you can say right now ── */
@@ -6577,12 +6663,22 @@ const VOICE = {
     const all = window.speechSynthesis ? speechSynthesis.getVoices() : [];
     return all.filter(v => /^en/i.test(v.lang));
   },
-  pickVoice() {
-    const vs = this.voices(); if (!vs.length) return null;
-    if (this.cfg.voice) { const v = vs.find(x => x.voiceURI === this.cfg.voice); if (v) return v; }
-    const pref = [/en-NG/i, /Google UK English Female/i, /Samantha/i, /Natural/i, /Google US English/i, /Karen|Daniel|Serena|Moira/i];
-    for (const p of pref) { const v = vs.find(x => p.test(x.name) || p.test(x.lang)); if (v) return v; }
-    return vs.find(v => v.default) || vs[0];
+  // private: balances, positions, order read-backs, briefings and announcements are read only by a voice that
+  // runs on this device (a browser's online voices send the text to Google or Microsoft to be spoken)
+  pickVoice(priv) {
+    const all = this.voices(); if (!all.length) return null;
+    if (this.cfg.voice) { const v = all.find(x => x.voiceURI === this.cfg.voice); if (v) return v; }
+    const local = all.filter(v => v.localService !== false);
+    const vs = priv && local.length ? local : all, key = (priv ? 'p' : 'a') + vs.length;
+    // when ARIA's natural voice is not in use, pick the most natural voice this device has: neural "Natural"
+    // voices (Edge, Windows), Apple's Premium/Enhanced downloads, then Google's; Nigerian English first among equals
+    const score = v => (/\b(Natural|Neural)\b/i.test(v.name) ? 40 : 0) + (/\b(Premium|Enhanced)\b/i.test(v.name) ? 30 : 0)
+      + (/^Google/i.test(v.name) ? 15 : 0) + (/en[-_]NG/i.test(v.lang) ? 12 : 0) + (/Google UK English Female/i.test(v.name) ? 3 : 0)
+      + (/Samantha|Daniel|Karen|Serena|Moira|Ava|Zoe|Evan|Allison|Tessa/i.test(v.name) ? 8 : 0)
+      + (/Desktop|eSpeak|Compact/i.test(v.name) ? -10 : 0) + (v.default ? 1 : 0);
+    this._best = this._best || {};
+    if (!this._best[key]) this._best[key] = vs.slice().sort((a, b) => score(b) - score(a))[0];
+    return this._best[key] || vs[0];
   },
   renderSettings() {
     const s = document.getElementById('vxSettings'); if (!s || s.hidden) return;
@@ -6673,7 +6769,9 @@ const VOICE = {
     // read-backs, briefings and announcements stay on this device's own voice and never leave it.
     if (this.cfg.talk && o.natural === true && !o.announce && typeof ELV !== 'undefined' && ELV.ttsOn()) return this.sayNatural(text, o);
     if (!this.cfg.talk || !window.speechSynthesis || typeof SpeechSynthesisUtterance === 'undefined') { if (!o.announce) this.setState('idle'); return Promise.resolve(); }
-    const synth = window.speechSynthesis, voice = this.pickVoice();
+    const priv = o.natural !== true && !o.reply, voice = this.pickVoice(priv);   // o.reply: ARIA's own reply after the natural voice failed
+    if (priv && voice && voice.localService === false && !this.cfg.voice) { if (!o.announce) this.setState('idle'); return Promise.resolve(); }   // only online voices here: private text is shown, not sent away to be spoken
+    const synth = window.speechSynthesis;
     const parts = String(text).split(/(?<=[.!?])\s+(?=[A-Z0-9"'(])/).map(s => s.trim()).filter(Boolean);
     synth.cancel();
     if (!o.announce) this.setState('speaking');
@@ -6701,7 +6799,7 @@ const VOICE = {
       if (n !== this._sayN || (e && e.name === 'AbortError')) return;   // interrupted: nothing to recover
       ELV.failedAt = Date.now(); ELV.lastError = String(e && (e.code || e.message) || 'error').slice(0, 120);
       if (!ELV.warned) { ELV.warned = true; this.log.push({ who: 'vx', text: 'ARIA\'s natural voice is unavailable right now, so this device\'s voice is reading instead.', note: true }); this.renderLog(); }
-      if (this.state === 'speaking') return this.say(text, Object.assign({}, o, { nolog: true, natural: false }));
+      if (this.state === 'speaking') return this.say(text, Object.assign({}, o, { nolog: true, natural: false, reply: true }));
     }
   },
   _sayN: 0,
@@ -7293,6 +7391,228 @@ const VOICE = {
   },
 };
 VOICE.init();
+/* ── VXF: ARIA as a floating widget ──
+   The card (or, minimised, its bubble) is held at an anchored corner: the nearer side and the nearer of top
+   and bottom, at an offset from the edges of the usable screen (0 = flush). Anchoring rather than storing x/y
+   keeps it in place through rotation, resizing and the phone's keyboard. Dragging is bounded to the screen
+   less the notch, the home bar and the phone's tab bar; on release it snaps flush to an edge it is near (the
+   bubble always rests against a side). The position and the open/minimised state last for the browser
+   session (sessionStorage), so a reload or an app update puts ARIA back where it was. */
+const VXF = {
+  KEY: 'protrader.aria.float.v1',
+  SNAP: 40,
+  // fields that bring up a keyboard (a switch or a button under the card does not move ARIA)
+  TYPING: 'textarea,input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=button]):not([type=submit]):not([type=reset]):not([type=color]):not([type=file]):not([type=hidden])',
+  pos: null, saved: null, drag: null, _bound: false,
+  load() {
+    if (this.pos) return this.pos;
+    let p = null; try { p = JSON.parse(sessionStorage.getItem(this.KEY) || 'null'); } catch (_) {}
+    const ok = p && typeof p === 'object' && (p.ax === 'l' || p.ax === 'r') && (p.ay === 't' || p.ay === 'b') && Number.isFinite(p.ox) && Number.isFinite(p.oy);
+    this.pos = ok ? { ax: p.ax, ox: Math.max(0, Math.round(p.ox)), ay: p.ay, oy: Math.max(0, Math.round(p.oy)) } : { ax: 'r', ox: 0, ay: 'b', oy: 0 };
+    this.saved = { open: !!(p && p.open === true), min: !!(p && p.min === true) };
+    return this.pos;
+  },
+  save() {
+    const p = this.load();
+    try { sessionStorage.setItem(this.KEY, JSON.stringify({ ax: p.ax, ox: p.ox, ay: p.ay, oy: p.oy, open: !!VOICE.open_, min: !!VOICE.min_ })); } catch (_) {}
+  },
+  phone() { return window.innerWidth <= 820; },
+  insets() {
+    let el = this._probe;
+    if (!el || !el.isConnected) {
+      el = this._probe = document.createElement('div');
+      el.style.cssText = 'position:fixed;left:0;top:0;width:0;height:0;visibility:hidden;pointer-events:none;'
+        + 'padding:env(safe-area-inset-top,0px) env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px)';
+      document.body.appendChild(el);
+    }
+    const cs = getComputedStyle(el), n = v => parseFloat(v) || 0;
+    return { t: n(cs.paddingTop), r: n(cs.paddingRight), b: n(cs.paddingBottom), l: n(cs.paddingLeft) };
+  },
+  // where ARIA may sit: the visible screen (above an on-screen keyboard), less the notch, the home bar and the phone's tab bar
+  bounds() {
+    const m = this.phone() ? 8 : 12, ins = this.insets();
+    let top = 0, left = 0, w = window.innerWidth, h = window.innerHeight;
+    const vv = window.visualViewport;
+    if (vv && Math.abs(vv.scale - 1) < 0.01 && vv.height > 120) { top = vv.offsetTop; left = vv.offsetLeft; w = vv.width; h = vv.height; }
+    let nav = 0;
+    const n = document.querySelector('.mobile-nav');
+    if (n && getComputedStyle(n).display !== 'none') { const r = n.getBoundingClientRect(); if (r.height && r.top < top + h) nav = top + h - r.top; }
+    const b = { L: left + ins.l + m, T: top + ins.t + m, R: left + w - ins.r - m, B: top + h - Math.max(ins.b, nav) - m };
+    if (b.B < b.T + 60) b.B = b.T + 60;                       // a tiny strip (a landscape phone with its keyboard up)
+    return b;
+  },
+  els() {
+    const w = document.getElementById('vxSheet');
+    return w ? { w, sheet: w.querySelector('.vx-sheet'), bub: document.getElementById('vxBub') } : null;
+  },
+  // put the card (or the bubble) at its anchored corner, whole and inside the bounds whatever its size
+  place() {
+    const e = this.els(); if (!e || (this.drag && this.drag.moved) || this._gliding) return;
+    const p = this.load(), b = this.bounds(), min = !!VOICE.min_, el = min ? e.bub : e.sheet; if (!el) return;
+    const vw = window.innerWidth, vh = window.innerHeight, phone = this.phone() && !min;
+    const availW = b.R - b.L, availH = b.B - b.T;
+    const s = el.style;
+    if (!min) {
+      // the card may grow away from its anchored edge until it meets the far one; on a phone it leaves the chart a share of the screen
+      const oyMax = Math.max(0, availH - 200), oy = Math.min(p.oy, oyMax);
+      const mh = Math.min(availH - oy, Math.max(100, Math.min(720, availH - oy, phone ? Math.round(availH * 0.78) : 1e9)));
+      s.maxHeight = mh + 'px';
+      el.classList.toggle('vx-tight', mh < 380);              // a short screen: the card scrolls rather than spill
+    }
+    if (phone) { s.left = b.L + 'px'; s.right = (vw - b.R) + 'px'; s.width = 'auto'; }
+    else {
+      s.width = '';
+      const ow = el.offsetWidth || 60, ox = min ? 0 : Math.min(p.ox, Math.max(0, availW - ow));   // the bubble rests against the side
+      if (p.ax === 'l') { s.left = (b.L + ox) + 'px'; s.right = 'auto'; } else { s.right = (vw - b.R + ox) + 'px'; s.left = 'auto'; }
+    }
+    const oh = el.offsetHeight || 60, oy = Math.min(p.oy, Math.max(0, availH - oh));
+    if (p.ay === 't') { s.top = (b.T + oy) + 'px'; s.bottom = 'auto'; } else { s.bottom = (vh - b.B + oy) + 'px'; s.top = 'auto'; }
+    this.dock();
+  },
+  // a card flush against a side on a laptop docks there (the replay makes room for it)
+  dock() {
+    const p = this.load(), on = !!VOICE.open_ && !VOICE.min_ && !this.phone() && p.ox === 0;
+    document.body.classList.toggle('vx-side-r', on && p.ax === 'r');
+    document.body.classList.toggle('vx-side-l', on && p.ax === 'l');
+  },
+  // a new resting place from where the element was let go: nearest corner, snapped flush when near an edge
+  settle(r, o = {}) {
+    const b = this.bounds(), p = this.load(), phoneCard = this.phone() && !o.bub;
+    const cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+    let ax = cx < (b.L + b.R) / 2 ? 'l' : 'r', ay = cy < (b.T + b.B) / 2 ? 't' : 'b';
+    let ox = ax === 'l' ? r.left - b.L : b.R - (r.left + r.width), oy = ay === 't' ? r.top - b.T : b.B - (r.top + r.height);
+    if (o.snap !== false) { if (o.bub || ox < this.SNAP) ox = 0; if (oy < this.SNAP) oy = 0; }
+    if (o.bub) ox = ax === p.ax ? p.ox : 0;                 // the bubble sits at the side; the card keeps its own offset from it
+    if (phoneCard) { ax = p.ax; ox = p.ox; }                // a phone's card spans the width: only its height moves
+    this.pos = { ax, ox: Math.max(0, Math.round(ox)), ay, oy: Math.max(0, Math.round(oy)) };
+    this.save();
+    this.glideTo(o.el, r);
+  },
+  // animate from where it was dropped to its resting place, then hand back to the anchored layout
+  glideTo(el, from) {
+    if (!el) { this.place(); return; }
+    this._gliding = false; this.place();
+    const to = el.getBoundingClientRect();
+    if (!from || (Math.abs(to.left - from.left) < 1 && Math.abs(to.top - from.top) < 1) || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const s = el.style, keep = { left: s.left, right: s.right, top: s.top, bottom: s.bottom };
+    s.left = from.left + 'px'; s.top = from.top + 'px'; s.bottom = 'auto'; if (!(this.phone() && el.classList.contains('vx-sheet'))) s.right = 'auto';
+    this._gliding = true;
+    void el.offsetWidth;
+    el.classList.add('vx-glide'); s.left = to.left + 'px'; s.top = to.top + 'px';
+    clearTimeout(this._gt);
+    this._gt = setTimeout(() => { el.classList.remove('vx-glide'); Object.assign(s, keep); this._gliding = false; this.place(); }, 240);
+  },
+  bind() {
+    const e = this.els(); if (this._bound || !e || !e.sheet || !e.bub) return;
+    this._bound = true;
+    const start = (ev, el, bub) => {
+      if (ev.button !== 0) return;
+      if (this.drag && this.drag.moved && Date.now() - this.drag.at < 1500) return;   // a second finger does not take over a live drag
+      this.cancelDrag();
+      this._dragEnd = 0;
+      if (!bub && ev.target.closest('button:not(.vx-grip),select,input,textarea,a,label')) return;
+      const r = el.getBoundingClientRect();
+      this.drag = { id: ev.pointerId, el, bub, x0: ev.clientX, y0: ev.clientY, l0: r.left, t0: r.top, w: r.width, h: r.height, moved: false, at: Date.now() };
+      clearTimeout(this._gt); el.classList.remove('vx-glide'); this._gliding = false;
+    };
+    e.sheet.querySelector('.vx-head').addEventListener('pointerdown', ev => start(ev, e.sheet, false));
+    e.bub.addEventListener('pointerdown', ev => start(ev, e.bub, true));
+    let end;
+    window.addEventListener('pointermove', ev => {
+      const d = this.drag; if (!d || ev.pointerId !== d.id) return;
+      if (ev.pointerType === 'mouse' && ev.buttons === 0) { end(ev); return; }   // the release happened outside the page
+      d.at = Date.now();
+      const dx = ev.clientX - d.x0, dy = ev.clientY - d.y0;
+      if (!d.moved) {
+        if (Math.hypot(dx, dy) < 6) return;          // a tap stays a tap
+        d.moved = true; d.b = this.bounds(); e.w.classList.add('vx-dragging');
+        try { d.el.setPointerCapture(d.id); } catch (_) {}
+        const s = d.el.style; s.left = d.l0 + 'px'; s.top = d.t0 + 'px'; s.bottom = 'auto';
+        if (!(this.phone() && !d.bub)) s.right = 'auto';
+      }
+      if (ev.cancelable) ev.preventDefault();
+      const b = d.b, wide = this.phone() && !d.bub;
+      if (!wide) d.el.style.left = Math.min(Math.max(b.L, d.l0 + dx), Math.max(b.L, b.R - d.w)) + 'px';
+      d.el.style.top = Math.min(Math.max(b.T, d.t0 + dy), Math.max(b.T, b.B - d.h)) + 'px';
+    }, { passive: false });
+    end = ev => {
+      const d = this.drag; if (!d || ev.pointerId !== d.id) return;
+      this.drag = null; e.w.classList.remove('vx-dragging');
+      try { d.el.releasePointerCapture(d.id); } catch (_) {}
+      if (!d.moved) return;                          // a tap: buttons and the bubble do their own thing
+      this._dragEnd = Date.now();
+      const r = d.el.getBoundingClientRect();
+      // minimised, restored or closed mid-drag: the element is gone; keep the last resting place
+      if (!VOICE.open_ || !r.width || (d.bub !== !!VOICE.min_)) { this.place(); return; }
+      this.settle(r, { bub: d.bub, el: d.el });
+    };
+    window.addEventListener('pointerup', end); window.addEventListener('pointercancel', end);
+    // the capture this drag set was taken away (not a child's implicit touch capture handing over to it)
+    const lost = ev => { const d = this.drag; if (d && d.moved && ev.target === d.el) end(ev); };
+    e.sheet.addEventListener('lostpointercapture', lost); e.bub.addEventListener('lostpointercapture', lost);
+    // the bubble: a tap brings ARIA back, a drag only moves it
+    e.bub.addEventListener('click', ev => {
+      if (this._dragEnd && Date.now() - this._dragEnd < 400) { this._dragEnd = 0; ev.preventDefault(); return; }   // the click that ends a drag
+      VOICE.restore(ev.detail === 0);                // detail 0: Enter or Space, so the keyboard lands in the card
+    });
+    // the grip from the keyboard: arrows move it (Shift: further), Home/End dock it left/right, PageUp/PageDown top/bottom
+    const grip = e.sheet.querySelector('.vx-grip');
+    grip.addEventListener('click', ev => ev.preventDefault());
+    grip.addEventListener('keydown', ev => {
+      const k = ev.key, step = ev.shiftKey ? 96 : 24;
+      const mv = { ArrowLeft: [-step, 0], ArrowRight: [step, 0], ArrowUp: [0, -step], ArrowDown: [0, step] }[k];
+      const dock = { Home: 'l', End: 'r', PageUp: 't', PageDown: 'b' }[k];
+      if (!mv && !dock) return;
+      ev.preventDefault(); ev.stopPropagation();
+      const r = e.sheet.getBoundingClientRect();
+      if (dock) {
+        const p = this.load();
+        if (dock === 'l' || dock === 'r') this.pos = Object.assign({}, p, { ax: dock, ox: 0 });
+        else this.pos = Object.assign({}, p, { ay: dock, oy: 0 });
+        this.save(); this.glideTo(e.sheet, r);
+      } else {
+        const b = this.bounds();
+        const x = Math.min(Math.max(b.L, r.left + mv[0]), Math.max(b.L, b.R - r.width)), y = Math.min(Math.max(b.T, r.top + mv[1]), Math.max(b.T, b.B - r.height));
+        this.settle({ left: x, top: y, width: r.width, height: r.height }, { snap: false, el: e.sheet });
+      }
+    });
+    // Escape inside ARIA tucks it away (the conversation keeps going)
+    e.sheet.addEventListener('keydown', ev => { if (ev.key === 'Escape' && !ev.defaultPrevented) { ev.stopPropagation(); VOICE.minimize(true); } });
+    // content that changes the card's size, a rotation, a resize or the keyboard: re-place inside the screen
+    let raf = 0;
+    const again = () => { if (!raf) raf = requestAnimationFrame(() => { raf = 0; this.place(); }); };
+    if (window.ResizeObserver) { const ro = new ResizeObserver(again); ro.observe(e.sheet); ro.observe(e.bub); }
+    window.addEventListener('resize', again);
+    if (window.visualViewport) { visualViewport.addEventListener('resize', again); visualViewport.addEventListener('scroll', again); }
+    // starting to type in a field the card covers (the order ticket on a phone) tucks ARIA into its bubble
+    document.addEventListener('pointerdown', ev => { if (!e.w.contains(ev.target)) this._outAt = Date.now(); }, true);
+    document.addEventListener('keydown', ev => { if (ev.key === 'Tab') this._outAt = Date.now(); }, true);
+    document.addEventListener('focusin', ev => {
+      const t = ev.target;
+      if (!VOICE.open_ || VOICE.min_ || !t || !t.matches || !t.matches(VXF.TYPING) || e.w.contains(t)) return;
+      if (Date.now() - (this._outAt || 0) > 800) return;  // only a field the person chose, never one the app focused
+      const a = t.getBoundingClientRect(), c = e.sheet.getBoundingClientRect();
+      // on a phone the keyboard is about to push the card up over whatever field was chosen, so any field does;
+      // on a laptop only a field the card covers
+      if (this.phone() || (a.right > c.left && a.left < c.right && a.bottom > c.top && a.top < c.bottom)) VOICE.minimize();
+    });
+  },
+  // stop a drag in progress (the card is being minimised, restored or closed)
+  cancelDrag() {
+    const d = this.drag; if (!d) return;
+    this.drag = null;
+    document.getElementById('vxSheet')?.classList.remove('vx-dragging');
+    try { d.el.releasePointerCapture(d.id); } catch (_) {}
+    if (d.moved) this.place();                       // back to its anchored place
+  },
+  // after a reload in the same session (or an app update): ARIA comes back where it was, quietly (no microphone, no speech)
+  resume() {
+    this.load();
+    if (!this.saved || !this.saved.open || VOICE.open_) return;
+    VOICE.open(false, { quiet: true });
+    if (this.saved.min) VOICE.minimize();
+  },
+};
 /* ════════════════════════════════════════════════════════════
    TA — the copilot's chart analysis, computed, never guessed
    Every function takes a candle array and reads only what is in it, so a
@@ -8299,7 +8619,6 @@ const COPILOT = {
     const ms = [['talk', 'Talk'], ['analyze', 'Analyze'], ['learn', 'Learn'], ['practice', 'Practice'], ['replay', 'Replay']];
     box.innerHTML = ms.map(([k, l]) => `<button type="button" class="cp-mode${this.mode === k ? ' on' : ''}" data-mode="${k}" onclick="COPILOT.setMode('${k}')">${l}</button>`).join('');
     document.querySelector('#vxSheet .vx-sheet')?.classList.toggle('cp-on', this.mode !== 'talk');
-    document.getElementById('vxSheet')?.classList.toggle('cp-see', this.mode !== 'talk');
   },
   renderPanel() {
     const box = document.getElementById('cpPanel'); if (!box) return;
@@ -8518,7 +8837,7 @@ const REPLAY = (() => {
       all = await history();
       if (all.length < 80) { all = []; return say('There is not enough history on this chart for a replay yet.', o); }
       api.restart(true);
-      if (typeof VOICE !== 'undefined' && VOICE.open_ && window.innerWidth <= 820) VOICE.close();   // a phone shows the replay full screen; a desktop keeps ARIA beside it
+      if (typeof VOICE !== 'undefined' && VOICE.open_ && window.innerWidth <= 820) VOICE.minimize();   // a phone shows the replay full screen (ARIA waits in its bubble); a desktop keeps ARIA beside it
       if (typeof COPILOT !== 'undefined') COPILOT.setMode('replay', true);
       return say(`Replay started on ${VOICE.name(sym)}, ${VOICE.tfName(tf)}, at ${COPILOT.when(last().time)}. ${all.length - cur} candles are hidden. Step forward, analyze, or plan a trade.`, o);
     },
@@ -13569,7 +13888,9 @@ function init() {
     else if (k === 't') { toggleTheme(); }
     else if (k === 'v') { VOICE.toggle(); }
     else if (k === '?' || (e.shiftKey && k === '/')) { toggleShortcutsHelp(); }
-    else if (k === 'escape') { closeAllModals(); if (VOICE.open_) VOICE.close(); }
+    else if (k === 'escape') {                      // a dialog closes first; otherwise ARIA tucks into its bubble (it never ends the conversation)
+      const dialog = document.querySelector('.modal-backdrop.open,#depositModal.open,dialog[open]');
+      closeAllModals(); if (!dialog && !e.defaultPrevented && VOICE.open_ && !VOICE.min_) VOICE.minimize(); }
   });
 
   // Redraw chart on window resize (responsive hi-DPI)
@@ -14213,6 +14534,7 @@ const ACCOUNT = (() => {
   return { open, boot, isOwner: () => !!(user ? user.owner : meta.owner && meta.uid), user: () => user, telegram: () => tg, flush, pull, linkTelegram, unlinkTelegram, switchTo };
 })();
 setTimeout(() => ACCOUNT.boot(), 0);   // after the other modules have loaded their saved state
+setTimeout(() => { try { VXF.resume(); } catch (e) { console.warn('[aria] could not restore the widget', e); } }, 0);
 // ── PWA: installable on phone/laptop, shell cached for instant opens ──
 if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
   window.addEventListener('load', () => {

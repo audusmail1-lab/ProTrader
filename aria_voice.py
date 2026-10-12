@@ -124,9 +124,12 @@ class VoiceConfig:
         self.tts_all_day = int(_num("ARIA_ELEVEN_TTS_ALL_PER_DAY", 400, 0, 100000))
         self.stt_day = int(_num("ARIA_ELEVEN_STT_PER_DAY", 60, 0, 1000))
         self.tts_per_min = int(_num("ARIA_ELEVEN_TTS_PER_MIN", 8, 1, 120))
-        # Spoken replies for people who are not signed in are off by default: a guest
-        # identity is cheap to rotate, so only signed-in accounts and the owner draw on it.
-        self.guests = os.getenv("ARIA_ELEVEN_GUESTS", "0").strip() == "1"
+        # Spoken replies for everyone, guests included (ARIA_ELEVEN_GUESTS=0 turns guests off). A guest identity
+        # is cheap to rotate, so guests together may draw only a share of ARIA's allowance each billing period
+        # (signed-in students and the owner always keep the rest), with a tighter daily cap per guest.
+        self.guests = os.getenv("ARIA_ELEVEN_GUESTS", "1").strip() != "0"
+        self.guest_share = _num("ARIA_ELEVEN_GUEST_SHARE", 0.5, 0.0, 1.0)
+        self.guest_chars_day = int(_num("ARIA_ELEVEN_GUEST_CHARS_PER_DAY", 3000, 0, 1e6))
         self.user_chars_day = int(_num("ARIA_ELEVEN_USER_CHARS_PER_DAY", 8000, 0, 1e6))
         self.ip_per_day = int(_num("ARIA_ELEVEN_IP_PER_DAY", 80, 0, 100000))
         self.delete_after = os.getenv("ARIA_ELEVEN_DELETE_AFTER_USE", "1").strip() != "0"
@@ -222,6 +225,16 @@ def account(cfg: VoiceConfig, cost: int) -> str:
         return period
 
 
+def _unaccount(cost: int) -> None:
+    """A request refused after the account check (ARIA's allowance or the guests' share) never reaches
+    ElevenLabs: take its pending spend back out, so refusals cannot crowd the shared pool to its reserve."""
+    with _sub_lock:
+        for i in range(len(_recent) - 1, -1, -1):
+            if _recent[i][1] == cost:
+                del _recent[i]
+                return
+
+
 # ── ARIA's own allowance: persistent, created offline, never refunded ─────────
 
 def _owned_by_app_user(path: str) -> None:
@@ -253,8 +266,43 @@ class VoiceLedger:
             for col, decl in (("reset", "INTEGER NOT NULL DEFAULT 0"), ("created", "REAL NOT NULL DEFAULT 0")):
                 if col not in have:
                     db.execute(f"ALTER TABLE voice_allowance ADD COLUMN {col} {decl}")
+            self._guest_column(db)
         os.chmod(self.cfg.path, 0o600)
         _owned_by_app_user(self.cfg.path)
+
+    @staticmethod
+    def _guest_column(db) -> None:
+        """Guests' share of a period is counted in its own column; a ledger made before guests had a share
+        gains it on first use (inside the caller's write lock, so two requests cannot race to add it)."""
+        have = {r[1] for r in db.execute("PRAGMA table_info(voice_allowance)")}
+        if "guest_used" not in have:
+            db.execute("ALTER TABLE voice_allowance ADD COLUMN guest_used INTEGER NOT NULL DEFAULT 0")
+
+    def guest_left_now(self) -> int:
+        """Guests' share left in the newest period on record (a period whose reset time has passed is over:
+        the next one starts with a full share). Read-only; the reservation itself re-checks under the lock."""
+        if self.cfg.guest_share <= 0:
+            return 0
+        cached = _sub.get("data")
+        if cached:                                   # the account's period as last read: the same rule as a reservation
+            try:
+                return self.left(check_subscription(cached)[1], guest=True)
+            except VoiceBlocked:
+                pass
+        db = self._connect()
+        try:
+            have = {r[1] for r in db.execute("PRAGMA table_info(voice_allowance)")}
+            if "guest_used" not in have:
+                return self.guest_cap(self.cfg.allowance)
+            row = db.execute("SELECT cap, used, guest_used, reset FROM voice_allowance ORDER BY reset DESC LIMIT 1").fetchone()
+        finally:
+            db.close()
+        if not row or row[3] <= time.time():
+            return self.guest_cap(self.cfg.allowance)
+        return max(0, min(min(row[0], self.cfg.allowance) - row[1], self.guest_cap(row[0]) - row[2]))
+
+    def guest_cap(self, cap: int) -> int:
+        return int(min(cap, self.cfg.allowance) * self.cfg.guest_share)
 
     def ready(self) -> bool:
         try:
@@ -280,16 +328,21 @@ class VoiceLedger:
             return newest[0], newest[1], False
         return period, reset, True
 
-    def left(self, period: str) -> int:
+    def left(self, period: str, guest: bool = False) -> int:
         db = self._connect()
         try:
             key, _, new = self._resolve(db, period)
-            row = None if new else db.execute("SELECT cap, used FROM voice_allowance WHERE period=?", (key,)).fetchone()
+            have = {r[1] for r in db.execute("PRAGMA table_info(voice_allowance)")}
+            col = "guest_used" if "guest_used" in have else "0"
+            row = None if new else db.execute(f"SELECT cap, used, {col} FROM voice_allowance WHERE period=?", (key,)).fetchone()
         finally:
             db.close()
-        return self.cfg.allowance if not row else max(0, min(row[0], self.cfg.allowance) - row[1])
+        if not row:
+            return self.guest_cap(self.cfg.allowance) if guest else self.cfg.allowance
+        left = max(0, min(row[0], self.cfg.allowance) - row[1])
+        return min(left, max(0, self.guest_cap(row[0]) - row[2])) if guest else left
 
-    def reserve(self, period: str, amount: int) -> None:
+    def reserve(self, period: str, amount: int, guest: bool = False) -> None:
         """One allowance per billing period. The period is the account's own next reset time, guarded
         so that it cannot be gamed: it may never move backwards, and a reset time less than
         NEW_PERIOD_DAYS after the current period's counts as the SAME period (a plan change or a
@@ -299,16 +352,20 @@ class VoiceLedger:
         db = self._connect()
         try:
             db.execute("BEGIN IMMEDIATE")
+            self._guest_column(db)
             period, reset, new = self._resolve(db, period)
             if new:
                 # a period's cap is fixed when it starts and can only ever shrink, never grow
                 db.execute("INSERT OR IGNORE INTO voice_allowance(period, cap, used, reset, created) VALUES(?, ?, 0, ?, ?)",
                            (period, self.cfg.allowance, reset, time.time()))
-            cap, used = db.execute("SELECT cap, used FROM voice_allowance WHERE period=?", (period,)).fetchone()
+            cap, used, guest_used = db.execute("SELECT cap, used, guest_used FROM voice_allowance WHERE period=?", (period,)).fetchone()
             cap = min(cap, self.cfg.allowance)
             if used + amount > cap:
                 raise VoiceBlocked("ARIA has used its ElevenLabs allowance for this billing period.")
-            db.execute("UPDATE voice_allowance SET cap=?, used=used+? WHERE period=?", (cap, amount, period))
+            if guest and guest_used + amount > self.guest_cap(cap):
+                raise VoiceBlocked("Guests have used their share of ARIA's ElevenLabs allowance for this billing period.")
+            db.execute("UPDATE voice_allowance SET cap=?, used=used+?, guest_used=guest_used+? WHERE period=?",
+                       (cap, amount, amount if guest else 0, period))
             db.execute("COMMIT")
         except Exception:
             if db.in_transaction:
@@ -318,15 +375,21 @@ class VoiceLedger:
             db.close()
 
 
-def _admit(cfg: VoiceConfig, cost: int) -> None:
+def _admit(cfg: VoiceConfig, cost: int, guest: bool = False) -> None:
     """Every gate, in order, before any billable call. Raises VoiceBlocked."""
     if aria_ai.cooldown("eleven") > 0:
         raise VoiceBlocked("ElevenLabs refused a recent request; voice is paused for a few minutes.")
     ledger = VoiceLedger(cfg)
     if not ledger.ready():
         raise VoiceBlocked("ARIA's ElevenLabs ledger is missing; provision it on the persistent disk.")
+    if guest and ledger.guest_left_now() < cost:     # guests' share already used: no account read, nothing pending
+        raise VoiceBlocked("Guests have used their share of ARIA's ElevenLabs allowance for this billing period.")
     period = account(cfg, cost)
-    ledger.reserve(period, cost)
+    try:
+        ledger.reserve(period, cost, guest)
+    except Exception:
+        _unaccount(cost)
+        raise
 
 
 # ── after use: ask ElevenLabs to forget the item (best effort, never blocks) ──
@@ -356,11 +419,23 @@ def _state(request: Request) -> dict:
     if not VoiceLedger(cfg).ready():
         out["reason"] = out["stt_reason"] = "ARIA's ElevenLabs ledger is missing; provision it on the persistent disk."
         return out
-    if ident["guest"] and not ident["owner"] and not cfg.guests:
+    out["ready"] = True
+    guest = bool(ident["guest"] and not ident["owner"])
+    if guest and not cfg.guests:
         out["reason"] = out["stt_reason"] = "Sign in with your Academy account for ARIA's natural voice."
         return out
+    if guest:
+        try:
+            spent = VoiceLedger(cfg).guest_left_now() <= 0
+        except sqlite3.Error:
+            spent = True
+        if spent:
+            out["reason"] = out["stt_reason"] = "Guests have used their share of ARIA's natural voice this month; sign in for more."
+            return out
     out["tts"] = True
     why = cfg.stt_blocked()
+    if not why and guest:
+        why = "Transcription by ElevenLabs is not available without signing in."
     if not why and cfg.stt_mode == "owner" and not ident["owner"]:
         why = "Transcription by ElevenLabs is for the instructor account until student data protections are approved."
     out["stt"], out["stt_reason"] = (why is None), (why or "")
@@ -380,7 +455,7 @@ def status(request: Request) -> dict:
     out = {"provider": "elevenlabs", "tts": st["tts"], "stt": st["stt"], "privacy_tts": PRIVACY_TTS, "privacy_stt": PRIVACY_STT,
            "label": "ElevenLabs voice",
            # configured and provisioned on the server (says nothing about the account or who may use it)
-           "configured": bool(st.get("cfg")) and (st["tts"] or "Sign in" in st["reason"])}
+           "configured": bool(st.get("ready"))}
     cfg = st.get("cfg")
     if cfg:
         out.update(max_chars=cfg.max_chars, max_seconds=cfg.max_seconds)
@@ -457,24 +532,31 @@ def _speak(request: Request, raw: bytes):
     if not text:
         return _fail("bad")
     text = text[:cfg.max_chars]
+    guest = bool(ident["guest"] and not ident["owner"])
     per_day = cfg.tts_guest_day if ident["guest"] else cfg.tts_user_day
-    keys = ["tts:all", "tts:" + ident["key"], "ttsc:" + ident["key"], "tts:" + ident["ip"]]
+    chars_day = min(cfg.user_chars_day, cfg.guest_chars_day) if guest else cfg.user_chars_day
+    # Guests have their own buckets: together at most their share of the all-users day, and a per-IP count of
+    # their own (many phones share one carrier IP), so guests can never use up a student's or the owner's day.
+    ip_key = ("ttsg:" if guest else "tts:") + ident["ip"]
+    keys = ["tts:all", "tts:guests", "tts:" + ident["key"], "ttsc:" + ident["key"], ip_key]
     c = aria_ai.count(keys)
-    if c["tts:all"] >= cfg.tts_all_day or c["tts:" + ident["key"]] >= per_day or c["tts:" + ident["ip"]] >= cfg.ip_per_day \
-            or (not ident["owner"] and c["ttsc:" + ident["key"]] + len(text) > cfg.user_chars_day):
+    guests_day = int(cfg.tts_all_day * cfg.guest_share)
+    if c["tts:all"] >= cfg.tts_all_day or c["tts:" + ident["key"]] >= per_day or c[ip_key] >= cfg.ip_per_day \
+            or (guest and c["tts:guests"] >= guests_day) \
+            or (not ident["owner"] and c["ttsc:" + ident["key"]] + len(text) > chars_day):
         return _fail("quota", "Daily spoken-reply cap reached.", ident["owner"])
     now = time.time()
-    if not aria_ai._per_minute_ok("tts:" + ident["key"], cfg.tts_per_min, now) or not aria_ai._per_minute_ok("tts:" + ident["ip"], cfg.tts_per_min * 2, now):
+    if not aria_ai._per_minute_ok("tts:" + ident["key"], cfg.tts_per_min, now) or not aria_ai._per_minute_ok(ip_key, cfg.tts_per_min * 2, now):
         return _fail("busy")
-    aria_ai._per_minute_add(["tts:" + ident["key"], "tts:" + ident["ip"]], now)
+    aria_ai._per_minute_add(["tts:" + ident["key"], ip_key], now)
     cost = cfg.tts_cost(text)
     try:
-        _admit(cfg, cost)
+        _admit(cfg, cost, guest)
     except VoiceBlocked as e:
         return _fail("quota", str(e), ident["owner"])
     except (sqlite3.Error, OSError):
         return _fail("off", "ARIA's ElevenLabs ledger could not be used.", ident["owner"])
-    aria_ai.bump(["tts:all", "tts:" + ident["key"], "tts:" + ident["ip"]])
+    aria_ai.bump(["tts:all", "tts:" + ident["key"], ip_key] + (["tts:guests"] if guest else []))
     aria_ai.bump(["ttsc:" + ident["key"]], len(text))
     url = f"{api_root()}/v1/text-to-speech/{cfg.voice}/stream"
     try:
@@ -534,7 +616,7 @@ def _transcribe(st: dict, request: Request, audio: bytes):
         return _fail("busy")
     cost = cfg.stt_cost(seconds)
     try:
-        _admit(cfg, cost)
+        _admit(cfg, cost, bool(ident["guest"] and not ident["owner"]))
     except VoiceBlocked as e:
         return _fail("quota", str(e), ident["owner"])
     except (sqlite3.Error, OSError):
@@ -589,6 +671,12 @@ def check() -> int:
           f" ARIA may use up to {max(0, remaining - cfg.reserve):,} of it right now.")
     print(f"ARIA's own allowance this period: {ledger.left(period):,} of {cfg.allowance:,} credits"
           f" (speech counted at {cfg.tts_rate:g} credit per character, model {cfg.model}).")
+    if cfg.guests:
+        print(f"Guests (not signed in): natural voice on; together they may use {ledger.left(period, guest=True):,} more"
+              f" (a {cfg.guest_share:.0%} share of the allowance), at most {cfg.tts_guest_day} replies"
+              f" and {min(cfg.user_chars_day, cfg.guest_chars_day):,} characters per guest a day.")
+    else:
+        print("Guests (not signed in): device voice only (ARIA_ELEVEN_GUESTS=0).")
     why = cfg.stt_blocked()
     print("Transcription:", f"on for {cfg.stt_mode}" if not why else why)
     return 0

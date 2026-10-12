@@ -323,16 +323,96 @@ def test_characters_per_day_cap(monkeypatch, tmp_path, up):
     assert speak(c, T100, user="student-9").status_code == 200        # another person's day is separate
 
 
-def test_guests_get_no_natural_voice_by_default_and_rotating_devices_hits_the_ip_cap(monkeypatch, tmp_path, up):
-    enable(monkeypatch, tmp_path)
+def test_guests_get_the_natural_voice_unless_turned_off_and_rotating_devices_hits_the_ip_cap(monkeypatch, tmp_path, up):
+    enable(monkeypatch, tmp_path, ARIA_ELEVEN_GUESTS="0")
     c = client()
-    assert c.get("/api/aria/voice/status").json()["tts"] is False
+    assert c.get("/api/aria/voice/status").json()["tts"] is False         # the owner can still turn guests off
     assert speak(c, user=None).status_code == 503 and up.calls == []
     assert speak(c, owner=True).status_code == 200                       # the owner key works without signing in
-    monkeypatch.setenv("ARIA_ELEVEN_GUESTS", "1")
+    monkeypatch.delenv("ARIA_ELEVEN_GUESTS")                             # the default: everyone hears ARIA's voice
+    assert c.get("/api/aria/voice/status").json()["tts"] is True
     monkeypatch.setenv("ARIA_ELEVEN_IP_PER_DAY", "3")
     codes = [speak(c, "hi", user=None, device=f"device-{i:02d}-rotated-id").status_code for i in range(5)]
-    assert codes == [200, 200, 429, 429, 429]                              # the owner's call above already used one of the IP's three
+    assert codes == [200, 200, 200, 429, 429]                              # guests on one IP share three a day
+    assert speak(c, "hi", user="student-1").status_code == 200             # a student on the same IP is not counted with them
+
+
+def test_guests_together_draw_only_their_share_of_the_allowance(monkeypatch, tmp_path, up):
+    # allowance 5000 x share 0.04 = 200 credits for every guest together; 100 characters cost 100
+    enable(monkeypatch, tmp_path, ARIA_ELEVEN_GUEST_SHARE="0.04")
+    c = client()
+    codes = [speak(c, T100, user=None, device=f"guest-device-{i:02d}-x").status_code for i in range(3)]
+    assert codes == [200, 200, 503]                                        # a third guest finds the share used up: device voice
+    assert speak(c, T100, user="student-1").status_code == 200             # signed-in students keep the rest
+    assert speak(c, T100, owner=True).status_code == 200
+    cfg = aria_voice.VoiceConfig()
+    led = aria_voice.VoiceLedger(cfg)
+    period = f"eleven-{RESET}"
+    assert led.left(period, guest=True) == 0 and led.left(period) == 5000 - 400
+    assert len(up.paths("POST")) == 4                                      # the refused guest never reached ElevenLabs
+
+
+def test_refused_guests_leave_the_shared_pool_and_the_day_to_everyone_else(monkeypatch, tmp_path, up):
+    # the pool sits 1,200 above the reserve; guests' share is 200; refusals must not count as pending spend
+    enable(monkeypatch, tmp_path, ARIA_ELEVEN_GUEST_SHARE="0.04")
+    up.subscription = sub(character_count=121_000 - 21_200)
+    c = client()
+    codes = [speak(c, T100, user=None, device=f"guest-device-{i:02d}-x").status_code for i in range(12)]
+    assert codes[:2] == [200, 200] and set(codes[2:]) == {503}
+    assert sum(cost for _, cost in aria_voice._recent) == 200              # only the two that were sent
+    assert speak(c, T100, user="student-1").status_code == 200
+    assert speak(c, T100, owner=True).status_code == 200
+    st = c.get("/api/aria/voice/status").json()                           # a guest now hears the device voice without trying
+    assert st["tts"] is False and st["configured"] is True
+
+
+def test_a_reservation_refused_by_the_ledger_takes_its_pending_spend_back(monkeypatch, tmp_path, up):
+    enable(monkeypatch, tmp_path, ARIA_ELEVEN_ALLOWANCE_CREDITS="150")
+    c = client()
+    assert [speak(c, T100, user="student-1").status_code for _ in range(3)] == [200, 429, 429]
+    assert sum(cost for _, cost in aria_voice._recent) == 100 and len(up.paths("POST")) == 1
+
+
+def test_guests_use_at_most_their_share_of_the_all_users_day(monkeypatch, tmp_path, up):
+    enable(monkeypatch, tmp_path, ARIA_ELEVEN_TTS_ALL_PER_DAY="6")         # guests: half of six
+    c = client()
+    codes = [speak(c, "hi", user=None, device=f"rotating-guest-{i:02d}-x").status_code for i in range(5)]
+    assert codes == [200, 200, 200, 429, 429]
+    assert [speak(c, "hi", user=f"student-{i}").status_code for i in range(2)] == [200, 200]
+    assert speak(c, "hi", owner=True).status_code == 200
+
+
+def test_guests_never_get_transcription_even_when_it_is_open_to_all(monkeypatch, tmp_path, up):
+    enable(monkeypatch, tmp_path, ARIA_ELEVEN_STT="all")
+    c = client()
+    st = c.get("/api/aria/voice/status").json()
+    assert st["tts"] is True and st["stt"] is False
+    assert c.post("/api/aria/voice/transcribe", content=pcm(2), headers={"x-audio-format": "pcm_s16le_16"}).status_code == 403
+    assert c.get("/api/aria/voice/status", headers={"x-test-user": "student-1"}).json()["stt"] is True
+    assert up.paths("POST") == []
+
+
+def test_each_guest_has_a_tighter_daily_character_cap(monkeypatch, tmp_path, up):
+    enable(monkeypatch, tmp_path, ARIA_ELEVEN_GUEST_CHARS_PER_DAY="150")
+    c = client()
+    assert [speak(c, T100, user=None, device="one-guest-device-01").status_code for _ in range(2)] == [200, 429]
+    assert [speak(c, T100, user="student-1").status_code for _ in range(2)] == [200, 200]   # students keep the 8000 a day
+
+
+def test_a_ledger_made_before_guest_shares_gains_the_column_on_first_use(monkeypatch, tmp_path, up):
+    import sqlite3
+    enable(monkeypatch, tmp_path, provision=False)
+    path = str(tmp_path / "voice-ledger.db")
+    with sqlite3.connect(path) as db:                                      # the live schema before this change
+        db.execute("CREATE TABLE voice_allowance (period TEXT PRIMARY KEY, cap INTEGER NOT NULL, used INTEGER NOT NULL DEFAULT 0, "
+                   "reset INTEGER NOT NULL DEFAULT 0, created REAL NOT NULL DEFAULT 0)")
+        db.execute("INSERT INTO voice_allowance VALUES (?, 5000, 1000, ?, 0)", (f"eleven-{RESET}", RESET))
+    led = aria_voice.VoiceLedger(aria_voice.VoiceConfig())
+    assert led.left(f"eleven-{RESET}") == 4000 and led.left(f"eleven-{RESET}", guest=True) == 2500
+    c = client()
+    assert speak(c, T100, user=None, device="old-ledger-guest-01").status_code == 200
+    with sqlite3.connect(path) as db:
+        assert db.execute("SELECT used, guest_used FROM voice_allowance").fetchone() == (1100, 100)
 
 
 def test_oversized_bodies_are_refused_before_reading_them_all(monkeypatch, tmp_path, up):
@@ -435,6 +515,9 @@ def test_status_says_whether_voice_is_set_up_without_saying_why(monkeypatch, tmp
     c = client()
     assert c.get("/api/aria/voice/status").json()["configured"] is False
     enable(monkeypatch, tmp_path)
-    st = c.get("/api/aria/voice/status").json()                       # a guest: set up, but not for them
+    st = c.get("/api/aria/voice/status").json()                       # a guest: set up, and on for them by default
+    assert st["configured"] is True and st["tts"] is True and "reason" not in st
+    monkeypatch.setenv("ARIA_ELEVEN_GUESTS", "0")
+    st = c.get("/api/aria/voice/status").json()                       # guests turned off: set up, but not for them
     assert st["configured"] is True and st["tts"] is False and "reason" not in st
     assert up.calls == []

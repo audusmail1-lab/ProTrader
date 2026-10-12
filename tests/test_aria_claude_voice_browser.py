@@ -40,7 +40,7 @@ os.environ.update({
     "ELEVEN_PERSISTENT_LEDGER_CONFIRMED": "1", "ELEVENLABS_API_KEY": FAKE_ELEVEN, "ARIA_ELEVEN_VOICE_ID": "VoiceFakeBrowser0001",
     "ARIA_ELEVEN_ALLOWANCE_CREDITS": "100000", "ARIA_ELEVEN_RESERVE_CREDITS": "20000",
     "ARIA_ELEVEN_LEDGER_DB": os.path.join(TMP, "voice-ledger.db"), "ARIA_ELEVEN_STT_CREDITS_PER_MINUTE": "100",
-    "ARIA_ELEVEN_TTS_PER_DAY": "500", "ARIA_ELEVEN_TTS_PER_MIN": "100", "ARIA_ELEVEN_TTS_GUEST_PER_DAY": "500",
+    "ARIA_ELEVEN_TTS_PER_DAY": "500", "ARIA_ELEVEN_TTS_PER_MIN": "100", "ARIA_ELEVEN_TTS_GUEST_PER_DAY": "500", "ARIA_ELEVEN_GUEST_CHARS_PER_DAY": "100000",
 })
 ENV = {k: os.environ[k] for k in list(os.environ) if k.startswith(("ARIA_", "CLAUDE_", "ANTHROPIC_", "GEMINI_", "ELEVEN", "ACCOUNTS_", "SENTINEL_"))}
 sys.path.insert(0, os.path.dirname(__file__))
@@ -233,15 +233,15 @@ HTF = """
 # ── checks ────────────────────────────────────────────────────────────────────
 
 def check_guest_default(page):
-    # natural voice is for signed-in accounts and the owner unless guests are explicitly allowed
-    os.environ.pop("ARIA_ELEVEN_GUESTS", None)
+    # natural voice is for everyone by default; the owner can turn guests off with ARIA_ELEVEN_GUESTS=0
+    os.environ["ARIA_ELEVEN_GUESTS"] = "0"
     page.evaluate("ELV.refresh(true).then(() => AI.renderNote())")
     page.wait_for_function("ELV.st && ELV.st.tts === false")
     assert "voice: ElevenLabs" not in page.evaluate("document.getElementById('cpAiNote').textContent")
-    os.environ["ARIA_ELEVEN_GUESTS"] = "1"                         # the rest of this run plays a permitted user
+    os.environ.pop("ARIA_ELEVEN_GUESTS", None)                     # the default: guests hear ARIA's natural voice
     page.evaluate("ELV.refresh(true).then(() => AI.renderNote())")
     page.wait_for_function("ELV.st && ELV.st.tts === true && document.getElementById('cpAiNote').textContent.includes('voice: ElevenLabs')")
-    ok("guests: no natural voice unless ARIA_ELEVEN_GUESTS=1; the notice only names ElevenLabs when it is really on")
+    ok("guests: ARIA's natural voice by default (off with ARIA_ELEVEN_GUESTS=0); the notice only names ElevenLabs when it is really on")
 
 
 def check_account_stays_on_device(page):
