@@ -39,9 +39,19 @@ raised every `font-size` under 12px; keep it that way — density reads as
 ## Layout
 
 Desktop ≥ 960: watchlist 224 · chart (min 0, flexible) · panel 320.
-Phone ≤ 820: chart full-screen; the panel is a slide-up sheet; five-item bottom
-nav **Chart · Markets · Check · Trade · Port** with thin-stroke SVG icons (no
-emoji anywhere in chrome; flags on instruments are content, not chrome).
+Phone ≤ 820 (**forest**, approved October 2026 from Joel's prototype): the phone
+sets `data-theme="forest"` at boot (`MOB` in `protrader_mobile.html`) — a deep
+green frame (`#05443a`), a white chart card, teal for up, coral for down, violet
+for the EMA, amber for ORACLE and the paper account. Header rows: symbol ·
+PAPER chip · ARIA button, then price · 24h change · clock. The chart card has a
+timeframe menu, Draw, Indicators and Expand. The bottom strip is the
+**Insights · Positions · Orders** sheet: Insights is one list fed by ARIA
+(`checkModel`), ORACLE (`ORACLE.check` on the ticket) and Sentinel (open setups
+plus the pattern scanner, numbered like the chart markers); each row's action
+opens the Check tab or the Trade tab. Four-item bar **Markets · Workspace ·
+Journal · Portfolio** (Journal opens in the sheet; Portfolio carries the account
+card). Thin-stroke SVG icons; no emoji in chrome. Desktop is unchanged and
+never enters forest.
 
 ## Header
 

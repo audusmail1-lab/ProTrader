@@ -345,8 +345,8 @@ def check_phone(page, port, shots):
     assert page.evaluate("VOICE.state") == "listening"
     ok("phone: dragged up by a finger, it stops under the status bar and snaps to the top; ARIA keeps listening")
 
-    # the order ticket from the tab bar: ARIA stays, and the session carries on
-    page.tap(".mobile-nav-btn[data-mobile-view='trade']")
+    # the order ticket (opened from an insight's Plan trade): ARIA stays, and the session carries on
+    page.evaluate("openMobilePanel('trade')")
     page.wait_for_timeout(400)
     assert page.evaluate("VOICE.open_ && VOICE.state === 'listening' && !window.__recs[window.__recs.length - 1].aborted")
     if shots:
