@@ -1621,8 +1621,8 @@ svg.ico{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.7;st
 #dtText{position:absolute;z-index:42;width:220px;min-height:48px;padding:6px 8px;border:1px solid var(--blue);border-radius:8px;background:var(--bg-2);color:var(--tx-1);font:500 13px var(--font-display);resize:both;box-shadow:0 10px 30px rgba(0,0,0,.4)}
 .dt-ib{min-width:34px;padding:6px!important;display:grid;place-items:center}
 .ws-fields textarea{background:var(--bg-3);border:1px solid var(--bd-2);color:var(--tx-1);border-radius:6px;padding:7px 10px;font:var(--fs-1) var(--font-display);width:100%;resize:vertical}
-.dt-sheet-back{position:fixed;inset:0;z-index:60;background:rgba(2,6,13,.5)}
-.dt-sheet{position:fixed;left:0;right:0;bottom:0;z-index:61;max-height:min(70dvh,560px);display:flex;flex-direction:column;border-radius:16px 16px 0 0;background:#0D1320;border-top:1px solid var(--bd-2);box-shadow:0 -20px 60px rgba(0,0,0,.5);padding-bottom:var(--safe-bottom)}
+.dt-sheet-back{position:fixed;inset:0;z-index:380;background:rgba(2,6,13,.5)}   /* above the phone's tab bar (360), which used to cover the sheet's last row */
+.dt-sheet{position:fixed;left:0;right:0;bottom:0;z-index:381;max-height:min(70dvh,560px);display:flex;flex-direction:column;border-radius:16px 16px 0 0;background:#0D1320;border-top:1px solid var(--bd-2);box-shadow:0 -20px 60px rgba(0,0,0,.5);padding-bottom:var(--safe-bottom)}
 .dt-sheet-head{display:flex;align-items:center;gap:10px;padding:12px 14px 8px}.dt-sheet-head strong{font:600 14px var(--font-display)}.dt-sheet-hint{flex:1;font:500 11px var(--font-display);color:var(--tx-3)}
 .dt-sheet-tabs{display:flex;gap:4px;overflow-x:auto;padding:0 10px 8px;scrollbar-width:none}.dt-sheet-tabs::-webkit-scrollbar{display:none}
 .dt-sheet-tabs button{flex:0 0 auto;border:1px solid var(--bd-1);border-radius:999px;background:var(--bg-3);color:var(--tx-3);padding:6px 11px;font:600 12px var(--font-display)}.dt-sheet-tabs button[aria-selected=true]{color:var(--blue-lt);background:rgba(59,130,246,.14);border-color:rgba(59,130,246,.35)}
@@ -1856,6 +1856,12 @@ svg.ico{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.7;st
 [data-theme="forest"] .acct-chip .acct-bal{color:inherit}
 [data-theme="forest"] .modal-card,[data-theme="forest"] .modal{background:var(--bg-2);border-color:var(--bd-2)}
 [data-theme="forest"] .dt-flyout{background:var(--bg-2)}
+[data-theme="forest"] .dt-sheet,[data-theme="forest"] .dt-pop{background:var(--bg-2);border-top-color:rgba(255,255,255,.14)}
+[data-theme="forest"] .dt-sheet-head strong,[data-theme="forest"] .dt-sheet .dt-item{color:#fff}
+[data-theme="forest"] .dt-sheet-tabs button[aria-selected=true]{color:var(--f-brand);background:#c9f2dc;border-color:#c9f2dc}
+[data-theme="forest"] #dtFloat{background:var(--f-card);color:var(--f-ink);border:1px solid rgba(21,33,30,.12);box-shadow:0 10px 30px rgba(0,0,0,.22)}
+[data-theme="forest"] #dtFloat .dt-ib{color:var(--f-ink)}
+@media (pointer:coarse){.dt-sheet kbd{display:none}}   /* shortcuts mean nothing to a thumb */
 [data-theme="forest"] .review-btn{background:#fff;border-color:#fff;color:var(--f-brand)}
 [data-theme="forest"] .chk-verdict h1 .buy{color:var(--green-lt)}[data-theme="forest"] .chk-verdict h1 .sell{color:var(--red-lt)}
 
@@ -1910,19 +1916,19 @@ svg.ico{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.7;st
   }
   [data-theme="forest"] .m-tf::after{content:'';width:7px;height:7px;border-right:2px solid var(--f-brand);border-bottom:2px solid var(--f-brand);transform:rotate(45deg) translate(-1px,-2px)}
   [data-theme="forest"] .chart-toolbar .ws-draw-menu,[data-theme="forest"] .chart-toolbar .ws-menu summary,[data-theme="forest"] .m-expand{
-    display:inline-flex!important;align-items:center;justify-content:center;gap:7px;flex:1 1 0;min-width:0;height:34px;padding:0 4px;border:0;border-left:1px solid #e3e8e6;border-radius:0;
-    background:transparent;color:var(--f-ink);font:400 13.5px var(--font-display);cursor:pointer;list-style:none;
+    display:inline-flex!important;align-items:center;justify-content:center;gap:6px;flex:1 1 0;min-width:0;height:34px;padding:0 2px;border:0;border-left:1px solid #e3e8e6;border-radius:0;
+    background:transparent;color:var(--f-ink);font:400 13px var(--font-display);letter-spacing:-.1px;white-space:nowrap;cursor:pointer;list-style:none;
   }
   [data-theme="forest"] .chart-toolbar .ws-menu{flex:1 1 0;min-width:0;display:block}
   [data-theme="forest"] .chart-toolbar .ws-menu summary::-webkit-details-marker{display:none}
   [data-theme="forest"] .chart-toolbar .ws-menu summary{font-size:0}
-  [data-theme="forest"] .chart-toolbar .ws-menu summary::after{content:'Indicators';font:400 13.5px var(--font-display);color:var(--f-ink)}
+  [data-theme="forest"] .chart-toolbar .ws-menu summary::after{content:'Indicators';font:400 13px var(--font-display);letter-spacing:-.1px;color:var(--f-ink)}
   .m-expand .m-exp-in,.m-expand[aria-pressed="true"] .m-exp-out{display:none!important}.m-expand[aria-pressed="true"] .m-exp-in{display:inline-block!important}
   [data-theme="forest"] .chart-toolbar .ws-draw-menu svg,[data-theme="forest"] .m-expand svg{width:17px;height:17px;stroke:var(--f-ink);fill:none;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round;opacity:.85}
   [data-theme="forest"] .chart-toolbar .ws-menu summary::before{content:'';width:17px;height:17px;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2315211e' stroke-width='1.9' stroke-linecap='round'%3E%3Cpath d='M4 7h10M18 7h2M4 17h4M12 17h8'/%3E%3Ccircle cx='16' cy='7' r='2'/%3E%3Ccircle cx='10' cy='17' r='2'/%3E%3C/svg%3E") center/contain no-repeat;opacity:.85}
-  [data-theme="forest"] .chart-toolbar .ws-menu-body{background:var(--f-card);color:var(--f-ink);border-color:rgba(21,33,30,.12);box-shadow:0 14px 40px rgba(0,0,0,.25)}
-  [data-theme="forest"] .chart-toolbar .ind-btn{background:#eef2f1;color:var(--f-ink);border-color:transparent}
-  [data-theme="forest"] .chart-toolbar .ind-btn.active{background:var(--f-brand);color:#fff}
+  [data-theme="forest"] .chart-toolbar .ws-menu-body,[data-theme="forest"] .ws-menu-body.is-portal{background:var(--f-card);color:var(--f-ink);border:1px solid rgba(21,33,30,.12);border-radius:14px;box-shadow:0 14px 40px rgba(0,0,0,.25)}
+  [data-theme="forest"] .chart-toolbar .ind-btn,[data-theme="forest"] .ws-menu-body.is-portal .ind-btn{background:#eef2f1;color:var(--f-ink);border-color:transparent;font:500 13px var(--font-display)}
+  [data-theme="forest"] .chart-toolbar .ind-btn.active,[data-theme="forest"] .ws-menu-body.is-portal .ind-btn.active{background:var(--f-brand);color:#fff}
   [data-theme="forest"] #positionMeasure{background:var(--f-card);color:var(--f-ink);border-bottom-color:#eef2f1}
   [data-theme="forest"] .chart-row{border-radius:0 0 20px 20px;overflow:hidden;background:var(--f-card);box-shadow:0 10px 30px rgba(0,0,0,.18)}
   [data-theme="forest"] .chart-wrap{background:var(--f-card)}
@@ -1965,7 +1971,8 @@ svg.ico{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.7;st
     margin:6px -8px 0;border-radius:22px 22px 0 0;border-top:0;background:var(--f-brand);
     box-shadow:0 -10px 30px rgba(0,0,0,.22);padding-top:4px;overflow:hidden;position:relative;z-index:5;
   }
-  [data-theme="forest"] #tradeDockGrip{height:12px;background:transparent;cursor:pointer}
+  [data-theme="forest"] #tradeDockGrip{height:12px;background:transparent;cursor:pointer;position:relative}
+  [data-theme="forest"] #tradeDockGrip::before{content:'';position:absolute;left:0;right:0;top:-8px;bottom:-10px}   /* a 30px thumb target around the 12px pill */
   [data-theme="forest"] #tradeDockGrip span{width:38px;height:5px;background:rgba(255,255,255,.32)}
   [data-theme="forest"] .bstrip-tabs{min-height:30px;padding:0 16px;gap:20px;border-bottom:1px solid rgba(255,255,255,.1);overflow-x:auto;scrollbar-width:none}
   [data-theme="forest"] .bstab{
@@ -1991,6 +1998,9 @@ svg.ico{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.7;st
   [data-theme="forest"] #tradeDock .bpane{padding:4px 0 10px;height:auto;background:transparent}
   [data-theme="forest"] #insightsPane{display:none}[data-theme="forest"] #insightsPane.active{display:block}
   [data-theme="forest"] #positionsPane.active,[data-theme="forest"] #ordersPane.active{padding:8px 12px 12px;gap:8px}
+  [data-theme="forest"] #journalPane.active{display:grid;gap:5px;align-content:start;max-height:none;overflow:visible;padding:6px 12px 12px}
+  [data-theme="forest"] #journalPane .hx-sum{padding:4px 2px 8px;font-size:12px;color:var(--tx-3)}
+  [data-theme="forest"] #journalPane .hx-row{background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.1)}
   [data-theme="forest"] .pos-empty{color:var(--tx-3);font-size:13px;padding:14px 16px}
   /* insights list */
   .mi-chips{display:flex;gap:7px;padding:9px 16px 2px;overflow-x:auto;scrollbar-width:none}
@@ -2007,7 +2017,7 @@ svg.ico{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.7;st
   .mi-bd.up{background:var(--f-up);color:#fff}.mi-bd.up.o{background:transparent;border-color:var(--f-up);color:#7ff0cf}
   .mi-bd.neut{background:rgba(255,255,255,.22);color:#fff}.mi-bd.neut.o{background:transparent;border-color:rgba(255,255,255,.4);color:var(--tx-2)}
   .mi-bd.aria{background:var(--f-ema);color:#fff;font-size:10.5px}
-  .mi-bd.oracle{background:var(--amber);color:#3b2a06}.mi-bd.oracle.ok{background:var(--f-up);color:#fff}.mi-bd.oracle.bad{background:var(--f-down);color:#fff}
+  .mi-bd.oracle{background:var(--amber);color:#3b2a06}.mi-bd.oracle.ok{background:var(--f-up);color:#fff}.mi-bd.oracle.bad{background:var(--f-down);color:#fff}.mi-bd.oracle.mut{background:rgba(255,255,255,.22);color:#fff}
   .mi-t{flex:1;min-width:0}
   .mi-t .mi-h{display:flex;align-items:center;gap:7px;font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .mi-tag{font-size:10px;font-weight:700;letter-spacing:.4px;padding:2px 6px;border-radius:6px;text-transform:uppercase;flex:none}
@@ -2033,6 +2043,7 @@ svg.ico{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.7;st
   [data-theme="forest"] .mobile-nav-btn .nav-bx{width:50px;height:25px;border-radius:13px;display:grid;place-items:center}
   [data-theme="forest"] .mobile-nav-btn.active{color:#fff;background:transparent;box-shadow:none}
   [data-theme="forest"] .mobile-nav-btn.active .nav-bx{background:#c9f2dc;color:var(--f-brand)}
+  [data-theme="forest"] .mobile-nav-btn.active .ico{color:var(--f-brand);stroke:var(--f-brand)}   /* the base rule paints the active icon teal, invisible on the mint pill */
 
   /* ── the analysis sheet (right panel) and the account card in Portfolio ── */
   [data-theme="forest"] .right-panel{background:var(--bg-2);border-top-color:rgba(255,255,255,.14);box-shadow:0 -14px 40px rgba(0,0,0,.35)}
@@ -2525,7 +2536,7 @@ svg.ico{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.7;st
           <div class="port-stats">
             <div class="port-stat"><div class="ps-lbl">P&amp;L Today</div><div class="ps-val" id="pnlToday">$0.00</div></div>
             <div class="port-stat"><div class="ps-lbl">Win Rate</div><div class="ps-val" id="winRate">—</div></div>
-            <div class="port-stat"><div class="ps-lbl">Positions</div><div class="ps-val" id="totalTrades">0</div></div>
+            <div class="port-stat"><div class="ps-lbl">Closed positions</div><div class="ps-val" id="totalTrades">0</div></div>
             <div class="port-stat"><div class="ps-lbl">Best Position</div><div class="ps-val" id="bestTrade">—</div></div>
             <div class="port-stat" style="grid-column:1/-1"><div class="ps-lbl">Avg R per position</div><div class="ps-val" id="avgR">—</div></div>
           </div>
@@ -2906,7 +2917,7 @@ function buildPairList(filter = '') {
       const chgCls = (pp.chg || 0) >= 0 ? 'up' : 'dn';
       const chgStr = pp.chg !== undefined ? formatPct(p.id, pp.chg, 2) : '';
       const srcCls = pp.src === 'Deriv' ? 'deriv' : pp.live ? 'live' : 'sim';
-      h += `<div class="pair-row ${p.id === S.sym ? 'active' : ''}" onclick="selectPair('${p.id}')">
+      h += `<div class="pair-row ${p.id === S.sym ? 'active' : ''}" data-id="${p.id}" onclick="selectPair('${p.id}')">
         <div>
           <div class="pname">${p.flag} ${p.label}</div>
         </div>
@@ -2917,7 +2928,26 @@ function buildPairList(filter = '') {
       </div>`;
     });
   });
-  el.innerHTML = h;
+  patchRows(el, h);
+}
+
+/* A market list refreshes every few seconds. Rebuilding its HTML each time
+   swallowed taps that landed mid-rebuild and broke a scroll in progress; when
+   the rows are the same instruments in the same order, only their price and
+   change cells are touched. */
+function patchRows(el, html) {
+  if (!el) return;
+  const tpl = document.createElement('template'); tpl.innerHTML = html;
+  const nu = [...tpl.content.querySelectorAll('.pair-row')], old = [...el.querySelectorAll('.pair-row')];
+  if (!old.length || nu.length !== old.length || nu.some((r, i) => r.dataset.id !== old[i].dataset.id)) { el.innerHTML = html; return; }
+  const CELLS = '.pname,.pprice,.pchg,.fav-btn';
+  nu.forEach((r, i) => {
+    const o = old[i];
+    if (o.className !== r.className) o.className = r.className;
+    const a = o.querySelectorAll(CELLS), b = r.querySelectorAll(CELLS);
+    if (a.length !== b.length) { o.innerHTML = r.innerHTML; return; }
+    a.forEach((c, j) => { if (c.innerHTML !== b[j].innerHTML) c.innerHTML = b[j].innerHTML; if (c.className !== b[j].className) c.className = b[j].className; if (c.classList.contains('fav-btn')) ['title', 'aria-label', 'aria-pressed'].forEach(k => c.setAttribute(k, b[j].getAttribute(k))); });
+  });
 }
 
 function filterPairs(v) { buildPairList(v); }
@@ -3204,11 +3234,14 @@ const FEEDX = (() => {
       if (r !== true) { pending.delete(id); reject(new Error(r === 'twin' ? 'already requested' : 'feed offline')); }
     });
   }
-  // true when the message was ours (and must not reach the chart handler)
+  // true when the message was ours (and must not reach the chart handler).
+  // Deriv's current gateway echoes `passthrough` only inside echo_req (the
+  // top-level copy stopped coming), so the req_id is what identifies a reply:
+  // ours are small (1, 2, 3…), the budget's own start at 1,000,000.
   function route(d) {
-    if (!d.passthrough || !d.passthrough.fx) return false;
+    const pt = (d.passthrough && d.passthrough.fx) || (d.echo_req && d.echo_req.passthrough && d.echo_req.passthrough.fx);
     const p = pending.get(d.req_id);
-    if (!p) return true;
+    if (!p) return !!pt;
     if (d.error && d.error.code === 'RateLimit' && FEEDQ.refused(d)) { clearTimeout(p.timer); return true; }   // goes again when the minute clears
     pending.delete(d.req_id); clearTimeout(p.timer); FEEDQ.ack(d.req_id);
     if (d.error) p.reject(new Error(d.error.message || 'feed error')); else p.resolve(d);
@@ -3694,6 +3727,10 @@ const CH = {
     if (S.ind.rsi) {
       this.ensureRsiPane();
       this.rsi.setData(pt(calcRSI(closes)));
+    } else if (this.rsi) {
+      // A hidden series still owns its time points: left with the previous
+      // timeframe's bars it would spread the new candles across its old grid.
+      this.rsi.setData([]);
     }
 
     const spec = (typeof otSpec === 'function') ? otSpec(S.sym) : null;
@@ -4034,11 +4071,12 @@ const CH = {
       timeScale: { borderColor: p.border },
       crosshair: { vertLine: { color: p.crosshair }, horzLine: { color: p.crosshair } },
     });
-    // forest: rising candles are hollow and the EMA is violet, so up and down read without colour
+    // forest: solid teal and coral bodies, and the last-price line in the brand green (the desktop keeps its blue)
     const forest = document.documentElement.getAttribute('data-theme') === 'forest';
     this.candle.applyOptions({
-      upColor: forest ? '#FFFFFF' : p.up, downColor: p.down, wickUpColor: p.up, wickDownColor: p.down,
+      upColor: p.up, downColor: p.down, wickUpColor: p.up, wickDownColor: p.down,
       borderVisible: forest, borderUpColor: p.up, borderDownColor: p.down,
+      priceLineColor: forest ? 'rgba(5,68,58,.75)' : 'rgba(59,130,246,.7)',
     });
     if (this.ema20) this.ema20.applyOptions({ color: forest ? '#7c9193' : '#3B82F6', lineWidth: 1 });
     if (this.watermark) { try { this.watermark.applyOptions({ visible: !forest }); } catch (_) {} }
@@ -5846,7 +5884,7 @@ function toggleMoreChecks() {
   more?.classList.toggle('open', CHECK_UI.expanded);
   if (button) {
     button.setAttribute('aria-expanded', String(CHECK_UI.expanded));
-    button.textContent = CHECK_UI.expanded ? 'Show fewer checks ▴' : 'Show 4 more checks ▾';
+    button.textContent = CHECK_UI.expanded ? 'Show fewer checks ▴' : `Show ${Math.max(0, ARIA_GATE_COUNT - 5)} more checks ▾`;
   }
 }
 function renderCheck() {
@@ -5868,8 +5906,8 @@ function renderCheck() {
   let sum;
   if (blocked) sum = verdict.msg.replace(/^[^\w]+/, '').replace(/ — /, ': ') + '.';
   else if (!failing.length) sum = `Every check agrees with a ${dir}. That is rare — size normally and let the stop do its job.`;
-  else if (failing.length <= 2) sum = `${pass} of 9 checks agree with a ${dir}. Against you: ${failing.join(' and ')}.`;
-  else sum = `Only ${pass} of 9 checks agree with a ${dir}. Against you: ${failing.slice(0, 3).join(', ')}${failing.length > 3 ? ' and more' : ''}.`;
+  else if (failing.length <= 2) sum = `${pass} of ${gates.gates.length} checks agree with a ${dir}. Against you: ${failing.join(' and ')}.`;
+  else sum = `Only ${pass} of ${gates.gates.length} checks agree with a ${dir}. Against you: ${failing.slice(0, 3).join(', ')}${failing.length > 3 ? ' and more' : ''}.`;
 
   const risk = S.balance * S.riskPct / 100;
   const lot = riskLots(S.sym, entry.entry, entry.slLevel, S.balance);
@@ -5885,9 +5923,9 @@ function renderCheck() {
       <span class="chk-les">${t.l ? 'Lesson ' + t.l : ''}</span></button>`; };
 
   panel.innerHTML = `
-    <div class="chk-head"><span class="lbl">${S.symLabel} · ${String(S.tf).toUpperCase()} · ${m.session.label}</span>
+    <div class="chk-head"><span class="lbl">${S.symLabel} · ${String(S.tf).toUpperCase()} · ${(typeof COPILOT !== 'undefined' && COPILOT.synthetic && COPILOT.synthetic(S.sym)) ? '24/7' : m.session.label}</span>
       <span class="lbl" style="text-transform:none;letter-spacing:0">${new Date().toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })}</span></div>
-    <div class="chk-verdict"><h1 class="${headCls}">${head}</h1><span class="chk-cnt num">${pass} of 9</span></div>
+    <div class="chk-verdict"><h1 class="${headCls}">${head}</h1><span class="chk-cnt num">${pass} of ${gates.gates.length}</span></div>
     <div class="chk-bar">${gates.gates.map(g => `<i class="${g.pass ? '' : 'f'}"></i>`).join('')}</div>
     <p class="chk-sum">${sum}</p>
     <div class="chk-engines">
@@ -5896,7 +5934,7 @@ function renderCheck() {
     </div>
     <div class="chk-list">${ordered.slice(0, 5).map(row).join('')}
       <div class="chk-more ${CHECK_UI.expanded ? 'open' : ''}" id="chkMore">${ordered.slice(5).map(row).join('')}</div>
-      <button class="chk-moretog" id="chkMoreToggle" aria-controls="chkMore" aria-expanded="${CHECK_UI.expanded}" onclick="toggleMoreChecks()">${CHECK_UI.expanded ? 'Show fewer checks ▴' : 'Show 4 more checks ▾'}</button>
+      <button class="chk-moretog" id="chkMoreToggle" aria-controls="chkMore" aria-expanded="${CHECK_UI.expanded}" onclick="toggleMoreChecks()">${CHECK_UI.expanded ? 'Show fewer checks ▴' : `Show ${ordered.length - 5} more checks ▾`}</button>
     </div>
     <div class="chk-ctx"><span>Context</span><span>${mcc.label} · ${m.wyck.phase}${m.patternAlign ? ' · ' + m.patternAlign : ''}</span></div>
     ${(() => { const L = lot && lot.lots >= lot.min ? lot.lots : null;
@@ -6117,6 +6155,17 @@ function renderLimits() {
 /* ════════════════════════════════════════════════════════════
    ORACLE AI ADVISOR
 ════════════════════════════════════════════════════════════ */
+// Why the Oracle leans the way it does, in the order the Oracle tab lists them
+function oracleReasons(gates, dir, rsi, patternAlign, mcc) {
+  const reasons = [];
+  if (gates.gates[0].pass) reasons.push(`EMAs aligned ${gates.dir}ish`);
+  if (gates.gates[1].pass) reasons.push(`RSI ${Number.isFinite(rsi) ? rsi.toFixed(0) : '—'} confirms momentum`);
+  if (gates.gates[3].pass) reasons.push(`Structure: ${dir==='buy'?'HH+HL':'LL+LH'} pattern`);
+  if (patternAlign) reasons.push(`Pattern: ${patternAlign}`);
+  if (mcc.code.includes('TREND')) reasons.push(`MCC: ${mcc.label}`);
+  if (reasons.length === 0) reasons.push('Insufficient confluence at this time');
+  return reasons;
+}
 function renderOracle() {
   const panel = document.getElementById('oracle-panel'); if (!panel) return;
   const cdles = S.candles;
@@ -6150,13 +6199,7 @@ function renderOracle() {
       : `${suggestedLots} lot${suggestedLots === 1 ? '' : 's'}${_cappedByMax ? ' (max)' : ''}`;
   const risk = (entry.sl / entry.entry) * 100;
 
-  const reasons = [];
-  if (gates.gates[0].pass) reasons.push(`EMAs aligned ${gates.dir}ish`);
-  if (gates.gates[1].pass) reasons.push(`RSI ${rsiV[n-1]?.toFixed(0)} confirms momentum`);
-  if (gates.gates[3].pass) reasons.push(`Structure: ${dir==='buy'?'HH+HL':'LL+LH'} pattern`);
-  if (patternAlign) reasons.push(`Pattern: ${patternAlign}`);
-  if (mcc.code.includes('TREND')) reasons.push(`MCC: ${mcc.label}`);
-  if (reasons.length === 0) reasons.push('Insufficient confluence at this time');
+  const reasons = oracleReasons(gates, dir, rsiV[n-1], patternAlign, mcc);
 
   panel.innerHTML = `
   <button class="pane-back" onclick="setRTab('check',null)">‹ Back to Analysis</button>
@@ -11187,8 +11230,7 @@ const OT = {
     if (el('otPrice')) el('otPrice').value = '';
     if (el('otSl')) el('otSl').value = '';
     if (el('otTp')) el('otTp').value = '';
-    if (el('otSlOn')) el('otSlOn').checked = false;
-    if (el('otTpOn')) el('otTpOn').checked = false;
+    this.syncProt();
     this.render();
   },
 
@@ -11472,7 +11514,17 @@ const OT = {
   consumeLevels() {
     TK.slOn = false; TK.tpOn = false; TK.sl = null; TK.tp = null;
     ['otSl', 'otTp'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+    this.syncProt();
     this.render(); if (typeof CH !== 'undefined' && CH.ready) CH.refreshLevels();
+  },
+  // The stop and target switches and their rows follow TK — a fill or a new
+  // market used to leave the switches on over empty boxes and a red warning.
+  syncProt() {
+    const el = id => document.getElementById(id);
+    if (el('otSlOn')) el('otSlOn').checked = !!TK.slOn;
+    if (el('otTpOn')) el('otTpOn').checked = !!TK.tpOn;
+    if (el('otSlRow')) el('otSlRow').style.display = TK.slOn ? 'grid' : 'none';
+    if (el('otTpRow')) el('otTpRow').style.display = TK.tpOn ? 'grid' : 'none';
   },
   openPosition(order, fill) {
     const margin = otMarginFor(order.symbol, order.volume, fill) || 0;
@@ -11830,12 +11882,15 @@ const OT = {
 
     // Bridge on and "MT5" selected: the MT5 account history owns the list.
     const h = (LIVE && LIVE.renderHistory()) ? null : document.getElementById('historyList');
-    if (h) {
+    const j = document.getElementById('journalPane');
+    const phoneJournal = j && typeof MOB !== 'undefined' && MOB.on() && MOB.forest();   // the phone's Journal tab shows the same history as the Portfolio
+    if (h || phoneJournal) {
+      let html = '';
       if (!trades.length) {
-        h.innerHTML = '<div style="font-size:12px;color:var(--tx-3)">No closed trades yet. Close a position and it will be listed here.</div>';
+        html = '<div style="font-size:12px;color:var(--tx-3)">No closed trades yet. Close a position and it will be listed here.</div>';
       } else {
         const net = trades.reduce((a, t) => a + (t.pnl || 0), 0);
-        let html = `<div class="hx-sum"><span>${trades.length} closed trade${trades.length === 1 ? '' : 's'}</span><span>Net ${otMoney(net)}</span></div>`;
+        html = `<div class="hx-sum"><span>${trades.length} closed trade${trades.length === 1 ? '' : 's'}</span><span>Net ${otMoney(net)}</span></div>`;
         let lastDay = '';
         trades.forEach(t => {
           const day = t.closeTime ? new Date(t.closeTime).toDateString() : 'Earlier';
@@ -11852,11 +11907,11 @@ const OT = {
               <span>Ticket <b>#${esc(t.id)}</b></span>
             </div></div>`;
         });
-        h.innerHTML = html;
       }
+      if (h) h.innerHTML = html;
+      if (phoneJournal) j.innerHTML = html;
     }
-    const j = document.getElementById('journalPane');
-    if (j && trades.length) {
+    if (j && !phoneJournal && trades.length) {
       j.innerHTML = trades.slice(0, 30).map(t => `<div class="jnl-row"><span class="jnl-pair">${esc(String(t.type).toUpperCase())} ${esc(t.volume)} ${esc(t.pair || t.sym)}</span>
         <span style="color:${(t.pnl || 0) >= 0 ? 'var(--green-lt)' : 'var(--red-lt)'}">${otMoney(t.pnl || 0)}</span></div>`).join('');
     }
@@ -12045,7 +12100,7 @@ const OT = {
       const lots = Number.isFinite(TK.volume) ? `${TK.volume} lot${TK.volume === 1 ? '' : 's'}${TK.auto && TK.slOn ? ' (sized from your risk)' : ' (manual)'}` : '—';
       sum.innerHTML = !Number.isFinite(TK.volume) ? 'Enter a lot size to see the plan.'
         : lossAmt == null ? `<div class="plan-risk">Set a stop loss</div><div class="plan-sub">Your stop decides the size: the app sizes the trade so the stop costs your chosen risk.</div>`
-        : `<div class="plan-risk">Risk ${otMoney(lossAmt)} · ${(lossAmt / eqv * 100).toFixed(1)}% of equity</div>
+        : `<div class="plan-risk">Risk ${otMoney(lossAmt)} · ${(lossAmt / eqv * 100).toFixed(lossAmt / eqv * 100 < 0.1 ? 2 : 1)}% of equity</div>
            <div class="plan-sub">${TK.side === 'buy' ? 'Buy' : 'Sell'} ${lots} ${esc(s.label)} ${at}${rr ? ` · R:R 1 : ${rr.toFixed(2)}` : ''}</div>
            <div class="plan-out"><span>At stop <b class="neg">${otMoney(maxLoss)}</b></span>${atTarget != null ? `<span>At target <b class="${atTarget >= 0 ? 'pos' : 'neg'}">${atTarget > 0 ? '+' : ''}${otMoney(atTarget)}</b></span>` : '<span>No target set</span>'}</div>`;
     }
@@ -12197,6 +12252,7 @@ const OT = {
       : r.lots < r.min ? (B && B.why !== 'trade' && B.why !== 'equity' ? this.budgetWhy(B) : 'stop too wide for the minimum lot')
       : !TK.auto ? (matches ? 'manual · matches' : 'manual · tap for auto')
       : B && B.why !== 'trade' ? this.budgetWhy(B).replace(/\.$/, '')
+      : r.lots >= otSpec(S.sym).maxLot - 1e-9 ? `max ${r.lots} lots · ${otMoney(r.riskPerLot * r.lots)} at the stop`   // the market's lot cap, not the budget, sets the size
       : `${otMoney(live ? r.budget : B.budget)} ÷ ${otMoney(r.riskPerLot)} per lot`;
   },
 
@@ -13406,6 +13462,10 @@ function setRTab(tab, btn) {
   if (tab === 'laws') renderLaws();
   if (tab === 'oracle') renderOracle();
   if (tab === 'portfolio') renderPortfolio();
+  // the panes share one scrolling body: a new tab starts at its top, and its chip comes into view
+  if (tab !== setRTab._last) { const body = document.querySelector('.right-panel .rpanel-body'); if (body) body.scrollTop = 0; }
+  setRTab._last = tab;
+  try { document.querySelector(`.rtab[data-tab="${tab}"]`)?.scrollIntoView({ block: 'nearest', inline: 'nearest' }); } catch (_) {}
   if (isMobile()) syncMobileNav(tab === 'trade' || tab === 'portfolio' ? tab : 'check');
 }
 
@@ -13421,6 +13481,7 @@ function setBTab(tab, btn) {
   if (tab === 'scanner') runPatternScanner();
   if (tab === 'insights' && typeof MOB !== 'undefined') MOB.insights.render();
   if (tab === 'positions' || tab === 'orders') OT.renderBook();
+  if (tab === 'journal') OT.renderHistory();
   if (typeof MOB !== 'undefined' && MOB.on() && tab !== 'journal') syncMobileNav(document.getElementById('rightPanel')?.classList.contains('open') ? 'panel' : 'chart');
 }
 
@@ -13898,6 +13959,8 @@ function setTF(tf, btn) {
 }
 
 function togInd(ind, btn) {
+  // Deriv's forex and synthetics report no volume: the button says so instead of lighting up over nothing
+  if (ind === 'vol' && !S.ind.vol && typeof CH !== 'undefined' && CH.ready && !CH.hasVolume) { showToast('This market reports no volume (Deriv forex and synthetics never do).', 3200); return; }
   S.ind[ind] = !S.ind[ind];
   btn.classList.toggle('active', S.ind[ind]);
   if (typeof CH !== 'undefined' && CH.ready) CH.applyIndicatorVisibility();
@@ -14121,7 +14184,7 @@ function renderPairSheet(filter) {
       const px = live && Number.isFinite(q.price) ? q.price.toFixed(p.dp) : '—';
       const chg = live ? normalizeChg(p.id, Number.isFinite(q.chg) ? q.chg : 0) : null;
       const cur = p.id === S.sym;
-      html += `<div class="pair-row ${cur ? 'active' : ''}" style="min-height:48px" onclick="selectPair('${p.id}');document.getElementById('pairSheet').classList.remove('open');syncMobileNav('chart')">
+      html += `<div class="pair-row ${cur ? 'active' : ''}" data-id="${p.id}" style="min-height:48px" onclick="selectPair('${p.id}');document.getElementById('pairSheet').classList.remove('open');syncMobileNav('chart')">
         <div style="display:flex;align-items:center;gap:8px;min-width:0">
           <span style="font-size:14px">${p.flag}</span>
           <div style="min-width:0"><div class="pname">${p.label}${cur ? ' <span style="color:var(--blue-lt);font-size:12px;font-weight:800">● ON CHART</span>' : ''}</div><div class="psym">${p.id}</div></div>
@@ -14134,7 +14197,7 @@ function renderPairSheet(filter) {
       </div>`;
     });
   });
-  list.innerHTML = html || '<div style="padding:16px;color:var(--tx-3);font-size:12px">No instruments match.</div>';
+  patchRows(list, html || '<div style="padding:16px;color:var(--tx-3);font-size:12px">No instruments match.</div>');
 }
 // keep prices fresh while the sheet is open
 setInterval(() => { const sh = document.getElementById('pairSheet'); if (sh && sh.classList.contains('open')) renderPairSheet(); }, 3000);
@@ -14154,7 +14217,8 @@ setInterval(() => { const sh = document.getElementById('pairSheet'); if (sh && s
    a timeframe menu and Expand, the Insights · Positions · Orders sheet, and
    the four-tab bar (Markets · Workspace · Journal · Portfolio). Insights is
    one list fed by the engines that already run: ARIA's setup check
-   (checkModel), ORACLE's plan check on the ticket (ORACLE.check), Sentinel's
+   (checkModel), the Oracle's confidence in the market (the same score as the
+   Oracle tab: gates passed ÷ gates, with its levels), Sentinel's
    open setups for this market and the pattern scanner, whose rows are
    numbered like the markers on the chart. Nothing here places a trade.
    Desktop never enters forest: the theme is set only while the phone media
@@ -14252,7 +14316,12 @@ const MOB = {
     el() { return document.getElementById('tradeDock'); },
     isUp() { return !!this.el()?.classList.contains('up'); },
     open() { this.el()?.classList.add('up'); const g = document.getElementById('tradeDockGrip'); if (g) g.setAttribute('aria-expanded', 'true'); },
-    close() { this.el()?.classList.remove('up'); const g = document.getElementById('tradeDockGrip'); if (g) g.setAttribute('aria-expanded', 'false'); },
+    close() {
+      const el = this.el(); if (!el) return;
+      el.classList.remove('up'); const g = document.getElementById('tradeDockGrip'); if (g) g.setAttribute('aria-expanded', 'false');
+      // the Journal only lives in the open sheet: pulled down, the sheet is the Insights strip again
+      if (MOB.on() && el.classList.contains('journal')) { this.tab('insights'); if (typeof syncMobileNav === 'function') syncMobileNav('chart'); }
+    },
     toggle() { this.isUp() ? this.close() : this.open(); },
     tab(name) { const b = document.querySelector(`.bstab[data-tab="${name}"]`); setBTab(name, b); this.el()?.classList.toggle('journal', name === 'journal'); },
   },
@@ -14279,9 +14348,9 @@ const MOB = {
   insights: {
     build() {
       const out = { aria: null, oracle: null, sentinel: [], patterns: [] };
+      let m = null; try { m = typeof checkModel === 'function' ? checkModel() : null; } catch (_) {}   // one read of the market for both rows
       // ARIA: the setup check's verdict, as the Check tab words it
       try {
-        const m = typeof checkModel === 'function' ? checkModel() : null;
         if (m) {
           const { gates, verdict, mcc } = m, pass = gates.score, dir = gates.dir;
           const blocked = verdict.v === 'BLOCKED' || (verdict.v === 'OBSERVER' && (mcc.code === 'DEAD_ZONE' || mcc.code === 'FAKE_BREAK'));
@@ -14294,20 +14363,17 @@ const MOB = {
           };
         }
       } catch (_) {}
-      // ORACLE: the plan on the ticket, checked against the chart it would trade
+      // ORACLE: the advisor's confidence in this market, scored as the Oracle tab scores it
+      // (gates passed ÷ gates), with its direction, levels and first reason
       try {
-        const q = typeof otQuote === 'function' ? otQuote(S.sym) : null;
-        const entry = TK.type !== 'market' && Number.isFinite(TK.price) ? TK.price : (q && Number.isFinite(q.mid) ? q.mid : NaN);
-        const stop = TK.slOn && Number.isFinite(TK.sl) ? TK.sl : NaN, target = TK.tpOn && Number.isFinite(TK.tp) ? TK.tp : NaN;
-        if (!Number.isFinite(stop) || !Number.isFinite(entry)) {
-          out.oracle = { status: 'INCOMPLETE', head: 'Plan incomplete', cls: '', tag: 'warn', sub: Number.isFinite(entry) ? 'No stop loss set · size waits for a stop' : 'No price yet for this market', n: 0, total: 0 };
-        } else if (typeof ORACLE !== 'undefined' && typeof COPILOT !== 'undefined' && S.candles.length >= 30) {
-          const res = ORACLE.check({ side: TK.side, entry, stop, target, sym: S.sym, synthetic: COPILOT.synthetic(S.sym) }, COPILOT.read(), null);
-          const ok = res.items.filter(i => i.kind === 'ok').length, total = res.items.filter(i => i.kind !== 'note').length;
-          const worst = res.items.find(i => i.kind === 'against') || res.items.find(i => i.kind === 'missing');
-          out.oracle = { status: res.status, head: { SUPPORTED: 'Plan supported', INCOMPLETE: 'Plan incomplete', CONTRADICTED: 'Plan contradicted' }[res.status] || res.status,
-            cls: res.status === 'SUPPORTED' ? 'ok' : res.status === 'CONTRADICTED' ? 'bad' : '', tag: res.status === 'SUPPORTED' ? 'buy' : res.status === 'CONTRADICTED' ? 'sell' : 'warn',
-            sub: worst ? worst.text : `${TK.side === 'buy' ? 'Buy' : 'Sell'} plan · stop and reward in place`, n: ok, total };
+        if (m && m.entry) {
+          const c = m.oracle, dir = m.gates.dir, dp = Number.isFinite(S.dp) ? S.dp : 2;
+          const band = c >= 70 ? 'strong' : c >= 50 ? 'moderate' : 'weak';
+          const why = oracleReasons(m.gates, dir, m.rsi, m.patternAlign, m.mcc)[0];
+          out.oracle = { conf: c, band, dir, sl: m.entry.slLevel, tp: m.entry.tp2,
+            head: band === 'strong' ? 'Strong signal' : band === 'moderate' ? 'Moderate signal' : 'Weak · standby',
+            tag: `${c}%`, tagCls: band === 'strong' ? dir : band === 'moderate' ? 'warn' : 'mut',
+            sub: `${dir === 'buy' ? '▲ Buy' : '▼ Sell'} · entry ${m.entry.entry.toFixed(dp)} · stop ${m.entry.slLevel.toFixed(dp)} · ${why}` };
         }
       } catch (_) {}
       // Sentinel: open setups for this market from the server, then the scanner's patterns (numbered like the chart markers)
@@ -14327,14 +14393,17 @@ const MOB = {
       const R = [], tf = String(S.tf).toUpperCase();
       if (d.aria) R.push({ src: 'aria', badge: 'A', bd: 'aria', head: d.aria.head, tag: `${d.aria.pass} of ${d.aria.segs.length}`, tagCls: d.aria.tag, sub: d.aria.sub,
         meter: `<span class="mi-meter ${d.aria.dir}">${d.aria.segs.map(p => `<i class="${p ? 'f' : ''}"></i>`).join('')}</span>`, act: 'Open check', on: "openMobilePanel('check')" });
-      if (d.oracle) R.push({ src: 'oracle', badge: d.oracle.cls === 'ok' ? '✓' : d.oracle.cls === 'bad' ? '✕' : '!', bd: 'oracle ' + d.oracle.cls, head: d.oracle.head,
-        tag: d.oracle.total ? `${d.oracle.n} of ${d.oracle.total}` : '', tagCls: d.oracle.tag, sub: d.oracle.sub, act: d.oracle.status === 'SUPPORTED' ? 'Open ticket' : 'Fix plan', on: "openMobilePanel('trade')" });
+      if (d.oracle) R.push({ src: 'oracle', badge: 'O', bd: 'oracle ' + (d.oracle.band === 'strong' ? 'ok' : d.oracle.band === 'weak' ? 'mut' : ''), head: d.oracle.head,
+        tag: d.oracle.tag, tagCls: d.oracle.tagCls, sub: d.oracle.sub,
+        // a strong signal can go straight onto the ticket (stop and target filled, nothing placed); otherwise open the Oracle
+        act: d.oracle.band === 'strong' ? 'Use signal' : 'Open Oracle', pri: d.oracle.band === 'strong',
+        on: d.oracle.band === 'strong' ? `MOB.useOracle(${d.oracle.sl},${d.oracle.tp},'${d.oracle.dir}')` : "openMobilePanel('oracle')" });
       d.sentinel.forEach(t => R.push({ src: 'sentinel', badge: t.dir === 'buy' ? '▲' : '▼', bd: (t.dir === 'buy' ? 'up' : 'down'), head: `${t.dir === 'buy' ? 'Buy' : 'Sell'} setup${t.grade ? ' · ' + t.grade : ''}`,
         tag: 'Sentinel', tagCls: 'mut', sub: `${String(t.tf || '').toUpperCase()} · entry ${Number.isFinite(+t.entry) ? (+t.entry).toFixed(Number.isFinite(S.dp) ? S.dp : 2) : '—'} · stop filled on load`, act: 'Load', on: 'MOB.loadSetup(this)', id: String(t.id || '') }));
       d.patterns.forEach((p, i) => {
         const dirCls = p.dir === 'bull' ? 'up' : p.dir === 'bear' ? 'down' : 'neut';
-        R.push({ src: 'sentinel', badge: String(i + 1), bd: dirCls + (i ? ' o' : ''), head: p.name, tag: p.dir === 'bull' ? 'buy' : p.dir === 'bear' ? 'sell' : '', tagCls: p.dir === 'bull' ? 'buy' : 'sell',
-          sub: `${p.tf || tf} · ${p.conf}% · Pattern scanner`, act: i === 0 && p.dir !== 'neut' ? 'Plan trade' : 'Review', pri: i === 0 && p.dir !== 'neut',
+        R.push({ src: 'sentinel', pattern: true, badge: String(i + 1), bd: dirCls + (i ? ' o' : ''), head: p.name, tag: p.dir === 'bull' ? 'buy' : p.dir === 'bear' ? 'sell' : '', tagCls: p.dir === 'bull' ? 'buy' : 'sell',
+          sub: `${p.tf || tf} · ${p.conf}% · marker ${i + 1} on the chart`, act: i === 0 && p.dir !== 'neut' ? 'Plan trade' : 'Review', pri: i === 0 && p.dir !== 'neut',
           on: i === 0 && p.dir !== 'neut' ? `MOB.plan('${p.dir === 'bull' ? 'buy' : 'sell'}')` : "openMobilePanel('check')", muted: false });
       });
       return R;
@@ -14347,21 +14416,28 @@ const MOB = {
       const n = document.getElementById('bsInsightsN'); if (n) { n.textContent = String(R.length); n.hidden = !R.length; }
       const head = S.candles.length < 30 ? null : (R.find(r => r.src === 'sentinel' && r.pri) || R[0]);
       const show = R.filter(r => f === 'all' || r.src === f);
-      const sec = (k, label, dot, note) => show.some(r => r.src === k) ? `<div class="mi-sec"><i style="background:${dot}"></i>${label}<span>${MOB.esc(note)}</span></div>${show.filter(r => r.src === k).map(r => this.row(r)).join('')}` : '';
+      const sec = (k, label, dot, note, pick) => { const rows = show.filter(r => r.src === k && (!pick || pick(r))); return rows.length ? `<div class="mi-sec"><i style="background:${dot}"></i>${label}<span>${MOB.esc(note)}</span></div>${rows.map(r => this.row(r)).join('')}` : ''; };
       const chip = (k, label, dot) => `<button type="button" class="mi-chip ${f === k ? 'on' : ''}" onclick="MOB.setFilter('${k}')">${dot ? `<i style="background:${dot}"></i>` : ''}${label}${k === 'all' ? ` <b>${R.length}</b>` : ''}</button>`;
       const when = new Date().toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
       pane.innerHTML = `<div class="mi-head">${head ? this.row(head) : `<div class="mi-empty">Waiting for enough candles to read this market…</div>`}</div>
         <div class="mi-full">
           <div class="mi-chips">${chip('all', 'All')}${chip('aria', 'ARIA', '#8b8bff')}${chip('oracle', 'ORACLE', '#f5b63a')}${chip('sentinel', 'Sentinel', '#ff8f86')}</div>
           ${sec('aria', 'ARIA', '#8b8bff', `${String(S.tf).toUpperCase()} · updated ${when}`)}
-          ${sec('oracle', 'ORACLE', '#f5b63a', 'your plan on the ticket')}
-          ${sec('sentinel', 'Sentinel', '#ff8f86', `${d.sentinel.length ? d.sentinel.length + ' open · ' : ''}${d.patterns.length} pattern${d.patterns.length === 1 ? '' : 's'} · ${String(S.tf).toUpperCase()}`)}
+          ${sec('oracle', 'ORACLE', '#f5b63a', `confidence · ${String(S.tf).toUpperCase()}`)}
+          ${sec('sentinel', 'Sentinel', '#ff8f86', `${d.sentinel.length} open setup${d.sentinel.length === 1 ? '' : 's'} · this market`, r => !r.pattern)}
+          ${sec('sentinel', 'Patterns', '#ff8f86', `${d.patterns.length} on ${String(S.tf).toUpperCase()} · scanner`, r => r.pattern)}
           ${!show.length ? `<div class="mi-empty">${R.length ? 'Nothing from this source right now.' : 'Waiting for enough candles to read this market…'}</div>` : ''}
         </div>`;
     },
   },
   setFilter(k) { this.filter = k; this.insights.render(); },
   loadSetup(btn) { const id = btn && btn.dataset.id; if (id && typeof SENT !== 'undefined') SENT.load(id); },
+  // "Use signal": the Oracle's stop and target go onto the ticket on its side; the size follows the stop; nothing is placed
+  useOracle(sl, tp, dir) {
+    if (typeof applyARIA === 'function') applyARIA(+sl, +tp, dir);
+    if (typeof OT !== 'undefined' && OT.setStage) OT.setStage('before');
+    openMobilePanel('trade');
+  },
   // "Plan trade": the ticket opens on the pattern's side; the stop and the size are still the trader's; nothing is placed
   plan(side) {
     if (typeof OT !== 'undefined') { OT.setSide(side); OT.setStage('before'); }
@@ -14524,7 +14600,7 @@ function clearDerivSubs(){if(!ws||ws.readyState!==WebSocket.OPEN)return;for(cons
 function sendWS(payload,priority=2,opts){const r=FEEDQ.send(payload,priority,opts);return r===true||r==='twin'}
 function subscribeTick(id){if(!isDerivStreamSymbol(id))return;sendWS({ticks:id,subscribe:1})}
 function subscribeHistory(id){if(!isDerivStreamSymbol(id))return;const tfSec=TF_SEC[S.tf]||900;sendWS({ticks_history:id,adjust_start_time:1,count:300,end:'latest',granularity:tfSec,style:'candles',subscribe:1})}
-connectWS=function(){try{if(ws&&(ws.readyState===WebSocket.OPEN||ws.readyState===WebSocket.CONNECTING))return;ws=new WebSocket(DERIV_WS_URL);ws.onopen=()=>{S.wsConnected=true;wsRetry=0;setWsBadge(true);updateFeedBadge();subscribeHistory(S.sym);/* quotes: the order ticket's open listener subscribes them (core first, the rest when a list shows) */clearInterval(NEXUS.wsHeartbeat);NEXUS.wsHeartbeat=setInterval(()=>sendWS({ping:1}),25000)};ws.onmessage=e=>{let d;try{d=JSON.parse(e.data)}catch(_){return}if(FEEDX.route(d))return;if(d.req_id!=null&&!d.error)FEEDQ.ack(d.req_id);if(d.subscription?.id&&d.echo_req){const key=d.echo_req.ticks||d.echo_req.ticks_history;if(key)NEXUS.activeSubs.set(`${key}:${d.msg_type}:${d.echo_req.granularity||'tick'}`,d.subscription.id)}if(d.error){const key=d.echo_req?.ticks||d.echo_req?.ticks_history||'feed';const limited=d.error.code==='RateLimit'&&FEEDQ.refused(d);if(!limited&&d.req_id!=null)FEEDQ.ack(d.req_id);NEXUS.errors.set(key,d.error.message||'Feed error');const chartReq=d.echo_req?.ticks_history&&appSym(d.echo_req.ticks_history)===S.sym&&(!d.echo_req.granularity||d.echo_req.granularity===_histGran);if(chartReq&&d.error.code==='AlreadySubscribed'){/* the stream we want is already running (a quick flip back); if its bars never came, clear every candle stream and ask once more */if(!S.candles.length&&_chartAgain<2){_chartAgain++;sendWS({forget_all:'candles'},0);_histSubId=null;setTimeout(()=>{if(!S.candles.length)subscribeHistory(S.sym)},80)}}else if(chartReq&&!S.candles.length){const el=safeEl('chartLoading');if(el){el.textContent=limited?feedLimitText():String(d.error.message||'No candles for this market').replace(/\s*Market will open at \.$/,'');el.hidden=false}}updateFeedBadge();return}if(d.msg_type==='tick'&&d.tick){putQuote(d.tick.symbol,+d.tick.quote,null,'Deriv',true)}const _hs=d.echo_req&&d.echo_req.ticks_history,_hOk=_hs&&appSym(_hs)===S.sym&&(!d.echo_req.granularity||d.echo_req.granularity===_histGran);if(d.msg_type==='ohlc'&&d.ohlc&&_hOk){const o=d.ohlc;mergeLiveCandle({time:+o.open_time,open:+o.open,high:+o.high,low:+o.low,close:+o.close,vol:0});const _xq=XQ.q[S.sym];if(!_xq||Date.now()-_xq.ts>3000){XQ.put(S.sym,+o.close,+o.close,'Deriv');subscribeTick(S.sym)}}if(d.msg_type==='candles'&&d.candles&&_hOk){_chartAgain=0;S.candles=aggregateCandles(d.candles.map(c=>({time:+c.epoch,open:+c.open,high:+c.high,low:+c.low,close:+c.close,vol:0})),S.tf);const last=S.candles[S.candles.length-1];if(last)putQuote(S.sym,last.close,null,'Deriv',true);drawChart();renderARIA();renderMTF();runPatternScanner();updateTopbar()}};ws.onclose=()=>{S.wsConnected=false;FEEDQ.reset();FEEDX.reset();setWsBadge(false);updateFeedBadge();clearInterval(NEXUS.wsHeartbeat);wsRetry++;setTimeout(connectWS,Math.min(30000,1200*Math.pow(1.7,wsRetry)))};ws.onerror=()=>{try{ws.close()}catch(e){}}}catch(e){S.wsConnected=false;setWsBadge(false);setTimeout(connectWS,5000)}};
+connectWS=function(){try{if(ws&&(ws.readyState===WebSocket.OPEN||ws.readyState===WebSocket.CONNECTING))return;ws=new WebSocket(DERIV_WS_URL);ws.onopen=()=>{S.wsConnected=true;wsRetry=0;setWsBadge(true);updateFeedBadge();subscribeHistory(S.sym);/* quotes: the order ticket's open listener subscribes them (core first, the rest when a list shows) */clearInterval(NEXUS.wsHeartbeat);NEXUS.wsHeartbeat=setInterval(()=>sendWS({ping:1}),25000)};ws.onmessage=e=>{let d;try{d=JSON.parse(e.data)}catch(_){return}if(FEEDX.route(d))return;if(d.req_id!=null&&!d.error)FEEDQ.ack(d.req_id);if(d.subscription?.id&&d.echo_req){const key=d.echo_req.ticks||d.echo_req.ticks_history;if(key)NEXUS.activeSubs.set(`${key}:${d.msg_type}:${d.echo_req.granularity||'tick'}`,d.subscription.id)}if(d.error){const key=d.echo_req?.ticks||d.echo_req?.ticks_history||'feed';const limited=d.error.code==='RateLimit'&&FEEDQ.refused(d);if(!limited&&d.req_id!=null)FEEDQ.ack(d.req_id);NEXUS.errors.set(key,d.error.message||'Feed error');const chartReq=d.echo_req?.ticks_history&&appSym(d.echo_req.ticks_history)===S.sym&&(!d.echo_req.granularity||d.echo_req.granularity===_histGran);if(chartReq&&d.error.code==='AlreadySubscribed'){/* the stream we want is already running (a quick flip back); if its bars never came, clear every candle stream and ask once more */if(!S.candles.length&&_chartAgain<2){_chartAgain++;sendWS({forget_all:'candles'},0);_histSubId=null;setTimeout(()=>{if(!S.candles.length)subscribeHistory(S.sym)},80)}}else if(chartReq&&!S.candles.length){const el=safeEl('chartLoading');if(el){el.textContent=limited?feedLimitText():String(d.error.message||'No candles for this market').replace(/\s*Market will open at \.$/,'');el.hidden=false}}updateFeedBadge();return}if(d.msg_type==='tick'&&d.tick){putQuote(d.tick.symbol,+d.tick.quote,null,'Deriv',true)}const _hs=d.echo_req&&d.echo_req.ticks_history,_hOk=_hs&&appSym(_hs)===S.sym&&(!d.echo_req.granularity||d.echo_req.granularity===_histGran)&&(d.req_id==null||d.req_id>=1000000);/* the chart's own request carries a budget id; a one-shot reply (daily bar, older page, another timeframe) never repaints the chart */if(d.msg_type==='ohlc'&&d.ohlc&&_hOk){const o=d.ohlc;mergeLiveCandle({time:+o.open_time,open:+o.open,high:+o.high,low:+o.low,close:+o.close,vol:0});const _xq=XQ.q[S.sym];if(!_xq||Date.now()-_xq.ts>3000){XQ.put(S.sym,+o.close,+o.close,'Deriv');subscribeTick(S.sym)}}if(d.msg_type==='candles'&&d.candles&&_hOk){_chartAgain=0;const _cs=d.candles.map(c=>({time:+c.epoch,open:+c.open,high:+c.high,low:+c.low,close:+c.close,vol:0}));/* adjust_start_time can open the page with a fragment of a bar (an off-grid open time): drop it, it is not a candle of this timeframe */const _g=+d.echo_req.granularity||0;if(_g&&_cs.length>1&&_cs[0].time%_g!==0)_cs.shift();S.candles=aggregateCandles(_cs,S.tf);const last=S.candles[S.candles.length-1];if(last)putQuote(S.sym,last.close,null,'Deriv',true);drawChart();renderARIA();renderMTF();runPatternScanner();updateTopbar()}};ws.onclose=()=>{S.wsConnected=false;FEEDQ.reset();FEEDX.reset();setWsBadge(false);updateFeedBadge();clearInterval(NEXUS.wsHeartbeat);wsRetry++;setTimeout(connectWS,Math.min(30000,1200*Math.pow(1.7,wsRetry)))};ws.onerror=()=>{try{ws.close()}catch(e){}}}catch(e){S.wsConnected=false;setWsBadge(false);setTimeout(connectWS,5000)}};
 subscribeWS=function(sym){if(!isDerivStreamSymbol(sym))return;clearDerivSubs();subscribeTick(sym);subscribeHistory(sym)};
 selectPair=function(id){const p=PAIR_MAP[id];if(!p)return;S.sym=id;S.symLabel=p.label;S.dp=p.dp;VIEW.save();if(typeof DT!=='undefined')DT.setSymbol(id);chartOffset=0;S.candles=[];S.activePatterns=[];const chip=safeEl('symChip');if(chip){chip.innerHTML=`<span class="sym-flag">${p.flag}</span><span id="symLabel">${p.label}</span>`;const accent=document.documentElement.getAttribute('data-theme')==='light'?'#3B82F6':'var(--neon-cyan)';chip.style.borderColor=accent;setTimeout(()=>chip.style.borderColor='',700)}if(pairPrices[id]?.price)SEEDS[id]=pairPrices[id].price;seedCandles(200);buildPairList(safeEl('pairSearch')?.value||'');updateFeedBadge();if(isDerivStreamSymbol(id))subscribeWS(id);setTimeout(()=>{renderARIA();renderMTF();runPatternScanner();requestChartRedraw()},80)};
 

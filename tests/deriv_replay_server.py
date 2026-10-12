@@ -27,7 +27,7 @@ async def handler(ws):
     def echo(d, msg_type):
         rep={"msg_type":msg_type,"echo_req":d}
         if "req_id" in d: rep["req_id"]=d["req_id"]
-        if "passthrough" in d: rep["passthrough"]=d["passthrough"]
+        # the live gateway echoes passthrough only inside echo_req (no top-level copy since Oct 2026)
         return rep
     def counted(d):
         kind=next((k for k in ("ticks_history","ticks","active_symbols","forget_all","forget") if k in d), None)
@@ -74,7 +74,6 @@ async def handler(ws):
                 if g==86400: cds[-1].update({"open":px*0.99,"high":px*1.012,"low":px*0.985})
                 rep={"msg_type":"candles","echo_req":d,"candles":cds}
                 if "req_id" in d: rep["req_id"]=d["req_id"]
-                if "passthrough" in d: rep["passthrough"]=d["passthrough"]
                 if d.get("subscribe"):
                     # one live candle stream per (symbol, granularity), as on Deriv
                     if any(v[0]==f"hist-{sym}-{g}" for k,v in subs.items() if isinstance(k,tuple)):

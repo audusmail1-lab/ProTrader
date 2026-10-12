@@ -69,6 +69,24 @@ try:
     # 6. back-scroll pages older bars through the shared socket
     n0=pg.evaluate("S.candles.length"); pg.evaluate("CH.loadOlder()"); pg.wait_for_function(f"S.candles.length>{n0}+500", timeout=15000)
     print('ok  older history paged on the main socket:', n0, '->', pg.evaluate("S.candles.length"))
+    # 6b. one-shot replies (the daily bar, an older page, another timeframe) never repaint the chart:
+    #     on the 1D chart the charted symbol's own daily-bar request shares its symbol and granularity
+    pg.evaluate("setTF('1d', null)"); pg.wait_for_function("S.tf==='1d' && S.candles.length>100", timeout=15000); pg.wait_for_timeout(300)
+    n1=pg.evaluate("S.candles.length"); first1=pg.evaluate("S.candles[0].time")
+    pg.evaluate("DAY.asked[S.sym]=0; DAY.st[S.sym]=null; fetchDayStats(S.sym, true)")
+    pg.wait_for_function("DAY.st[S.sym] && DAY.st[S.sym].open>0", timeout=10000); pg.wait_for_timeout(600)
+    n2=pg.evaluate("S.candles.length"); first2=pg.evaluate("S.candles[0].time")
+    assert n2==n1 and first2==first1 and n1>100, (n1, n2, first1, first2)
+    assert pg.evaluate("CH.candle.data().length")==n2 and pg.evaluate("S.candles.every(c=>c.time%86400===0)"), 'the daily bar reply repainted the 1D chart'
+    print('ok  1D chart keeps its', n2, 'bars while the daily-bar reply lands on the same symbol and granularity')
+    # 6c. a hidden RSI series must not keep the previous timeframe's bars (the time scale would spread the new ones)
+    pg.evaluate("S.ind.rsi=true; CH.applyIndicatorVisibility(); S.ind.rsi=false; CH.applyIndicatorVisibility()")
+    assert pg.evaluate("CH.rsi.data().length")>0
+    pg.evaluate("setTF('4h', null)"); pg.wait_for_function("S.tf==='4h' && S.candles.length>500", timeout=15000); pg.wait_for_timeout(300)
+    assert pg.evaluate("CH.rsi.data().length")==0 and pg.evaluate("S.candles.every(c=>c.time%14400===0)")
+    r=pg.evaluate("(() => { const ts=CH.chart.timeScale(); const n=S.candles.length; return { n, right: ts.getVisibleLogicalRange().to }; })()")
+    assert r['right']<r['n']+30, r   # the live edge sits at the last candle, not off a stale grid
+    print('ok  hidden RSI series is emptied on a timeframe change; 4H bars sit on their own grid', r)
     # 7. a symbol switch shows loading, then the new series; nothing random
     pg.evaluate("__seen.length=0; selectPair('R_75')")
     pg.wait_for_function("S.sym==='R_75' && S.candles.length>900", timeout=15000)
