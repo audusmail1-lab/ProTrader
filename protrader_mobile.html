@@ -1997,7 +1997,14 @@ svg.ico{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.7;st
   [data-theme="forest"] #tradeDock.journal .bstab[data-tab="journal"]{display:inline-flex!important}
   [data-theme="forest"] #tradeDock .bpane{padding:4px 0 10px;height:auto;background:transparent}
   [data-theme="forest"] #insightsPane{display:none}[data-theme="forest"] #insightsPane.active{display:block}
-  [data-theme="forest"] #positionsPane.active,[data-theme="forest"] #ordersPane.active{padding:8px 12px 12px;gap:8px}
+  /* one position per line, the full width of the sheet: the desktop dock lays rows side by side at their content width,
+     which on a phone pushed the BE · Trail · SL·TP · ½ · Close buttons off the right edge and under the tab bar */
+  [data-theme="forest"] #positionsPane.active,[data-theme="forest"] #ordersPane.active{display:grid;grid-auto-rows:max-content;align-content:start;padding:8px 12px 12px;gap:8px}
+  [data-theme="forest"] #tradeDock .pos-row{min-width:0;width:100%;flex-shrink:1;background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.1)}
+  [data-theme="forest"] #tradeDock .pos-acts{justify-content:flex-start;flex-wrap:wrap;gap:6px;padding-top:2px}
+  [data-theme="forest"] #tradeDock .pos-act{min-height:36px;min-width:48px;border-radius:9px;background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.18);color:#fff;font:600 12.5px var(--font-display)}
+  [data-theme="forest"] #tradeDock .pos-act.danger{background:rgba(242,54,69,.18);border-color:rgba(242,54,69,.4);color:#ff8f86}
+  [data-theme="forest"] #tradeDock .pos-act:disabled{opacity:.45}
   [data-theme="forest"] #journalPane.active{display:grid;gap:5px;align-content:start;max-height:none;overflow:visible;padding:6px 12px 12px}
   [data-theme="forest"] #journalPane .hx-sum{padding:4px 2px 8px;font-size:12px;color:var(--tx-3)}
   [data-theme="forest"] #journalPane .hx-row{background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.1)}
@@ -2863,7 +2870,11 @@ const TZ = {
   },
   // Lightweight Charts axis labels: 0 year, 1 month, 2 day, 3 time, 4 time with seconds.
   tick(t, type) { const p = this.parts(t); return type === 0 ? p.year : type === 1 ? p.mon : type === 2 ? p.day : type === 4 ? p.sec : p.time; },
-  crosshair(t) { return this.parts(t).full; },
+  crosshair(t) {
+    const p = this.parts(t);
+    const daily = typeof S !== 'undefined' && (TF_SEC[S.tf] || 0) >= 86400;   // a daily or weekly bar carries no clock
+    return daily ? `${p.day} ${p.mon} ${p.year}` : p.full;
+  },
 };
 TZ.load();
 

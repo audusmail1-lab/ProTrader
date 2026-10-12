@@ -226,6 +226,15 @@ def check_phone(page, port, shots):
     page.evaluate("mobileSetView('chart')")
     ok(f"phone: the check panel says 'of {n_gates}'; after a fill the stop and target switches are off with their rows hidden")
 
+    # an open position's row fits the sheet: every action button inside the screen and above the tab bar
+    page.evaluate("TR.positions.push({ id: 99, symbol: S.sym, label: S.symLabel, side: 'buy', volume: 0.5, entry: S.candles[S.candles.length - 1].close, sl: S.candles[S.candles.length - 1].close - 1, tp: S.candles[S.candles.length - 1].close + 2, margin: 20, openTime: Date.now(), realized: 0 }); OT.renderBook(); MOB.sheet.tab('positions'); MOB.sheet.open()")
+    page.wait_for_timeout(400)
+    acts = page.evaluate("[...document.querySelectorAll('#positionsPane .pos-act')].map(b => { const r = b.getBoundingClientRect(); return [b.textContent.trim(), Math.round(r.right), Math.round(r.bottom)]; })")
+    nav_top = rect(page, ".mobile-nav")["t"]
+    assert [a[0] for a in acts] == ["BE", "Trail", "SL·TP", "½", "Close"] and all(a[1] <= 390 and a[2] <= nav_top for a in acts), (acts, nav_top)
+    page.evaluate("TR.positions.pop(); OT.renderBook(); MOB.sheet.close(); MOB.sheet.tab('insights')")
+    ok("phone: a position's BE · Trail · SL·TP · ½ · Close buttons all sit inside the screen, above the bar")
+
     # the right panel starts each tab at its top
     page.evaluate("openMobilePanel('trade'); document.querySelector('.right-panel .rpanel-body').scrollTop = 150; openMobilePanel('sentinel')"); page.wait_for_timeout(200)
     assert page.evaluate("document.querySelector('.right-panel .rpanel-body').scrollTop") == 0
