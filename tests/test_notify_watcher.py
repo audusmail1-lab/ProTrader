@@ -31,9 +31,9 @@ def _sync(c, positions):
     return r.json()
 
 
-def _pos(sl, tp, side="buy"):
-    return {"id": "7", "symbol": "R_75", "label": "Vol 75", "side": side, "volume": 0.2, "entry": 44000,
-            "sl": sl, "tp": tp, "unit": 1.0, "dp": 2, "spread": 0}
+def _pos(sl, tp, side="buy", unit=1.0, entry=44000, pid="7"):
+    return {"id": pid, "symbol": "R_75", "label": "Vol 75", "side": side, "volume": 0.2, "entry": entry,
+            "sl": sl, "tp": tp, "unit": unit, "dp": 2, "spread": 0}
 
 
 def test_close_records_the_levels_it_fired_on(tmp_path):
@@ -101,3 +101,27 @@ def test_ack_clears_closes(tmp_path):
     r = c.post("/api/notify/paper/ack", json={"device": DEV, "ids": ["7"]})
     assert r.json()["pendingCloses"] == 0
     assert _sync(c, [])["closed"] == []
+
+
+def test_sell_close_reports_a_profit_not_a_loss(tmp_path):
+    """`unit` is the app's *unsigned* money-per-1.0-move magnitude (see the
+    "money per 1.0 price move" comment on the /paper/sync schema below);
+    _on_tick() is the only place that applies the side's sign (`dirn`). A
+    short that is closed by its take-profit, after price moved in the
+    trader's favor, must be reported as a gain — not a loss from
+    double-applying the sign (once in the unit, once via dirn)."""
+    c = _client(tmp_path)
+    _sync(c, [_pos(sl=110, tp=90, side="sell", unit=10, entry=100)])
+    notify._on_tick("R_75", 90, 90, 90)                       # ask hits the sell's tp at 90
+    closed = notify._state["devices"][DEV]["closed"]
+    assert closed[0]["reason"] == "tp"
+    assert closed[0]["pnl"] == 100                            # (100 - 90) * 10, a gain, not -100
+
+
+def test_sell_close_reports_a_loss_on_its_own_stop(tmp_path):
+    c = _client(tmp_path)
+    _sync(c, [_pos(sl=110, tp=90, side="sell", unit=10, entry=100)])
+    notify._on_tick("R_75", 110, 110, 110)                    # ask hits the sell's sl at 110
+    closed = notify._state["devices"][DEV]["closed"]
+    assert closed[0]["reason"] == "sl"
+    assert closed[0]["pnl"] == -100                           # (100 - 110) * 10, a loss
