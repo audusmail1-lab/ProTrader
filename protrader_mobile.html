@@ -1841,6 +1841,7 @@ svg.ico{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.7;st
   --fs-2:13.5px;--fs-3:15px;--fs-4:19px;--fs-5:26px;
 }
 [data-theme="forest"] body{background:var(--f-brand);color:#fff}
+html[data-theme="forest"]{background:var(--f-deep)}   /* Safari paints the canvas colour into the strip under its minimised tab bar: the same deep green as the tab bar above it */
 [data-theme="forest"] body::before{content:none}
 /* teal is light: anything that paints it behind white text gets the brand ink instead */
 [data-theme="forest"] .cp-btn.pri,[data-theme="forest"] .ws-primary,[data-theme="forest"] .vx-acts .vx-ok,[data-theme="forest"] .vx-type button{background:#fff!important;color:var(--f-brand)!important;border-color:#fff!important}
@@ -14251,7 +14252,25 @@ const MOB = {
       if (document.querySelector('.bstab[data-tab="insights"].active')) this.sheet.tab('scanner');   // the phone-only tab never shows on a desktop
       this.sheet.close(); this.expand(false);
     }
+    // the browser's own bar (Safari's tab bar, Chrome's toolbar) is tinted from this: the tab bar's deep green on a phone
+    const meta = document.querySelector('meta[name="theme-color"]');
+    if (meta) { if (this._themeColor == null) this._themeColor = meta.getAttribute('content'); meta.setAttribute('content', this.forest() ? '#03362e' : this._themeColor); }
+    this.safeBottom();
     this.chartStyle();
+  },
+  /* The tab bar keeps the home-indicator inset under its labels so a finger never lands on the
+     indicator. In Safari, though, the page stops above Safari's own strip (the minimised tab bar),
+     the indicator sits inside that strip, and iOS still reports the inset to the page: the bar
+     carried 34px of dead padding above a strip it could never reach. When a browser owns the
+     bottom of the screen the inset is dropped; the installed app (full screen) keeps it. */
+  safeBottom() {
+    const root = document.documentElement.style;
+    const ios = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    const standalone = window.matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+    const landscape = window.innerWidth > window.innerHeight;
+    const screenH = landscape ? Math.min(screen.width, screen.height) : Math.max(screen.width, screen.height);
+    const browserOwnsBottom = this.on() && ios && !standalone && window.innerHeight < screenH - 24;
+    if (browserOwnsBottom) root.setProperty('--safe-bottom', '0px'); else root.removeProperty('--safe-bottom');
   },
   // only a phone (or a window leaving forest) restyles the chart: the desktop's chart is never touched
   chartStyle() { if (typeof CH !== 'undefined' && CH.ready && (this.forest() || this._left)) { this._left = false; CH.applyTheme(); CH.applyIndicatorVisibility(); requestChartRedraw(); } },
@@ -14271,7 +14290,8 @@ const MOB = {
     }
     this.syncTf();
     document.addEventListener('click', e => { if (this._tfMenu && !this._tfMenu.hidden && !e.target.closest('#mTfMenu,#mTf')) this.tfMenu(false); });
-    window.addEventListener('resize', () => { if (this._tfMenu && !this._tfMenu.hidden) this.tfMenu(false); });
+    window.addEventListener('resize', () => { if (this._tfMenu && !this._tfMenu.hidden) this.tfMenu(false); this.safeBottom(); });   // Safari's bar collapsing or expanding resizes the page
+    window.addEventListener('orientationchange', () => setTimeout(() => this.safeBottom(), 150));
     setInterval(() => { if (this.on()) { if (this.sheet.isUp() && !document.hidden && typeof SENT !== 'undefined' && SENT.feed) SENT.feed(); this.insights.render(); } }, 5000);
     if (this.on() && typeof SENT !== 'undefined' && SENT.feed) setTimeout(() => SENT.feed(), 1500);
   },

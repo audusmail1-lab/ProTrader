@@ -270,12 +270,35 @@ def check_phone(page, port, shots):
     ok("phone: ARIA's floating card opens inside the screen")
 
 
+IPHONE_UA = "Mozilla/5.0 (iPhone; CPU iPhone OS 26_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.0 Mobile/15E148 Safari/604.1"
+
+
+def check_safari_bar(page, port):
+    """iPhone Safari keeps its own strip under the page (the minimised tab bar), so the page is shorter
+    than the screen and the home indicator sits in Safari's strip: the tab bar drops the inset it was
+    carrying for nothing. The installed app (page as tall as the screen) keeps it."""
+    boot(page, port)
+    assert page.evaluate("document.documentElement.dataset.theme") == "forest"
+    assert page.evaluate("document.querySelector('meta[name=theme-color]').content") == "#03362e"
+    assert page.evaluate("getComputedStyle(document.documentElement).backgroundColor") == "rgb(3, 54, 46)"
+    short = page.evaluate("window.innerHeight < screen.height - 24")
+    sb = page.evaluate("document.documentElement.style.getPropertyValue('--safe-bottom')")
+    nav = rect(page, ".mobile-nav")
+    if short:
+        assert sb == "0px" and abs(nav["h"] - 46) < 1 and abs(nav["b"] - page.evaluate("innerHeight")) < 1, (sb, nav)
+        ok("iPhone Safari (page shorter than the screen): the tab bar is 46px flush with the page's bottom, no dead inset; theme-color and canvas are the bar's deep green")
+    else:
+        assert sb == "", sb
+        ok("iPhone full screen (installed app): the inset is left to iOS")
+
+
 def check_desktop(page, port):
     boot(page, port)
     assert page.evaluate("document.documentElement.dataset.theme") == "dark"
     assert not visible(page, "#mTf") and not visible(page, "#mExpand") and not visible(page, "#bsInsights") and not visible(page, "#mAcct") and not visible(page, ".vb-txt")
     assert visible(page, ".tf-btn") and page.evaluate("document.querySelector('.bstab.active').textContent.trim()") == "Scanner"
     assert page.evaluate("CH.candle.options().upColor") != "#FFFFFF"
+    assert page.evaluate("document.querySelector('meta[name=theme-color]').content") == "#070B14" and page.evaluate("document.documentElement.style.getPropertyValue('--safe-bottom')") == ""
     page.evaluate("toggleTheme()"); page.wait_for_timeout(200)
     assert page.evaluate("document.documentElement.dataset.theme") == "light"
     page.evaluate("toggleTheme()")
@@ -301,6 +324,8 @@ def main():
     with sync_playwright() as p:
         b = p.chromium.launch(args=args)
         for name, kw, fn in [("phone", dict(viewport={"width": 390, "height": 844}, device_scale_factor=2, is_mobile=True, has_touch=True), lambda pg: check_phone(pg, port, shots)),
+                             ("safari", dict(viewport={"width": 390, "height": 790}, screen={"width": 390, "height": 844}, device_scale_factor=3, is_mobile=True, has_touch=True, user_agent=IPHONE_UA), lambda pg: check_safari_bar(pg, port)),
+                             ("installed", dict(viewport={"width": 390, "height": 844}, screen={"width": 390, "height": 844}, device_scale_factor=3, is_mobile=True, has_touch=True, user_agent=IPHONE_UA), lambda pg: check_safari_bar(pg, port)),
                              ("laptop", dict(viewport={"width": 1280, "height": 860}), lambda pg: check_desktop(pg, port))]:
             ctx = b.new_context(locale="en-US", timezone_id="UTC", **kw)
             page = ctx.new_page()
