@@ -294,7 +294,9 @@ def check_desktop(page, port, shots):
     page.evaluate("VOICE.restore()"); calm(page)
     after = rect(page, ".vx-sheet")
     assert stored(page)["ox"] == pos["ox"] and stored(page)["oy"] == pos["oy"]
-    assert abs(after["l"] - before["l"]) < 1 and abs(after["b"] - before["b"]) < 1, (before, after)
+    # the card's height follows its conversation, so "the same place" is its anchored edges
+    edge_y = "t" if pos["ay"] == "t" else "b"
+    assert abs(after["l"] - before["l"]) < 1 and abs(after[edge_y] - before[edge_y]) < 1, (before, after, pos)
     assert page.evaluate("window.__recs.length") == 0
     ok("laptop: after a reload ARIA is back at the same place (minimised as it was), without starting the microphone")
 

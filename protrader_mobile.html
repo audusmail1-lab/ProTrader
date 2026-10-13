@@ -189,7 +189,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg-1);color:var(--tx-1);f
 .vx-wrap.open{display:block}
 .vx-settings[hidden],.vx-card[hidden]{display:none!important}
 .vx-sheet{position:absolute;right:12px;bottom:12px;width:min(420px,calc(100vw - 24px));max-height:min(720px,calc(100vh - 24px));pointer-events:auto;
-  display:flex;flex-direction:column;gap:10px;padding:18px 14px 12px;border-radius:22px;
+  display:flex;flex-direction:column;gap:8px;padding:16px 12px 10px;border-radius:22px;
   background:linear-gradient(180deg,rgba(17,24,39,.97),rgba(8,12,22,.98));border:1px solid rgba(148,163,184,.18);
   box-shadow:0 30px 80px rgba(0,0,0,.55),0 0 0 1px rgba(79,140,255,.08) inset;color:var(--tx-1);animation:vxRise .26s cubic-bezier(.2,.9,.3,1.15)}
 [data-theme="light"] .vx-sheet{background:linear-gradient(180deg,#fff,#f6f8fc);border-color:rgba(148,163,184,.3);box-shadow:0 24px 60px rgba(15,23,42,.22)}
@@ -208,9 +208,22 @@ html,body{height:100%;overflow:hidden;background:var(--bg-1);color:var(--tx-1);f
 .vx-wrap.min .vx-sheet{display:none}
 /* a dialog (the MT5 confirmation, a deposit, the terms) always sits above ARIA, which waits underneath */
 body:has(.modal-backdrop.open) .vx-wrap,body:has(dialog[open]) .vx-wrap{z-index:499}
+/* the header, the mode bar and the footer (status · chips · mic + field) always show; only the body scrolls */
+.cp-bar{display:flex;flex-direction:column;gap:6px;flex:0 0 auto}
+.cp-prov{align-self:flex-start;display:inline-flex;align-items:center;gap:6px;max-width:100%;min-height:24px;padding:0 9px 0 8px;border-radius:999px;border:1px solid rgba(148,163,184,.22);background:rgba(148,163,184,.08);color:var(--tx-2);font:700 11.5px var(--font-display);cursor:pointer;letter-spacing:.1px}
+.cp-prov i{flex:0 0 7px;width:7px;height:7px;border-radius:50%;background:#94a3b8}
+.cp-prov.on i{background:#22c55e;box-shadow:0 0 0 3px rgba(34,197,94,.18)}
+.cp-prov span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cp-prov b{font-size:9px;opacity:.8;transition:transform .15s}
+.cp-prov[aria-expanded="true"] b{transform:rotate(180deg)}
+.cp-prov[hidden]{display:none!important}
+.vx-body{display:flex;flex-direction:column;gap:8px;flex:1 1 auto;min-height:56px;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin}
+.vx-foot{display:flex;flex-direction:column;gap:8px;flex:0 0 auto}
+.vx-hint{font-size:13px;line-height:1.45;color:var(--tx-3);padding:0 2px}
+.vx-hint[hidden]{display:none!important}
 .vx-sheet.vx-tight{overflow-y:auto;overscroll-behavior:contain}
-.vx-sheet.vx-tight>*{flex-shrink:0}
-.vx-sheet.vx-tight .vx-log{min-height:4.5em}
+.vx-sheet.vx-tight .vx-chips,.vx-sheet.vx-tight .vx-hint,.vx-sheet.vx-tight .cp-prov{display:none}   /* a short screen (a phone on its side): the conversation keeps its lines */
+.vx-sheet.vx-tight .vx-log{min-height:4em}
 .vx-sr{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
 .vx-orb.vx-bub{position:absolute;right:12px;bottom:12px;width:60px;height:60px;display:none;pointer-events:auto;cursor:grab;touch-action:none;filter:drop-shadow(0 8px 18px rgba(0,0,0,.5));animation:vxPop .22s cubic-bezier(.2,.9,.3,1.2)}
 .vx-wrap.min .vx-orb.vx-bub{display:grid}
@@ -234,19 +247,22 @@ body:has(.modal-backdrop.open) .vx-wrap,body:has(dialog[open]) .vx-wrap{z-index:
 .vx-set.col{flex-direction:column;align-items:stretch;gap:4px}
 .vx-set select{min-height:36px;border-radius:10px;border:1px solid var(--bd-2,rgba(148,163,184,.25));background:var(--bg-3,#0f1626);color:var(--tx-1);padding:0 8px;font-size:13px}
 .vx-note{font-size:12px;color:var(--tx-3);line-height:1.45}
-.vx-log{display:flex;flex-direction:column;gap:6px;overflow-y:auto;max-height:30vh;min-height:0;scrollbar-width:thin}
+.vx-log{display:flex;flex-direction:column;gap:6px;flex:0 0 auto}
 .vx-log:empty{display:none}
 .vx-msg{max-width:88%;padding:8px 11px;border-radius:14px;font-size:13.5px;line-height:1.45;white-space:pre-wrap;overflow-wrap:anywhere}
 .vx-msg.you{align-self:flex-end;background:rgba(79,140,255,.16);border:1px solid rgba(79,140,255,.28);border-bottom-right-radius:4px}
 .vx-msg.vx{align-self:flex-start;background:rgba(148,163,184,.09);border:1px solid rgba(148,163,184,.16);border-bottom-left-radius:4px}
-.vx-stage{display:flex;flex-direction:column;align-items:center;gap:8px;padding:4px 0}
-.vx-orb{--lvl:0;position:relative;width:96px;height:96px;border-radius:50%;border:0;padding:0;background:none;cursor:pointer;display:grid;place-items:center;-webkit-tap-highlight-color:transparent}
-.vx-orb .vx-core{position:relative;z-index:2;width:72px;height:72px;border-radius:50%;display:grid;place-items:center;
+/* what ARIA heard or is doing: one line above the chips, gone when there is nothing to say */
+.vx-stage{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;padding:0 2px}
+.vx-stage:not(:has(.vx-heard:not(:empty))):not(:has(.vx-ctl > :not([hidden]))){display:none}
+/* the mic sits beside the field; it still breathes, rings while listening, spins while thinking */
+.vx-orb{--lvl:0;position:relative;width:46px;height:46px;flex:0 0 46px;border-radius:50%;border:0;padding:0;background:none;cursor:pointer;display:grid;place-items:center;-webkit-tap-highlight-color:transparent}
+.vx-orb .vx-core{position:relative;z-index:2;width:40px;height:40px;border-radius:50%;display:grid;place-items:center;
   background:radial-gradient(circle at 32% 28%,#bfe0ff 0,#5b8cff 32%,#3b2fd1 68%,#140f3a 100%);
   box-shadow:0 0 calc(18px + var(--lvl) * 40px) rgba(91,140,255,calc(.35 + var(--lvl) * .45)),inset 0 -6px 18px rgba(0,0,0,.35);
   transform:scale(calc(1 + var(--lvl) * .12));transition:transform .12s ease,box-shadow .12s ease}
-.vx-orb .vx-core svg{width:28px;height:28px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round;filter:drop-shadow(0 1px 2px rgba(0,0,0,.4))}
-.vx-orb i{position:absolute;inset:12px;border-radius:50%;border:2px solid rgba(91,140,255,.35);opacity:0}
+.vx-orb .vx-core svg{width:18px;height:18px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round;filter:drop-shadow(0 1px 2px rgba(0,0,0,.4))}
+.vx-orb i{position:absolute;inset:3px;border-radius:50%;border:2px solid rgba(91,140,255,.35);opacity:0}
 .vx-orb[data-state="idle"] .vx-core{animation:vxBreath 3.2s ease-in-out infinite}
 .vx-orb[data-state="listening"] .vx-core{background:radial-gradient(circle at 32% 28%,#d5fff6 0,#22d3ee 30%,#2563eb 66%,#0b1a4a 100%)}
 .vx-orb[data-state="listening"] i{animation:vxRing 1.8s ease-out infinite}
@@ -259,9 +275,10 @@ body:has(.modal-backdrop.open) .vx-wrap,body:has(dialog[open]) .vx-wrap{z-index:
 @keyframes vxRing{0%{transform:scale(.85);opacity:.9}100%{transform:scale(1.55);opacity:0}}
 @keyframes vxBreath{0%,100%{transform:scale(1)}50%{transform:scale(1.04)}}
 @keyframes vxSpin{to{transform:rotate(360deg)}}
-.vx-heard{min-height:20px;max-width:100%;text-align:center;font-size:14px;font-weight:600;color:var(--tx-2);overflow-wrap:anywhere}
+.vx-heard{flex:1 1 auto;min-width:0;text-align:left;font-size:12.5px;line-height:1.4;font-weight:600;color:var(--tx-2);overflow-wrap:anywhere}
+.vx-heard:empty{display:none}
 .vx-heard.interim{color:var(--tx-3);font-style:italic}
-.vx-ctl{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:8px;min-height:0}
+.vx-ctl{display:flex;flex-wrap:wrap;align-items:center;justify-content:flex-start;gap:8px;min-height:0}
 .vx-ctl:not(:has(:not([hidden]))){display:none}
 .vx-stop{display:inline-flex;align-items:center;gap:6px;font:inherit;font-size:12.5px;font-weight:800;padding:7px 14px;border-radius:999px;border:1px solid rgba(167,139,250,.5);background:rgba(91,63,214,.18);color:var(--tx-1,#fff);cursor:pointer;min-height:36px}
 .vx-stop svg{width:12px;height:12px;fill:currentColor}
@@ -271,7 +288,6 @@ body:has(.modal-backdrop.open) .vx-wrap,body:has(dialog[open]) .vx-wrap{z-index:
 .vx-rec i{width:9px;height:9px;border-radius:50%;background:#ef4444;box-shadow:0 0 0 0 rgba(239,68,68,.6);animation:vxRec 1.2s ease-out infinite}
 .vx-rec b{font-variant-numeric:tabular-nums;color:var(--tx-2)}
 @keyframes vxRec{0%{box-shadow:0 0 0 0 rgba(239,68,68,.6)}100%{box-shadow:0 0 0 9px rgba(239,68,68,0)}}
-.vx-sheet.cp-on .vx-ctl{justify-content:flex-start}
 .vx-card{border-radius:16px;padding:12px;background:rgba(148,163,184,.07);border:1px solid rgba(148,163,184,.18);display:flex;flex-direction:column;gap:6px;animation:vxRise .2s ease}
 .vx-card-t{font-weight:900;font-size:14px}
 .vx-card-x{font-size:13px;color:var(--tx-2);line-height:1.45}
@@ -289,20 +305,19 @@ body:has(.modal-backdrop.open) .vx-wrap,body:has(dialog[open]) .vx-wrap{z-index:
 .vx-chips{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}
 .vx-chips::-webkit-scrollbar{display:none}
 .vx-chip{flex:0 0 auto;min-height:34px;padding:0 12px;border-radius:999px;border:1px solid rgba(79,140,255,.3);background:rgba(79,140,255,.08);color:var(--tx-1);font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap}
-.vx-type{display:flex;gap:6px}
-.vx-type input{flex:1;min-width:0;min-height:42px;border-radius:12px;border:1px solid var(--bd-2,rgba(148,163,184,.25));background:var(--bg-3,#0f1626);color:var(--tx-1);padding:0 12px;font-size:16px}
-.vx-type button{width:44px;border-radius:12px;border:0;background:var(--blue,#4f8cff);color:#fff;font-size:16px;cursor:pointer}
+.vx-type{display:flex;align-items:center;gap:8px}
+.vx-type input{flex:1;min-width:0;min-height:44px;border-radius:14px;border:1px solid var(--bd-2,rgba(148,163,184,.25));background:var(--bg-3,#0f1626);color:var(--tx-1);padding:0 12px;font-size:16px}
+.vx-type button[type="submit"]{width:44px;height:44px;flex:0 0 44px;border-radius:14px;border:0;background:var(--blue,#4f8cff);color:#fff;font-size:16px;cursor:pointer}
 @media (max-width:820px){
-  .vx-sheet{left:8px;right:8px;bottom:calc(var(--mobile-nav-h,64px) + var(--safe-bottom,0px) + 8px);width:auto;max-height:calc(100dvh - 160px);border-radius:20px;padding:18px 12px 10px}
-  .vx-log{max-height:26vh}
+  .vx-sheet{left:8px;right:8px;bottom:calc(var(--mobile-nav-h,64px) + var(--safe-bottom,0px) + 8px);width:auto;max-height:calc(100dvh - 160px);border-radius:20px;padding:16px 12px 10px}
 }
 @media (prefers-reduced-motion:reduce){.vx-orb *{animation:none!important}.vx-sheet,.vx-card,.vx-orb.vx-bub{animation:none}.vx-glide{transition:none}}
 /* ── ARIA COPILOT (inside the voice sheet) ── */
 .cp-modes{display:flex;gap:4px;padding:3px;border-radius:12px;background:rgba(148,163,184,.08);border:1px solid rgba(148,163,184,.14);overflow-x:auto;scrollbar-width:none}
 .cp-modes::-webkit-scrollbar{display:none}
-.cp-mode{flex:1 0 auto;min-height:32px;padding:0 10px;border-radius:9px;border:0;background:transparent;color:var(--tx-2);font-size:12.5px;font-weight:800;cursor:pointer;letter-spacing:.2px}
+.cp-mode{flex:1 1 0;min-width:0;min-height:34px;padding:0 4px;border-radius:9px;border:0;background:transparent;color:var(--tx-2);font-size:12.5px;font-weight:800;cursor:pointer;letter-spacing:.1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .cp-mode.on{background:linear-gradient(135deg,rgba(91,140,255,.28),rgba(34,211,238,.18));color:var(--tx-1);box-shadow:0 0 0 1px rgba(91,140,255,.35) inset}
-.cp-panel{display:flex;flex-direction:column;gap:7px;overflow-y:auto;max-height:36vh;min-height:0;padding:2px 2px 4px;scrollbar-width:thin;font-size:13px;line-height:1.45}
+.cp-panel{display:flex;flex-direction:column;gap:7px;flex:0 0 auto;padding:2px 2px 4px;font-size:13px;line-height:1.45}
 .cp-panel[hidden]{display:none!important}
 .cp-h{display:flex;align-items:center;gap:6px;font-weight:900;font-size:13px;letter-spacing:.2px;color:var(--tx-1)}
 .cp-sub{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.7px;color:var(--tx-3);margin-top:4px}
@@ -366,20 +381,15 @@ body:has(.modal-backdrop.open) .vx-wrap,body:has(dialog[open]) .vx-wrap{z-index:
 .cp-dec b.supported{background:rgba(34,197,94,.18);color:#4ade80}.cp-dec b.incomplete{background:rgba(245,158,11,.18);color:#fbbf24}.cp-dec b.contradicted{background:rgba(239,68,68,.18);color:#f87171}
 .cp-dec span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .cp-dec em{font-style:normal;font-weight:800;color:var(--tx-1);font-variant-numeric:tabular-nums}
-/* the sheet makes room for a mode panel: the orb steps aside */
-.vx-sheet.cp-on .vx-stage{flex-direction:row;justify-content:flex-start;gap:12px;padding:0}
-.vx-sheet.cp-on .vx-orb{width:58px;height:58px;flex:0 0 58px}
-.vx-sheet.cp-on .vx-orb .vx-core{width:44px;height:44px}
-.vx-sheet.cp-on .vx-orb .vx-core svg{width:20px;height:20px}
-.vx-sheet.cp-on .vx-orb i{inset:6px}
-.vx-sheet.cp-on .vx-heard{text-align:left;font-size:13px;flex:1;min-width:0}
-.vx-sheet.cp-on .vx-log{max-height:16vh}
+/* a mode panel open: ARIA's last words keep a short window above it (the prompts are the chips), the panel takes the rest */
+.vx-sheet.cp-on .vx-log{max-height:14vh;overflow-y:auto;scrollbar-width:thin}
+.vx-sheet.cp-on .vx-log .vx-msg.you{display:none}
 .vx-sheet.cp-on{width:min(460px,calc(100vw - 32px))}
 .vx-min{display:none}
 .vx-sheet.cp-on .vx-min{display:grid}
 .vx-sheet.cp-min .vx-min svg{transform:rotate(180deg)}
-.vx-sheet.cp-min .cp-panel,.vx-sheet.cp-min .cp-modes,.vx-sheet.cp-min .vx-settings,.vx-sheet.cp-min .vx-card{display:none!important}
-.vx-sheet.cp-min .vx-log{max-height:5.2em!important}
+.vx-sheet.cp-min .cp-panel,.vx-sheet.cp-min .cp-bar,.vx-sheet.cp-min .vx-settings,.vx-sheet.cp-min .vx-card,.vx-sheet.cp-min .cp-ai-note,.vx-sheet.cp-min .vx-hint{display:none!important}
+.vx-sheet.cp-min .vx-log{max-height:5.2em!important;overflow-y:auto}
 .vx-sheet.cp-min .vx-log .vx-msg.you{display:none}
 .vx-msg.ai{max-width:94%}
 .ai-st{display:flex;align-items:center;gap:7px;color:var(--tx-3);font-size:12px;font-weight:700}
@@ -394,7 +404,7 @@ body:has(.modal-backdrop.open) .vx-wrap,body:has(dialog[open]) .vx-wrap{z-index:
 .ai-code pre{margin:0;padding:8px;max-height:260px;overflow:auto;white-space:pre;font-size:11.5px;line-height:1.45}
 .ai-code pre code{background:none;padding:0}
 .ai-code-n{padding:5px 8px;font-size:11px;color:#fbbf24;background:rgba(245,158,11,.08)}
-.cp-ai-note{font-size:11.5px;line-height:1.4;color:var(--tx-3);padding:0 2px}
+.cp-ai-note{font-size:12px;line-height:1.45;color:var(--tx-2);padding:9px 11px;border-radius:12px;border:1px solid rgba(148,163,184,.18);background:rgba(148,163,184,.07);animation:vxFade .15s ease}
 .cp-ai-note b{font-size:10.5px;font-weight:900;letter-spacing:.6px;padding:1px 6px;border-radius:5px;margin-right:4px}
 .cp-ai-note.on b{background:rgba(34,197,94,.16);color:#4ade80}.cp-ai-note.off b{background:rgba(148,163,184,.16);color:var(--tx-2)}
 .cp-ai-note[hidden]{display:none!important}
@@ -403,7 +413,19 @@ body:has(.modal-backdrop.open) .vx-wrap,body:has(dialog[open]) .vx-wrap{z-index:
 .cp-stage b{font-size:13px;color:#4ade80;letter-spacing:.3px}.cp-stage span{font-size:11.5px;color:var(--tx-3)}
 .vx-orb[data-live="listening"] .vx-core{box-shadow:0 0 0 3px rgba(34,197,94,.55),0 0 28px rgba(34,197,94,.45)}
 .vx-orb[data-live="error"] .vx-core,.vx-orb[data-live="disconnected"] .vx-core{filter:grayscale(.7);box-shadow:0 0 0 2px rgba(239,68,68,.6)}
-@media (max-width:820px){.vx-sheet.cp-on{width:auto}.cp-panel{max-height:40dvh}.vx-sheet.cp-on .vx-log{max-height:13vh}}
+@media (max-width:820px){.vx-sheet.cp-on{width:auto}.vx-sheet.cp-on .vx-log{max-height:11vh}}
+/* Analyze: the market read at a glance (the same engines as the Check tab), before ARIA's own read */
+.cp-read{display:flex;flex-direction:column;gap:6px;padding:10px 11px;border-radius:12px;border:1px solid rgba(148,163,184,.2);background:rgba(148,163,184,.05)}
+.cp-read.buy{border-color:rgba(34,197,94,.4);background:rgba(34,197,94,.06)}.cp-read.sell{border-color:rgba(239,68,68,.4);background:rgba(239,68,68,.06)}.cp-read.wait{border-color:rgba(245,158,11,.4);background:rgba(245,158,11,.06)}
+.cp-read-h{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:10.5px;font-weight:800;letter-spacing:.7px;text-transform:uppercase;color:var(--tx-3)}
+.cp-read-h b{font-size:13px;letter-spacing:0;color:var(--tx-1);font-variant-numeric:tabular-nums}
+.cp-read-v{font-size:17px;font-weight:900;letter-spacing:-.1px;color:var(--tx-1)}
+.cp-read.buy .cp-read-v{color:#4ade80}.cp-read.sell .cp-read-v{color:#f87171}.cp-read.wait .cp-read-v{color:#fbbf24}
+.cp-read-bar{height:4px;border-radius:2px;background:rgba(148,163,184,.18);overflow:hidden}
+.cp-read-bar i{display:block;height:100%;border-radius:2px;background:linear-gradient(90deg,#22d3ee,#5b8cff)}
+.cp-read.buy .cp-read-bar i{background:linear-gradient(90deg,#22c55e,#4ade80)}.cp-read.sell .cp-read-bar i{background:linear-gradient(90deg,#ef4444,#f87171)}.cp-read.wait .cp-read-bar i{background:linear-gradient(90deg,#f59e0b,#fbbf24)}
+.cp-read-x{font-size:12.5px;color:var(--tx-2);line-height:1.4}
+.cp-dna .buy{color:#4ade80}.cp-dna .sell{color:#f87171}
 /* ── REPLAY ── */
 .rp-wrap{position:fixed;inset:0;z-index:3500;display:none;flex-direction:column;background:var(--bg-1,#070b14);color:var(--tx-1)}
 .rp-wrap.open{display:flex}
@@ -1850,6 +1872,17 @@ html[data-theme="forest"]{background:var(--f-deep)}   /* Safari paints the canva
 [data-theme="forest"] .ch-auto{color:var(--f-brand)}
 [data-theme="forest"] .vx-sheet{background:linear-gradient(180deg,#0b4e42,#063d34);border-color:rgba(255,255,255,.14);box-shadow:0 30px 80px rgba(0,0,0,.45)}
 [data-theme="forest"] .vx-orb.vx-bub .vx-core{border-color:rgba(255,255,255,.22)}
+[data-theme="forest"] .vx-title{background:none;color:#fff;-webkit-text-fill-color:#fff}
+[data-theme="forest"] .vx-pill{background:rgba(255,255,255,.12);color:#fff;border-color:rgba(255,255,255,.2)}
+[data-theme="forest"] .cp-modes{background:rgba(0,0,0,.18);border-color:rgba(255,255,255,.1)}
+[data-theme="forest"] .cp-mode{color:rgba(255,255,255,.72)}
+[data-theme="forest"] .cp-mode.on{background:#c9f2dc;color:var(--f-brand);box-shadow:none}
+[data-theme="forest"] .cp-prov{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.18);color:rgba(255,255,255,.85)}
+[data-theme="forest"] .vx-chip{border-color:rgba(255,255,255,.22);background:rgba(255,255,255,.08);color:#fff}
+[data-theme="forest"] .vx-type input{background:rgba(0,0,0,.22);border-color:rgba(255,255,255,.16);color:#fff}
+[data-theme="forest"] .vx-type button[type="submit"]{background:#c9f2dc;color:var(--f-brand)}
+[data-theme="forest"] .vx-msg.you{background:rgba(201,242,220,.16);border-color:rgba(201,242,220,.3)}
+[data-theme="forest"] .vx-icon{border-color:rgba(255,255,255,.18);color:#fff}
 [data-theme="forest"] .vx-bub b{box-shadow:0 0 0 2px var(--f-brand)}
 [data-theme="forest"] .acct-chip{border-color:transparent;background:var(--f-paper);color:#3b2a06}
 [data-theme="forest"] .acct-chip.demo{background:#bfe3ff;color:#0b2a4a}
@@ -2051,7 +2084,8 @@ html[data-theme="forest"]{background:var(--f-deep)}   /* Safari paints the canva
   [data-theme="forest"] .mobile-nav-btn .nav-bx{width:50px;height:25px;border-radius:13px;display:grid;place-items:center}
   [data-theme="forest"] .mobile-nav-btn.active{color:#fff;background:transparent;box-shadow:none}
   [data-theme="forest"] .mobile-nav-btn.active .nav-bx{background:#c9f2dc;color:var(--f-brand)}
-  [data-theme="forest"] .mobile-nav-btn.active .ico{color:var(--f-brand);stroke:var(--f-brand)}   /* the base rule paints the active icon teal, invisible on the mint pill */
+  [data-theme="forest"] .mobile-nav-btn.active .ico{color:var(--f-brand);stroke:var(--f-brand)}
+  .m-acct-build{padding:8px 2px 0;font:500 10.5px var(--font-display);color:var(--tx-4);letter-spacing:.1px;font-variant-numeric:tabular-nums}   /* the base rule paints the active icon teal, invisible on the mint pill */
 
   /* ── the analysis sheet (right panel) and the account card in Portfolio ── */
   [data-theme="forest"] .right-panel{background:var(--bg-2);border-top-color:rgba(255,255,255,.14);box-shadow:0 -14px 40px rgba(0,0,0,.35)}
@@ -6857,26 +6891,34 @@ const VOICE = {
             <button type="button" class="vx-icon vx-min" id="vxMin" onclick="VOICE.toggleMin()" aria-label="Show the chart" title="Show the chart"><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></button>
             <button type="button" class="vx-icon" id="vxHide" onclick="VOICE.minimize(true)" aria-label="Minimise ARIA (the conversation keeps going)" title="Minimise"><svg viewBox="0 0 24 24"><path d="M6 12h12"/></svg></button>
             <button type="button" class="vx-icon" onclick="VOICE.close()" aria-label="Close ARIA and end the conversation" title="Close">×</button></header>
-          <div class="vx-settings" id="vxSettings" hidden></div>
-          <nav class="cp-modes" id="cpModes" aria-label="Copilot mode"></nav>
-          <div class="cp-ai-note" id="cpAiNote" hidden></div>
-          <div class="vx-log" id="vxLog" aria-live="polite"></div>
-          <div class="cp-panel" id="cpPanel" hidden></div>
-          <div class="vx-stage">
-            <button type="button" class="vx-orb" id="vxOrb" data-state="idle" onclick="VOICE.listen()" aria-label="Tap to talk">
-              <i></i><i></i><i></i><span class="vx-core"><svg viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0014 0M12 18v3"/></svg></span></button>
-            <div class="vx-heard" id="vxHeard">Tap the orb and talk to your terminal</div>
-            <div class="vx-ctl">
-              <span class="vx-rec" id="vxRec" hidden><i></i>Recording <b id="vxRecT">0s</b></span>
-              <button type="button" class="vx-stop" id="vxCancel" hidden onclick="ELV.cancelRec()">Cancel recording</button>
-              <button type="button" class="vx-stop" id="vxStop" hidden onclick="VOICE.stopSpeaking()" aria-label="Stop speaking"><svg viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>Stop speaking</button>
-            </div>
+          <div class="cp-bar">
+            <button type="button" class="cp-prov" id="cpAiChip" hidden onclick="AI.toggleNote()" aria-expanded="false" aria-controls="cpAiNote" title="Which AI answers, what it sees, and what happens when it is unavailable"><i></i><span id="cpAiChipTxt">AI</span><b>▾</b></button>
+            <nav class="cp-modes" id="cpModes" aria-label="Copilot mode"></nav>
           </div>
-          <div class="vx-card" id="vxCard" hidden></div>
-          <div class="vx-chips" id="vxChips"></div>
-          <form class="vx-type" onsubmit="event.preventDefault(); VOICE.typed()">
-            <input id="vxInput" type="text" autocomplete="off" enterkeyhint="send" placeholder="Or type: buy gold 1% risk, stop 2640" aria-label="Type a command">
-            <button type="submit" aria-label="Send">➤</button></form>
+          <div class="vx-body" id="vxBody">
+            <div class="cp-ai-note" id="cpAiNote" hidden></div>
+            <div class="vx-settings" id="vxSettings" hidden></div>
+            <div class="vx-hint" id="vxHint">Ask about this chart, your trades or your risk — tap the mic to talk, or type below.</div>
+            <div class="vx-log" id="vxLog" aria-live="polite"></div>
+            <div class="cp-panel" id="cpPanel" hidden></div>
+            <div class="vx-card" id="vxCard" hidden></div>
+          </div>
+          <div class="vx-foot">
+            <div class="vx-stage">
+              <div class="vx-heard" id="vxHeard"></div>
+              <div class="vx-ctl">
+                <span class="vx-rec" id="vxRec" hidden><i></i>Recording <b id="vxRecT">0s</b></span>
+                <button type="button" class="vx-stop" id="vxCancel" hidden onclick="ELV.cancelRec()">Cancel recording</button>
+                <button type="button" class="vx-stop" id="vxStop" hidden onclick="VOICE.stopSpeaking()" aria-label="Stop speaking"><svg viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>Stop speaking</button>
+              </div>
+            </div>
+            <div class="vx-chips" id="vxChips"></div>
+            <form class="vx-type" onsubmit="event.preventDefault(); VOICE.typed()">
+              <button type="button" class="vx-orb" id="vxOrb" data-state="idle" onclick="VOICE.listen()" aria-label="Tap to talk">
+                <i></i><i></i><i></i><span class="vx-core"><svg viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0014 0M12 18v3"/></svg></span></button>
+              <input id="vxInput" type="text" autocomplete="off" enterkeyhint="send" placeholder="Ask ARIA… or: buy gold 1% risk, stop 2640" aria-label="Ask ARIA or type a command">
+              <button type="submit" aria-label="Send">➤</button></form>
+          </div>
         </section>
         <button type="button" class="vx-orb vx-bub" id="vxBub" data-state="idle" aria-label="Open ARIA Copilot" title="ARIA: tap to open, drag to move">
           <i></i><i></i><i></i><span class="vx-core"><svg viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0014 0M12 18v3"/></svg></span><b class="vx-dot-rec"></b><b class="vx-dot-new"></b></button>
@@ -6986,6 +7028,9 @@ const VOICE = {
         + `${m.tools && m.tools.length ? `<div class="ai-tools">${m.tools.map(t => `<span>${esc(t)}</span>`).join('')}</div>` : ''}${m.model ? `<div class="ai-by">ARIA · ${esc(m.model)}</div>` : ''}</div>`
       : `<div class="vx-msg ${m.who}">${esc(m.text)}</div>`).join('');
     box.scrollTop = box.scrollHeight;
+    const hint = document.getElementById('vxHint'); if (hint) hint.hidden = !!this.log.length || (typeof COPILOT !== 'undefined' && COPILOT.mode !== 'talk');
+    const body = document.getElementById('vxBody');
+    if (body && (typeof COPILOT === 'undefined' || COPILOT.mode === 'talk')) body.scrollTop = body.scrollHeight;
     const last = this.log[this.log.length - 1];
     if (this.min_ && last && last !== this._seen && last.who !== 'you') {
       document.getElementById('vxBub')?.classList.add('unread');
@@ -7815,7 +7860,7 @@ const VXF = {
     if (!min) {
       // the card may grow away from its anchored edge until it meets the far one; on a phone it leaves the chart a share of the screen
       const oyMax = Math.max(0, availH - 200), oy = Math.min(p.oy, oyMax);
-      const mh = Math.min(availH - oy, Math.max(100, Math.min(720, availH - oy, phone ? Math.round(availH * 0.78) : 1e9)));
+      const mh = Math.min(availH - oy, Math.max(100, Math.min(720, availH - oy, phone ? Math.round(availH * 0.7) : 1e9)));   // a phone keeps the top third of the screen for the chart
       s.maxHeight = mh + 'px';
       el.classList.toggle('vx-tight', mh < 380);              // a short screen: the card scrolls rather than spill
     }
@@ -8963,7 +9008,7 @@ const COPILOT = {
     this.mode = m;
     if (m === 'practice' && !this.plan) this.plan = this.blankPlan();
     this.renderModes(); this.renderPanel();
-    if (typeof VOICE !== 'undefined') VOICE.renderChips();
+    if (typeof VOICE !== 'undefined') { VOICE.renderChips(); VOICE.renderLog(); }
   },
   chips() {
     if (typeof REPLAY !== 'undefined' && REPLAY.active) return REPLAY.planning() ? ['Take it', 'Check my plan', 'Next candle'] : ['Next candle', 'Forward 5', 'Analyze here', 'Buy here', 'Sell here', 'End replay'];
@@ -8987,10 +9032,26 @@ const COPILOT = {
     box.innerHTML = this['panel_' + this.mode]();
   },
   row(k, v) { return `<div class="cp-row"><span>${this.esc(k)}</span><b>${this.esc(v)}</b></div>`; },
+  // The market read the Check tab makes — ARIA's gates, the Oracle's confidence, RSI and Stochastic — at a glance
+  marketRead() {
+    let m = null; try { m = typeof checkModel === 'function' ? checkModel() : null; } catch (_) {}
+    if (!m) return '';
+    const pass = m.gates.score, dir = m.gates.dir, c = m.oracle, n = S.candles.length;
+    const blocked = m.verdict.v === 'BLOCKED' || (m.verdict.v === 'OBSERVER' && (m.mcc.code === 'DEAD_ZONE' || m.mcc.code === 'FAKE_BREAK'));
+    const tone = blocked || pass < 5 ? '' : pass >= 7 ? dir : 'wait';
+    const head = blocked ? 'Stand aside' : pass >= 7 ? `Leaning ${dir === 'buy' ? 'buy' : 'sell'}` : pass >= 5 ? `Wait · ${dir} forming` : 'Stand aside';
+    let k = NaN; try { const st = calcStoch(S.candles); k = st.k[n - 1]; } catch (_) {}
+    const failing = m.gates.gates.filter(g => !g.pass).map(g => ((typeof CHECK_TERMS !== 'undefined' && CHECK_TERMS[g.name]) || { t: g.name }).t.replace(/ \(.*\)$/, '').toLowerCase());
+    const why = blocked ? m.verdict.msg.replace(/^[^\w]+/, '') : failing.length ? `Against you: ${failing.slice(0, 3).join(' · ')}` : `Every check agrees with a ${dir}`;
+    return `<div class="cp-read ${tone}"><div class="cp-read-h"><span>Market read · ${this.esc(VOICE.name(S.sym))} · ${this.esc(String(S.tf).toUpperCase())}</span><b>${c}%</b></div>
+      <div class="cp-read-v">${this.esc(head)}</div><div class="cp-read-bar"><i style="width:${Math.max(4, Math.min(100, c))}%"></i></div>
+      <div class="cp-dna"><div><b>${Number.isFinite(m.rsi) ? m.rsi.toFixed(1) : '—'}</b><span>RSI</span></div><div><b>${Number.isFinite(k) ? k.toFixed(1) : '—'}</b><span>Stochastic</span></div><div><b class="${dir}">${dir === 'buy' ? 'Bullish' : 'Bearish'}</b><span>${pass} of ${m.gates.gates.length} gates</span></div></div>
+      <div class="cp-read-x">${this.esc(why)}</div></div>`;
+  },
   panel_analyze() {
     const L = this.last && this.last.sym === S.sym && this.last.tf === S.tf ? this.last : null, mine = this.ours();
     const sel = this.shownWhy && mine.find(d => d.id === this.shownWhy);
-    return `<div class="cp-h">${L ? `Chart read · ${this.esc(VOICE.name(S.sym))} · ${this.esc(S.tf)}` : 'Read the chart'}</div>
+    return `${this.marketRead()}<div class="cp-h">${L ? `ARIA's read · ${this.esc(VOICE.name(S.sym))} · ${this.esc(S.tf)}` : 'Ask ARIA to read the chart'}</div>
       ${L ? L.rows.map(([k, v]) => this.row(k, v)).join('') : '<div class="cp-x">ARIA reads structure, zones, liquidity and the last move from the closed candles, then draws them with the reason for each.</div>'}
       <div class="cp-acts"><button type="button" class="cp-btn pri" onclick="VOICE.handle('Analyze this chart')">${L ? 'Read again' : 'Analyze this chart'}</button>
       ${mine.length ? `<button type="button" class="cp-btn" onclick="VOICE.handle('Clear ARIA\\'s drawings')">Clear ARIA's drawings</button>` : ''}</div>
@@ -9793,17 +9854,27 @@ const AI = {
   speakable(t) {
     return String(t).replace(/```[\s\S]*?```/g, ' I have put the code in the chat. ').replace(/[*_#`>]/g, '').replace(/^\s*• /gm, '').replace(/\s+/g, ' ').trim();
   },
+  // The provider sits in a small chip beside the mode tabs ("● Claude Sonnet 5.5 · 15 left"); a tap opens the
+  // details under it — which model answers, the voice, what it is sent, and what answers when it is unavailable.
+  toggleNote(force) { this.noteOpen = typeof force === 'boolean' ? force : !this.noteOpen; this.renderNote(); },
   renderNote() {
-    const box = document.getElementById('cpAiNote'); if (!box) return;
+    const box = document.getElementById('cpAiNote'), chip = document.getElementById('cpAiChip'), txt = document.getElementById('cpAiChipTxt');
+    if (!box) return;
     const s = this.st;
-    if (!s) { box.hidden = true; return; }
-    box.hidden = false;
+    if (!s) { box.hidden = true; if (chip) chip.hidden = true; return; }
+    const voice = typeof ELV !== 'undefined' && ELV.ttsOn();
     if (s.enabled) {
       box.className = 'cp-ai-note on';
-      box.innerHTML = `<b>AI</b> ${this.esc(s.label || 'Gemini (free tier)')}${typeof ELV !== 'undefined' && ELV.ttsOn() ? ' · voice: ElevenLabs' : ''} · ${s.remaining_today != null ? `${s.remaining_today} left today · ` : ''}<span>${this.esc(s.privacy || 'Don\'t share personal details.')}</span>`;
+      box.innerHTML = `<b>AI</b> ${this.esc(s.label || 'Gemini (free tier)')}${voice ? ' · voice: ElevenLabs' : ''} · ${s.remaining_today != null ? `${s.remaining_today} left today · ` : ''}<span>${this.esc(s.privacy || 'Don\'t share personal details.')}</span>`;
     } else {
       box.className = 'cp-ai-note off';
       box.innerHTML = `<b>AI off</b> ${this.esc(this.owner() ? (s.reason || 'unavailable') : 'ARIA\'s conversational AI is not available right now.')} All chart tools, lessons and demo trading still work.`;
+    }
+    box.hidden = !this.noteOpen;
+    if (chip) {
+      chip.hidden = false; chip.classList.toggle('on', !!s.enabled); chip.setAttribute('aria-expanded', String(!!this.noteOpen));
+      const short = String(s.label || 'Gemini').replace(/\s*\(.*?\)\s*/g, ' ').trim();   // "Claude Sonnet 5.5 (Anthropic API, promotional credits)" → the model alone
+      if (txt) txt.textContent = s.enabled ? `${short}${s.remaining_today != null ? ` · ${s.remaining_today} left` : ''}${voice ? ' · voice' : ''}` : 'AI off';
     }
   },
   bubble() {
@@ -14236,6 +14307,7 @@ setInterval(() => { const sh = document.getElementById('pairSheet'); if (sh && s
    Desktop never enters forest: the theme is set only while the phone media
    query matches, and every rule is scoped to it.
 ════════════════════════════════════════════════════════════ */
+const SHELL_BUILD = 'v66';   // keep in step with CACHE_VERSION in static/sw.js
 const MOB = {
   booted: false, filter: 'all', _marks: [],
   TF_LABEL: { '1m': ['1M', '1 minute'], '5m': ['5M', '5 minutes'], '15m': ['15M', '15 minutes'], '1h': ['1H', '1 hour'], '4h': ['4H', '4 hours'], '1d': ['1D', '1 day'], '1w': ['1W', '1 week'] },
@@ -14495,7 +14567,15 @@ const MOB = {
         ${u ? `<button type="button" onclick="ACCOUNT.open()">Account</button>` : `<button type="button" class="pri" onclick="ACCOUNT.open()">Sign in with Pro Trader Academy</button>`}
         <button type="button" onclick="openDeposit()">Trading account</button>
         <button type="button" onclick="NOTIFY.open()">Notifications</button>
-      </div>`;
+      </div>
+      <div class="m-acct-build">${e(this.build())}</div>`;
+  },
+  // one line for support: the shell version and how this phone frames the page (a screenshot answers most layout questions)
+  build() {
+    const v = (typeof SHELL_BUILD !== 'undefined' ? SHELL_BUILD : '') || '';
+    const standalone = window.matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+    const inset = getComputedStyle(document.documentElement).getPropertyValue('--safe-bottom').trim() || '0px';
+    return `${v ? v + ' · ' : ''}${standalone ? 'home screen' : 'browser'} · ${window.innerWidth}×${window.innerHeight} of ${screen.width}×${screen.height} · bottom inset ${inset}`;
   },
 };
 

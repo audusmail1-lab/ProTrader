@@ -177,6 +177,8 @@ def check_phone(page, port, shots):
     assert page.evaluate("document.querySelector('.rtab.active').dataset.tab") == "portfolio"
     assert visible(page, "#mAcct") and "Guest" in page.evaluate("document.getElementById('mAcct').textContent")
     assert page.evaluate("!!document.querySelector('#mAcct button.pri')")
+    build = page.evaluate("document.querySelector('#mAcct .m-acct-build').textContent")
+    assert build.startswith("v") and "390×844" in build and "bottom inset" in build, build
     if shots:
         page.screenshot(path=os.path.join(shots, "forest_portfolio.png"))
     page.tap(".mobile-nav-btn[data-mobile-view='markets']")
@@ -262,12 +264,29 @@ def check_phone(page, port, shots):
     page.set_viewport_size({"width": 390, "height": 844}); page.wait_for_timeout(400)
     ok("phone: landscape keeps a usable chart (one header row, short bar)")
 
-    # ARIA's floating card still opens over the forest shell
-    page.evaluate("VOICE.open(false)"); page.wait_for_timeout(400)
+    # ARIA's floating card: header, provider chip and the five mode tabs on top, the mic beside the field at the bottom, only the middle scrolls
+    page.route("**/api/aria/ai/status", lambda r: r.fulfill(status=200, content_type="application/json", body='{"enabled":true,"label":"Claude Sonnet 5.5 (Anthropic API, promotional credits)","remaining_today":15,"privacy":"ARIA sends your words and chart data only. Do not share personal details."}'))
+    page.evaluate("VOICE.open(false)"); page.wait_for_timeout(600)
     r = rect(page, ".vx-sheet")
-    assert r and r["l"] >= 0 and r["r"] <= 390
-    page.evaluate("VOICE.close()")
-    ok("phone: ARIA's floating card opens inside the screen")
+    assert r and r["l"] >= 0 and r["r"] <= 390 and r["h"] <= 844 * 0.72, r
+    tabs = page.evaluate("[...document.querySelectorAll('#cpModes .cp-mode')].map(b => [b.textContent, b.getBoundingClientRect().right <= 390 && b.getBoundingClientRect().width > 50])")
+    assert [t[0] for t in tabs] == ["Talk", "Analyze", "Learn", "Practice", "Replay"] and all(t[1] for t in tabs), tabs
+    page.wait_for_function("!document.getElementById('cpAiChip').hidden && document.getElementById('cpAiChipTxt').textContent.includes('Claude Sonnet 5.5')")
+    chip = page.evaluate("document.getElementById('cpAiChipTxt').textContent")
+    assert chip.startswith("Claude Sonnet 5.5 · 15 left") and page.evaluate("document.getElementById('cpAiNote').hidden"), chip
+    page.tap("#cpAiChip"); page.wait_for_timeout(150)
+    assert not page.evaluate("document.getElementById('cpAiNote').hidden") and "Do not share personal details" in page.evaluate("document.getElementById('cpAiNote').textContent")
+    page.tap("#cpAiChip"); page.wait_for_timeout(150)
+    assert page.evaluate("document.getElementById('cpAiNote').hidden")
+    orb, inp, send = rect(page, "#vxOrb"), rect(page, "#vxInput"), rect(page, ".vx-type button[type=submit]")
+    assert orb["r"] <= inp["l"] and inp["r"] <= send["l"] and abs(orb["t"] + orb["h"] / 2 - (inp["t"] + inp["h"] / 2)) < 6, (orb, inp, send)
+    assert visible(page, "#vxHint") and not visible(page, "#vxHeard")
+    page.evaluate("COPILOT.setMode('analyze')"); page.wait_for_timeout(300)
+    read = page.evaluate("(() => { const r = document.querySelector('#cpPanel .cp-read'); return r && { pct: r.querySelector('.cp-read-h b').textContent, v: r.querySelector('.cp-read-v').textContent, tiles: [...r.querySelectorAll('.cp-dna span')].map(x => x.textContent) }; })()")
+    assert read and read["pct"] == f"{page.evaluate('checkModel().oracle')}%" and read["tiles"][:2] == ["RSI", "Stochastic"] and "gates" in read["tiles"][2], read
+    assert not visible(page, "#vxHint") and visible(page, "#cpModes") and visible(page, "#vxInput")
+    page.evaluate("COPILOT.setMode('talk'); VOICE.close()")
+    ok("phone: ARIA's card keeps its tabs and its mic + field in view; the provider chip opens the details; Analyze starts with the market read")
 
 
 IPHONE_UA = "Mozilla/5.0 (iPhone; CPU iPhone OS 26_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.0 Mobile/15E148 Safari/604.1"
