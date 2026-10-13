@@ -206,6 +206,21 @@ def check_phone(page, port, shots):
     page.keyboard.press("Escape"); page.wait_for_timeout(200)
     ok("phone: the Indicators menu is a white card with green active rows; Vol explains itself instead of lighting up")
 
+    # a selected drawing's toolbar on the white card: every control dark on light, bordered, separated into groups
+    page.evaluate("DT.arm('horizontal-line')"); page.wait_for_timeout(200)
+    armed = page.evaluate("(() => { const a = document.querySelector('#dtFloat .dt-armed'); return a && getComputedStyle(a).color; })()")
+    assert armed == "rgb(5, 68, 58)", armed
+    page.tap("#lwChart", position={"x": 180, "y": 220}); page.wait_for_timeout(400)
+    tb = page.evaluate("""(() => { const f = document.getElementById('dtFloat'); if (f.hidden) return null;
+      const lum = c => { const m = c.match(/\\d+(\\.\\d+)?/g).map(Number); return (0.2126 * m[0] + 0.7152 * m[1] + 0.0722 * m[2]) / 255; };
+      return { bg: getComputedStyle(f).backgroundColor, seps: f.querySelectorAll('.dt-fsep').length, title: getComputedStyle(f.querySelector('.dt-ftitle')).color,
+        btns: [...f.querySelectorAll('.dt-fbtn')].map(b => { const cs = getComputedStyle(b); return [b.getAttribute('aria-label'), lum(cs.color) < 0.5, lum(cs.backgroundColor) > 0.85, cs.borderTopColor !== 'rgba(0, 0, 0, 0)', b.getBoundingClientRect().right <= 390]; }) }; })()""")
+    assert tb and tb["bg"] == "rgb(255, 255, 255)" and tb["seps"] == 3 and tb["title"] == "rgb(21, 33, 30)", tb
+    assert len(tb["btns"]) >= 7 and all(b[1] and b[2] and b[3] and b[4] for b in tb["btns"]), tb["btns"]
+    page.tap('#dtFloat [aria-label="Remove (Del)"]'); page.wait_for_timeout(200)
+    assert page.evaluate("DT.drawings().length") == 0 and page.evaluate("document.getElementById('dtFloat').hidden")
+    ok(f"phone: a selected drawing's toolbar shows {len(tb['btns'])} dark, bordered controls on the white card in {tb['seps'] + 1} groups")
+
     # the drawing sheet sits above the tab bar, in the forest palette, without keyboard hints
     page.tap("#chartTools"); page.wait_for_timeout(300)
     d = page.evaluate("(() => { const s = document.getElementById('dtSheet'); const r = s.getBoundingClientRect(); const nav = document.querySelector('.mobile-nav'); return { z: +getComputedStyle(s).zIndex, navZ: +getComputedStyle(nav).zIndex, bg: getComputedStyle(s).backgroundColor, kbd: [...s.querySelectorAll('kbd')].some(k => k.getBoundingClientRect().width > 0), top: document.elementFromPoint(20, r.bottom - 8)?.closest('#dtSheet') != null }; })()")

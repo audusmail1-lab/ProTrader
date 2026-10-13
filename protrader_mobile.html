@@ -1630,9 +1630,15 @@ svg.ico{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.7;st
 #dtFloat[hidden]{display:none}#dtFloat::-webkit-scrollbar{display:none}
 .dt-ftitle{font:600 12px var(--font-display);color:var(--tx-2);padding:0 8px 0 6px;white-space:nowrap;max-width:160px;overflow:hidden;text-overflow:ellipsis}
 .dt-armed{display:flex;flex-direction:column;padding:0 8px 0 6px;font:600 12px var(--font-display);color:var(--blue-lt);white-space:nowrap}.dt-armed small{font-weight:500;color:var(--tx-3)}
-.dt-fbtn{display:grid;place-items:center;min-width:30px;height:30px;padding:0 5px;border:1px solid transparent;border-radius:7px;background:transparent;color:var(--tx-2);cursor:pointer;font:700 11px var(--font-mono)}
-.dt-fbtn:hover{background:var(--bg-3);color:var(--tx-1)}.dt-fbtn.is-on{color:var(--blue-lt)}.dt-fbtn.dt-danger:hover{color:var(--red-lt)}.dt-fbtn.dt-accent{color:var(--green-lt)}
-.dt-swatch{display:block;width:16px;height:16px;border-radius:4px;border:1px solid rgba(255,255,255,.25)}.dt-w{font:700 12px var(--font-mono)}.dt-ls{font-size:11px;letter-spacing:-1px}
+/* the selection toolbar's controls carry their own colours in every theme: foreground, border, pressed, selected, disabled */
+.dt-fbtn{display:grid;place-items:center;min-width:32px;height:32px;padding:0 6px;border:1px solid rgba(148,163,184,.22);border-radius:8px;background:rgba(148,163,184,.06);color:#e2e8f0;cursor:pointer;font:700 11px var(--font-mono)}
+.dt-fbtn:hover,.dt-fbtn:active{background:rgba(148,163,184,.18);color:#fff;border-color:rgba(148,163,184,.4)}
+.dt-fbtn.is-on{color:#fff;background:rgba(79,140,255,.28);border-color:rgba(79,140,255,.6)}
+.dt-fbtn.dt-danger{color:#fca5a5}.dt-fbtn.dt-danger:hover{color:#fff;background:rgba(239,68,68,.3);border-color:rgba(239,68,68,.6)}
+.dt-fbtn.dt-accent{color:#86efac}
+.dt-fbtn:disabled{opacity:.45;cursor:default;background:transparent}
+.dt-fsep{width:1px;height:22px;flex:0 0 1px;margin:0 3px;background:rgba(148,163,184,.3)}
+.dt-swatch{display:block;width:16px;height:16px;border-radius:4px;border:1px solid rgba(255,255,255,.35)}.dt-w{font:700 12px var(--font-mono)}.dt-ls{font-size:11px;letter-spacing:-1px}
 .dt-pop{position:absolute;z-index:41;display:grid;gap:2px;min-width:150px;padding:6px;border:1px solid var(--bd-2);border-radius:10px;background:#0D1320;box-shadow:0 18px 60px rgba(0,0,0,.45)}
 .dt-pop-item{display:flex;align-items:center;gap:8px;padding:7px 10px;border:0;border-radius:7px;background:transparent;color:var(--tx-1);cursor:pointer;font:500 13px var(--font-display);text-align:left}
 .dt-pop-item:hover{background:var(--bg-3)}.dt-pop-item.is-on{color:var(--blue-lt);background:rgba(59,130,246,.14)}.dt-wline{display:inline-block;width:34px;background:currentColor;border-radius:2px}
@@ -1651,7 +1657,17 @@ svg.ico{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.7;st
 .dt-sheet-body{overflow:auto;display:grid;grid-template-columns:1fr 1fr;gap:2px;padding:0 10px 12px}.dt-sheet-body .dt-item{min-height:44px}.dt-sheet-body .ws-notice{grid-column:1/-1}
 #chartWrap.dt-armed{cursor:crosshair}
 @media (max-width:820px),(max-height:520px) and (pointer:coarse){#dtBar{display:none!important}#dtFloat{top:40px}.dt-ftitle{display:none}.dt-flyout{display:none}}
-[data-theme="light"] #dtFloat{background:rgba(255,255,255,.92)}[data-theme="light"] .dt-sheet,[data-theme="light"] .dt-flyout,[data-theme="light"] .dt-pop{background:#fff}
+[data-theme="light"] #dtFloat{background:rgba(255,255,255,.96);border-color:rgba(15,23,42,.14)}[data-theme="light"] .dt-sheet,[data-theme="light"] .dt-flyout,[data-theme="light"] .dt-pop{background:#fff}
+[data-theme="light"] .dt-fbtn,[data-theme="forest"] .dt-fbtn{color:#15211e;background:#f3f6f5;border-color:rgba(21,33,30,.16)}
+[data-theme="light"] .dt-fbtn:hover,[data-theme="light"] .dt-fbtn:active,[data-theme="forest"] .dt-fbtn:hover,[data-theme="forest"] .dt-fbtn:active{color:#15211e;background:#e4ebe8;border-color:rgba(21,33,30,.3)}
+[data-theme="light"] .dt-fbtn.is-on{color:#fff;background:#1d4ed8;border-color:#1d4ed8}[data-theme="forest"] .dt-fbtn.is-on{color:#fff;background:var(--f-brand);border-color:var(--f-brand)}
+[data-theme="light"] .dt-fbtn.dt-danger,[data-theme="forest"] .dt-fbtn.dt-danger{color:#c92a37}[data-theme="light"] .dt-fbtn.dt-danger:hover,[data-theme="forest"] .dt-fbtn.dt-danger:hover{color:#fff;background:#f23645;border-color:#f23645}
+[data-theme="light"] .dt-fbtn.dt-accent,[data-theme="forest"] .dt-fbtn.dt-accent{color:#067a67}
+[data-theme="light"] .dt-fbtn:disabled,[data-theme="forest"] .dt-fbtn:disabled{color:#8a9490;background:#f3f6f5;opacity:.6}
+[data-theme="light"] .dt-fsep,[data-theme="forest"] .dt-fsep{background:rgba(21,33,30,.18)}
+[data-theme="light"] .dt-swatch,[data-theme="forest"] .dt-swatch{border-color:rgba(21,33,30,.25)}
+[data-theme="light"] .dt-ftitle,[data-theme="forest"] .dt-ftitle{color:#15211e}
+[data-theme="light"] .dt-armed,[data-theme="forest"] .dt-armed{color:#05443a}[data-theme="light"] .dt-armed small,[data-theme="forest"] .dt-armed small{color:#5d6b67}
 
 .ws-heading{height:36px;display:flex;align-items:center;justify-content:space-between;padding:0 10px;border-bottom:1px solid var(--bd-1);flex:none;color:var(--tx-2);font-size:var(--fs-1);font-weight:600;letter-spacing:.04em}
 .ws-heading button{background:none;border:0;color:var(--tx-3);font-size:16px;width:30px;height:30px;border-radius:6px;cursor:pointer}
@@ -1893,8 +1909,8 @@ html[data-theme="forest"]{background:var(--f-deep)}   /* Safari paints the canva
 [data-theme="forest"] .dt-sheet,[data-theme="forest"] .dt-pop{background:var(--bg-2);border-top-color:rgba(255,255,255,.14)}
 [data-theme="forest"] .dt-sheet-head strong,[data-theme="forest"] .dt-sheet .dt-item{color:#fff}
 [data-theme="forest"] .dt-sheet-tabs button[aria-selected=true]{color:var(--f-brand);background:#c9f2dc;border-color:#c9f2dc}
-[data-theme="forest"] #dtFloat{background:var(--f-card);color:var(--f-ink);border:1px solid rgba(21,33,30,.12);box-shadow:0 10px 30px rgba(0,0,0,.22)}
-[data-theme="forest"] #dtFloat .dt-ib{color:var(--f-ink)}
+[data-theme="forest"] #dtFloat{background:#fff;color:var(--f-ink);border:1px solid rgba(21,33,30,.14);box-shadow:0 10px 30px rgba(0,0,0,.22)}
+[data-theme="forest"] #dtFloat svg{stroke:currentColor}
 @media (pointer:coarse){.dt-sheet kbd{display:none}}   /* shortcuts mean nothing to a thumb */
 [data-theme="forest"] .review-btn{background:#fff;border-color:#fff;color:var(--f-brand)}
 [data-theme="forest"] .chk-verdict h1 .buy{color:var(--green-lt)}[data-theme="forest"] .chk-verdict h1 .sell{color:var(--red-lt)}
@@ -4805,11 +4821,15 @@ const DT = (() => {
     const styles = [['solid', '━━━'], ['dashed', '╌╌╌'], ['dotted', '┈┈┈']];
     const styleB = btn('dt-fbtn', `<span class="dt-ls">${(styles.find(s => s[0] === (d.style.lineStyle || 'solid')) || styles[0])[1]}</span>`, 'Line style', () => openPop(styleB, styles.map(([k, g]) => ({ label: `${g} ${k}`, on: () => styleAll({ lineStyle: k }), on_: (d.style.lineStyle || 'solid') === k }))));
     f.appendChild(styleB);
+    const fsep = () => { const x = document.createElement('i'); x.className = 'dt-fsep'; x.setAttribute('aria-hidden', 'true'); f.appendChild(x); };
+    fsep();
     if (!many && st.specs[d.kind] && st.specs[d.kind].textEditable) f.appendChild(btn('dt-fbtn', I.text, 'Edit text', () => openTextEditor(d, null)));
     if (!many && isPos(d)) f.appendChild(btn('dt-fbtn dt-accent', I.ticket, 'Use in ticket', usePlan));
     f.appendChild(btn('dt-fbtn', I.gear, 'Settings', () => openSettings(d.id)));
+    fsep();
     f.appendChild(btn('dt-fbtn' + (sel.every(x => x.locked) ? ' is-on' : ''), sel.every(x => x.locked) ? I.lock : I.unlock, sel.every(x => x.locked) ? 'Unlock' : 'Lock', () => { const lock = !sel.every(x => x.locked); for (const x of sel) st.dm.update(Object.assign({}, x, { locked: lock })); commit(); ui(); }));
     f.appendChild(btn('dt-fbtn', I.eyeOff, 'Hide', () => { for (const x of sel) st.dm.update(Object.assign({}, x, { hidden: true })); st.dm.select([]); commit(); ui(); toast('Hidden. Objects lists it; the eye there shows it again.', 2600); }));
+    fsep();
     f.appendChild(btn('dt-fbtn', I.clone, 'Clone', clone));
     f.appendChild(btn('dt-fbtn dt-danger', I.trash, 'Remove (Del)', () => remove(sel.map(x => x.id))));
   }
@@ -14307,7 +14327,7 @@ setInterval(() => { const sh = document.getElementById('pairSheet'); if (sh && s
    Desktop never enters forest: the theme is set only while the phone media
    query matches, and every rule is scoped to it.
 ════════════════════════════════════════════════════════════ */
-const SHELL_BUILD = 'v66';   // keep in step with CACHE_VERSION in static/sw.js
+const SHELL_BUILD = 'v67';   // keep in step with CACHE_VERSION in static/sw.js
 const MOB = {
   booted: false, filter: 'all', _marks: [],
   TF_LABEL: { '1m': ['1M', '1 minute'], '5m': ['5M', '5 minutes'], '15m': ['15M', '15 minutes'], '1h': ['1H', '1 hour'], '4h': ['4H', '4 hours'], '1d': ['1D', '1 day'], '1w': ['1W', '1 week'] },
