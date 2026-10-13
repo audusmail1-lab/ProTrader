@@ -81,3 +81,10 @@ test('the pinned widget keeps the reviewed agent renderer separate from visitor 
  // Native stripping deliberately excludes text-chat entries in this release.
  assert.match(renderer,/r=!e\.isText,i=n\.value\.strip_audio_tags&&r/);
 });
+
+ test('provider session failure offers recovery without blaming the visitor connection',()=>{
+  const copy=alexErrorMessage('Connection closed unexpectedly before session could be established.');
+  assert.match(copy,/couldn’t connect just now/);
+  assert.match(copy,/Academy team/);
+  assert.doesNotMatch(copy,/Check your connection|ElevenLabs|WebSocket|session/);
+ });

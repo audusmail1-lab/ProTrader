@@ -1,38 +1,57 @@
-import {ALEX_PRODUCT_CONTEXT} from './alex-context.js?v=20261007-safari1';
+import {ALEX_PRODUCT_CONTEXT} from './alex-context.js?v=20261013-alex1';
 
-const AGENT_ID='agent_4801m3by5dhceh5rwx83ynt33ra3';
-// Pin the embed because our compact layout adapter targets this tested release.
-const WIDGET_URL='/cinematic/elevenlabs-widget-0.18.3.js';
-const SETTINGS_KEY='academy-alex-public-settings-v1';
+import {ALEX_AGENT_ID as AGENT_ID,getAlexSettings,loadAlexWidget} from './alex-loader.js?v=20261013-alex1';
+
 const SAMPLERATE_URL='https://cdn.jsdelivr.net/npm/@alexanderolsen/libsamplerate-js@2.1.2/dist/libsamplerate.worklet.js';
-let widgetScript,widgetSettings,settingsLoadedAt=0;
-function loadSettings(){
-  if(widgetSettings&&Date.now()-settingsLoadedAt<300000)return widgetSettings;
-  try{
-    const cached=JSON.parse(sessionStorage.getItem(SETTINGS_KEY)||'null');
-    if(cached?.agent===AGENT_ID&&cached.config&&Date.now()-cached.at<300000){settingsLoadedAt=cached.at;widgetSettings=Promise.resolve(cached.config);return widgetSettings}
-  }catch{/* Storage can be unavailable in private browsing. */}
-  settingsLoadedAt=Date.now();
-  widgetSettings=fetch(`https://api.elevenlabs.io/v1/convai/agents/${AGENT_ID}/widget`,{signal:AbortSignal.timeout(6000)})
-    .then(response=>{if(!response.ok)throw new Error('Settings unavailable');return response.json()})
-    .then(({widget_config:config})=>{
-      if(!config)throw new Error('Settings unavailable');
-      const adapted={...config,first_message:'Hi, I’m Alex. What would you like to understand about the Academy or your workspace?',
-        avatar:config.avatar?.type==='orb'?{...config.avatar,color_1:'#789166',color_2:'#d8e5bb'}:config.avatar,
-        styles:{...config.styles,base:'#141d18',base_hover:'#243229',base_active:'#2d3d30',base_primary:'#edf1e9',base_subtle:'#aab9ad',base_border:'#344638',accent:'#cdddac',accent_hover:'#dae8c0',accent_active:'#bbcea0',accent_primary:'#182315',overlay_padding:0,button_radius:10,input_radius:10,sheet_radius:14}};
-      try{sessionStorage.setItem(SETTINGS_KEY,JSON.stringify({agent:AGENT_ID,at:Date.now(),config:adapted}))}catch{/* Optional public-settings cache. */}
-      return adapted;
-    }).catch(error=>{widgetSettings=null;throw error});
-  return widgetSettings;
-}
 
 export function alexErrorMessage(raw='',mode='text'){
   const detail=String(raw).toLowerCase();
   if(/permission denied|permission dismissed|notallowederror|microphone.*(denied|blocked)|requested device not found|notfounderror/.test(detail))
     return 'Microphone access is unavailable. Allow it in your browser’s website settings, or choose Text Alex.';
+  if(/before session could be established/.test(detail))
+    return 'Alex couldn’t connect just now. Try again, or contact the Academy team. Your message is still here.';
   if(/network|offline|failed to fetch|websocket|connection.*(closed|failed)|timed out/.test(detail))
     return 'The connection was interrupted. Check your connection and try again. Your conversation is still here.';
   return mode==='voice'?'The call couldn’t connect. Try again, or choose Text Alex to keep getting help.':'Alex couldn’t connect. Try again, or contact the Academy team.';
+}
+
+// The pinned SDK assigns its session only after startup resolves. Own the
+// pending lifecycle too, so closing or replacing a panel cannot leave a late
+// voice session running after the widget has unmounted.
+export function createAlexConnectionLifecycle({isActive,onConnecting,onDelayed,onConnect,setTimer=setTimeout,clearTimer=clearTimeout}){
+  let closed=false,attempt=0,notice,session=null;
+  const ended=new WeakSet();
+  const active=token=>!closed&&isActive()&&token===attempt;
+  const clearNotice=()=>{clearTimer(notice);notice=null};
+  const endSession=value=>{
+    if(!value||ended.has(value))return;
+    ended.add(value);
+    try{Promise.resolve(value.endSession()).catch(()=>{})}catch{/* Best-effort SDK cleanup. */}
+  };
+  const aborted=()=>new DOMException('Alex support was closed.','AbortError');
+  function bind(config){
+    const token=++attempt,previousCreated=config.onConversationCreated,previousConnect=config.onConnect;
+    let createdSession=null;
+    clearNotice();
+    if(active(token)){
+      onConnecting();
+      notice=setTimer(()=>{if(!active(token))return;notice=null;onDelayed()},15000);
+    }
+    config.onConversationCreated=(created,...args)=>{
+      // Throw inside the SDK startup callback: its own catch closes the new
+      // session before it marks it connected or sends the opening message.
+      if(!active(token))throw aborted();
+      createdSession=session=created;previousCreated?.(created,...args);
+      if(!active(token))throw aborted();
+    };
+    config.onConnect=(...args)=>{
+      if(!active(token)){endSession(createdSession);return}
+      clearNotice();previousConnect?.(...args);
+      if(!active(token)){endSession(createdSession);return}
+      onConnect(...args);
+    };
+  }
+  return {bind,clearNotice,dispose(){if(closed)return;closed=true;clearNotice();endSession(session)}};
 }
 
 // Widget 0.18.3 strips audio tags from voice transcripts only. Its N2 renderer
@@ -73,7 +92,7 @@ export function refineAlexAgentStagePrefixes(root){
 // Adapt its dedicated errors and the narrow agent-only text prefix above.
 function refineWidget(widget,{mode,onError,onReady,onIdle}){
   const root=widget.shadowRoot;if(!root)return ()=>{};
-  const styles=document.createElement('link');styles.rel='stylesheet';styles.href='/cinematic/alex-support.css?v=20261007-safari1';root.append(styles);
+  const styles=document.createElement('link');styles.rel='stylesheet';styles.href='/cinematic/alex-support.css?v=20261013-alex1';root.append(styles);
   let ready=false;const errors=new WeakMap();
   const inspect=()=>{
     refineAlexAgentStagePrefixes(root);
@@ -88,19 +107,6 @@ function refineWidget(widget,{mode,onError,onReady,onIdle}){
   };
   const observer=new MutationObserver(inspect);observer.observe(root,{subtree:true,childList:true,characterData:true});inspect();
   return ()=>observer.disconnect();
-}
-function loadWidget(){
-  if(customElements.get('elevenlabs-convai'))return Promise.resolve();
-  if(widgetScript)return widgetScript;
-  widgetScript=new Promise((resolve,reject)=>{
-    const script=document.createElement('script');
-    const fail=()=>{clearTimeout(timeout);script.remove();widgetScript=null;reject(new Error('Alex could not load.'))};
-    const timeout=setTimeout(fail,12000);
-    script.src=WIDGET_URL;script.async=true;
-    script.onload=()=>customElements.whenDefined('elevenlabs-convai').then(()=>{clearTimeout(timeout);resolve()});
-    script.onerror=fail;document.head.append(script);
-  });
-  return widgetScript;
 }
 
 export function initAlexSupport({classroom=false,onTeam}={}){
@@ -144,45 +150,51 @@ export function initAlexSupport({classroom=false,onTeam}={}){
     }
     toggle.onclick=()=>confirmChange(()=>open(mode==='text'?'voice':'text'),'Switch conversation mode?','Switching ends this conversation and starts a new one.',mode==='text'?'Switch to calling':'Switch to text');
     toggle.disabled=true;
+    let connection;
     try{
-      const [,config]=await Promise.all([loadWidget(),loadSettings()]);if(!panel.isConnected)return;
+      await loadAlexWidget();if(!panel.isConnected)return;
+      // Presentation settings refresh separately; provider latency must not block help.
+      const config=getAlexSettings();
       const widget=document.createElement('elevenlabs-convai');
       widget.setAttribute('override-config',JSON.stringify(config));
       const attributes={'agent-id':AGENT_ID,'variant':'full','default-expanded':'true','always-expanded':'true','dismissible':'false','override-text-only':String(mode==='text'),'text-input':'true','transcript':'true','show-avatar-when-collapsed':'false','show-agent-status':'false','strip-audio-tags':'true','worklet-path-libsamplerate':SAMPLERATE_URL,'show-conversation-id':'false','show-resize-button':'false','markdown-link-allowed-hosts':'protraderacademy.company,app.protraderacademy.company','markdown-link-allow-http':'false','allow-events':'true'};
       Object.entries(attributes).forEach(([key,value])=>widget.setAttribute(key,value));
       widget.setAttribute('text-contents',JSON.stringify({main_label:'Ask Alex',start_call:'Call Alex',start_chat:'Chat with Alex',end_call:'End call',new_call:'Call again',chatting_status:'Chatting with Alex',connecting_status:mode==='voice'?'Connecting your call…':'Connecting your conversation…',error_occurred:'Alex is unavailable',input_placeholder:'Ask Alex…',input_placeholder_text_only:'Ask Alex…',input_placeholder_new_conversation:'Ask Alex…'}));
-      widget.addEventListener('elevenlabs-convai:call',event=>{
-        const config=event.detail.config,previousConnect=config.onConnect;
-        status.textContent=mode==='voice'?'Connecting your call…':'Connecting your conversation…';
-        panel.dataset.connection='connecting';
-        config.onConnect=(...args)=>{
-          previousConnect?.(...args);panel.dataset.conversationStarted='true';panel.dataset.connection='connected';status.textContent=mode==='voice'?'Call connected. You can speak to Alex.':'Ask about the tools, lessons or your next step.';
-          // Only shared public guidance. Do not read the signed-in page or session.
-          setTimeout(()=>{if(widget.isConnected)widget.dispatchEvent(new CustomEvent('elevenlabs-agent:contextual-update',{detail:{message:ALEX_PRODUCT_CONTEXT}}))},0);
-        };
-      });
       const slot=document.createElement('div');slot.className='alex-widget-slot';slot.append(widget);panel.append(slot);toggle.disabled=false;
       const readyCopy=mode==='text'?'Ask about the tools, lessons or your next step.':'Tap the phone button to call. Your microphone starts only when you call.';
       const recovery=document.createElement('div');recovery.className='alex-recovery';recovery.hidden=true;
       const retry=document.createElement('button');retry.type='button';retry.textContent='Try again';
       retry.onclick=()=>confirmChange(()=>open(mode),'Start a new conversation?','Your current conversation will end. You can copy any information you want to keep first.','Start again');
       recovery.append(retry);bar.append(recovery);
-      const stopRefinement=refineWidget(widget,{mode,onReady:()=>{status.textContent=readyCopy},onIdle:()=>{if(panel.dataset.connection==='connected'){panel.dataset.connection='ended';status.textContent=mode==='voice'?'Call ended. Call again or choose Text Alex.':'Conversation ended. Send a message to start again.'}},onError:message=>{panel.dataset.connection='error';status.textContent=message;recovery.hidden=false;toggle.disabled=false}});
+      connection=createAlexConnectionLifecycle({isActive:()=>panel.isConnected,
+        onConnecting:()=>{status.textContent=mode==='voice'?'Connecting your call…':'Connecting your conversation…';panel.dataset.connection='connecting';recovery.hidden=true},
+        onDelayed:()=>{if(panel.dataset.connection!=='connecting')return;status.textContent='Alex is taking longer to connect. You can keep waiting, try again, or contact the Academy team.';recovery.hidden=false},
+        onConnect:()=>{
+          recovery.hidden=true;panel.dataset.conversationStarted='true';panel.dataset.connection='connected';status.textContent=mode==='voice'?'Call connected. You can speak to Alex.':'Ask about the tools, lessons or your next step.';
+          // Only shared public guidance. Do not read the signed-in page or session.
+          setTimeout(()=>{if(widget.isConnected)widget.dispatchEvent(new CustomEvent('elevenlabs-agent:contextual-update',{detail:{message:ALEX_PRODUCT_CONTEXT}}))},0);
+        }
+      });
+      widget.addEventListener('elevenlabs-convai:call',event=>connection.bind(event.detail.config));
+      cleanup=()=>connection.dispose();
+      const stopRefinement=refineWidget(widget,{mode,onReady:()=>{status.textContent=readyCopy},onIdle:()=>{if(panel.dataset.connection==='connected'){panel.dataset.connection='ended';status.textContent=mode==='voice'?'Call ended. Call again or choose Text Alex.':'Conversation ended. Send a message to start again.'}},onError:message=>{connection.clearNotice();panel.dataset.connection='error';status.textContent=message;recovery.hidden=false;toggle.disabled=false}});
       // Keep the composer above the on-screen keyboard and browser controls.
       const viewport=window.visualViewport;
       const fit=()=>{if(!panel.isConnected)return;panel.style.setProperty('--alex-available-height',`${viewport?.height||innerHeight}px`);panel.style.setProperty('--alex-keyboard-inset',`${Math.max(0,innerHeight-(viewport?.height||innerHeight)-(viewport?.offsetTop||0))}px`)};
       fit();viewport?.addEventListener('resize',fit);viewport?.addEventListener('scroll',fit);window.addEventListener('resize',fit);
-      cleanup=()=>{stopRefinement();viewport?.removeEventListener('resize',fit);viewport?.removeEventListener('scroll',fit);window.removeEventListener('resize',fit)};
+      cleanup=()=>{connection.dispose();stopRefinement();viewport?.removeEventListener('resize',fit);viewport?.removeEventListener('scroll',fit);window.removeEventListener('resize',fit)};
       status.textContent=readyCopy;
     }catch{
+      connection?.dispose();
       if(!panel.isConnected)return;
-      status.textContent='Alex couldn’t load. Check your connection, then try again or contact the Academy team.';
+      panel.dataset.connection='error';
+      status.textContent=navigator.onLine===false?'You’re offline. Reconnect, then choose Retry Alex.':'Alex is temporarily unavailable. Try again, or contact the Academy team.';
       toggle.disabled=false;
       const retry=document.createElement('button');retry.type='button';retry.textContent='Retry Alex';retry.onclick=()=>open(mode);bar.append(retry);
     }
   }
-  launcher.addEventListener('pointerenter',()=>{loadWidget().catch(()=>{})},{once:true});
-  launcher.addEventListener('focus',()=>{loadWidget().catch(()=>{})},{once:true});
+  launcher.addEventListener('pointerenter',()=>{loadAlexWidget().catch(()=>{})},{once:true});
+  launcher.addEventListener('focus',()=>{loadAlexWidget().catch(()=>{})},{once:true});
   launcher.onclick=()=>open('text');
   window.addEventListener('academy-session-changed',()=>close({focus:false}));
   return {open,close,suspend(){close({focus:false});launcher.hidden=true},resume(){launcher.hidden=false;launcher.focus({preventScroll:true})}};
