@@ -274,22 +274,22 @@ IPHONE_UA = "Mozilla/5.0 (iPhone; CPU iPhone OS 26_0 like Mac OS X) AppleWebKit/
 
 
 def check_safari_bar(page, port):
-    """iPhone Safari keeps its own strip under the page (the minimised tab bar), so the page is shorter
-    than the screen and the home indicator sits in Safari's strip: the tab bar drops the inset it was
-    carrying for nothing. The installed app (page as tall as the screen) keeps it."""
+    """When the page stops short of the screen's bottom (Safari's minimised tab bar keeps a strip; the
+    Home Screen app on Joel's iPhone ends above the edge too) the home indicator sits in the system's
+    strip, so the tab bar drops the inset it was carrying for nothing. A page as tall as the screen keeps it."""
     boot(page, port)
     assert page.evaluate("document.documentElement.dataset.theme") == "forest"
     assert page.evaluate("document.querySelector('meta[name=theme-color]').content") == "#03362e"
     assert page.evaluate("getComputedStyle(document.documentElement).backgroundColor") == "rgb(3, 54, 46)"
-    short = page.evaluate("window.innerHeight < screen.height - 24")
+    short = page.evaluate("window.innerHeight <= screen.height - 34")
     sb = page.evaluate("document.documentElement.style.getPropertyValue('--safe-bottom')")
     nav = rect(page, ".mobile-nav")
     if short:
         assert sb == "0px" and abs(nav["h"] - 46) < 1 and abs(nav["b"] - page.evaluate("innerHeight")) < 1, (sb, nav)
-        ok("iPhone Safari (page shorter than the screen): the tab bar is 46px flush with the page's bottom, no dead inset; theme-color and canvas are the bar's deep green")
+        ok("iPhone, page shorter than the screen (Safari's strip, or the Home Screen app ending above the edge): the tab bar is 46px flush with the page's bottom, no dead inset; theme-color and canvas are the bar's deep green")
     else:
         assert sb == "", sb
-        ok("iPhone full screen (installed app): the inset is left to iOS")
+        ok("iPhone, page as tall as the screen: the inset is left to iOS")
 
 
 def check_desktop(page, port):

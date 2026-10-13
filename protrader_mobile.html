@@ -14259,18 +14259,19 @@ const MOB = {
     this.chartStyle();
   },
   /* The tab bar keeps the home-indicator inset under its labels so a finger never lands on the
-     indicator. In Safari, though, the page stops above Safari's own strip (the minimised tab bar),
-     the indicator sits inside that strip, and iOS still reports the inset to the page: the bar
-     carried 34px of dead padding above a strip it could never reach. When a browser owns the
-     bottom of the screen the inset is dropped; the installed app (full screen) keeps it. */
+     indicator. But iOS reports that inset even when the page stops short of the screen's bottom
+     (Safari's minimised tab bar keeps a strip of its own; on Joel's iPhone the Home Screen app
+     ends ~56px above the bottom edge too) — the indicator then sits in the system's strip, not
+     under the bar, and the bar carried 34px of dead padding above a strip it could never reach.
+     When the page ends at least an indicator's height above the bottom of the screen the inset
+     is dropped; a page as tall as the screen keeps it, as it must. */
   safeBottom() {
     const root = document.documentElement.style;
     const ios = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-    const standalone = window.matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
     const landscape = window.innerWidth > window.innerHeight;
     const screenH = landscape ? Math.min(screen.width, screen.height) : Math.max(screen.width, screen.height);
-    const browserOwnsBottom = this.on() && ios && !standalone && window.innerHeight < screenH - 24;
-    if (browserOwnsBottom) root.setProperty('--safe-bottom', '0px'); else root.removeProperty('--safe-bottom');
+    const systemOwnsBottom = this.on() && ios && window.innerHeight <= screenH - 34;
+    if (systemOwnsBottom) root.setProperty('--safe-bottom', '0px'); else root.removeProperty('--safe-bottom');
   },
   // only a phone (or a window leaving forest) restyles the chart: the desktop's chart is never touched
   chartStyle() { if (typeof CH !== 'undefined' && CH.ready && (this.forest() || this._left)) { this._left = false; CH.applyTheme(); CH.applyIndicatorVisibility(); requestChartRedraw(); } },
