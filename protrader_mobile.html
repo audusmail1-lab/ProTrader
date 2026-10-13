@@ -13743,7 +13743,13 @@ const NOTIFY = {
     if (typeof TR === 'undefined') return [];
     return TR.positions.map(p => {
       const sp = otSpec(p.symbol), q = otQuote(p.symbol);
-      const unit = otPnl(p.side, p.entry, p.entry + 1, p.volume, p.symbol);
+      // Unsigned money-per-1.0-move: notify.py's _on_tick() applies the side's
+      // own sign (dirn) on top of this. Passing otPnl(p.side, ...) here would
+      // bake the sign in twice, flipping sell P&L (otPnl's dir=-1 for a sell
+      // cancels notify.py's dirn=-1, so the server reports gains as losses
+      // and vice versa). Always compute it as a 'buy' would, so it's a pure
+      // magnitude and the sign is applied exactly once, server-side.
+      const unit = otPnl('buy', p.entry, p.entry + 1, p.volume, p.symbol);
       return { id: String(p.id), symbol: p.symbol, label: p.label || sp.label || p.symbol, side: p.side, volume: p.volume, entry: p.entry,
                sl: p.sl == null ? null : p.sl, tp: p.tp == null ? null : p.tp, unit: Number.isFinite(unit) ? unit : null, dp: sp.dp, spread: q.ok && q.hasSpread ? q.spread : 0 };
     });
