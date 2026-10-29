@@ -1,4 +1,5 @@
 import warnings
+import threading
 from dataclasses import dataclass
 from datetime import datetime, timezone
 
@@ -7,6 +8,10 @@ import pandas as pd
 import yfinance as yf
 
 warnings.filterwarnings("ignore", category=FutureWarning)
+
+# yf.download keeps process-wide request state. Serialize every dashboard
+# engine download, including requests made through different TradingBot instances.
+_YFINANCE_DOWNLOAD_LOCK = threading.Lock()
 
 
 @dataclass
@@ -278,19 +283,22 @@ class TradingBot:
     def fetch_data(self, ticker="BTC-USD", period="60d", interval="1h") -> pd.DataFrame:
         fetch_interval, rule = self.RESAMPLE_FROM.get(interval, (interval, None))
 
-        df = yf.download(
-            tickers=ticker,
-            period=period,
-            interval=fetch_interval,
-            auto_adjust=False,
-            progress=False,
-            multi_level_index=False,
-        )
+        with _YFINANCE_DOWNLOAD_LOCK:
+            df = yf.download(
+                tickers=ticker,
+                period=period,
+                interval=fetch_interval,
+                auto_adjust=False,
+                progress=False,
+                multi_level_index=False,
+            )
+            # Take ownership before another download can reuse shared state.
+            if df is not None:
+                df = df.copy()
 
         if df is None or df.empty:
             raise ValueError(f"No data fetched for {ticker}. Check ticker, internet, or market hours.")
 
-        df = df.copy()
         if isinstance(df.columns, pd.MultiIndex):
             df.columns = df.columns.get_level_values(0)
 

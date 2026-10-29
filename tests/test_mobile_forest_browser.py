@@ -4,7 +4,8 @@ The phone shell ("forest"), tested in a real browser against protrader_mobile.ht
 A phone gets the deep-green theme, the two-row header, the white chart card with a
 timeframe menu and Expand, the Insights · Positions · Orders sheet fed by ARIA,
 ORACLE and Sentinel, and the four-tab bar. Desktop keeps its own themes, pixel for
-pixel. The feed is replaced by fixed candles, so every number is exact.
+pixel. Synthetic provider-shaped candles replace the feed; this checks the UI
+contract, not live provider delivery or Oracle's model quality.
    python3 tests/test_mobile_forest_browser.py [screenshot-dir]
 """
 import functools
@@ -30,15 +31,36 @@ def serve():
     return httpd
 
 
-# fixed candles with a clear bearish engulfing near the end, so the scanner has something to find
+# No provider sockets are opened by this UI fixture. A permanently connecting
+# socket preserves the feed's normal waiting state until SETUP supplies history.
+# In particular, a delayed live reply cannot overwrite the fixed test candles.
+ISOLATE_FEED = """
+(() => {
+  class FixtureWebSocket extends EventTarget {
+    static CONNECTING = 0; static OPEN = 1; static CLOSING = 2; static CLOSED = 3;
+    constructor(url) { super(); this.url = String(url); this.readyState = 0; this.bufferedAmount = 0; }
+    send() {}
+    close() { this.readyState = 3; }
+  }
+  Object.assign(FixtureWebSocket.prototype, {CONNECTING: 0, OPEN: 1, CLOSING: 2, CLOSED: 3});
+  window.WebSocket = FixtureWebSocket;
+})()
+"""
+
+# Deterministic synthetic completed 1h candles: bullish direction, six of ten
+# known rules met, and scanner patterns. Indicators and rules remain production code.
 SETUP = """
 (() => {
   selectPair('R_50'); if (S.tf !== '1h') MOB.pickTf('1h');
-  const tf = 3600, t0 = Math.floor(Date.now() / 1000 / tf) * tf - 239 * tf;
+  const tf = 3600, t0 = Math.floor(Date.now() / 1000 / tf) * tf - 240 * tf;
   let p = 80, k = 7; const rnd = () => { k = (k * 9301 + 49297) % 233280; return k / 233280; };
   S.candles = Array.from({ length: 240 }, (_, i) => { const o = p, c = p + Math.sin(i / 7) * 0.35 + (rnd() - 0.5) * 0.4; p = c;
     return { time: t0 + i * tf, open: o, high: Math.max(o, c) + rnd() * 0.25, low: Math.min(o, c) - rnd() * 0.25, close: c, vol: 0 }; });
   S.wsConnected = true;
+  // Deriv is the provider contract under test, not a claim of real delivery.
+  S.candleProvenance = {symbol: S.sym, timeframe: S.tf, source: 'Deriv',
+    observedAt: Date.now() / 1000, baseTime: S.candles.at(-1).time, needsRefresh: false,
+    fixture: 'synthetic-mobile-forest'};
   const last = S.candles[S.candles.length - 1];
   otQuote = id => ({ ok: true, stale: false, bid: last.close, ask: last.close, last: last.close, mid: last.close, hasSpread: false });
   putQuote(S.sym, last.close, null, 'Deriv', true);
@@ -62,11 +84,21 @@ def visible(page, sel):
 
 
 def boot(page, port):
+    page.add_init_script(ISOLATE_FEED)
     page.goto(f"http://127.0.0.1:{port}/protrader_mobile.html", wait_until="domcontentloaded")
     page.wait_for_function("typeof MOB !== 'undefined' && typeof OT !== 'undefined' && typeof CH !== 'undefined' && CH.ready")
     page.wait_for_timeout(800)
     page.evaluate(SETUP)
     page.wait_for_timeout(600)
+    fixture = page.evaluate("""(() => { const m = checkModel(); return {
+      history: m?.dataStatus?.available, available: m?.gates?.available,
+      dir: m?.gates?.dir, total: m?.gates?.total, score: m?.gates?.score,
+      percentage: m?.gates?.percentage, unavailable: m?.gates?.unavailable,
+      fixture: S.candleProvenance?.fixture
+    }; })()""")
+    assert fixture == {"history": True, "available": True, "dir": "buy", "total": 10,
+                       "score": 6, "percentage": 60, "unavailable": 0,
+                       "fixture": "synthetic-mobile-forest"}, fixture
 
 
 def check_phone(page, port, shots):
@@ -124,24 +156,41 @@ def check_phone(page, port, shots):
     secs = page.evaluate("[...document.querySelectorAll('#insightsPane .mi-full .mi-sec')].map(s => s.firstChild.nextSibling.textContent.trim())")
     assert secs == ["ARIA", "ORACLE", "Patterns"], secs
     rows = page.evaluate("[...document.querySelectorAll('#insightsPane .mi-full .mi-row .mi-h')].map(h => h.firstChild.textContent)")
-    assert any(r.startswith(("Leaning", "Wait", "Stand aside")) for r in rows) and any(r in ("Strong signal", "Moderate signal", "Weak · standby") for r in rows), rows
+    # The strategy's UTC time restriction can pause this same known checklist.
+    expected_aria = "Strategy restriction" if page.evaluate("checkModel().mcc.code === 'DEAD_ZONE'") else "Mixed checklist"
+    assert rows[:2] == [expected_aria, "Oracle · independent review"], rows
+    a = page.evaluate("""(() => { const r = document.querySelector('#insightsPane .mi-full .mi-row');
+      return {tag: r.querySelector('.mi-tag').textContent, act: r.querySelector('.mi-act').textContent}; })()""")
+    assert a == {"tag": "60% · 6/10", "act": "See checks"}, a
     badges = page.evaluate("[...document.querySelectorAll('#insightsPane .mi-full .mi-sec:last-of-type ~ .mi-row .mi-bd')].map(b => b.textContent)")
     assert badges[: len(marks)] == marks, (badges, marks)
     ok(f"phone: the sheet opens on the grip; {n} insights in ARIA · ORACLE · Patterns sections, patterns numbered like the chart")
     if shots:
         page.screenshot(path=os.path.join(shots, "forest_insights_up.png"))
 
-    # filters, and the ORACLE row carries the Oracle tab's confidence (gates passed ÷ gates), its direction and levels
+    # Oracle is an independent review, not another score or a ticket-fill shortcut.
     page.evaluate("MOB.setFilter('oracle')")
     assert page.evaluate("document.querySelectorAll('#insightsPane .mi-full .mi-row').length") == 1
     o = page.evaluate("(() => { const r = document.querySelector('#insightsPane .mi-full .mi-row'); return { head: r.querySelector('.mi-h').firstChild.textContent, tag: r.querySelector('.mi-tag').textContent, sub: r.querySelector('.mi-p').textContent, act: r.querySelector('.mi-act').textContent, badge: r.querySelector('.mi-bd').textContent }; })()")
-    conf = page.evaluate("checkModel().oracle")
-    assert o["tag"] == f"{conf}%" and o["badge"] == "O", (o, conf)
-    assert o["head"] == ("Strong signal" if conf >= 70 else "Moderate signal" if conf >= 50 else "Weak · standby"), (o, conf)
-    assert o["sub"].startswith(("▲ Buy · entry ", "▼ Sell · entry ")) and " · stop " in o["sub"], o
-    assert o["act"] == ("Use signal" if conf >= 70 else "Open Oracle"), o
+    assert o == {"head": "Oracle · independent review", "tag": "Open Oracle", "badge": "O",
+                 "sub": "Read the 4H, 1H, 15m and 5m context, then discuss the evidence.",
+                 "act": "Open review"}, o
+    trade_state = page.evaluate("JSON.stringify({ticket: TK, positions: TR.positions, orders: TR.orders})")
+    session_requests = []
+    def record_oracle_session(route):
+        session_requests.append(route.request.method)
+        route.fulfill(status=503, content_type="application/json", body='{"error":"Provider sessions disabled in this UI fixture"}')
+    page.route("**/api/oracle/conversation/session", record_oracle_session)
+    page.tap("#insightsPane .mi-full .mi-row")
+    page.wait_for_function("document.getElementById('rightPanel').classList.contains('open') && document.querySelector('.rtab.active').dataset.tab === 'oracle'")
+    assert visible(page, "#oraclePane") and visible(page, "#oracle-panel .oa-panel")
+    assert not page.evaluate("MOB.sheet.isUp()")
+    assert page.evaluate("document.querySelector('.mobile-nav-btn.active').dataset.mobileView") == "chart"
+    assert page.evaluate("JSON.stringify({ticket: TK, positions: TR.positions, orders: TR.orders})") == trade_state
+    assert not session_requests, session_requests
+    page.evaluate("mobileSetView('chart')")
     page.evaluate("MOB.setFilter('all')")
-    ok(f"phone: filter chips narrow the list; the ORACLE row says '{o['head']}' at {conf}% with the direction, entry and stop")
+    ok("phone: Oracle's filtered row opens the independent review without changing the ticket, placing an order, or starting a provider conversation")
 
     # Plan trade opens the ticket on the pattern's side; the sheet drops, Workspace stays lit
     page.evaluate("MOB.plan('sell')")
@@ -230,10 +279,27 @@ def check_phone(page, port, shots):
 
     # the check panel counts every gate; the ticket's switches follow a fill; a capped size is worded honestly
     page.evaluate("openMobilePanel('check')"); page.wait_for_timeout(300)
-    cnt = page.evaluate("document.querySelector('#check-panel .chk-cnt').textContent")
+    cnt = page.evaluate("document.querySelector('#check-panel .chk-score-count').textContent")
     n_gates = page.evaluate("checkModel().gates.gates.length")
-    assert cnt == f"{page.evaluate('checkModel().gates.score')} of {n_gates}" and n_gates == page.evaluate("ARIA_GATE_COUNT"), (cnt, n_gates)
-    assert page.evaluate("document.getElementById('chkMoreToggle').textContent") == f"Show {n_gates - 5} more checks ▾"
+    assert cnt == "6 of 10 conditions met" and n_gates == page.evaluate("ARIA_GATE_COUNT") == 10, (cnt, n_gates)
+    assert page.evaluate("document.querySelector('#check-panel .chk-score-value').textContent") == "60%"
+    assert page.evaluate("document.querySelector('#check-panel .chk-score-card').dataset.available") == "true"
+    assert "Checklist completion, not the probability of a winning trade." in page.inner_text("#check-panel")
+    assert page.evaluate("document.getElementById('chkMoreToggle').textContent") == "See all 10 checks ▾"
+    assert page.get_attribute("#chkMoreToggle", "aria-expanded") == "false"
+    assert page.evaluate("!!(document.getElementById('chkMoreToggle').compareDocumentPosition(document.getElementById('chkOracle')) & Node.DOCUMENT_POSITION_FOLLOWING)")
+    page.tap("#chkMoreToggle")
+    assert page.get_attribute("#chkMoreToggle", "aria-expanded") == "true"
+    checks = page.evaluate("""[...document.querySelectorAll('#chkMore .chk')].map(row => ({
+      visible: row.getBoundingClientRect().height > 0,
+      pass: !row.classList.contains('fail') && !row.classList.contains('unknown'),
+      label: row.querySelector('.chk-txt').firstChild.textContent
+    }))""")
+    assert len(checks) == 10 and all(c["visible"] for c in checks) and sum(c["pass"] for c in checks) == 6, checks
+    assert len({c["label"] for c in checks}) == 10, checks
+    assert page.evaluate("document.getElementById('chkMoreToggle').textContent") == "Hide all 10 checks ▴"
+    page.tap("#chkMoreToggle")
+    assert page.get_attribute("#chkMoreToggle", "aria-expanded") == "false" and not visible(page, "#chkMore")
     page.evaluate("openMobilePanel('trade'); OT.setSide('buy'); OT.setType('market'); OT.toggleSl(true); OT.toggleTp(true); document.getElementById('otSlOn').checked = true; document.getElementById('otTpOn').checked = true")
     page.wait_for_timeout(200)
     assert page.evaluate("TK.slOn && TK.tpOn && document.getElementById('otSlRow').style.display === 'grid'")
@@ -297,10 +363,12 @@ def check_phone(page, port, shots):
     assert orb["r"] <= inp["l"] and inp["r"] <= send["l"] and abs(orb["t"] + orb["h"] / 2 - (inp["t"] + inp["h"] / 2)) < 6, (orb, inp, send)
     assert visible(page, "#vxHint") and not visible(page, "#vxHeard")
     page.evaluate("COPILOT.setMode('analyze')"); page.wait_for_timeout(300)
-    read = page.evaluate("(() => { const r = document.querySelector('#cpPanel .cp-read'); return r && { pct: r.querySelector('.cp-read-h b').textContent, v: r.querySelector('.cp-read-v').textContent, tiles: [...r.querySelectorAll('.cp-dna span')].map(x => x.textContent) }; })()")
-    assert read and read["pct"] == f"{page.evaluate('checkModel().oracle')}%" and read["tiles"][:2] == ["RSI", "Stochastic"] and "gates" in read["tiles"][2], read
+    read = page.evaluate("(() => { const r = document.querySelector('#cpPanel .cp-read'); return r && { pct: r.querySelector('.cp-read-h b').textContent, v: r.querySelector('.cp-read-v').textContent, tiles: [...r.querySelectorAll('.cp-dna span')].map(x => x.textContent), meaning: r.querySelector('.cp-read-x').textContent }; })()")
+    assert read and read["pct"] == "60%" and read["tiles"] == ["RSI", "Stochastic", "6 of 10 gates"], read
+    assert "Checklist completion, not win probability." in read["meaning"], read
     assert not visible(page, "#vxHint") and visible(page, "#cpModes") and visible(page, "#vxInput")
     page.evaluate("COPILOT.setMode('talk'); VOICE.close()")
+    assert not session_requests, session_requests
     ok("phone: ARIA's card keeps its tabs and its mic + field in view; the provider chip opens the details; Analyze starts with the market read")
 
 

@@ -190,7 +190,7 @@ def check_practice(page):
     # 44000 sits on the sine chart; its last swing low is about 43840
     out = typed(page, "check my plan buy stop 43900 target 2 to 1")
     c = page.evaluate("COPILOT.check")
-    assert c["status"] == "CONTRADICTED" and "ORACLE says contradicted" in out, out
+    assert c["status"] == "CONTRADICTED" and "Practice rules check: contradicted" in out, out
     assert any("swing low" in i["text"] for i in c["items"] if i["kind"] == "against"), c["items"]
     assert page.evaluate("document.querySelector('#cpPanel .cp-oracle.contradicted') !== null")
     out = typed(page, "suggest a stop")
@@ -204,7 +204,7 @@ def check_practice(page):
     assert len(d) == 1 and d[0]["reason"] == "Bounce from a zone" and d[0]["flags"]["stopBeyond"] is True, d   # the re-check replaced the first check
     out = typed(page, "place it on paper")
     pend = page.evaluate("VOICE.pending && { title: VOICE.pending.title, rows: VOICE.pending.rows }")
-    assert pend and pend["title"].startswith("Practice · Buy") and ["ORACLE", f"{c['status']} · process {page.evaluate('COPILOT.score(COPILOT.check)')}"] in pend["rows"], pend
+    assert pend and pend["title"].startswith("Practice · Buy") and ["Practice rules check", f"{c['status']} · process {page.evaluate('COPILOT.score(COPILOT.check)')}"] in pend["rows"], pend
     typed(page, "confirm")
     pos = page.evaluate("TR.positions.map(p => ({ id: p.id, sl: p.sl, risk0: p.risk0 }))")
     assert len(pos) == 1 and abs(pos[0]["sl"] - stop) < 1e-6, pos
@@ -252,7 +252,7 @@ def check_replay(page):
     out = typed(page, "buy here")
     assert page.evaluate("REPLAY.planning()") and not page.evaluate("VOICE.pending") and page.evaluate("TR.positions.length") == 0, out
     out = typed(page, "check my plan")
-    assert "ORACLE says" in out and page.evaluate("window.__taMax") <= st2["last"], out
+    assert "Practice rules check:" in out and page.evaluate("window.__taMax") <= st2["last"], out
     out = typed(page, "take it")
     assert page.evaluate("REPLAY.trading()") and "next candle's open" in out, out
     nxt = page.evaluate("REPLAY.total() > REPLAY.cursor() ? null : null")

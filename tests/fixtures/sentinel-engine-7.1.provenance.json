@@ -1,0 +1,15 @@
+{
+  "engine": "7.1",
+  "executionModel": "7.2c",
+  "sourceRepository": "https://github.com/audusmail1-lab/ProTrader",
+  "sourceCommit": "16ff806c11069b9c937fedd1a5ebdf6f2df15bad",
+  "sourcePath": "protrader_mobile.html",
+  "sourceFileSha256": "c29436aa2442d0707bdf2735d99a5d33ad80db869e1a8a1a6ff9c9257a2faeb9",
+  "fixtureSha256": "2925e771bf01b7a6ee1382bed95943d41cde54e4982dc1c4b93effbf5da00fe6",
+  "extraction": [
+    "calcEMA through CHART \u2014 TradingView (trailing comment removed)",
+    "ARIA_LAWS through renderARIA (trailing comment removed)",
+    "PATTERNS through runPatternScanner (trailing comment removed)"
+  ],
+  "purpose": "Independent legacy JavaScript reference for unchanged Sentinel Python engine. Current UI checklist-v2 deliberately differs; no production engine migration."
+}

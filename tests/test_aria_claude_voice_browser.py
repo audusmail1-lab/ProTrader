@@ -566,7 +566,7 @@ def check_new_question_mid_tool(page):
     n = len(CLAUDE["bodies"])
     page.fill("#vxInput", "Ask ORACLE about a long with a stop 150 below")
     page.press("#vxInput", "Enter")
-    page.wait_for_function("AI.busy && VOICE.log.some(m => m.ai && (m.status || '').startsWith('ORACLE is validating'))", timeout=8000)
+    page.wait_for_function("AI.busy && VOICE.log.some(m => m.ai && (m.status || '').startsWith('Running Practice rules check'))", timeout=8000)
     ask(page, "Never mind, what is the structure now?")
     page.wait_for_timeout(3600)                                       # the old turn's tool finishes meanwhile
     assert len(CLAUDE["bodies"]) == n + 2, len(CLAUDE["bodies"]) - n
@@ -582,7 +582,7 @@ def check_new_question_mid_tool(page):
                         {"timeout": True}]
     page.fill("#vxInput", "Ask ORACLE about a long with a stop 150 below")
     page.press("#vxInput", "Enter")
-    page.wait_for_function("AI.busy && VOICE.log.some(m => m.ai && (m.status || '').startsWith('ORACLE is validating'))", timeout=8000)
+    page.wait_for_function("AI.busy && VOICE.log.some(m => m.ai && (m.status || '').startsWith('Running Practice rules check'))", timeout=8000)
     page.fill("#vxInput", "Never mind, what is the structure now?")
     page.press("#vxInput", "Enter")
     page.wait_for_function("!AI.busy && VOICE.state === 'idle' && document.getElementById('vxLog').textContent.includes('did not answer in time')", timeout=15000)

@@ -182,7 +182,7 @@ def check_tools(page):
     assert o["oracle"] == real and o["evidence"], o
     d = page.evaluate("COPILOT.load().decisions.slice(-1)[0]")
     assert d["via"] == "ai" and d["status"] == real
-    assert any(t.startswith("ORACLE:") for t in last_ai(page)["tools"])
+    assert any(t.startswith("Practice rules check:") for t in last_ai(page)["tools"])
     # SENTINEL: observations, labelled unproven
     call("get_sentinel_observation", {})
     reqs = say(page, "What is SENTINEL seeing here?")

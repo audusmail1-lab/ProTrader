@@ -456,7 +456,7 @@ async def _loop() -> None:
 def start() -> None:
     """Start the scanner on the running event loop. Safe to call twice."""
     global _task
-    if os.getenv("SENTINEL_ENABLED", "1") == "0" or _task is not None:
+    if os.getenv("PROTRADER_LOCAL_PREVIEW") == "1" or os.getenv("SENTINEL_ENABLED", "1") == "0" or _task is not None:
         return
     _task = asyncio.get_running_loop().create_task(_loop())
 
@@ -542,7 +542,7 @@ def _check_key(request: Request) -> None:
 def status() -> dict:
     focus = _focus()
     return {
-        "enabled": os.getenv("SENTINEL_ENABLED", "1") != "0",
+        "enabled": os.getenv("PROTRADER_LOCAL_PREVIEW") != "1" and os.getenv("SENTINEL_ENABLED", "1") != "0",
         "running": _state["running"], "started_at": _state["started_at"],
         "last_cycle": _state["last_cycle"], "cycles": _state["cycles"],
         "last_error": _state["last_error"], "timeframes": sorted({tf for f in focus for tf in f["tfs"]}, key=SUPPORTED_TFS.index),

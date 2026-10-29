@@ -23,6 +23,19 @@ import aria_ai                                  # noqa: E402
 FAKE_KEY = "AIzaSyFAKE-test-key-0000000000000000000"
 
 
+def test_practice_rules_check_is_not_presented_as_oracle_agent_review():
+    tool = next(t for t in aria_ai.TOOLS if t["name"] == "check_plan_with_oracle")
+    assert "Practice rules check" in tool["description"]
+    assert "deterministic" in tool["description"]
+    assert "does not invoke Oracle's independent conversational review" in tool["description"]
+    assert "Oracle is a separate independent conversational market-review agent" in aria_ai.SYSTEM_PROMPT
+    assert "chart.lastOracleCheck is the legacy field" in aria_ai.SYSTEM_PROMPT
+    assert "ORACLE's verdict comes only from" not in aria_ai.SYSTEM_PROMPT
+    # Keep the existing browser dispatch contract: no renamed tool or plan fields.
+    assert tool["parameters"]["required"] == ["side"]
+    assert set(tool["parameters"]["properties"]) == {"side", "entry", "stop", "target", "reason"}
+
+
 @pytest.fixture(autouse=True)
 def env(monkeypatch, tmp_path):
     for k in list(os.environ):

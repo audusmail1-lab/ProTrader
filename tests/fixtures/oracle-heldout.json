@@ -1,0 +1,302 @@
+{
+  "name": "Oracle first-review held-out scenarios",
+  "scope": "Fictional decision-time market evidence. This small, manually specified software/evidence-quality benchmark does not validate predictive edge, profitability, or professional competence.",
+  "caseSelection": "Initial scenarios were specified from the approved requirements before reading the reviewer implementation. Additional adversarial regression cases were added during code review, and some failures informed fixes; this corpus is therefore a development evaluation set, not an untouched statistical holdout. A separate reserved set evaluates the frozen implementation. Arithmetic has objective answers; qualitative labels test only the disclosed structured method.",
+  "cases": [
+    {
+      "id": "long-evidence-aligned",
+      "purpose": "A coherent long continuation paper idea can be supported when observed prices, declared horizon, invalidation and known risk inputs fit.",
+      "market": "rising",
+      "method": "continuation",
+      "direction": "long",
+      "expected": "supported"
+    },
+    {
+      "id": "short-evidence-aligned",
+      "purpose": "A coherent short idea receives the same treatment; support cannot be hard-wired to bullish markets.",
+      "market": "falling",
+      "method": "continuation",
+      "direction": "short",
+      "expected": "supported"
+    },
+    {
+      "id": "deliberate-wait",
+      "purpose": "A defined observation-to-revisit decision is valid without a position size, quote, or execution cost estimate.",
+      "market": "rising",
+      "method": "continuation",
+      "direction": "wait",
+      "change": "wait-without-execution-inputs",
+      "expected": "supported"
+    },
+    {
+      "id": "risk-exceeds-cap",
+      "purpose": "A coherent thesis cannot waive an available configured risk cap.",
+      "market": "rising",
+      "method": "continuation",
+      "direction": "long",
+      "change": "oversized",
+      "expected": "material",
+      "area": "execution"
+    },
+    {
+      "id": "costs-cross-cap",
+      "purpose": "Known transaction costs must be included when checking a plan close to its risk budget.",
+      "market": "rising",
+      "method": "continuation",
+      "direction": "long",
+      "change": "costs-over-budget",
+      "expected": "material",
+      "area": "execution"
+    },
+    {
+      "id": "stop-on-profit-side",
+      "purpose": "A long plan with its stop above the entry has inconsistent loss arithmetic.",
+      "market": "rising",
+      "method": "continuation",
+      "direction": "long",
+      "change": "stop-on-profit-side",
+      "expected": "material",
+      "area": "logic"
+    },
+    {
+      "id": "short-stop-on-profit-side",
+      "purpose": "The mirrored short stop defect must also be rejected.",
+      "market": "falling",
+      "method": "continuation",
+      "direction": "short",
+      "change": "stop-on-profit-side",
+      "expected": "material",
+      "area": "logic"
+    },
+    {
+      "id": "stop-before-invalidation",
+      "purpose": "A stop which exits before the learner's stated invalidation does not implement that thesis.",
+      "market": "rising",
+      "method": "continuation",
+      "direction": "long",
+      "change": "stop-before-invalidation",
+      "expected": "material",
+      "area": "logic"
+    },
+    {
+      "id": "invalidation-wrong-side",
+      "purpose": "A long continuation hypothesis invalidated by a closed bar above the entry contradicts the selected loss-side condition.",
+      "market": "rising",
+      "method": "continuation",
+      "direction": "long",
+      "change": "invalidation-wrong-side",
+      "expected": "material",
+      "area": "logic"
+    },
+    {
+      "id": "target-on-loss-side",
+      "purpose": "A claimed long profit target below the entry is inconsistent even when reward/risk prose sounds reassuring.",
+      "market": "rising",
+      "method": "continuation",
+      "direction": "long",
+      "change": "target-on-loss-side",
+      "expected": "material",
+      "area": "logic"
+    },
+    {
+      "id": "unexplained-invalidation",
+      "purpose": "A numerical stop alone does not explain what evidence would challenge the thesis.",
+      "market": "rising",
+      "method": "continuation",
+      "direction": "long",
+      "change": "missing-invalidation-condition",
+      "expected": "insufficient"
+    },
+    {
+      "id": "trend-against-context",
+      "purpose": "The same long short-horizon evidence needs a contextual warning when the stated method requires agreement with a declining higher horizon.",
+      "market": "higher-falling",
+      "method": "continuation",
+      "direction": "long",
+      "expected": "material",
+      "area": "context"
+    },
+    {
+      "id": "declared-countertrend",
+      "purpose": "A declared bounded countertrend method is not automatically defective merely because higher-horizon prices decline.",
+      "market": "higher-falling",
+      "method": "range-reversal",
+      "direction": "long",
+      "expected": "supported"
+    },
+    {
+      "id": "selected-history-short",
+      "purpose": "A handful of selected-timeframe bars cannot stand in for the required closed-bar history.",
+      "market": "rising",
+      "method": "continuation",
+      "direction": "long",
+      "change": "selected-history-short",
+      "expected": "insufficient"
+    },
+    {
+      "id": "missing-higher-history",
+      "purpose": "Missing higher-horizon evidence remains unknown; the reviewer must not invent context.",
+      "market": "rising",
+      "method": "continuation",
+      "direction": "long",
+      "change": "missing-higher-history",
+      "expected": "insufficient"
+    },
+    {
+      "id": "stale-selected-history",
+      "purpose": "A fresh page timestamp cannot make old market evidence current.",
+      "market": "rising",
+      "method": "continuation",
+      "direction": "long",
+      "change": "stale-selected-history",
+      "expected": "insufficient"
+    },
+    {
+      "id": "forming-only-history",
+      "purpose": "Forming bars are not completed observations and cannot support a first review.",
+      "market": "rising",
+      "method": "continuation",
+      "direction": "long",
+      "change": "forming-only-history",
+      "expected": "insufficient"
+    },
+    {
+      "id": "incorrect-interval-history",
+      "purpose": "Finer bars relabelled as a larger interval are unusable evidence.",
+      "market": "rising",
+      "method": "continuation",
+      "direction": "long",
+      "change": "incorrect-interval-history",
+      "expected": "insufficient"
+    },
+    {
+      "id": "unknown-execution-costs",
+      "purpose": "Missing transaction costs are unknown rather than a zero-cost pass.",
+      "market": "rising",
+      "method": "continuation",
+      "direction": "long",
+      "change": "unknown-costs",
+      "expected": "insufficient"
+    },
+    {
+      "id": "missing-price-specification",
+      "purpose": "Unspecified value per unit prevents a claim that position risk fits a dollar cap.",
+      "market": "rising",
+      "method": "continuation",
+      "direction": "long",
+      "change": "missing-spec",
+      "expected": "insufficient"
+    },
+    {
+      "id": "unassessed-method",
+      "purpose": "Unsupported strategy text must be surfaced as unassessed rather than interpreted as a known edge.",
+      "market": "rising",
+      "method": "other",
+      "direction": "long",
+      "expected": "insufficient"
+    },
+    {
+      "id": "stale-executable-quote",
+      "purpose": "Known candle history cannot substitute for a stale executable quote when reviewing a position plan.",
+      "market": "rising",
+      "method": "continuation",
+      "direction": "long",
+      "change": "stale-quote",
+      "expected": "insufficient"
+    },
+    {
+      "id": "missing-source-provenance",
+      "purpose": "Prices without an attributable source must remain an evidence-quality unknown.",
+      "market": "rising",
+      "method": "continuation",
+      "direction": "long",
+      "change": "missing-source",
+      "expected": "insufficient"
+    },
+    {
+      "id": "student-cannot-raise-configured-cap",
+      "purpose": "A learner cannot waive a known configured cap by writing a larger number into a hypothesis.",
+      "market": "rising",
+      "method": "continuation",
+      "direction": "long",
+      "change": "raises-configured-cap",
+      "expected": "material",
+      "area": "execution"
+    },
+    {
+      "id": "student-cannot-hide-exposure",
+      "purpose": "Existing account exposure remains relevant when a learner claims no existing risk.",
+      "market": "rising",
+      "method": "continuation",
+      "direction": "long",
+      "change": "hides-account-exposure",
+      "expected": "material",
+      "area": "execution"
+    },
+    {
+      "id": "student-cannot-hide-realized-loss",
+      "purpose": "Known realized loss cannot be erased by entering a zero loss assumption.",
+      "market": "rising",
+      "method": "continuation",
+      "direction": "long",
+      "change": "hides-realized-loss",
+      "expected": "material",
+      "area": "execution"
+    },
+    {
+      "id": "confirmed-entry-outside-evidence",
+      "purpose": "A claimed current closed-confirmation entry far away from all recent traded prices needs an entry-evidence concern rather than a numerical risk pass.",
+      "market": "rising",
+      "method": "continuation",
+      "direction": "long",
+      "change": "confirmed-entry-outside-evidence",
+      "expected": "material",
+      "area": "logic"
+    },
+    {
+      "id": "unsupported-visible-target",
+      "purpose": "An explicitly structure-based target far outside all visible structure is not supported by that evidence, even when its reward multiple looks attractive.",
+      "market": "rising",
+      "method": "continuation",
+      "direction": "long",
+      "change": "unsupported-visible-target",
+      "expected": "material",
+      "area": "logic"
+    },
+    {
+      "id": "closed-breakout-observed",
+      "purpose": "The breakout method can support an observed completed boundary break when context and paper arithmetic are coherent.",
+      "market": "breakout",
+      "method": "breakout",
+      "direction": "long",
+      "expected": "supported"
+    },
+    {
+      "id": "claimed-breakout-not-observed",
+      "purpose": "A forecast or high wick is not a completed close beyond the observed boundary.",
+      "market": "rising",
+      "method": "breakout",
+      "direction": "long",
+      "expected": "material",
+      "area": "logic"
+    },
+    {
+      "id": "pending-breakout-remains-conditional",
+      "purpose": "An explicitly pending breakout is unresolved information, not a falsely confirmed entry or an automatically defective future plan.",
+      "market": "rising",
+      "method": "breakout",
+      "direction": "long",
+      "change": "pending-breakout",
+      "expected": "insufficient"
+    },
+    {
+      "id": "symbol-context-mismatch",
+      "purpose": "Evidence from a different instrument cannot support the learner hypothesis even if its trajectory agrees.",
+      "market": "rising",
+      "method": "continuation",
+      "direction": "long",
+      "change": "symbol-mismatch",
+      "expected": "insufficient"
+    }
+  ]
+}

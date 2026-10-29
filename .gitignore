@@ -22,3 +22,6 @@ research/history/
 research/batches/
 aria_ai.db
 aria_ai.db-*
+
+# Private local Oracle preview state
+.preview-state/

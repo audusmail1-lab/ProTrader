@@ -1,6 +1,7 @@
-// Sentinel runs ARIA on the server (sentinel_engine.py). This test runs the
-// ORIGINAL ARIA code from protrader_mobile.html and the Python port on the
-// same candles and fails on any disagreement, so the two cannot drift.
+// Sentinel retains engine 7.1 independently of the newer UI checklist-v2.
+// Compare its Python implementation with the frozen, provenance-pinned legacy
+// JavaScript reference on identical candles; never migrate execution rules to
+// satisfy current educational checklist behavior.
 //
 //   node --test tests/*.test.cjs
 const {test} = require('node:test');
@@ -19,11 +20,15 @@ const cut = (a, b) => {
   // Drop a comment banner the end marker sits inside.
   return open >= 0 && seg.indexOf('*/', open) < 0 ? seg.slice(0, open) : seg;
 };
-const source = [
+const currentSource = [
   cut('function calcEMA(', 'CHART — TradingView'),
   cut('const ARIA_LAWS', 'function renderARIA'),
   cut('const PATTERNS = [', 'function runPatternScanner'),
 ].join('\n');
+const source = fs.readFileSync(path.join(__dirname,'fixtures/sentinel-engine-7.1.reference.js'),'utf8');
+const provenance = JSON.parse(fs.readFileSync(path.join(__dirname,'fixtures/sentinel-engine-7.1.provenance.json'),'utf8'));
+assert.equal(require('node:crypto').createHash('sha256').update(source).digest('hex'),provenance.fixtureSha256,'review any legacy fixture change against its recorded source commit');
+
 
 // Deterministic random walk with regime changes, gaps and flat bars.
 function makeCandles(seed, n, start, vol) {
@@ -45,11 +50,11 @@ function makeCandles(seed, n, start, vol) {
   return out;
 }
 
-function runJS(cdles, sym, hour, newsWeek) {
+function runJS(cdles, sym, hour, newsWeek, implementation=source) {
   class FixedDate extends Date { getUTCHours() { return hour; } }
   const S = {candles: cdles, sym, tf: '15m', dp: 5, balance: 10000, riskPct: 1, newsWeek, activePatterns: []};
   const ctx = vm.createContext({S, Date: FixedDate, Math, Number, JSON});
-  vm.runInContext(source, ctx);
+  vm.runInContext(implementation, ctx);
   return vm.runInContext(`(() => {
     const cdles = S.candles, closes = cdles.map(x => x.close), n = closes.length;
     const ema20v = calcEMA(closes, 20), ema50v = calcEMA(closes, 50), ema200v = calcEMA(closes, 200);
@@ -62,7 +67,7 @@ function runJS(cdles, sym, hour, newsWeek) {
     const v = ariaVerdict(g.score, mcc, S.sym, g.dir);
     const e = ariaEntry(cdles, closes, atrV, g.dir, mcc);
     return {dir: g.dir, score: g.score, gates: g.gates.map(x => !!x.pass), mcc: mcc.code,
-            wyckoff: wyck.phase, pattern: pat, verdict: v.v, sl: e.slLevel, tp2: e.tp2};
+            wyckoff: wyck.phase, pattern: pat, verdict: v.v, sl: e?.slLevel ?? null, tp2: e?.tp2 ?? null};
   })()`, ctx);
 }
 
@@ -77,7 +82,7 @@ for (let k = 0; k < 60; k++) {
   }
 }
 
-test('Python ARIA port matches the terminal ARIA engine', () => {
+test('Sentinel engine 7.1 matches its independent legacy JavaScript reference across 240 cases', () => {
   const py = JSON.parse(execFileSync('python3', ['-c', `
 import json, sys
 sys.path.insert(0, ${JSON.stringify(root)})
@@ -111,4 +116,31 @@ print(json.dumps(out))
   gatePass.forEach((c, gi) => assert.ok(c > 0 && c < cases.length, `gate ${gi} passed ${c}/${cases.length}`));
   console.log('gate passes', gatePass.join(' '));
   console.log('verdict mix', verdicts, 'cases', cases.length);
+});
+
+test('current ARIA checklist-v2 is explicitly separate from Sentinel legacy direction, score and execution status',()=>{
+  assert.equal(provenance.engine,'7.1');assert.equal(provenance.executionModel,'7.2c');
+  const first=cases[0],legacy=runJS(first.c,first.sym,first.hour,first.news),current=runJS(first.c,first.sym,first.hour,first.news,currentSource);
+  assert.notEqual(current.score,legacy.score,'the version distinction must not hide the known independent rule behavior');
+  const flat=Array.from({length:240},(_,i)=>({time:1780000000+i*900,open:100,high:100,low:100,close:100}));
+  const old=runJS(flat,'R_50',14,false),next=runJS(flat,'R_50',14,false,currentSource);
+  assert.equal(old.dir,'sell');assert.equal(next.dir,'neutral');assert.equal(next.sl,null);assert.equal(next.verdict,'UNAVAILABLE');
+  assert.match(html,/ARIA_CHECKLIST_MODEL\s*=\s*['"]checklist-v2['"]/);
+  const sentinel=html.slice(html.indexOf('const SENT = (() =>'),html.indexOf('A position opened from Sentinel'));
+  assert.doesNotMatch(sentinel,/ARIA_GATE_COUNT/,'Sentinel scores must use their own recorded/server denominator');
+  assert.match(sentinel,/Engine .*status.engine/);assert.match(sentinel,/Strategy .*status.model/);
+});
+
+test('Sentinel display uses recorded/server gate counts and identifies historical models without borrowing UI assumptions',()=>{
+  const begin=html.indexOf('  function scoreText(record,'),end=html.indexOf('  function drift(t)',begin);
+  assert.ok(begin>=0&&end>begin);const context=vm.createContext({esc:s=>String(s??'').replaceAll('<','&lt;').replaceAll('>','&gt;')});
+  vm.runInContext(html.slice(begin,end)+'\nglobalThis.display={scoreText,modelText};',context);
+  const {scoreText,modelText}=context.display;
+  assert.equal(scoreText({score:7,gates:Array(9).fill(true),engine:'7.0',model:'fixed'}),'7/9');
+  assert.equal(scoreText({score:8,engine:'7.1'},{engine:'7.1',gate_count:10}),'8/10');
+  assert.equal(scoreText({score:7,engine:'7.0'},{engine:'7.1',gate_count:10}),'7/?');
+  assert.equal(scoreText({score:7}),'7/?','unversioned historical data cannot borrow the current server denominator');
+  assert.equal(scoreText({score:11,gates:Array(10).fill(true)}),'—/10');
+  assert.equal(modelText({engine:'7.0',model:'fixed'}),'Engine 7.0 · strategy fixed');
+  assert.match(modelText({model:'<unsafe>'}),/&lt;unsafe&gt;/);
 });

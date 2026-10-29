@@ -1,12 +1,12 @@
 """
 ARIA v7.1 engine — Python port for Sentinel.
 
-This is a line-for-line port of the ARIA functions in protrader_mobile.html
-(calcEMA/RSI/MACD/Stoch/ATR, ariaMCC, ariaWyckoff, ariaGates, ariaVerdict,
-ariaEntry and the pattern scanner). The server-side scanner must reach the
-same verdict the terminal shows, so any change to the JS engine has to be
-mirrored here. tests/test_sentinel_parity.py runs the original JS and this
-module on the same candles and fails if they disagree.
+This retains the legacy ARIA 7.1 signal rules used by Sentinel's versioned
+execution models. Current UI checklist-v2 has separate unknown/neutral handling
+and is not this execution engine. tests/sentinel-parity.test.cjs compares this
+module against a provenance-pinned legacy JavaScript reference on identical
+candles. Changes to UI checklist behavior must not silently migrate Sentinel
+execution rules or reinterpret historical results.
 
 Deliberate differences from the terminal (documented, not accidental):
   * The caller decides which candles to pass. Sentinel passes CLOSED candles
@@ -24,7 +24,7 @@ from typing import Any, Optional
 
 Candle = dict[str, float]
 
-# ARIA v7.1 gate settings — identical to the constants in protrader_mobile.html.
+# Legacy ARIA v7.1 gate settings — independent of UI checklist-v2.
 ENGINE_VERSION = "7.1"
 GATE_COUNT = 10
 EXEC_MIN, QUAL_MIN, WAIT_MIN = 9, 8, 6

@@ -35,6 +35,18 @@ app.add_middleware(GZipMiddleware, minimum_size=1024)
 
 
 @app.middleware("http")
+async def _isolated_preview_execution_boundary(request, call_next):
+    # The integrated preview retains real product routes for inspection, but
+    # cannot issue broker commands, start demo strategies or send notifications.
+    # This switch is set by the isolated launcher before any module imports.
+    if os.environ.get("PROTRADER_LOCAL_PREVIEW") == "1" and request.method not in ("GET", "HEAD", "OPTIONS"):
+        path = request.url.path
+        if path.startswith(("/api/bridge/", "/api/notify/")) or path in ("/api/sentinel/live", "/api/sentinel/drift"):
+            return JSONResponse({"detail": "Execution and outbound notifications are disabled in this isolated local preview."}, status_code=403, headers={"Cache-Control": "no-store"})
+    return await call_next(request)
+
+
+@app.middleware("http")
 async def _security_headers(request, call_next):
     """The app must not be framed by other sites; nothing here needs to be."""
     resp = await call_next(request)
@@ -71,12 +83,17 @@ app.include_router(_mt5_bridge_router)
 # server-side and MT5 events come off the bridge snapshots.
 import notify as _notify
 app.include_router(_notify.router)
-_notify.start()
+if os.environ.get("PROTRADER_LOCAL_PREVIEW") != "1":
+    _notify.start()
 
 # Accounts (see accounts.py): sign in with the Academy account; one saved
 # workspace per person on every device and browser. Guests stay local.
 import accounts as _accounts
 app.include_router(_accounts.router)
+
+# Oracle remains private unless explicit account entitlements are configured.
+import oracle_api as _oracle_api
+app.include_router(_oracle_api.router)
 
 # ARIA Sentinel (see sentinel.py): always-on ARIA scanner + paper journal.
 import sentinel as _sentinel
@@ -360,11 +377,11 @@ def _calc_adx(df: pd.DataFrame, period: int = 14) -> tuple[float, float, float]:
         pdi_s = wilder(plus_dm)
         mdi_s = wilder(minus_dm)
 
-        plus_di  = np.where(tr_s > 0, 100 * pdi_s / tr_s, 0.0)
-        minus_di = np.where(tr_s > 0, 100 * mdi_s / tr_s, 0.0)
+        plus_di  = np.divide(100 * pdi_s, tr_s, out=np.zeros_like(tr_s), where=tr_s > 0)
+        minus_di = np.divide(100 * mdi_s, tr_s, out=np.zeros_like(tr_s), where=tr_s > 0)
 
         denom = plus_di + minus_di
-        dx = np.where(denom > 0, 100 * np.abs(plus_di - minus_di) / denom, 0.0)
+        dx = np.divide(100 * np.abs(plus_di - minus_di), denom, out=np.zeros_like(denom), where=denom > 0)
         adx = wilder(dx)
 
         return (
@@ -596,10 +613,10 @@ def chart_data(ticker: str,
             mdm  = np.where((down > up) & (down > 0), down, 0.0)
             alpha = 1.0 / period
             def ew(a): return pd.Series(a).ewm(alpha=alpha, adjust=False).mean().values
-            tr_s = ew(tr); pdi = np.where(tr_s > 0, 100*ew(pdm)/tr_s, 0.0)
-            mdi  = np.where(tr_s > 0, 100*ew(mdm)/tr_s, 0.0)
+            tr_s = ew(tr); pdi = np.divide(100 * ew(pdm), tr_s, out=np.zeros_like(tr_s), where=tr_s > 0)
+            mdi = np.divide(100 * ew(mdm), tr_s, out=np.zeros_like(tr_s), where=tr_s > 0)
             denom = pdi + mdi
-            dx = np.where(denom > 0, 100*np.abs(pdi - mdi)/denom, 0.0)
+            dx = np.divide(100 * np.abs(pdi - mdi), denom, out=np.zeros_like(denom), where=denom > 0)
             return pd.Series(ew(dx), index=src.index)
 
         adx_full_series = _adx_series(full)
@@ -1264,7 +1281,7 @@ def quotes(tickers: str = "") -> list:
 
 _STATIC_TYPES = {
     ".png": "image/png", ".webmanifest": "application/manifest+json",
-    ".js": "application/javascript", ".svg": "image/svg+xml", ".ico": "image/x-icon",
+    ".js": "application/javascript", ".css": "text/css", ".svg": "image/svg+xml", ".ico": "image/x-icon",
     ".woff2": "font/woff2", ".webp": "image/webp", ".jpg": "image/jpeg",
 }
 
