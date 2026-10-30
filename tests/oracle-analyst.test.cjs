@@ -282,6 +282,45 @@ test('request another review waits for an image upload instead of disconnecting 
 function intradaySnapshot(id='intraday-a'){
  const s=snapshot(id);s.profile='intraday-v1';s.series=Object.fromEntries(Object.entries({'4h':14400,'1h':3600,'15m':900,'5m':300}).map(([tf,sec])=>{const end=Math.floor(asOf/sec)*sec;return[tf,{status:'ready',source:'Deriv',capturedAt:asOf+1,candles:Array.from({length:80},(_,i)=>({time:end-(80-i)*sec,open:100+i,high:102+i,low:99+i,close:101+i}))}];}));return s;
 }
+function directionalIntraday(kinds=['up','up','up','up']){
+ const s=intradaySnapshot('automatic-hierarchy');
+ for(const [index,tf] of ['4h','1h','15m','5m'].entries())s.series[tf].candles.forEach((bar,i)=>{
+  const center=200+(kinds[index]==='down'?-1:1)*Math.floor(i/5)*2+[0,4,2,-4,-2][i%5];
+  Object.assign(bar,{open:center,close:center,high:center+.5,low:center-.5});
+ });return s;
+}
+test('automatic interpretation leads both views immediately without a connection, and survives reload and Journal handoff',async()=>{
+ const h=harness(),s=directionalIntraday();let sends=0;h.setSend(async()=>sends++);h.setCapture(async()=>s);await h.api.refresh();
+ assert.equal(h.connections.length,0);assert.equal(sends,0);assert.equal(h.api.getPacket().marketReview,undefined);
+ const reading=h.api.getPacket().analysis.interpretation;assert.equal(reading.relationship,'aligned');h.api.open();
+ for(const html of [h.panel.innerHTML,h.dialog.innerHTML]){
+  assert.match(html,/Automatic structure read · completed candles/);assert.match(html,/Bullish across 4H, 1H, 15m and 5m/);
+  assert.ok(html.indexOf(reading.reading)<html.indexOf('How the timeframes fit'));
+  assert.doesNotMatch(html,/Awaiting interpretation|Get Oracle’s view of this market/);
+  for(const tf of ['4h','1h','15m','5m'])assert.match(html,new RegExp('aria-label="'+tf.toUpperCase()+' [^"]+: Bullish\\.'));
+ }
+ h.click('journal');assert.equal(h.journalSaves[0].marketReview,undefined);assert.deepEqual(h.journalSaves[0].analysis.interpretation,reading);
+ const saved=h.stored();saved.active.analysis.interpretation.reading='FORGED_CACHED_INTERPRETATION';saved.active.analysis.interpretation.relationship='conflicting';
+ const loaded=harness(saved);await tick();assert.deepEqual(loaded.api.getPacket().analysis.interpretation,reading);assert.doesNotMatch(loaded.panel.innerHTML,/FORGED_CACHED_INTERPRETATION/);assert.equal(loaded.connections.length,0);
+});
+test('automatic conflict stays explicit and a separately requested agent review retains precedence',async()=>{
+ const h=harness();h.setCapture(async()=>directionalIntraday(['up','down','up','up']));await h.api.refresh();
+ assert.equal(h.api.getPacket().analysis.interpretation.relationship,'conflicting');assert.match(h.panel.innerHTML,/Bullish 4H context conflicts with bearish 1H structure/);
+ const id=await reviewRequest(h);h.callbacks().onMessage({role:'assistant',text:JSON.stringify({reviewId:id,...reviewFields,mtf:mtfReview})});
+ assert.match(h.panel.innerHTML,/Connected agent interpretation/);assert.ok(h.panel.innerHTML.indexOf(reviewFields.reading)<h.panel.innerHTML.indexOf('How the timeframes fit'));
+ assert.match(h.panel.innerHTML,/Mixed \/ partial/);assert.equal(h.api.getPacket().analysis.interpretation.relationship,'conflicting');
+ assert.equal(h.callbacks().getDiscussionContext().review.reading,reviewFields.reading);assert.equal(h.callbacks().getEvidence().source,undefined);
+ assert.equal(h.callbacks().getEvidence().interpretation,undefined,'Derived interpretation is not silently sent as independent raw market evidence');h.click('disconnect');
+});
+test('a completed new capture shows its conclusion at the top while a failed capture preserves the current reading and scroll',async()=>{
+ const h=harness();h.setCapture(async()=>directionalIntraday());await h.api.refresh();const dom=renderedDom(h);h.api.open();
+ for(const expanded of [false,true])dom.node('[data-oa-scroll]',expanded).scrollTop=380;
+ h.setCapture(async()=>{throw Error('New history temporarily unavailable');});await h.api.refresh();
+ for(const expanded of [false,true])assert.equal(dom.node('[data-oa-scroll]',expanded).scrollTop,380);
+ const original=h.api.getPacket();h.setCapture(async()=>({...directionalIntraday(),id:'new-completed-capture'}));await h.api.refresh();
+ for(const expanded of [false,true])assert.equal(dom.node('[data-oa-scroll]',expanded).scrollTop,0);
+ assert.equal(h.api.getPacket().snapshot.id,'new-completed-capture');assert.ok(h.api.getHistory().some(p=>p.snapshot.id===original.snapshot.id));assert.equal(h.connections.length,0);
+});
 const mtfReview={profile:'intraday-v1',relationship:'mixed',governing:'4h supplies context; 15m defines the setup and 5m its timing.',setupCondition:'No defined trigger; the supplied sample has no confirmed swing pairs.',setupInvalidation:'No specific setup invalidation is justified by these facts.',contextInvalidation:'Higher context needs a new completed 4h structure assessment.',frames:['4h','1h','15m','5m'].map(tf=>({timeframe:tf,reading:'Structure is undetermined in this sample.',evidence:'The completed closes rose, but no confirmed pivot pairs exist.'}))};
 test('intraday capture requests four-frame profile; review requires hierarchy and preserves it across reload, discussion and Journal',async()=>{
  const h=harness();let options;h.setCapture(async(_h,o)=>{options=o;return intradaySnapshot();});await h.api.refresh();assert.equal(options.profile,'intraday-v1');assert.equal(h.api.getPacket().analysis.status,'Data available');assert.equal(h.api.getPacket().analysis.profile,'intraday-v1');

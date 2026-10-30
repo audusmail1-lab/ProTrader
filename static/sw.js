@@ -2,15 +2,15 @@
    Caches the app shell (page + chart library + icons) so the terminal opens
    instantly and even offline; market data always goes to the network.
    Bump CACHE_VERSION whenever the shell changes to evict the old copy. */
-const CACHE_VERSION = 'protrader-shell-v68-preview-readiness-layout4';
+const CACHE_VERSION = 'protrader-shell-v70-preview-intraday-read';
 const VENDOR = '/vendor/lightweight-charts.standalone.production.js?v=5.0.9';
 const DRAWING = '/vendor/lightweight-charts-drawing.umd.js?v=0.2.5';
 const REVIEW_ASSETS = [
-  '/static/lesson-practice.css?v=readiness-20261022-stylefix', '/static/oracle-workspace.css?v=readiness-20261022-stylefix', '/static/oracle-analyst.css?v=readiness-20261022-layout4',
+  '/static/lesson-practice.css?v=readiness-20261022-stylefix', '/static/oracle-workspace.css?v=readiness-20261022-stylefix', '/static/oracle-analyst.css?v=intraday-read-20261029-r2',
   '/static/lesson-practice.js?v=readiness-20261022-final', '/static/mtf-analysis.js?v=readiness-20261022-final',
   '/static/oracle-market.js?v=2', '/static/oracle-review.js?v=1',
-  '/static/oracle-workspace.js?v=readiness-20261022-final', '/static/oracle-evidence.js?v=2',
-  '/static/oracle-conversation.js?v=readiness-20261022-final', '/static/oracle-analyst.js?v=readiness-20261022-layout4',
+  '/static/oracle-workspace.js?v=intraday-read-20261029-r2', '/static/oracle-evidence.js?v=intraday-read-20261029-r2',
+  '/static/oracle-conversation.js?v=readiness-20261022-final', '/static/oracle-analyst.js?v=intraday-read-20261029-r2',
 ];
 const SHELL = ['/', '/mobile', '/app', VENDOR, DRAWING, '/static/manifest.webmanifest', '/static/icon-192.png', '/static/icon-512.png', ...REVIEW_ASSETS];
 

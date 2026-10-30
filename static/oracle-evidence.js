@@ -135,5 +135,94 @@
     }
     return freeze(out);
   }
-  return {extract,version:VERSION,minimumBars:MINIMUM_BARS};
+  // A reproducible interpretation of the validated, frozen evidence. This is
+  // deliberately separate from an authenticated conversational agent review.
+  // Hierarchy follows timeframe roles; direction is never a majority vote.
+  function interpret(evidence){
+    const e=evidence?.profile==='intraday-v1'?evidence:null;
+    const roles={'4h':'Context','1h':'Active structure','15m':'Setup','5m':'Timing'};
+    const price=n=>n.toLocaleString('en-US',{maximumSignificantDigits:10});
+    const direction=bias=>bias==='bullish'?'bullish':bias==='bearish'?'bearish':null;
+    const frame=tf=>{
+      const f=e?.frames?.[tf],s=f?.structure,role=roles[tf],name=tf.toUpperCase();
+      if(!f||!s){
+        const reason=e?.unknowns?.find(u=>u.timeframe===tf)?.message||'No validated completed-candle history is available for this timeframe.';
+        return {timeframe:tf,role,bias:'unavailable',verdict:'Unavailable',phase:'Missing evidence',reading:`${name}: ${reason}`,evidence:reason,changeCondition:`Capture valid, recent ${name} history before assessing this ${role.toLowerCase()}.`};
+      }
+      const high=s.swingHighs.at(-1),low=s.swingLows.at(-1);
+      const challenged=s.trend==='up'&&s.lastCloseVsLow==='below'||s.trend==='down'&&s.lastCloseVsHigh==='above';
+      const row={timeframe:tf,role,bias:'undetermined',verdict:'No clear trend',phase:'Unestablished structure',reading:'',evidence:'',changeCondition:''};
+      const priorHigh=s.swingHighs.at(-2),priorLow=s.swingLows.at(-2);
+      const swings=s.swingHighs.length===2&&s.swingLows.length===2;
+      const highSequence=swings?high.price>priorHigh.price?'higher highs':high.price<priorHigh.price?'lower highs':'equal highs':null;
+      const lowSequence=swings?low.price>priorLow.price?'higher lows':low.price<priorLow.price?'lower lows':'equal lows':null;
+      row.evidence=`Last completed ${name} close ${price(f.lastClose)}. `+(swings?`Confirmed ${highSequence} (${price(priorHigh.price)} → ${price(high.price)}) and ${lowSequence} (${price(priorLow.price)} → ${price(low.price)}).`:'Two confirmed swing highs and two confirmed swing lows are not established in this sample.');
+      if(challenged){
+        const wasUp=s.trend==='up',reference=wasUp?low:high;
+        row.bias='mixed';row.verdict=wasUp?'Bullish structure challenged':'Bearish structure challenged';row.phase='Prior structure challenged';
+        row.reading=`${name}: the prior ${wasUp?'bullish':'bearish'} structure is challenged. The completed close is ${wasUp?'below':'above'} the latest confirmed swing ${wasUp?'low':'high'} at ${price(reference.price)}; an opposite trend is not yet established.`;
+        row.changeCondition=`The ${name} close has already crossed ${price(reference.price)}. New completed candles and confirmed swings are needed to assess recovery or a reversal.`;
+      }else if(s.trend==='up'||s.trend==='down'){
+        const up=s.trend==='up';row.bias=up?'bullish':'bearish';row.verdict=up?'Bullish structure':'Bearish structure';row.phase='Directional structure';
+        row.reading=`${name}: ${up?'bullish':'bearish'} structure. ${up?'Higher highs and higher lows':'Lower highs and lower lows'} remain intact at the saved close.`;
+        row.changeCondition=`A completed ${name} close ${up?'below':'above'} the latest confirmed swing ${up?'low':'high'} at ${price((up?low:high).price)} would challenge this structure; it would not by itself confirm the opposite trend.`;
+      }else if(s.trend==='mixed'){
+        row.bias='mixed';row.verdict='Mixed structure';
+        row.phase=highSequence==='lower highs'&&lowSequence==='higher lows'?'Compressing swings':highSequence==='higher highs'&&lowSequence==='lower lows'?'Expanding swings':'Mixed swings';
+        row.reading=`${name}: mixed structure. ${highSequence[0].toUpperCase()+highSequence.slice(1)} and ${lowSequence} do not establish a consistent direction.`;
+        row.changeCondition=`New confirmed ${name} high and low pairs would need to establish the same direction before calling this structure bullish or bearish.`;
+      }else{
+        row.reading=`${name}: no established swing trend. The sample does not yet contain two confirmed high and low pairs.`;
+        row.changeCondition=`Wait for sufficient confirmed ${name} high and low pairs; recent price displacement alone cannot establish a swing trend.`;
+      }
+      if(f.lastClosePosition==='above'||f.lastClosePosition==='below')row.evidence+=` The close is ${f.lastClosePosition} the prior 20-bar ${f.lastClosePosition==='above'?'high':'low'} (${price(f.lastClosePosition==='above'?f.prior20High:f.prior20Low)}). This range break does not by itself confirm continuation.`;
+      return row;
+    };
+    const frames=INTRADAY_TIMEFRAMES.map(frame),[context,active,setup,timing]=frames;
+    const available=!!e?.available&&frames.every(f=>f.bias!=='unavailable');
+    const out={version:1,source:'calculated-rules',method:'intraday-structure-hierarchy-v1',profile:'intraday-v1',available,relationship:'incomplete',frames,
+      reading:'',support:'',concern:'',governing:'4H sets context; 1H describes active structure; 15m describes the setup; 5m refines timing. Lower frames do not replace higher context.',setupCondition:'',setupInvalidation:'',contextInvalidation:'',
+      limits:'Calculated from completed candles at the saved cutoff using confirmed two-left/two-right swings within 120 bars. Swing confirmation lags price. This is a structure assessment, not a connected AI response, entry signal or probability of profit.'};
+    const c=direction(context.bias),a=direction(active.bias),s=direction(setup.bias),t=direction(timing.bias);
+    if(!available){
+      const missing=frames.filter(f=>f.bias==='unavailable').map(f=>f.timeframe.toUpperCase()).join(', ');
+      out.reading=`Incomplete hierarchy: ${missing||'required timeframe evidence'} unavailable. A full four-timeframe conclusion cannot be made.`;
+      out.support=frames.filter(f=>f.bias!=='unavailable').map(f=>`${f.timeframe.toUpperCase()}: ${f.verdict.toLowerCase()}`).join('; ')||'No timeframe has sufficient validated evidence.';
+      out.concern='Available timeframe readings remain useful individually, but missing context or timing must not be treated as agreement.';
+    }else if(!c){
+      out.relationship=context.bias==='mixed'?'mixed':'undetermined';
+      out.reading=context.bias==='mixed'?'Mixed 4H context. Lower-timeframe direction does not establish a clear higher-timeframe trend.':'4H trend is not established. The overall direction remains undetermined.';
+      out.support=`4H: ${context.verdict.toLowerCase()}. 1H: ${active.verdict.toLowerCase()}; 15m: ${setup.verdict.toLowerCase()}; 5m: ${timing.verdict.toLowerCase()}.`;
+      out.concern='A directional move on a lower timeframe can exist inside unresolved higher structure; it is not enough to call the whole hierarchy aligned.';
+    }else if(a&&a!==c){
+      out.relationship='conflicting';
+      out.reading=`${c[0].toUpperCase()+c.slice(1)} 4H context conflicts with ${a} 1H structure. Treat the active move as counter to context.`;
+      out.support=`4H remains ${c}; 1H is ${a}. The 15m setup is ${setup.verdict.toLowerCase()} and 5m timing is ${timing.verdict.toLowerCase()}.`;
+      out.concern='The lower frames cannot resolve this higher-timeframe conflict by outnumbering 4H. Neither a completed reversal nor continuation is established by this relationship alone.';
+    }else if(!a){
+      out.relationship='mixed';out.reading=`${c[0].toUpperCase()+c.slice(1)} 4H context, unresolved 1H structure. The setup has only partial support.`;
+      out.support=`4H: ${context.verdict.toLowerCase()}. 1H: ${active.verdict.toLowerCase()}.`;
+      out.concern=`The active 1H structure needs clarification before calling the hierarchy aligned. 15m is ${setup.verdict.toLowerCase()}; 5m is ${timing.verdict.toLowerCase()}.`;
+    }else if(s===c&&t===c){
+      out.relationship='aligned';out.reading=`${c[0].toUpperCase()+c.slice(1)} across 4H, 1H, 15m and 5m. Structure aligns; an entry is not established.`;
+      out.support=`4H context and 1H active structure are ${c}. The 15m setup and 5m timing agree with that direction.`;
+      out.concern='Alignment describes the saved structure. It does not establish follow-through, a valid strategy trigger or acceptable execution risk.';
+    }else if(s&&s!==c){
+      out.relationship='compatible-pullback';out.reading=`Possible ${s} pullback within ${c} 4H and 1H structure. Continuation is unconfirmed.`;
+      out.support=`4H context and 1H active structure remain ${c}, while 15m points ${s}.`;
+      out.concern=t===s?`5m agrees with the countertrend 15m move. It could deepen or become a reversal attempt; a pullback resolution is not confirmed.`:t===c?`5m points back toward ${c} context, but the 15m structure has not aligned. Timing alone does not confirm a recovery.`:`5m timing is unresolved. The lower move could remain a pullback or develop further against context.`;
+    }else{
+      out.relationship='mixed';out.reading=s===c?`${c[0].toUpperCase()+c.slice(1)} context and setup, but 5m timing ${t?'opposes them':'is unresolved'}. Alignment is partial.`:`${c[0].toUpperCase()+c.slice(1)} 4H and 1H structure, but the 15m setup is unresolved. Alignment is partial.`;
+      out.support=`4H context and 1H active structure agree: ${c}. 15m: ${setup.verdict.toLowerCase()}; 5m: ${timing.verdict.toLowerCase()}.`;
+      out.concern='A timing difference or unresolved setup must stay visible. It does not automatically invalidate higher-timeframe structure.';
+    }
+    out.setupInvalidation=setup.changeCondition;out.contextInvalidation=context.changeCondition;
+    const setupFacts=e?.frames?.['15m'];
+    if(s&&setupFacts){
+      const up=s==='bullish',bound=up?setupFacts.prior20High:setupFacts.prior20Low,met=up?setupFacts.lastClose>bound:setupFacts.lastClose<bound;
+      out.setupCondition=`The completed 15m close ${met?'has already cleared':'has not cleared'} the prior 20-bar ${up?'high':'low'} at ${price(bound)}. ${met?'This is an observed range break':'A close beyond that bound is a reference to watch'}, not a validated entry trigger.`;
+    }else out.setupCondition=`No directional 15m trigger is established: ${setup.verdict.toLowerCase()}. Reassess with new completed candles rather than infer an entry from lower timing.`;
+    return freeze(out);
+  }
+  return {extract,interpret,version:VERSION,minimumBars:MINIMUM_BARS};
 });

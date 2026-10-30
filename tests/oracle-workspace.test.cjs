@@ -113,3 +113,69 @@ test('Journal retains four-frame review hierarchy and separate invalidations thr
  const marketReview={reviewId:'four-frames',snapshotId:snapshot.id,dataReference:snapshot.dataReference,at:Date.now(),reading:'Pullback inside a broader upward structure.',support:'The higher context still holds its confirmed low.',concern:'Lower-frame recovery remains unconfirmed.',whatChanges:'Setup and context have different change conditions.',limits:'These are lagging price observations, without news.',mtf};const saved=h.api.saveAnalysis({id:'saved-mtf',snapshot,analysis:{timeframe:'15m',profile:'intraday-v1'},questions:[],marketReview});const loaded=mounted(h.stored());loaded.api.open({savedAnalysisId:saved.id});assert.match(loaded.dialog.innerHTML,/Saved four-timeframe hierarchy/);assert.match(loaded.dialog.innerHTML,/Setup invalidated if/);assert.deepEqual(loaded.api.exportRecord(loaded.api.getState()).savedAnalyses[0].marketReview.mtf,mtf);loaded.api.open({originReviewId:saved.id});assert.deepEqual(loaded.api.getState().draft.originAnalysis.marketReview.mtf,mtf);
  const bad=clone(saved);bad.marketReview.mtf.frames[3]=bad.marketReview.mtf.frames[0];assert.equal(Workspace.importAnalysis(bad).marketReview,null);
 });
+
+function calculatedSnapshot(){
+ const cutoff=Date.UTC(2026,9,29,12,37,30)/1000,seconds={'4h':14400,'1h':3600,'15m':900,'5m':300};
+ return{version:1,profile:'intraday-v1',id:'saved-calculated-evidence',symbol:'R_50',label:'Vol 50',provider:'Deriv',asOf:cutoff,capturedAt:cutoff+2,dataReference:'fnv1a32-calculated',
+  series:Object.fromEntries(Object.entries(seconds).map(([tf,interval],index)=>{
+   const end=Math.floor(cutoff/interval)*interval,direction=index<2?1:-1;
+   const candles=Array.from({length:60},(_,i)=>{const close=200+direction*Math.floor(i/5)*2+[0,4,2,-4,-2][i%5];return{time:end-(60-i)*interval,open:close,close,high:close+.5,low:close-.5};});
+   return[tf,{status:'ready',source:'Deriv',capturedAt:cutoff+1,candles}];
+  }))};
+}
+function withEvidence(reader,fn){
+ const before=Object.getOwnPropertyDescriptor(global,'OracleEvidence');
+ try{global.OracleEvidence=reader;return fn();}
+ finally{if(before)Object.defineProperty(global,'OracleEvidence',before);else delete global.OracleEvidence;}
+}
+test('saved automatic Journal reading is rebuilt from frozen candles before raw facts and survives reload without promoting cached prose',()=>{
+ const Evidence=require('../static/oracle-evidence.js');
+ withEvidence(Evidence,()=>{
+  const snapshot=calculatedSnapshot(),expected=Evidence.interpret(Evidence.extract(snapshot,'15m'));
+  const h=mounted(),saved=h.api.saveAnalysis({id:'calculated-journal',snapshot,analysis:{timeframe:'15m',summary:'Retained raw candle summary.',interpretation:{source:'agent',reading:'FORGED_CACHED_AGENT_READING',frames:[]}},questions:[]});
+  snapshot.series['4h'].candles.at(-1).close=1;
+  h.api.open({savedAnalysisId:saved.id});
+  function check(html){
+   const raw=html.indexOf('<details><summary>Calculated facts &amp; evidence</summary>'),lead=html.slice(0,raw);
+   assert.ok(raw>0);assert.match(lead,/Calculated structure reading/);assert.ok(lead.includes(expected.reading));
+   assert.match(lead,/Rebuilt from saved candles/);assert.match(lead,/rules-based reading, not an agent response/);
+   assert.match(lead,/Possible pullback/);assert.match(lead,/<ul[^>]*aria-label="Saved timeframe verdicts"/);
+   for(const frame of expected.frames)assert.ok(lead.includes(`<strong>${frame.timeframe.toUpperCase()} · ${frame.role}</strong> — ${frame.verdict}`));
+   assert.match(lead,/<details><summary>Why this read · evidence &amp; conditions<\/summary>/);
+   assert.ok(lead.includes(expected.setupInvalidation));assert.ok(lead.includes(expected.contextInvalidation));
+   assert.doesNotMatch(html,/FORGED_CACHED_AGENT_READING|Agent interpretation of the saved evidence|Oracle’s market review/);
+  }
+  check(h.dialog.innerHTML);assert.equal(h.api.getState().savedAnalyses[0].marketReview,null);
+  const loaded=mounted(h.stored());loaded.api.open({savedAnalysisId:saved.id});check(loaded.dialog.innerHTML);
+  const exported=loaded.api.exportRecord(loaded.api.getState());assert.deepEqual(exported.savedAnalyses[0].snapshot,saved.snapshot);assert.equal(exported.savedAnalyses[0].marketReview,null);
+  loaded.api.open({originReviewId:saved.id});assert.deepEqual(loaded.api.getState().draft.snapshot,saved.snapshot);assert.equal(loaded.api.getState().draft.originAnalysis.marketReview,null);
+ });
+});
+test('saved automatic Journal reading keeps unavailable frames explicit rather than reusing cached alignment',()=>{
+ const Evidence=require('../static/oracle-evidence.js');
+ withEvidence(Evidence,()=>{
+  const snapshot=calculatedSnapshot();delete snapshot.series['4h'];for(const bar of snapshot.series['5m'].candles)bar.time-=300*5;
+  const h=mounted(),saved=h.api.saveAnalysis({id:'partial-calculated',snapshot,analysis:{timeframe:'15m',interpretation:{reading:'FORGED_FULL_ALIGNMENT',relationship:'aligned'}},questions:[]});
+  h.api.open({savedAnalysisId:saved.id});const lead=h.dialog.innerHTML.split('<details><summary>Calculated facts &amp; evidence</summary>')[0];
+  assert.match(lead,/Incomplete hierarchy: 4H, 5M unavailable/);
+  assert.match(lead,/<strong>4H · Context<\/strong> — Unavailable/);assert.match(lead,/<strong>5M · Timing<\/strong> — Unavailable/);
+  assert.match(lead,/<strong>1H · Active structure<\/strong> — Bullish structure/);assert.match(lead,/<strong>15M · Setup<\/strong> — Bearish structure/);
+  assert.match(lead,/stale at the saved cutoff/);assert.doesNotMatch(lead,/FORGED_FULL_ALIGNMENT/);
+ });
+});
+test('authenticated saved agent review takes precedence over automatic calculation',()=>{
+ withEvidence({extract(){throw Error('Agent precedence should not invoke calculation');},interpret(){throw Error('Unexpected calculation');}},()=>{
+  const snapshot=calculatedSnapshot(),mtf={profile:'intraday-v1',relationship:'mixed',governing:'4H governs context; 15m governs the setup.',setupCondition:'A defined entry trigger is not established.',setupInvalidation:'The setup reference needs a new completed assessment.',contextInvalidation:'Higher context is separately assessed on 4H.',frames:['4h','1h','15m','5m'].map(timeframe=>({timeframe,reading:'A retained private agent interpretation.',evidence:'The supplied completed candles were reviewed.'}))};
+  const marketReview={reviewId:'private-review',snapshotId:snapshot.id,dataReference:snapshot.dataReference,at:Date.now(),reading:'The authenticated agent reading must lead.',support:'The supplied chart evidence was considered.',concern:'The lower timeframe remains unresolved.',whatChanges:'New completed candles may change this reading.',limits:'The supplied candles do not establish future outcomes.',mtf};
+  const h=mounted(),saved=h.api.saveAnalysis({id:'agent-first',snapshot,analysis:{timeframe:'15m'},marketReview,questions:[]});
+  const loaded=mounted(h.stored());loaded.api.open({savedAnalysisId:saved.id});const lead=loaded.dialog.innerHTML.split('<details><summary>Calculated facts &amp; evidence</summary>')[0];
+  assert.match(lead,/Oracle’s market review/);assert.ok(lead.includes(marketReview.reading));assert.match(lead,/Agent interpretation of the saved evidence/);
+  assert.doesNotMatch(lead,/Calculated structure reading|structure reader is unavailable/);assert.deepEqual(loaded.api.getState().savedAnalyses[0].marketReview,marketReview);
+ });
+});
+test('an unavailable structure reader does not promote cached prose or prevent opening retained Journal evidence',()=>{
+ withEvidence(undefined,()=>{
+  const h=mounted(),saved=h.api.saveAnalysis({id:'reader-unavailable',snapshot:calculatedSnapshot(),analysis:{timeframe:'15m',interpretation:{reading:'CACHED_NOT_VERIFIED'}},questions:[]});
+  h.api.open({savedAnalysisId:saved.id});assert.match(h.dialog.innerHTML,/structure reader is unavailable/);assert.match(h.dialog.innerHTML,/Calculated facts &amp; evidence/);assert.doesNotMatch(h.dialog.innerHTML,/CACHED_NOT_VERIFIED/);
+ });
+});
